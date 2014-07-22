@@ -49,10 +49,8 @@ def main():
         print "status err %s" % e
         sys.exit(1)
 
-    if len(images) < 1:
-        print 'status err no glance images found'
-    else:
-        print 'status OK'
+    print 'status OK'
+    print 'metric glance_active_images uint32 %d' % len(images)
 
 if __name__ == "__main__":
     main()
