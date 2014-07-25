@@ -54,3 +54,11 @@ def check_availability(auth_ref):
     print 'metric heat_killed_stacks uint32 {0}'.format(failed)
     print 'metric heat_queued_stacks uint32 {0}'.format(in_progress)
     print 'metric heat_response_ms double {0}'.format(elapsed_ms)
+
+
+def main():
+    auth_ref = maas_common.get_auth_ref()
+    check_availability(auth_ref)
+
+    if __name__ == "__main__":
+        main()
