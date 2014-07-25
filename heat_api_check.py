@@ -31,22 +31,21 @@ def check_availability(auth_ref):
     os_auth_token = keystone.auth_ref['token']['id']
 
     start_at = time.time()
-    try:
-        heat = Client('1', endpoint=os_heat_endpoint, token=os_auth_token)
-    except Exception as e: 
-        print 'status err {0}'.format(e)
-        sys.exit(1)
-
+    heat = Client('1', endpoint=os_heat_endpoint, token=os_auth_token)
     elapsed_ms = (time.time() - start_at) * 1000
 
     complete, failed, in_progress = 0, 0, 0
-    for stack in heat.stacks.list():
-        if STATUS_COMPLETE == stack.status:
-            complete += 1
-        if STATUS_FAILED == stack.status:
-            sad += 1
-        if STATUS_IN_PROGRESS == stack.status:
-            in_progress += 1
+    try:
+        for stack in heat.stacks.list():
+            if STATUS_COMPLETE == stack.status:
+                complete += 1
+            if STATUS_FAILED == stack.status:
+             sad += 1
+            if STATUS_IN_PROGRESS == stack.status:
+              in_progress += 1
+    except Exception as e:
+        print 'status err {0}'.format(e)
+        sys.exit(1)
 
     print 'status heat api success'
     print 'metric heat_active_stacks uint32 {0}'.format(complete)
