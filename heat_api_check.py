@@ -3,7 +3,7 @@
 import sys
 import time
 import maas_common
-from heatclient import Client, exc
+from heatclient.client import Client 
 
 STATUS_COMPLETE = 'COMPLETE'
 STATUS_FAILED = 'FAILED'
@@ -31,7 +31,12 @@ def check_availability(auth_ref):
     os_auth_token = keystone.auth_ref['token']['id']
 
     start_at = time.time()
-    heat = Client('1', endpoint=os_heat_endpoint, token=os_auth_token)
+    try:
+        heat = Client('1', endpoint=os_heat_endpoint, token=os_auth_token)
+    except Exception as e: 
+        print 'status err {0}'.format(e)
+        sys.exit(1)
+
     elapsed_ms = (time.time() - start_at) * 1000
 
     complete, failed, in_progress = 0, 0, 0
@@ -42,12 +47,6 @@ def check_availability(auth_ref):
             sad += 1
         if STATUS_IN_PROGRESS == stack.status:
             in_progress += 1
-
-    except (exc.CommunicationError,
-            exc.HTTPInternalServerError,
-            exc.HTTPUnauthorized) as e:
-        print 'status err {0}'.format(e)
-        sys.exit(1)
 
     print 'status heat api success'
     print 'metric heat_active_stacks uint32 {0}'.format(complete)
@@ -60,5 +59,7 @@ def main():
     auth_ref = maas_common.get_auth_ref()
     check_availability(auth_ref)
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
+
+
