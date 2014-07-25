@@ -40,7 +40,7 @@ def check_availability(auth_ref):
             if STATUS_COMPLETE == stack.status:
                 complete += 1
             if STATUS_FAILED == stack.status:
-                sad += 1
+                failed += 1
             if STATUS_IN_PROGRESS == stack.status:
                 in_progress += 1
     except Exception as e:
