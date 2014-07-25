@@ -3,22 +3,23 @@
 import sys
 import time
 import maas_common
-from heatclient import Client, exc
+from heatclient.client import Client
 
 STATUS_COMPLETE = 'COMPLETE'
 STATUS_FAILED = 'FAILED'
 STATUS_IN_PROGRESS = 'IN_PROGRESS'
 
+
 def check_availability(auth_ref):
-	"""Check the availability of the Heat Orchestration API.
+    """Check the availability of the Heat Orchestration API.
 
-	:param dict auth_ref: A Keystone auth token to use when querying Heat
+    :param dict auth_ref: A Keystone auth token to use when querying Heat
 
-	Outputs basic metrics on the current status of Heat and the time elapsed during query.
-	Outputs an error status if any error occurs querying Heat.
-	Exits with 0 if Heat is available and responds without error, otherwise 1.
-	"""
-	keystone = maas_common.get_keystone_client(auth_ref)
+    Outputs metrics on current status of Heat and time elapsed during query.
+    Outputs an error status if any error occurs querying Heat.
+    Exits with 0 if Heat is available and responds without error, otherwise 1.
+    """
+    keystone = maas_common.get_keystone_client(auth_ref)
     if keystone is None:
         print 'status err Unable to obtain valid keystone client, ' \
               'cannot proceed'
@@ -34,17 +35,15 @@ def check_availability(auth_ref):
     elapsed_ms = (time.time() - start_at) * 1000
 
     complete, failed, in_progress = 0, 0, 0
-    for stack in heat.stacks.list():
-    	if STATUS_COMPLETE == stack.status:
-    		complete += 1
-		if STATUS_FAILED == stack.status:
-			sad += 1
-    	if STATUS_IN_PROGRESS == stack.status:
-    		in_progress += 1
-
-	except (exc.CommunicationError,
-            exc.HTTPInternalServerError,
-            exc.HTTPUnauthorized) as e:
+    try:
+        for stack in heat.stacks.list():
+            if STATUS_COMPLETE == stack.status:
+                complete += 1
+            if STATUS_FAILED == stack.status:
+                failed += 1
+            if STATUS_IN_PROGRESS == stack.status:
+                in_progress += 1
+    except Exception as e:
         print 'status err {0}'.format(e)
         sys.exit(1)
 
@@ -52,4 +51,12 @@ def check_availability(auth_ref):
     print 'metric heat_active_stacks uint32 {0}'.format(complete)
     print 'metric heat_killed_stacks uint32 {0}'.format(failed)
     print 'metric heat_queued_stacks uint32 {0}'.format(in_progress)
-    print 'metric heat_response_ms double {0}'.format(elapsed_ms) 
+    print 'metric heat_response_ms double {0}'.format(elapsed_ms)
+
+
+def main():
+    auth_ref = maas_common.get_auth_ref()
+    check_availability(auth_ref)
+
+if __name__ == "__main__":
+    main()
