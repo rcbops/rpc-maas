@@ -15,6 +15,7 @@ def check_availability(auth_ref):
 
     :param dict auth_ref: A Keystone auth token to use when querying Heat
 
+    Metrics include stacks built from either heat or cfn templates.
     Outputs metrics on current status of Heat and time elapsed during query.
     Outputs an error status if any error occurs querying Heat.
     Exits with 0 if Heat is available and responds without error, otherwise 1.
