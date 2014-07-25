@@ -3,7 +3,7 @@
 import sys
 import time
 import maas_common
-from heatclient.client import Client 
+from heatclient.client import Client
 
 STATUS_COMPLETE = 'COMPLETE'
 STATUS_FAILED = 'FAILED'
@@ -40,9 +40,9 @@ def check_availability(auth_ref):
             if STATUS_COMPLETE == stack.status:
                 complete += 1
             if STATUS_FAILED == stack.status:
-             sad += 1
+                sad += 1
             if STATUS_IN_PROGRESS == stack.status:
-              in_progress += 1
+                in_progress += 1
     except Exception as e:
         print 'status err {0}'.format(e)
         sys.exit(1)
@@ -60,5 +60,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
