@@ -9,7 +9,6 @@ STATUS_COMPLETE = 'COMPLETE'
 STATUS_FAILED = 'FAILED'
 STATUS_IN_PROGRESS = 'IN_PROGRESS'
 
-
 def check_availability(auth_ref):
     """Check the availability of the Heat Orchestration API.
 
@@ -31,28 +30,32 @@ def check_availability(auth_ref):
     os_heat_endpoint = endpoint.publicurl
     os_auth_token = keystone.auth_ref['token']['id']
 
-    start_at = time.time()
     heat = Client('1', endpoint=os_heat_endpoint, token=os_auth_token)
-    elapsed_ms = (time.time() - start_at) * 1000
 
-    complete, failed, in_progress = 0, 0, 0
+    # time the API call
+    start_at = time.time()
     try:
-        for stack in heat.stacks.list():
-            if STATUS_COMPLETE == stack.status:
-                complete += 1
-            if STATUS_FAILED == stack.status:
-                failed += 1
-            if STATUS_IN_PROGRESS == stack.status:
-                in_progress += 1
+        stacks = heat.stacks.list()
     except Exception as e:
         print 'status err {0}'.format(e)
         sys.exit(1)
+    elapsed_sec = (time.time() - start_at)
+
+    # evaluate response from call
+    complete, failed, in_progress = 0, 0, 0
+    for stack in stacks:
+        if STATUS_COMPLETE == stack.status:
+            complete += 1
+        if STATUS_FAILED == stack.status:
+            failed += 1
+        if STATUS_IN_PROGRESS == stack.status:
+            in_progress += 1
 
     print 'status heat api success'
     print 'metric heat_active_stacks uint32 {0}'.format(complete)
     print 'metric heat_killed_stacks uint32 {0}'.format(failed)
     print 'metric heat_queued_stacks uint32 {0}'.format(in_progress)
-    print 'metric heat_response_ms double {0}'.format(elapsed_ms)
+    print 'metric heat_response_sec double {0}'.format(elapsed_sec)
 
 
 def main():
