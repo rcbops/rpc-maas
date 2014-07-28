@@ -11,7 +11,7 @@ from heatclient.client import Client
 STATUS_COMPLETE = 'COMPLETE'
 STATUS_FAILED = 'FAILED'
 STATUS_IN_PROGRESS = 'IN_PROGRESS'
-SERVICE_TYPE = 'orchestration'
+ORCHESTRATION = 'orchestration'
 PUBLIC_URL = 'publicURL'
 
 
@@ -34,23 +34,22 @@ def check_availability(auth_ref):
 
     keystone = maas_common.get_keystone_client(auth_ref)
     if keystone is None:
+        # TODO use error(e) instead
         print 'status err Unable to obtain valid keystone client, ' \
             'cannot proceed'
         sys.exit(1)
 
-    service = keystone.services.find(type=SERVICE_TYPE)
-    endpoint = keystone.endpoints.find(service_id=service.id)
-
-    heat_endpoint = endpoint.publicurl
-
+    heat_endpoint = keystone.service_catalog.url_for(
+            service_type=ORCHESTRATION, endpoint_type=PUBLIC_URL)
     auth_details = maas_common.get_auth_details()
     auth_token_id = keystone.auth_ref['token']['id']
-    keystone_auth = token_endpoint.Token(endpoint, auth_token_id)
+    keystone_auth = token_endpoint.Token(None, auth_token_id)
+
     kwargs = {
         'auth_url': auth_details['OS_AUTH_URL'],
         # DISABLE 'session': keystone_session,
         'auth': keystone_auth,
-        'service_type': SERVICE_TYPE,
+        'service_type': ORCHESTRATION,
         'endpoint_type': PUBLIC_URL,
         # 'region_name': os.environ.get('OS_REGION_NAME'), # TODO?
         'username': auth_details['OS_USERNAME'],
@@ -58,14 +57,10 @@ def check_availability(auth_ref):
         'include_pass': True
     }
 
-    # open the client
-    try:
-        heat = Client('1', heat_endpoint, **kwargs)
-    except Exception as e:
-        error(e)
-
+    heat = Client('1', heat_endpoint, **kwargs)
     complete, failed, in_progress = 0, 0, 0
     start_at = time.time()
+
     # try:
     for stack in heat.stacks.list():
         if STATUS_COMPLETE == stack.status:
