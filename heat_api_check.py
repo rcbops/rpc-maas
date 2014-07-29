@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import os
 import sys
 import time
 import maas_common
@@ -23,54 +22,47 @@ def error(e):
 def check_availability(auth_ref):
     """Check the availability of the Heat Orchestration API.
 
-    :param dict auth_ref: A Keystone auth token to use when querying Heat
+    :param auth_ref: A Keystone auth token reference for use in querying Heat
 
     Metrics include stacks built from either heat or cfn templates.
     Outputs metrics on current status of Heat and time elapsed during query.
     Outputs an error status if any error occurs querying Heat.
-    Exits with 0 if Heat is available and responds without error, otherwise 1.
+    Exits with 0 if Heat is available and responds with 200, otherwise 1.
     """
-    # DISABLE keystone_session = kssession.Session()
-
     keystone = maas_common.get_keystone_client(auth_ref)
     if keystone is None:
-        # TODO use error(e) instead
-        print 'status err Unable to obtain valid keystone client, ' \
-            'cannot proceed'
-        sys.exit(1)
+        error('Unable to obtain valid keystone client, cannot proceed')
 
-    heat_endpoint = keystone.service_catalog.url_for(
-            service_type=ORCHESTRATION, endpoint_type=PUBLIC_URL)
     auth_details = maas_common.get_auth_details()
+    keystone_session = kssession.Session(verify=True)
+    heat_endpoint = keystone.service_catalog.url_for(
+        service_type=ORCHESTRATION, endpoint_type=PUBLIC_URL)
     auth_token_id = keystone.auth_ref['token']['id']
-    keystone_auth = token_endpoint.Token(None, auth_token_id)
-
+    keystone_auth = token_endpoint.Token(heat_endpoint, auth_token_id)
     kwargs = {
         'auth_url': auth_details['OS_AUTH_URL'],
-        # DISABLE 'session': keystone_session,
+        'session': keystone_session,
         'auth': keystone_auth,
         'service_type': ORCHESTRATION,
         'endpoint_type': PUBLIC_URL,
-        # 'region_name': os.environ.get('OS_REGION_NAME'), # TODO?
         'username': auth_details['OS_USERNAME'],
         'password': auth_details['OS_PASSWORD'],
         'include_pass': True
     }
-
     heat = Client('1', heat_endpoint, **kwargs)
     complete, failed, in_progress = 0, 0, 0
-    start_at = time.time()
 
-    # try:
-    for stack in heat.stacks.list():
-        if STATUS_COMPLETE == stack.status:
-            complete += 1
-        if STATUS_FAILED == stack.status:
-            failed += 1
-        if STATUS_IN_PROGRESS == stack.status:
-            in_progress += 1
-    # except Exception as e:
-    #   error(e)
+    start_at = time.time()
+    try:
+        for stack in heat.stacks.list():
+            if STATUS_COMPLETE == stack.status:
+                complete += 1
+            if STATUS_FAILED == stack.status:
+                failed += 1
+            if STATUS_IN_PROGRESS == stack.status:
+                in_progress += 1
+    except Exception as e:
+        error(e)
     elapsed_ms = (time.time() - start_at) * 1000
 
     print 'status heat api success'
