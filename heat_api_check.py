@@ -2,21 +2,19 @@
 
 import sys
 import time
-import maas_common
+
+from heatclient.client import Client
 from keystoneclient import session as kssession
 from keystoneclient.auth import token_endpoint
-from heatclient.client import Client
+from maas_common import get_auth_details
+from maas_common import get_auth_ref
+from maas_common import status_err
 
 STATUS_COMPLETE = 'COMPLETE'
 STATUS_FAILED = 'FAILED'
 STATUS_IN_PROGRESS = 'IN_PROGRESS'
 ORCHESTRATION = 'orchestration'
 PUBLIC_URL = 'publicURL'
-
-
-def error(e):
-    print 'status err {0}'.format(e)
-    sys.exit(1)
 
 
 def check_availability(auth_ref):
@@ -31,9 +29,9 @@ def check_availability(auth_ref):
     """
     keystone = maas_common.get_keystone_client(auth_ref)
     if keystone is None:
-        error('Unable to obtain valid keystone client, cannot proceed')
+        status_err('Unable to obtain valid keystone client, cannot proceed')
 
-    auth_details = maas_common.get_auth_details()
+    auth_details = get_auth_details()
     keystone_session = kssession.Session(verify=True)
     heat_endpoint = keystone.service_catalog.url_for(
         service_type=ORCHESTRATION, endpoint_type=PUBLIC_URL)
@@ -62,7 +60,7 @@ def check_availability(auth_ref):
             if STATUS_IN_PROGRESS == stack.status:
                 in_progress += 1
     except Exception as e:
-        error(e)
+        status_err(e)
     elapsed_ms = (time.time() - start_at) * 1000
 
     print 'status heat api success'
@@ -73,7 +71,7 @@ def check_availability(auth_ref):
 
 
 def main():
-    check_availability(maas_common.get_auth_ref())
+    check_availability(get_auth_ref())
 
 if __name__ == "__main__":
     main()
