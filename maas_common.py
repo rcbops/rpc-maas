@@ -382,3 +382,9 @@ def metric(name, metric_type, value, unit=None):
 def metric_bool(name, success):
     value = success and 1 or 0
     metric(name, 'uint32', value)
+
+
+def metric_api_status(name, status):
+    metric_bool(name, status)
+    if not status:
+        sys.exit(0)
