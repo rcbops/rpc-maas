@@ -24,17 +24,18 @@ def main():
         status_err('no dhcp namespaces on this host')
 
     interfaces = ((n, get_interfaces_for(n)) for n in namespaces)
-    errored = False
+    metrics = []
     for namespace, interface_list in interfaces:
         # Filter down to the output of ip a that looks like 1: lo
         named_interfaces = filter(lambda i: TAP.match(i), interface_list)
         num_taps = len([i for i in named_interfaces if not LOOP.match(i)])
         if num_taps != 1:
-            metric('namespace_{0}'.format(namespace), 'uint32', num_taps)
-            errored = True
+            metrics.append(('namespace_{0}'.format(namespace), num_taps))
 
-    if errored:
+    if len(metrics) > 0:
         status_err('a namespace had an unexpected number of TAPs present')
+        for (name, number) in metrics:
+            metric(name, 'uint32', number)
 
     status_ok()
 
