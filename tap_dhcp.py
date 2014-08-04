@@ -6,7 +6,8 @@ from maas_common import metric, status_ok, status_err
 
 def get_namespace_list():
     """Retrieve the list of DHCP namespaces."""
-    return subprocess.check_output(['ip', 'netns', 'list']).split()
+    namespaces = subprocess.check_output(['ip', 'netns', 'list']).split()
+    return list(filter(lambda n: n.startswith('qdhcp-'), namespaces))
 
 
 def get_interfaces_for(namespace):
