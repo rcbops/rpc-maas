@@ -6,7 +6,8 @@ from maas_common import metric, status_ok, status_err
 
 def get_namespace_list():
     """Retrieve the list of DHCP namespaces."""
-    return subprocess.check_output(['ip', 'netns', 'list']).split()
+    namespaces = subprocess.check_output(['ip', 'netns', 'list']).split()
+    return list(filter(lambda n: n.startswith('qdhcp-'), namespaces))
 
 
 def get_interfaces_for(namespace):
@@ -24,19 +25,23 @@ def main():
         status_err('no dhcp namespaces on this host')
 
     interfaces = ((n, get_interfaces_for(n)) for n in namespaces)
-    errored = False
+    too_many_taps = []
     for namespace, interface_list in interfaces:
         # Filter down to the output of ip a that looks like 1: lo
         named_interfaces = filter(lambda i: TAP.match(i), interface_list)
         num_taps = len([i for i in named_interfaces if not LOOP.match(i)])
         if num_taps != 1:
-            metric('namespace_{0}'.format(namespace), 'uint32', num_taps)
-            errored = True
+            too_many_taps.append(
+                ('namespace_{0}'.format(namespace), num_taps)
+            )
 
-    if errored:
-        status_err('a namespace had an unexpected number of TAPs present')
-
-    status_ok()
+    number_of_namespaces = len(too_many_taps)
+    status_ok()  # We were able to check the number of interfaces after all
+    # We should alarm on the following condition, i.e., if it isn't 0.
+    metric('namespaces_with_more_than_one_tap', 'int32', number_of_namespaces)
+    if number_of_namespaces > 0:
+        for (name, number) in too_many_taps:
+            metric(name, 'uint32', number)
 
 
 if __name__ == '__main__':
