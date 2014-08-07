@@ -40,7 +40,6 @@ def main():
     # We should alarm on the following condition, i.e., if it isn't 0.
     metric('namespaces_with_more_than_one_tap', 'int32', number_of_namespaces)
     if number_of_namespaces > 0:
-        status_err('a namespace had an unexpected number of TAPs present')
         for (name, number) in too_many_taps:
             metric(name, 'uint32', number)
 
