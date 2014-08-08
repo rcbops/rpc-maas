@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import contextlib
 import datetime
 import errno
 import json
 import os
 import re
 import sys
+import traceback
 
 AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_PASSWORD': None,
@@ -377,7 +379,11 @@ def force_reauth():
     return keystone_auth(auth_details)
 
 
+STATUS = ''
+
+
 def status(status, message):
+    global STATUS
     if status in ('ok', 'warn', 'err'):
         raise ValueError('The status "%s" is not allowed because it creates a '
                          'metric called legacy_state' % status)
@@ -385,7 +391,7 @@ def status(status, message):
     if message is not None:
         status_line = ' '.join((status_line, str(message)))
     status_line = status_line.replace('\n', '\\n')
-    print status_line
+    STATUS = status_line
 
 
 def status_err(message=None):
@@ -397,14 +403,36 @@ def status_ok(message=None):
     status('okay', message)
 
 
+METRICS = []
+
+
 def metric(name, metric_type, value, unit=None):
+    global METRICS
+    if len(METRICS) > 9:
+        status_err('Maximum of 10 metrics per check')
     metric_line = 'metric %s %s %s' % (name, metric_type, value)
     if unit is not None:
         metric_line = ' '.join((metric_line, unit))
     metric_line = metric_line.replace('\n', '\\n')
-    print metric_line
+    METRICS.append(metric_line)
 
 
 def metric_bool(name, success):
     value = success and 1 or 0
     metric(name, 'uint32', value)
+
+
+@contextlib.contextmanager
+def print_output():
+    try:
+        yield
+    except SystemExit as e:
+        print STATUS
+        raise
+    except Exception:
+        print 'status error %s' % traceback.format_exc().replace('\n', '\\n')
+        sys.exit(1)
+    else:
+        print STATUS
+        for metric in METRICS:
+            print metric
