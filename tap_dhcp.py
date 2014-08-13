@@ -46,16 +46,13 @@ def generate_network_device_details(bridges):
         yield details
 
 
-def check_for_disconnected_veth_pairs():
-    """Return True if there are disconnected pairs else False."""
-    bridges = get_bridges()
-    return any(
-        all(bridge_name not in detail for bridge_name in bridges)
-        for detail in generate_network_device_details(bridges)
-    )
+def find_namespaces_with_too_many_taps():
+    """Return a list of namespaces with too many TAPs.
 
+    An example list is::
 
-def main():
+        [('namespace_qdhcp-UUID', 3)]
+    """
     TAP = re.compile('^\d+: .*state [A-Z]+$')
     LOOP = re.compile('^\d+: lo')
     namespaces = get_namespace_list()
@@ -71,12 +68,27 @@ def main():
                 ('namespace_{0}'.format(namespace), num_taps)
             )
 
-    number_of_namespaces = len(too_many_taps)
+    return too_many_taps
+
+
+def check_for_disconnected_veth_pairs():
+    """Return True if there are disconnected pairs else False."""
+    bridges = get_bridges()
+    return any(
+        all(bridge_name not in detail for bridge_name in bridges)
+        for detail in generate_network_device_details(bridges)
+    )
+
+
+def main():
+    namespaces = find_namespaces_with_too_many_taps()
+
+    number_of_namespaces = len(namespaces)
     status_ok()  # We were able to check the number of interfaces after all
     # We should alarm on the following condition, i.e., if it isn't 0.
     metric('namespaces_with_more_than_one_tap', 'int32', number_of_namespaces)
     if number_of_namespaces > 0:
-        for (name, number) in too_many_taps:
+        for (name, number) in namespaces:
             metric(name, 'uint32', number)
 
     metric_bool('disconnected_veth_pair_exists',
