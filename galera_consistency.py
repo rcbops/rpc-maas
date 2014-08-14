@@ -2,7 +2,7 @@ import io
 import optparse
 import subprocess
 
-from maas_common import status_err, status_ok
+from maas_common import status_err, status_ok, metric_bool
 
 
 def table_checksum(user, password, host):
@@ -56,12 +56,15 @@ def main():
     # If the exit status is 0, everything is okay, otherwise the exit status
     # will be non-zero. We don't need stdout at the moment so we can discard
     # it. Stderr should contain any problems we run across.
-    (status, _, err) = table_checksum(args[0], args[1], options.host)
-    if status != 0:
-        status_err(err.strip())
-        raise SystemExit(True)
+    try:
+        (status, _, err) = table_checksum(args[0], args[1], options.host)
+    except Exception as e:
+        status_err(str(e))
+
+    cluster_is_consistent = (status == 0)
 
     status_ok()
+    metric_bool('cluster_is_consistent', cluster_is_consistent)
 
 
 if __name__ == '__main__':
