@@ -37,7 +37,8 @@ def check(auth_ref):
 
     status_ok()
     metric_bool('glance_registry_local_status', api_is_up)
-    metric('glance_registry_local_response_time', 'int32', milliseconds)
+    if api_is_up:
+        metric('glance_registry_local_response_time', 'int32', milliseconds)
 
 
 def main():
