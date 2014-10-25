@@ -22,7 +22,7 @@ from maas_common import status_err, status_ok, metric_bool
 
 OM_PATTERN = '(?:%(field)s)\s+:\s+(%(group_pattern)s)'
 CHASSIS = re.compile(OM_PATTERN % {'field': 'Health', 'group_pattern': '\w+'})
-STORAGE = re.compile(OM_PATTERN % {'field': 'Status', 'group_pattern': '\w+'})
+STORAGE = re.compile(OM_PATTERN % {'field': 'Status ', 'group_pattern': '\w+'})
 regex = {'storage': STORAGE, 'chassis': CHASSIS}
 
 
@@ -65,9 +65,9 @@ def check_openmanage_version():
         status_err('Could not find the version information')
 
     version = match.groups()[0]
-    if version != '7.1.0':
+    if version != '7.4.0':
         status_err(
-            'Expected version 7.1.0 to be installed but found %s' % version
+            'Expected version 7.4.0 to be installed but found %s' % version
         )
 
 
