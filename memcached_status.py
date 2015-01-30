@@ -27,7 +27,7 @@ VERSION = '1.4.14 (Ubuntu)'
 MEMCACHE_METRICS = {'total_items': 'items',
         'get_hits': 'cache_hits',
         'get_misses': 'cache_misses',
-        'total_connections': 'connections']
+        'total_connections': 'connections'}
 
 
 def item_stats(host, port):
