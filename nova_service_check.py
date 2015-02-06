@@ -36,7 +36,7 @@ def check(args):
     else:
         services = nova.services.list()
 
-    if len(services) == 0:
+    if not services:
         status_err("No host(s) found in the service list")
 
     # return all the things

@@ -53,7 +53,7 @@ def check(auth_ref, args):
 
     services = r.json()['services']
 
-    if len(services) == 0:
+    if not services:
         status_err('No host(s) found in the service list')
 
     status_ok()
