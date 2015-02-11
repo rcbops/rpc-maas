@@ -153,6 +153,8 @@ def swift_replication(for_ring):
     # less readable than this loop
     replication_statistics = {}
     for rep_dict in replication_dicts:
+        if not rep_dict:
+            continue
         replication_statistics[rep_dict.pop('replication_type')] = rep_dict
 
     return replication_statistics
