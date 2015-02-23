@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+"""
+Example usage::
+
+    # python disk_utilisation.py
+    status okay
+    metric disk_utilisation_xvda double 0.00 %
+    metric disk_utilisation_xvde double 0.00 %
+    
+The more drives you have mounted, the more metrics that will be printed.
+"""
 
 from maas_common import metric, status_err, status_ok, print_output
 import shlex

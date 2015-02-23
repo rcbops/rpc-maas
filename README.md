@@ -294,3 +294,16 @@ connects to an individual member of a galera cluster and checks various statuses
     metric wsrep_cluster_status string primary
     metric wsrep_local_state_uuid string 67e41d08-165d-11e4-9d87-7e94ef43b302
     metric wsrep_local_state_comment string synced
+
+***
+#### disk_utilisation.py
+
+##### Description:
+
+Over a period of 5 seconds, determine the utilization of the disks currently mounted.
+Returns a percentage metric demonstrationg percent of each disk utilized.
+
+##### example output:
+
+    metric disk_utilisation_xvda double 0.00 %
+    metric disk_utilisation_xvde double 0.00 %
