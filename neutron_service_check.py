@@ -35,7 +35,7 @@ def check(args):
     else:
         agents = neutron.list_agents()['agents']
 
-    if len(agents) == 0:
+    if not agents:
         status_err("No host(s) found in the agents list")
 
     # return all the things
