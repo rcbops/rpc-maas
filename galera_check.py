@@ -106,6 +106,10 @@ def main():
             replica_status['wsrep_cluster_state_uuid']):
         status_err("the local node is out of sync")
 
+    if (int(replica_status['wsrep_local_state']) != 4 or
+            replica_status['wsrep_local_state_comment'] != "Synced"):
+        status_err("the local node is not in sync state")
+
     if (int(replica_status['wsrep_local_state']) == 4 and
             replica_status['wsrep_local_state_comment'] == "Synced"):
         print_metrics(replica_status)
