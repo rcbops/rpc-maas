@@ -52,11 +52,30 @@ def get_drive_status():
                          'logicaldrive', 'OK)')
 
 
+def get_controller_status():
+    return check_command(('hpssacli', 'ctrl', 'all', 'show', 'status'),
+                         'Controller Status', 'OK')
+
+
+def get_controller_cache_status():
+    return check_command(('hpssacli', 'ctrl', 'all', 'show', 'status'),
+                         'Cache Status', 'OK')
+
+
+def get_controller_battery_status():
+    return check_command(('hpssacli', 'ctrl', 'all', 'show', 'status'),
+                         'Battery/Capacitor Status', 'OK')
+
+
 def main():
     status = {}
     status['hardware_processors_status'] = get_hpasmcli_status('server')
     status['hardware_memory_status'] = get_hpasmcli_status('dimm')
     status['hardware_disk_status'] = get_drive_status()
+    status['hardware_controller_status'] = get_controller_status()
+    status['hardware_controller_cache_status'] = get_controller_cache_status()
+    status['hardware_controller_battery_status'] = \
+        get_controller_battery_status()
 
     maas_common.status_ok()
     for name, value in status.viewitems():
