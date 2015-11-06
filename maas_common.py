@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import print_function
 
 import contextlib
 import datetime
@@ -34,7 +35,7 @@ TOKEN_FILE = '/root/.auth_ref.json'
 
 
 try:
-    from cinderclient.client import Client as c_client
+    from cinderclient import client as c_client
     from cinderclient import exceptions as c_exc
 
 except ImportError:
@@ -52,11 +53,11 @@ else:
         # lands
 
         auth_details = get_auth_details()
-        cinder = c_client('2',
-                          auth_details['OS_USERNAME'],
-                          auth_details['OS_PASSWORD'],
-                          auth_details['OS_TENANT_NAME'],
-                          auth_details['OS_AUTH_URL'])
+        cinder = c_client.Client('2',
+                                 auth_details['OS_USERNAME'],
+                                 auth_details['OS_PASSWORD'],
+                                 auth_details['OS_TENANT_NAME'],
+                                 auth_details['OS_AUTH_URL'])
 
         try:
             # Do something just to ensure we actually have auth'd ok
@@ -71,7 +72,7 @@ else:
         return cinder
 
 try:
-    from glanceclient import Client as g_client
+    import glanceclient as g_client
     from glanceclient import exc as g_exc
 except ImportError:
     def get_glance_client(*args, **kwargs):
@@ -86,13 +87,13 @@ else:
         auth_ref = get_auth_ref()
 
         if not token:
-            token = auth_ref['token']['id']
+            token = auth_ref['auth_token']
         if not endpoint:
             endpoint = get_endpoint_url_for_service(
                 'image',
-                auth_ref['serviceCatalog'])
+                auth_ref['catalog'])
 
-        glance = g_client('1', endpoint=endpoint, token=token)
+        glance = g_client.Client('1', endpoint=endpoint, token=token)
 
         try:
             # We don't want to be pulling massive lists of images every time we
@@ -102,7 +103,7 @@ else:
             [i.id for i in image]
         except g_exc.HTTPUnauthorized:
             auth_ref = force_reauth()
-            token = auth_ref['token']['id']
+            token = auth_ref['auth_token']
 
             glance = get_glance_client(token, endpoint, previous_tries + 1)
         # we only want to pass HTTPException back to the calling poller
@@ -117,7 +118,7 @@ else:
         return glance
 
 try:
-    from novaclient.client import Client as nova_client
+    from novaclient import client as nova_client
     from novaclient.client import exceptions as nova_exc
 except ImportError:
     def get_nova_client(*args, **kwargs):
@@ -132,13 +133,14 @@ else:
         auth_ref = get_auth_ref()
 
         if not auth_token:
-            auth_token = auth_ref['token']['id']
+            auth_token = auth_ref['auth_token']
         if not bypass_url:
             bypass_url = get_endpoint_url_for_service(
                 'compute',
-                auth_ref['serviceCatalog'])
+                auth_ref['catalog'])
 
-        nova = nova_client('3', auth_token=auth_token, bypass_url=bypass_url)
+        nova = nova_client.Client('2', auth_token=auth_token,
+                                  bypass_url=bypass_url)
 
         try:
             flavors = nova.flavors.list()
@@ -153,7 +155,7 @@ else:
 
         except AttributeError:
             auth_ref = force_reauth()
-            auth_token = auth_ref['token']['id']
+            auth_token = auth_ref['auth_token']
 
             nova = get_nova_client(auth_token, bypass_url, previous_tries + 1)
 
@@ -169,8 +171,8 @@ else:
         return nova
 
 try:
-    from keystoneclient.v2_0 import client as k_client
     from keystoneclient.openstack.common.apiclient import exceptions as k_exc
+    from keystoneclient.v3 import client as k_client
 except ImportError:
     def keystone_auth(*args, **kwargs):
         status_err('Cannot import keystoneclient')
@@ -207,8 +209,8 @@ else:
             auth_ref = get_auth_ref()
         if not endpoint:
             endpoint = get_endpoint_url_for_service('identity',
-                                                    auth_ref['serviceCatalog'],
-                                                    'adminURL')
+                                                    auth_ref['catalog'],
+                                                    'admin', version='v3')
 
         keystone = k_client.Client(auth_ref=auth_ref, endpoint=endpoint)
 
@@ -231,8 +233,8 @@ else:
 
 
 try:
-    from neutronclient.neutron import client as n_client
     from neutronclient.common import exceptions as n_exc
+    from neutronclient.neutron import client as n_client
 except ImportError:
     def get_neutron_client(*args, **kwargs):
         status_err('Cannot import neutronclient')
@@ -246,11 +248,11 @@ else:
         auth_ref = get_auth_ref()
 
         if not token:
-            token = auth_ref['token']['id']
+            token = auth_ref['auth_token']
         if not endpoint_url:
             endpoint_url = get_endpoint_url_for_service(
                 'network',
-                auth_ref['serviceCatalog'])
+                auth_ref['catalog'])
 
         neutron = n_client.Client('2.0',
                                   token=token,
@@ -268,7 +270,7 @@ else:
         # local token) we'll just catch the exception it throws and move on
         except n_exc.NoAuthURLProvided:
             auth_ref = force_reauth()
-            token = auth_ref['token']['id']
+            token = auth_ref['auth_token']
 
             neutron = get_neutron_client(token, endpoint_url,
                                          previous_tries + 1)
@@ -301,18 +303,18 @@ else:
         auth_ref = get_auth_ref()
 
         if not token:
-            token = auth_ref['token']['id']
+            token = auth_ref['auth_token']
         if not endpoint:
             endpoint = get_endpoint_url_for_service(
                 'orchestration',
-                auth_ref['serviceCatalog'])
+                auth_ref['catalog'])
 
         heat = heat_client.Client('1', endpoint=endpoint, token=token)
         try:
             heat.build_info.build_info()
         except h_exc.HTTPUnauthorized:
             auth_ref = force_reauth()
-            token = auth_ref['token']['id']
+            token = auth_ref['auth_token']
             heat = get_heat_client(token, endpoint, previous_tries + 1)
         except h_exc.HTTPException:
             raise
@@ -327,8 +329,14 @@ class MaaSException(Exception):
 
 
 def is_token_expired(token):
-    expires = datetime.datetime.strptime(token['expires'],
-                                         '%Y-%m-%dT%H:%M:%SZ')
+    for fmt in ('%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S.%fZ'):
+        try:
+            expires = datetime.datetime.strptime(token['expires_at'], fmt)
+            break
+        except ValueError as e:
+            pass
+    else:
+        raise e
     return datetime.datetime.now() >= expires
 
 
@@ -338,7 +346,7 @@ def get_auth_ref():
     if auth_ref is None:
         auth_ref = keystone_auth(auth_details)
 
-    if is_token_expired(auth_ref['token']):
+    if is_token_expired(auth_ref):
         auth_ref = keystone_auth(auth_details)
 
     return auth_ref
@@ -387,10 +395,21 @@ def get_auth_details(openrc_file=OPENRC):
 
 
 def get_endpoint_url_for_service(service_type, service_catalog,
-                                 url_type='publicURL'):
-    for i in service_catalog:
-        if i['type'] == service_type:
-            return i['endpoints'][0][url_type]
+                                 url_type='public', version=None):
+    # version = the version identifier on the end of the url. eg:
+    # for keystone admin api v3:
+    # http://172.29.236.3:35357/v3
+    # so you'd pass version='v3'
+
+    for service in service_catalog:
+        if service['type'] == service_type:
+            for endpoint in service['endpoints']:
+                if endpoint['interface'] == url_type:
+                    if version:
+                        if endpoint['url'].endswith(version):
+                            return endpoint['url']
+                    else:
+                        return endpoint['url']
 
 
 def force_reauth():
@@ -412,7 +431,7 @@ def status(status, message, force_print=False):
     status_line = status_line.replace('\n', '\\n')
     STATUS = status_line
     if force_print:
-        print STATUS
+        print(STATUS)
 
 
 def status_err(message=None, force_print=False, exception=None):
@@ -459,7 +478,7 @@ def print_output():
         yield
     except SystemExit as e:
         if STATUS:
-            print STATUS
+            print(STATUS)
         raise
     except Exception as e:
         logging.exception('The plugin %s has failed with an unhandled '
@@ -467,6 +486,6 @@ def print_output():
         status_err(traceback.format_exc(), force_print=True, exception=e)
     else:
         if STATUS:
-            print STATUS
+            print(STATUS)
         for metric in METRICS:
-            print metric
+            print(metric)
