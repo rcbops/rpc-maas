@@ -15,16 +15,21 @@
 # limitations under the License.
 
 import argparse
-from time import time
-from ipaddr import IPv4Address
-from maas_common import (get_keystone_client, status_err, status_ok, metric,
-                         metric_bool, print_output)
+import time
+
+import ipaddr
 from keystoneclient.openstack.common.apiclient import exceptions as exc
+from maas_common import get_keystone_client
+from maas_common import metric
+from maas_common import metric_bool
+from maas_common import print_output
+from maas_common import status_err
+from maas_common import status_ok
 
 
 def check(args):
 
-    IDENTITY_ENDPOINT = 'http://{ip}:35357/v2.0'.format(ip=args.ip)
+    IDENTITY_ENDPOINT = 'http://{ip}:35357/v3'.format(ip=args.ip)
 
     try:
         keystone = get_keystone_client(endpoint=IDENTITY_ENDPOINT)
@@ -36,14 +41,14 @@ def check(args):
         status_err(str(e))
     else:
         # time something arbitrary
-        start = time()
+        start = time.time()
         keystone.services.list()
-        end = time()
+        end = time.time()
         milliseconds = (end - start) * 1000
 
         # gather some vaguely interesting metrics to return
-        tenant_count = len(keystone.tenants.list())
-        user_count = len(keystone.users.list())
+        project_count = len(keystone.projects.list())
+        user_count = len(keystone.users.list(domain='Default'))
 
     status_ok()
     metric_bool('keystone_api_local_status', is_up)
@@ -54,7 +59,8 @@ def check(args):
                '%.3f' % milliseconds,
                'ms')
         metric('keystone_user_count', 'uint32', user_count, 'users')
-        metric('keystone_tenant_count', 'uint32', tenant_count, 'tenants')
+        metric('keystone_tenant_count', 'uint32', project_count, 'tenants')
+        metric('keystone_tenant_count', 'uint32', project_count, 'tenants')
 
 
 def main(args):
@@ -65,7 +71,7 @@ if __name__ == "__main__":
     with print_output():
         parser = argparse.ArgumentParser(description='Check keystone API')
         parser.add_argument('ip',
-                            type=IPv4Address,
+                            type=ipaddr.IPv4Address,
                             help='keystone API IP address')
         args = parser.parse_args()
         main(args)
