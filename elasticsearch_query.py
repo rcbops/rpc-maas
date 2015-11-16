@@ -14,11 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import json
 import optparse
 import os
 import re
 import requests
+import sys
 
 from maas_common import metric, status_ok, status_err, print_output
 
@@ -55,28 +57,18 @@ def json_filter(filtered_query):
     return json.dumps({'query': {'filtered': filtered_query}})
 
 
-def find_indices():
-    """Find indices created by logstash."""
-    url = ELASTICSEARCH + '/_search'
-    query = json_querystring({'query': '_index like logstash%'},
-                             [{'_index': {'order': 'desc'}}])
-    json = get_json(url, query)
-    return sorted(res['_index'] for res in json['hits']['hits'])
-
-
-def most_recent_index():
-    """Get the most recent index if one indeed exists."""
-    indices = find_indices()
-
-    if not indices:
-        status_err('There are no elasticsearch indices to search')
-
-    return indices[-1]
-
-
-def search_url_for(index):
+def search_url_for(index=None):
     """Generate the search URL for an index."""
-    return ELASTICSEARCH + '/' + index + '/_search'
+    if index is not None:
+        return ELASTICSEARCH + '/' + index + '/_search'
+    return ELASTICSEARCH + '/_search'
+
+
+def count_url_for(index=None):
+    """Generate the search URL for an index."""
+    if index is not None:
+        return ELASTICSEARCH + '/' + index + '/_count'
+    return ELASTICSEARCH + '/_count'
 
 
 def get_json(url, data):
@@ -92,17 +84,18 @@ def get_json(url, data):
     return r.json()
 
 
-def get_number_of(loglevel, index):
-    """Retrieve the number of logs with level ``loglevel``."""
-    url = search_url_for(index)
-    data = json_querystring({'query': loglevel,
-                             'fields': ['os_level', 'message']})
+def get_count_for_querystring(query, index=None):
+    """Retrieve the number of hits for a query."""
+    url = count_url_for(index)
+    data = json_querystring({'query': query})
     json = get_json(url, data)
-    return json['hits']['total']
+    return json['count']
 
 
 def parse_args():
-    parser = optparse.OptionParser(usage='%prog [-h] [-H host] [-P port]')
+    parser = optparse.OptionParser(usage=('%prog [-h] [-H host] [-P port] '
+                                          '[-q query] [-i interval] '
+                                          '[-t threashold]'))
     parser.add_option('-H', '--host', action='store', dest='host',
                       default=None,
                       help=('Hostname or IP address to use to connect to '
@@ -110,7 +103,21 @@ def parse_args():
     parser.add_option('-P', '--port', action='store', dest='port',
                       default=ES_PORT,
                       help='Port to use to connect to Elasticsearch')
-    return parser.parse_args()
+    parser.add_option('-q', '--query', action='store', dest='query',
+                      default='',
+                      help='Elasticsearch query string. Examples: '
+                           '"loglevel:ERROR", '
+                           '"message:rabbit AND loglevel:INFO".')
+    parser.add_option('-i', '--interval', action='store', dest='interval',
+                      default='1d',
+                      help=('How far back to start search. Examples: '
+                            '1d, 4h, 30m, 45s, 2w, etc.'))
+    options, _ = parser.parse_args()
+    if not options.query:
+        print('A query must be provided.')
+        parser.print_usage()
+        sys.exit(1)
+    return options
 
 
 def configure(options):
@@ -120,17 +127,41 @@ def configure(options):
     ELASTICSEARCH = 'http://{0}:{1}'.format(host, port)
 
 
-def main():
-    options, _ = parse_args()
-    configure(options)
+def build_query(options):
+    query = options.query
+    interval = options.interval
 
-    latest = most_recent_index()
-    num_errors = get_number_of('ERROR', latest)
-    num_warnings = get_number_of('WARN*', latest)
+    td = None
+    if interval[-1] == 'd':
+        td = datetime.timedelta(days=float(interval[:-1]))
+    elif interval[-1] == 'h':
+        td = datetime.timedelta(hours=float(interval[:-1]))
+    elif interval[-1] == 'm':
+        td = datetime.timedelta(minutes=float(interval[:-1]))
+    elif interval[-1] == 's':
+        td = datetime.timedelta(seconds=float(interval[:-1]))
+    elif interval[-1] == 'w':
+        td = datetime.timedelta(weeks=float(interval[:-1]))
+    if td is None:
+        print('Invalid interval. Use a number followed by w (weeks), d (days) '
+              'h (hours), m (minutes) or s (seconds).')
+        sys.exit(1)
+
+    now = datetime.datetime.now()
+    query = '(%s) AND @timestamp:[%sZ TO %sZ]' % \
+        (query, (now - td).isoformat(), now.isoformat())
+    return query
+
+
+def main():
+    options = parse_args()
+    configure(options)
+    query = build_query(options)
+
+    num_hits = get_count_for_querystring(query)
 
     status_ok()
-    metric('NUMBER_OF_LOG_ERRORS', 'uint32', num_errors)
-    metric('NUMBER_OF_LOG_WARNINGS', 'uint32', num_warnings)
+    metric('HITS', 'uint32', num_hits)
 
 
 if __name__ == '__main__':
