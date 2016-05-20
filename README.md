@@ -1,3 +1,6 @@
+# RPC-MAAS IS NO LONGER MAINTAINED
+This repo has been superseded by <https://github.com/rcbops/rpc-openstack>
+
 **Please use the following rules when creating rcbops MaaS plugins:**
 
 1. Import errors result in an error status.
