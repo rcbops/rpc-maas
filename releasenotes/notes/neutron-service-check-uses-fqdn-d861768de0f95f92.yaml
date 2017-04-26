@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    The neutron_service_check.py script was not recognizing Fully Qualified
+    Domain Names (FQDNS). This addresses the issue by passing the FQDN through
+    the checks to the script, and having the script check both the hostname 
+    and the FQDNs.

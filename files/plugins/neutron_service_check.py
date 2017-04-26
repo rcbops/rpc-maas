@@ -36,6 +36,8 @@ def check(args):
     # gather nova service states
     if args.host:
         agents = neutron.list_agents(host=args.host)['agents']
+    elif args.fqdn:
+        agents = neutron.list_agents(host=args.fqdn)['agents']
     else:
         agents = neutron.list_agents()['agents']
 
@@ -51,6 +53,8 @@ def check(args):
 
         if args.host:
             name = '%s_status' % agent['binary']
+        elif args.fqdn:
+            name = '%z_status' % agent['binary']
         else:
             name = '%s_%s_on_host_%s' % (agent['binary'],
                                          agent['id'],
@@ -72,6 +76,10 @@ if __name__ == "__main__":
         parser.add_argument('--host',
                             type=str,
                             help='Only return metrics for specified host',
+                            default=None)
+        parser.add_argument('--fqdn',
+                            type=str,
+                            help='Only return metrics for specified fqdn',
                             default=None)
         args = parser.parse_args()
         main(args)
