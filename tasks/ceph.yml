@@ -23,6 +23,8 @@
   command: ceph auth get-or-create client.raxmon mon 'allow r'
   register: ceph_raxmon_client
   delegate_to: "{{ groups['mons'][0] }}"
+  tags:
+    - skip_ansible_lint
 
 - name: Write Ceph monitoring client key to file
   copy:

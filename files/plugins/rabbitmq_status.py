@@ -64,8 +64,9 @@ def hostname():
 
 
 def rabbit_version(node):
-    if ('applications' in node and 'rabbit' in node['applications']
-            and 'version' in node['applications']['rabbit']):
+    if ('applications' in node and
+            'rabbit' in node['applications'] and
+            'version' in node['applications']['rabbit']):
         version_string = node['applications']['rabbit']['version']
         return tuple(int(part) for part in version_string.split('.'))
     else:

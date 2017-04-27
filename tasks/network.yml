@@ -26,6 +26,8 @@
   ignore_errors: true
   register: discover_nic_speed
   with_items: "{{ network_checks_list }}"
+  tags:
+   - skip_ansible_lint
 
 - name: Install network throughput checks
   template:
