@@ -13,6 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Ensure raspace-monitoring-agent config directory exists
+  file:
+    name: /etc/rackspace-monitoring-agent.conf.d
+    state: directory
+    group: root
+    owner: root
+  tags:
+    - rackspace-monitoring-agent-setup
+
 - name: Install process checks
   template:
     src: "{{ item.name }}.yaml.j2"
@@ -24,5 +33,6 @@
     - "{{ process_checks_list }}"
   when:
     - item.group in groups
-    - inventory_hostname in groups['{{ item.group }}']
+    - inventory_hostname in groups[item.group]
   delegate_to: "{{ physical_host }}"
+

@@ -1,0 +1,26 @@
+[all]
+localhost physical_host=localhost
+
+[all_containers]
+all
+
+[hosts]
+all
+
+[utility]
+all
+
+[rabbitmq_all]
+all
+
+[galera]
+all
+
+[cinder_backup]
+all
+
+[swift_all]
+all
+
+[swift_proxy]
+all

@@ -621,6 +621,12 @@ maas_use_api: true
 #
 maas_agent_upgrade: true
 
+
+# Set the package install state for distribution and pip packages
+# Options are 'present' and 'latest'
+maas_package_state: "latest"
+maas_pip_package_state: "latest"
+
 # Swift object access check
 swift_accesscheck_enabled: true
 swift_accesscheck_container: "accesscheck"
