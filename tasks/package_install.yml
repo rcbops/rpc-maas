@@ -36,14 +36,14 @@
   pip:
     name: pip
     state: "{{ maas_pip_package_state }}"
-    virtualenv: "{{ maas_venv_enabled | bool | ternary(maas_venv, omit) }}"
+    virtualenv: "{{ maas_venv }}"
 
 - name: Install pip packages to venv
   pip:
     name: "{{ item }}"
     state: "{{ maas_pip_package_state }}"
     extra_args: "{{ pip_install_options | default('') }}"
-    virtualenv: "{{ maas_venv_enabled | bool | ternary(maas_venv, omit) }}"
+    virtualenv: "{{ maas_venv }}"
   register: install_pip_packages
   until: install_pip_packages|success
   retries: 5
@@ -55,7 +55,7 @@
     name: "{{ item }}"
     state: "{{ maas_pip_package_state }}"
     extra_args: "{{ pip_install_options | default('') }}"
-    virtualenv: "{{ maas_venv_enabled | bool | ternary(maas_venv, omit) }}"
+    virtualenv: "{{ maas_venv }}"
   register: install_pip_container_packages
   until: install_pip_container_packages|success
   retries: 5

@@ -1,0 +1,65 @@
+---
+# Copyright 2016, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+physical_host: localhost
+
+# This is used for RPC specific things and is required
+# NOTE(cloudnull): Before this was hardcoded, now it will look at the playbook path and
+#                  take the git information from the root playbook directory dynamically.
+rpc_release: "{{ lookup('pipe', 'cd ' + playbook_dir.split('common')[0] + '; git describe --tags --abbrev=0; cd -').splitlines()[0].strip() }}"
+
+# Used to define the default nova console type for RPC-MaaS
+nova_console_type: novnc
+
+nova_console_ports:
+  novnc: 6080
+  spice: 6082
+
+nova_console_port: "{{ nova_console_ports[nova_console_type] }}"
+
+# Used to setup monitoring user within Keystone.
+maas_keystone_password: secrete
+
+# Horizon vars, once this branch moves past newton we can remove these things.
+horizon_developer_mode: true
+horizon_venv_tag: "testing"
+horizon_git_install_branch: stable/newton
+horizon_requirements_git_install_branch: stable/newton
+horizon_galera_address: "{{ test_galera_host }}"
+horizon_galera_database: dash
+horizon_galera_user: dash
+horizon_rabbitmq_password: "secrete"
+horizon_rabbitmq_userid: horizon
+horizon_rabbitmq_vhost: /horizon
+horizon_container_mysql_password: "SuperSecrete"
+horizon_secret_key: "SuperSecreteHorizonKey"
+horizon_external_ssl: False
+horizon_config_overrides:
+  X_TEST_OPTION: True
+
+
+# Cinder specific Vars
+cinder_backends:
+  lvm:
+    volume_group: cinder-volumes
+    volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+    volume_backend_name: LVM_iSCSI
+  lvm2:
+    volume_group: cinder-volumes
+    volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+    volume_backend_name: LVM_iSCSI
+# In order to use loopback devices we set this line
+lxc_container_config_list:
+  - "lxc.cgroup.devices.allow = b 7:* rwm"

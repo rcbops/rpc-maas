@@ -1,5 +1,5 @@
 ---
-# Copyright 2016, Rackspace US, Inc.
+# Copyright 2015, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,5 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ansible_host: 127.0.0.1
-ansible_python_interpreter: "/usr/bin/python2"
+- name: Playbook for deploying horizon
+  hosts: horizon_all
+  user: root
+  gather_facts: true
+  pre_tasks:
+    - include: common/create-grant-db.yml
+      db_name: "{{ horizon_galera_database }}"
+      db_password: "{{ horizon_container_mysql_password }}"
+  roles:
+    - role: "{{ horizon_rolename | default('os_horizon') }}"
+  vars_files:
+    - common/test-vars.yml

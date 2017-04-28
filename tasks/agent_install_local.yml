@@ -34,7 +34,6 @@
     owner: "root"
     group: "root"
     mode: "0755"
-  when: maas_venv_enabled
 
 - name: List plugin files to chmod
   find:

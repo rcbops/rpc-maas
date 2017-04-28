@@ -585,8 +585,6 @@ openrc_insecure: "{{ (keystone_service_adminuri_insecure | bool or keystone_serv
 # Name of the virtual env to deploy into (maas)
 maas_venv: "/openstack/venvs/maas-{{ rpc_release }}"
 maas_venv_bin: "{{ maas_venv }}/bin"
-# Set this to enable or disable installing in a venv
-maas_venv_enabled: true
 
 #
 # Default horizon site name
