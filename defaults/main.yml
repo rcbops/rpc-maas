@@ -521,7 +521,7 @@ maas_pip_packages:
   - cryptography
   - ipaddr
   - lxml
-  - psutil<=1.2.1
+  - psutil<=5.0.1
   - apache-libcloud<2.0.0
   - rackspace-monitoring-cli
   - python-cinderclient
@@ -530,7 +530,7 @@ maas_pip_packages:
   - python-keystoneclient
   - python-magnumclient
   - python-neutronclient
-  - python-novaclient<7.0.0
+  - python-novaclient<=7.1.0
   - python-memcached
   - requests
   - swift
