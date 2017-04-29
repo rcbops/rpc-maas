@@ -61,7 +61,7 @@ def get_processes(parent_pid=None):
         procs = [x for x in psutil.process_iter()
                  if x.pid not in excluded_pids]
     else:
-        procs = [x for x in psutil.Process(parent_pid).get_children()]
+        procs = [x for x in psutil.Process(parent_pid).children()]
     return procs
 
 

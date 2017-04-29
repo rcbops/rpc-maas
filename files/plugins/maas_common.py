@@ -163,9 +163,9 @@ else:
                                                           auth_details))
 
         nova = nova_client.Client('2', auth_token=auth_token,
+                                  auth_url=auth_details['OS_AUTH_URL'],
                                   bypass_url=bypass_url,
                                   insecure=auth_details['OS_API_INSECURE'])
-
         try:
             flavors = nova.flavors.list()
             # Exceptions are only thrown when we try and do something

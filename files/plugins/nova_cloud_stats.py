@@ -79,7 +79,7 @@ def check(auth_ref, args):
         status_err(str(e))
     else:
         # get some cloud stats
-        stats = nova.hypervisor_stats.statistics()
+        stats = nova.hypervisor.statistics()
         cloud_stats = collections.defaultdict(dict)
         for metric_name, vals in stats_mapping.iteritems():
             multiplier = 1
