@@ -17,18 +17,24 @@
   ceph_osd_host_facts:
   register: ceph_osd_facts
   tags: always
-  when: inventory_hostname in groups['osds']
+  when:
+    - "'osds' in groups"
+    - groups['osds'] | length > 0
+    - inventory_hostname in groups['osds'] | default([])
 
 - name: Create ceph monitoring client
   command: ceph auth get-or-create client.raxmon mon 'allow r'
   register: ceph_raxmon_client
   delegate_to: "{{ groups['mons'][0] }}"
+  when:
+    - "'mons' in groups"
+    - groups['mons'] | length > 0
   tags:
     - skip_ansible_lint
 
 - name: Write Ceph monitoring client key to file
   copy:
-    content: "{{[ceph_raxmon_client.stdout, '\n'] | join('') }}"
+    content: "{{ [ceph_raxmon_client.stdout, '\n'] | join('') }}"
     dest: "/etc/ceph/ceph.client.raxmon.keyring"
   delegate_to: "{{ physical_host }}"
 

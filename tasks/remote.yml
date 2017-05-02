@@ -26,6 +26,6 @@
 - include: ensure_remote_checks.yml
   vars:
     checks: "{{ ssl_cert_checks_list }}"
-  when: >
-    - {{ groups['utility']|length }} > 0
-    - ssl_check == true
+  when:
+    - groups['utility'] | length > 0
+    - ssl_check | bool

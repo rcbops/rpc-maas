@@ -13,6 +13,73 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+bridges:
+  - name: "br-mgmt"
+    ip_addr: "10.1.1.1"
+  - name: "br-vxlan"
+    ip_addr: "10.2.1.1"
+    veth_peer: "eth11"
+  - name: "br-vlan"
+    ip_addr: "10.2.2.1"
+    veth_peer: "eth12"
+  - name: "br-storage"
+    ip_addr: "10.3.1.1"
+    veth_peer: "eth13"
+  - name: "br-repl"
+    ip_addr: "10.4.1.1"
+    veth_peer: "eth14"
+
+
+# In order to use loopback devices we set this line
+lxc_container_config_list:
+  - "lxc.cgroup.devices.allow = b 7:* rwm"
+
+
+# Used to setup monitoring users.
+maas_rabbitmq_password: secrete
+maas_keystone_password: secrete
+
+
+# Used to define the default nova console type for RPC-MaaS
+nova_console_type: novnc
+nova_console_ports:
+  novnc: 6080
+  spice: 6082
+
+nova_console_port: "{{ nova_console_ports[nova_console_type] }}"
+
+
+# This is used for RPC specific things and is required
+# NOTE(cloudnull): Before this was hardcoded, now it will look at the playbook path and
+#                  take the git information from the root playbook directory dynamically.
+rpc_release: "{{ lookup('pipe', 'cd ' + playbook_dir.split('common')[0] + '; git describe --tags --abbrev=0; cd -').splitlines()[0].strip() }}"
+
+
+swift_accesscheck_password: secrete
+swift_pretend_min_part_hours_passed: False
+
+swift:
+  storage_network: "{{ container_networks['storage_address']['interface'] }}"
+  replication_network: "{{ container_networks['replication_address']['interface'] }}"
+  part_power: 8
+  repl_number: 1
+  region: 1
+  groups:
+    - account
+    - container
+    - gold
+  drives:
+    - name: swift1
+    - name: swift2
+  mount_point: /openstack
+  storage_policies:
+    - policy:
+        name: gold
+        index: 0
+        default: True
+
+
+####  Set testing venv tags ####
 # Set the venv tags for all services, This is done to
 #  ensure the installation and pathing are correct within RPC MaaS
 cinder_venv_tag: "testing"
@@ -25,42 +92,3 @@ neutron_venv_tag: "testing"
 nova_venv_tag: "testing"
 sahara_venv_tag: "testing"
 swift_venv_tag: "testing"
-
-maas_rabbitmq_password: secrete
-
-# This is used for RPC specific things and is required
-# NOTE(cloudnull): Before this was hardcoded, now it will look at the playbook path and
-#                  take the git information from the root playbook directory dynamically.
-rpc_release: "{{ lookup('pipe', 'cd ' + playbook_dir.split('common')[0] + '; git describe --tags --abbrev=0; cd -').splitlines()[0].strip() }}"
-
-# Used to define the default nova console type for RPC-MaaS
-nova_console_type: novnc
-
-nova_console_ports:
-  novnc: 6080
-  spice: 6082
-
-nova_console_port: "{{ nova_console_ports[nova_console_type] }}"
-
-# Used to setup monitoring user within Keystone.
-maas_keystone_password: secrete
-
-# Horizon vars, once this branch moves past newton we can remove these things.
-horizon_developer_mode: true
-horizon_git_install_branch: stable/newton
-horizon_requirements_git_install_branch: stable/newton
-horizon_galera_address: "{{ test_galera_host }}"
-horizon_galera_database: dash
-horizon_galera_user: dash
-horizon_rabbitmq_password: "secrete"
-horizon_rabbitmq_userid: horizon
-horizon_rabbitmq_vhost: /horizon
-horizon_container_mysql_password: "SuperSecrete"
-horizon_secret_key: "SuperSecreteHorizonKey"
-horizon_external_ssl: False
-horizon_config_overrides:
-  X_TEST_OPTION: True
-
-# In order to use loopback devices we set this line
-lxc_container_config_list:
-  - "lxc.cgroup.devices.allow = b 7:* rwm"

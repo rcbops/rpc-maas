@@ -22,7 +22,3 @@
   vars_files:
     - common/test-vars.yml
     - rpc_maas-overrides.yml
-  vars:
-    test_swift_storage_network: "{{ container_networks['storage_address']['interface'] }}"
-    swift_service_in_ldap: false
-    swift_accesscheck_password: secrete

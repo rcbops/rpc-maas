@@ -17,22 +17,6 @@ container_name: localhost
 
 ansible_python_interpreter: "/usr/bin/python2"
 
-bridges:
-  - name: "br-mgmt"
-    ip_addr: "10.1.1.1"
-  - name: "br-vxlan"
-    ip_addr: "10.2.1.1"
-    veth_peer: "eth11"
-  - name: "br-vlan"
-    ip_addr: "10.2.2.1"
-    veth_peer: "eth12"
-  - name: "br-storage"
-    ip_addr: "10.3.1.1"
-    veth_peer: "eth13"
-  - name: "br-repl"
-    ip_addr: "10.4.1.1"
-    veth_peer: "eth14"
-
 neutron_provider_networks:
   network_types: "vxlan,flat"
   network_mappings: "flat:eth12"

@@ -38,3 +38,9 @@
     checks: "{{ swift_recon_checks_list }}"
   when:
     - inventory_hostname in groups['swift_proxy'][0-1]
+
+- include: swift_access_check.yml
+  when:
+    - groups['swift_proxy'] | length > 0
+    - swift_accesscheck_enabled | bool
+    - inventory_hostname == groups['swift_proxy'][0]

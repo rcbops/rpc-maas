@@ -42,6 +42,13 @@ if which yum; then
     sudo yum -y install redhat-lsb-core epel-release
 fi
 
+# This is done to fake nodepool interactions in the RPC gate which will allow
+#  for automatic log collection which will be available within the jenkins
+#  gate.
+if [ "${IRR_CONTEXT:-false}" != false ]; then
+  sudo mkdir -p /etc/nodepool
+fi
+
 if [ "${FUNCTIONAL_TEST}" = true ]; then
   tox -e bindep
   tox -e functional

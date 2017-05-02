@@ -40,8 +40,5 @@
 # Install Nova
 - include: common/test-install-nova.yml
 
-# Install Horizon
-- include: test-install-horizon.yml
-
-# Install Tempest
-- include: test-rpc-maas.yml
+# Install rpc-maas
+- include: test-install-rpc-maas.yml

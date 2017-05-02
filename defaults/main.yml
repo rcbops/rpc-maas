@@ -629,9 +629,12 @@ maas_pip_package_state: "latest"
 swift_accesscheck_enabled: true
 swift_accesscheck_container: "accesscheck"
 swift_accesscheck_file: "index.html"
-swift_accesschbeck_user_name: "accesscheck"
+swift_accesscheck_user_name: "accesscheck"
 swift_operator_role: "swiftoperator"
 swift_service_project_name: "service"
+
+# Instruct the swift service checks to be ldap aware.
+swift_service_in_ldap: false
 
 # Holland venv enabled
 holland_venv_enabled: true

@@ -19,7 +19,7 @@
   with_items:
     - "{{ network_checks_list }}"
   when:
-    - hostvars[inventory_hostname]["{{'ansible_' + item.name | replace('-', '_')}}"] is not defined
+    - "hostvars[inventory_hostname]['ansible_' + (item.name | replace('-', '_'))] is not defined"
 
 - name: Discover NIC speed
   command: "cat /sys/class/net/{{ item.name }}/speed"
@@ -40,7 +40,7 @@
     - "{{ network_checks_list }}"
     - "{{ discover_nic_speed.results }}"
   when:
-    - inventory_hostname in groups["{{ item.0.group }}"]
+    - inventory_hostname in groups[item.0.group]
 
 - name: Remove checks that are excluded
   file:

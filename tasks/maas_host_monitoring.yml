@@ -13,15 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Playbook for deploying horizon
-  hosts: horizon_all
-  user: root
-  gather_facts: true
-  pre_tasks:
-    - include: common/create-grant-db.yml
-      db_name: "{{ horizon_galera_database }}"
-      db_password: "{{ horizon_container_mysql_password }}"
-  roles:
-    - role: "{{ horizon_rolename | default('os_horizon') }}"
-  vars_files:
-    - common/test-vars.yml
+- include: cdm.yml
+
+# NOTE(Cloudnull): This will load only the one vendor specific host file
+#  and fail if not found when host_check is true
+- include: "{{ ansible_system_vendor.split()[0] | lower }}.yml"
+  when:
+    - inventory_hostname in groups['hosts']
+    - host_check | bool
+
+- include: network.yml
+  when:
+    - network_checks_list | length > 0
+
+- include: kernel.yml
+
+- include: container-storage-checks.yml

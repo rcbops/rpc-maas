@@ -100,9 +100,6 @@ heat_api_cloudwatch
 heat_engine_container
 heat_apis_container
 
-[horizon_all]
-openstack1
-
 [keystone_all]
 openstack1
 
