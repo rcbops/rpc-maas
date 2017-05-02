@@ -613,7 +613,7 @@ verify_maas_retries: 5
 # maas_use_api: Allow operations that make use of the MaaS api, set to false
 #               for offline testing
 #
-maas_use_api: true
+maas_use_api: False
 
 #
 # maas_agent_upgrade: Allow for automatic MaaS agent upgrades
