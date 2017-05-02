@@ -1,0 +1,3 @@
+---
+rpc_release: "{{ lookup('pipe', 'cd ' + playbook_dir.split('common')[0] + '; git describe --tags --abbrev=0; cd -').splitlines()[0].strip() }}"
+maas_keystone_password: secrete

@@ -13,6 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Create openrc file
+  template:
+    src: "openrc"
+    dest: "/root/openrc-maas"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+
 # TODO (mattt): Modify openstack_openrc role to allow us to pass in arbitrary
 #               details.  This is a refactor which will need to wait until a
 #               later date.
