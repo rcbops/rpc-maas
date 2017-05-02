@@ -2,25 +2,25 @@
 localhost physical_host=localhost
 
 [all_containers]
-all
+localhost
 
 [hosts]
-all
+localhost
 
 [utility]
-all
+localhost
 
 [rabbitmq_all]
-all
+localhost
 
 [galera]
-all
+localhost
 
 [cinder_backup]
-all
+localhost
 
 [swift_all]
-all
+localhost
 
 [swift_proxy]
-all
+localhost
