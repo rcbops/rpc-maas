@@ -62,4 +62,5 @@
   delay: 2
   with_items: "{{ maas_pip_container_packages }}"
   when:
+    - groups['lxc_hosts'] is defined
     - inventory_hostname in groups['lxc_hosts']
