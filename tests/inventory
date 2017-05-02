@@ -3,15 +3,11 @@
 [all]
 localhost ansible_become=True ansible_connection=local ansible_user=root
 infra1
-infra2
-infra3
 openstack1
 swift1
 
 [all_containers]
 infra1
-infra2
-infra3
 openstack1
 swift1
 
@@ -26,21 +22,15 @@ localhost
 
 [rabbitmq_all]
 infra1
-infra2
-infra3
 
 [galera]
 infra1
-infra2
-infra3
 
 [galera_all:children]
 galera
 
 [memcached_all]
 infra1
-infra2
-infra3
 
 [service_all:children]
 rabbitmq_all
@@ -192,7 +182,7 @@ nova_api_placement
 swift1
 
 [swift_proxy]
-openstack1
+swift1
 
 [swift_acc]
 swift1

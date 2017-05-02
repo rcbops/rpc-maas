@@ -31,6 +31,7 @@
   until: add_user | success
   retries: 5
   delay: 10
+  delegate_to: "{{ groups['keystone_all'][0] }}"
 
 # Assign the swiftoperator role to the file checking user
 - name: Add swift role to user
@@ -50,12 +51,14 @@
   until: add_user_role | success
   retries: 5
   delay: 10
+  delegate_to: "{{ groups['keystone_all'][0] }}"
 
 # Copy test HTML file to the swift proxy for uploading
 - name: Create index file
   copy:
     dest: "/tmp/{{ swift_accesscheck_file }}"
     src: "index.html"
+  delegate_to: "{{ groups['swift_all'][0] }}"
 
 # Place an HTML file in a swift container
 - name: Upload check file to swift
@@ -68,6 +71,7 @@
   args:
     executable: "/bin/bash"
   changed_when: false
+  delegate_to: "{{ groups['swift_all'][0] }}"
 
 # Set global read permission on the swift container
 - name: Configure check container ACL
@@ -78,6 +82,7 @@
   args:
     executable: "/bin/bash"
   changed_when: false
+  delegate_to: "{{ groups['swift_all'][0] }}"
 
 # Configure the container to return an index file by default
 - name: Configure check container index file
@@ -88,6 +93,7 @@
   args:
     executable: "/bin/bash"
   changed_when: false
+  delegate_to: "{{ groups['swift_all'][0] }}"
 
 # Fetch the swift account token to build the URL
 - name: Retrieve check file key
@@ -101,6 +107,7 @@
     executable: "/bin/bash"
   register: swift_url_key
   changed_when: false
+  delegate_to: "{{ groups['swift_all'][0] }}"
 
 # Set the full check URL as a fact
 - name: Set URL fact

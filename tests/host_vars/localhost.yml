@@ -45,3 +45,14 @@ neutron_local_ip: "{{ ansible_host }}"
 container_address: "{{ ansible_host }}"
 swift_replication_address: 10.4.1.1
 swift_storage_address: "{{ storage_address }}"
+
+# Cinder specific Vars
+cinder_backends:
+  lvm:
+    volume_group: cinder-volumes
+    volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+    volume_backend_name: LVM_iSCSI
+  lvm2:
+    volume_group: cinder-volumes
+    volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+    volume_backend_name: LVM_iSCSI
