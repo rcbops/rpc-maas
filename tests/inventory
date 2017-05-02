@@ -8,19 +8,13 @@ localhost
 localhost
 
 [utility]
-localhost
 
 [rabbitmq_all]
-localhost
 
 [galera]
-localhost
 
 [cinder_backup]
-localhost
 
 [swift_all]
-localhost
 
 [swift_proxy]
-localhost
