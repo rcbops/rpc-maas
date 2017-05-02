@@ -23,4 +23,5 @@
 - include: agent_install_remote.yml
   vars:
     entity_name: "{{ inventory_hostname }}{{ maas_fqdn_extension }}"
-  when: "{{ maas_use_api | bool }}"
+  when:
+    - maas_use_api | bool
