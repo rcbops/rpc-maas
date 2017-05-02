@@ -49,14 +49,6 @@
   with_items: "{{ plugin_files.files|default({}) }}"
   when: plugin_files.files|length > 0
 
-- name: Create openrc file
-  template:
-    src: "openrc"
-    dest: "/root/openrc-maas"
-    owner: "root"
-    group: "root"
-    mode: "0600"
-
 - name: Ensure raspace-monitoring-agent config directory exists
   file:
     name: /etc/rackspace-monitoring-agent.conf.d
