@@ -1,5 +1,5 @@
 ---
-# Copyright 2015, Rackspace US, Inc.
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,19 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: cdm.yml
+- include: maas_host_monitoring_cdm.yml
 
-# NOTE(Cloudnull): This will load only the one vendor specific host file
-#  and fail if not found when host_check is true
-- include: "{{ ansible_system_vendor.split()[0] | lower }}.yml"
-  when:
-    - inventory_hostname in groups['hosts']
-    - host_check | bool
+- include: maas_host_monitoring_vendor.yml
 
-- include: network.yml
-  when:
-    - network_checks_list | length > 0
+- include: maas_host_monitoring_network.yml
 
-- include: kernel.yml
-
-- include: container-storage-checks.yml
+- include: maas_host_monitoring_kernel.yml

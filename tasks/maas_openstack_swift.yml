@@ -15,7 +15,7 @@
 
 - name: Set Storage address fact for host
   set_fact:
-    storage_bridge: "{{ 'ansible_' + swift.storage_network|replace('-', '_') }}"
+    storage_bridge: "{{ 'ansible_' + swift.storage_network | replace('-', '_') }}"
   when:
     - swift is defined
     - swift.storage_network is defined
@@ -27,6 +27,12 @@
   when:
     - inventory_hostname in groups['swift_hosts']
 
+- include: maas_openstack_swift_access_check.yml
+  when:
+    - groups['swift_proxy'] | length > 0
+    - inventory_hostname == groups['swift_proxy'][0]
+    - swift_accesscheck_enabled | bool
+
 # Setup Swift Server healthchecks
 - include: ensure_local_checks.yml
   vars:
@@ -37,10 +43,4 @@
   vars:
     checks: "{{ swift_recon_checks_list }}"
   when:
-    - inventory_hostname in groups['swift_proxy'][0-1]
-
-- include: swift_access_check.yml
-  when:
-    - groups['swift_proxy'] | length > 0
-    - swift_accesscheck_enabled | bool
-    - inventory_hostname == groups['swift_proxy'][0]
+    - inventory_hostname in groups['swift_proxy']

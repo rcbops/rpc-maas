@@ -25,11 +25,14 @@
     entity: "{{ entity_name }}"
     venv_bin: "{{ maas_venv_bin }}"
   register: agent_token
-  when: maas_agent_token is not defined
+  when:
+    - maas_agent_token is not defined
 
 - name: Set agent token fact
-  set_fact: maas_agent_token={{ agent_token.id }}
-  when: maas_agent_token is not defined
+  set_fact:
+    maas_agent_token: "{{ agent_token.id }}"
+  when:
+    - maas_agent_token is not defined
 
 - name: Generate raxmon agent config
   template:

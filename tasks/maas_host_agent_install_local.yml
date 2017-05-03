@@ -13,6 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Drop .raxrc file
+  template:
+    src: raxrc.j2
+    dest: /root/.raxrc
+    mode: 0600
+    owner: root
+    group: root
+
 - name: Install plugin dir
   file:
     path: "{{ maas_plugin_dir }}"
@@ -30,7 +38,7 @@
 - name: Drop in wrapper script to run maas plugins in venv
   template:
     src: "run_plugin_in_venv.sh.j2"
-    dest: "{{maas_plugin_dir}}run_plugin_in_venv.sh"
+    dest: "{{ maas_plugin_dir }}run_plugin_in_venv.sh"
     owner: "root"
     group: "root"
     mode: "0755"
@@ -45,8 +53,9 @@
   file:
     path: "{{ item.path }}"
     mode: "0755"
-  with_items: "{{ plugin_files.files|default({}) }}"
-  when: plugin_files.files|length > 0
+  with_items: "{{ plugin_files.files | default({}) }}"
+  when:
+    - plugin_files.files | length > 0
 
 - name: Create openrc file
   template:
@@ -55,13 +64,3 @@
     owner: "root"
     group: "root"
     mode: "0600"
-
-- name: Ensure raspace-monitoring-agent config directory exists
-  file:
-    name: /etc/rackspace-monitoring-agent.conf.d
-    state: directory
-    group: root
-    owner: root
-  tags:
-    - rackspace-monitoring-agent-setup
-

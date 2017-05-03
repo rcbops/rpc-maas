@@ -20,75 +20,54 @@
   set_fact:
     maas_excluded_checks_regex: "{{ (maas_excluded_checks | length > 0) | ternary('('+maas_excluded_checks | join(')|(')+')', '^$') }}"
     maas_excluded_alarms_regex: "{{ (maas_excluded_alarms | length > 0) | ternary('('+maas_excluded_alarms | join(')|(')+')', '^$') }}"
+  tags:
+    - always
 
-- include: host_setup.yml
+- include: maas_pre_install.yml
+  tags:
+    - maas-config
+
+- include: maas_host_setup.yml
   when:
     - inventory_hostname in groups['hosts']
+  tags:
+    - maas-install
 
-- include: keystone_user.yml
-  when:
-    - "'utility' in groups"
-    - groups['utility'] | length > 0
-    - inventory_hostname == groups['utility'][0]
-
-- include: rabbitmq_user.yml
-  when:
-    - "'rabbitmq_all' in groups"
-    - groups['rabbitmq_all'] | length > 0
-    - inventory_hostname == groups['rabbitmq_all'][0]
-
-- include: create_my_cnf.yml
-  when:
-    - "'galera' in groups"
-    - inventory_hostname in groups['galera']
-
-- include: process.yml
-
-- include: local.yml
-  vars:
-    internal_vip_address: "{{ internal_lb_vip_address }}"
-
-- include: ensure_local_checks.yml
-  vars:
-    checks: "{{ cinder_vg_checks_list }}"
-  when:
-    - "'cinder_volume' in groups"
-    - groups['cinder_volume'] | length > 0
-    - cinder_backends is defined
-    - cinder_backends['lvm'] is defined
-
-- include: swift.yml
-  vars:
-    external_vip_address: "{{ maas_external_ip_address }}"
-  when:
-    - "'swift_all' in groups"
-    - groups['swift_all'] | length > 0
-    - inventory_hostname in groups['swift_all']
-
-- include: ceph.yml
-  when:
-    - "'ceph_all' in groups"
-    - groups['ceph_all'] | length > 0
-    - inventory_hostname in groups['ceph_all']
-
-- include: magnum.yml
-  when:
-    - "'magnum_all' in groups"
-    - groups['magnum_all'] | length > 0
-    - inventory_hostname in groups['magnum_all']
+- include: maas_infra.yml
+  tags:
+    - maas-checks
+    - maas-checks-infra
 
 - include: maas_host_monitoring.yml
   when:
     - "'hosts' in groups"
     - groups['hosts'] | length > 0
     - inventory_hostname in groups['hosts']
+  tags:
+    - maas-checks
+    - maas-checks-hosts
 
-- include: remote.yml
-  vars:
-    ip_address: "{{ maas_external_ip_address }}"
+- include: maas_openstack.yml
+  tags:
+    - maas-checks
+    - maas-checks-openstack
+
+- include: maas_ceph.yml
   when:
-    - remote_check | bool
+    - "'ceph_all' in groups"
+    - groups['ceph_all'] | length > 0
+    - inventory_hostname in groups['ceph_all']
+  tags:
+    - maas-checks
+    - maas-checks-ceph
 
-- include: restart_raxmon.yml
+- include: maas_checks.yml
+  tags:
+    - maas-checks
+    - maas-checks-extra
+
+- include: maas_restart_raxmon.yml
   when:
     - inventory_hostname in groups['hosts']
+  tags:
+    - maas-config

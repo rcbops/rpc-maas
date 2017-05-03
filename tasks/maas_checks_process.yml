@@ -1,5 +1,5 @@
 ---
-# Copyright 2014, Rackspace US, Inc.
+# Copyright 2016, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Drop local .my.cnf file
+- name: Install process checks
   template:
-    src: "client.my.cnf.j2"
-    dest: "/root/.my.cnf"
+    src: "{{ item.name }}.yaml.j2"
+    dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item.name }}-{{ inventory_hostname }}.yaml"
     owner: "root"
     group: "root"
-    mode: "0600"
+    mode: "0644"
+  with_items:
+    - "{{ process_checks_list }}"
+  when:
+    - item.group in groups
+    - inventory_hostname in groups[item.group]
   delegate_to: "{{ physical_host }}"
+

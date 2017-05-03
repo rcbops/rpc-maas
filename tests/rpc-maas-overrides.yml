@@ -30,6 +30,12 @@ bridges:
     veth_peer: "eth14"
 
 
+# Set the vip address
+external_lb_vip_address: 127.0.0.1
+internal_lb_vip_address: 127.0.0.1
+internal_vip_address: "{{ internal_lb_vip_address }}"
+
+
 # In order to use loopback devices we set this line
 lxc_container_config_list:
   - "lxc.cgroup.devices.allow = b 7:* rwm"

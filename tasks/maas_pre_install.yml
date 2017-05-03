@@ -1,5 +1,5 @@
 ---
-# Copyright 2016, Rackspace US, Inc.
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,18 +21,3 @@
     owner: root
   tags:
     - rackspace-monitoring-agent-setup
-
-- name: Install process checks
-  template:
-    src: "{{ item.name }}.yaml.j2"
-    dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item.name }}-{{ inventory_hostname }}.yaml"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  with_items:
-    - "{{ process_checks_list }}"
-  when:
-    - item.group in groups
-    - inventory_hostname in groups[item.group]
-  delegate_to: "{{ physical_host }}"
-
