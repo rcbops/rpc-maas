@@ -27,6 +27,7 @@
     tenant_name: "{{ keystone_admin_tenant_name }}"
     password: "{{ maas_keystone_password }}"
     insecure: "{{ keystone_service_adminuri_insecure }}"
+  delegate_to: "{{ groups['keystone_all'][0] }}"
 
 - name: Add monitoring keystone user to admin role
   keystone:
@@ -39,3 +40,4 @@
     tenant_name: "{{ keystone_admin_tenant_name }}"
     role_name: "admin"
     insecure: "{{ keystone_service_adminuri_insecure }}"
+  delegate_to: "{{ groups['keystone_all'][0] }}"

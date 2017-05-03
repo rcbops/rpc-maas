@@ -42,34 +42,16 @@ if which yum; then
     sudo yum -y install redhat-lsb-core epel-release
 fi
 
-# Get a list of packages to install with bindep. If packages need to be
-# installed, bindep exits with an exit code of 1.
-BINDEP_PKGS=$(bindep -b -f bindep.txt test || true)
-echo "Packages to install: ${BINDEP_PKGS}"
-
-# Install a list of OS packages provided by bindep.
-if which apt-get; then
-    sudo apt-get update
-    DEBIAN_FRONTEND=noninteractive \
-      sudo apt-get -q --option "Dpkg::Options::=--force-confold" \
-      --assume-yes install $BINDEP_PKGS
-elif which yum; then
-    # Don't run yum with an empty list of packages.
-    # It will fail and cause the script to exit with an error.
-    if [[ ${#BINDEP_PKGS} > 0 ]]; then
-      sudo yum install -y $BINDEP_PKGS
-    fi
+# This is done to fake nodepool interactions in the RPC gate which will allow
+#  for automatic log collection which will be available within the jenkins
+#  gate.
+if [ "${IRR_CONTEXT:-false}" != false ]; then
+  sudo mkdir -p /etc/nodepool
 fi
 
-# Loop through each tox environment and run tests.
-for tox_env in $(awk -F= '/envlist/ { gsub(",", " "); print $2 }' tox.ini); do
-  echo "Executing tox environment: ${tox_env}"
-  if [[ ${tox_env} == ansible-functional ]]; then
-    if ${FUNCTIONAL_TEST}; then
-      tox -e ${tox_env}
-    fi
-  else
-    tox -e ${tox_env}
-  fi
-done
-
+if [ "${FUNCTIONAL_TEST}" = true ]; then
+  tox -e bindep
+  tox -e functional
+else
+  tox
+fi

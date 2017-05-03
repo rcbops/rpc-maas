@@ -28,6 +28,8 @@
 - name: Wait for checks to register
   pause:
     minutes: 1
+  when:
+    - maas_use_api | bool
   tags:
     - maas-setup
     - rackspace-monitoring-agent-setup
@@ -37,6 +39,8 @@
   service:
     name: rackspace-monitoring-agent
     state: restarted
+  when:
+    - maas_use_api | bool
   tags:
     - maas-setup
     - rackspace-monitoring-agent-setup

@@ -13,10 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Playbook for role testing
-  hosts: localhost
-  connection: local
-  user: root
-  become: true
-  roles:
-    - role: "rpc-maas"
+# Setup the host
+- include: common/test-setup-host.yml
+
+# Prepare the cinder-volumes VG
+- include: common/test-setup-cinder-localhost.yml
+
+# Install RabbitMQ/MariaDB
+- include: common/test-install-infra.yml
+
+# Install Keystone
+- include: common/test-install-keystone.yml
+
+# Install Swift
+- include: common/test-install-swift.yml
+
+# Install Cinder
+- include: common/test-install-cinder.yml
+
+# Install Glance
+- include: common/test-install-glance.yml
+
+# Install Neutron
+- include: common/test-install-neutron.yml
+
+# Install Nova
+- include: common/test-install-nova.yml
+
+# Install rpc-maas
+- include: test-install-rpc-maas.yml

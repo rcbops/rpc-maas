@@ -13,18 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install remote checks
-  template:
-    src: "{{ item.name }}.yaml.j2"
-    dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item.name }}.yaml"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  with_items:
-    - "{{ checks }}"
+- include: cdm.yml
+
+# NOTE(Cloudnull): This will load only the one vendor specific host file
+#  and fail if not found when host_check is true
+- include: "{{ ansible_system_vendor.split()[0] | lower }}.yml"
   when:
-    - item.group in group_names
-    - groups[item.group] | length > 0
-    - inventory_hostname in groups[item.group]
-    - inventory_hostname != groups[item.group][0]
-  delegate_to: "{{ physical_host }}"
+    - inventory_hostname in groups['hosts']
+    - host_check | bool
+
+- include: network.yml
+  when:
+    - network_checks_list | length > 0
+
+- include: kernel.yml
+
+- include: container-storage-checks.yml

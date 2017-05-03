@@ -585,8 +585,6 @@ openrc_insecure: "{{ (keystone_service_adminuri_insecure | bool or keystone_serv
 # Name of the virtual env to deploy into (maas)
 maas_venv: "/openstack/venvs/maas-{{ rpc_release }}"
 maas_venv_bin: "{{ maas_venv }}/bin"
-# Set this to enable or disable installing in a venv
-maas_venv_enabled: true
 
 #
 # Default horizon site name
@@ -613,7 +611,7 @@ verify_maas_retries: 5
 # maas_use_api: Allow operations that make use of the MaaS api, set to false
 #               for offline testing
 #
-maas_use_api: true
+maas_use_api: false
 
 #
 # maas_agent_upgrade: Allow for automatic MaaS agent upgrades
@@ -634,3 +632,13 @@ swift_accesscheck_file: "index.html"
 swift_accesscheck_user_name: "accesscheck"
 swift_operator_role: "swiftoperator"
 swift_service_project_name: "service"
+
+# Instruct the swift service checks to be ldap aware.
+swift_service_in_ldap: false
+
+# Holland venv enabled
+holland_venv_enabled: true
+holland_venv_bin: "/openstack/venvs/holland-{{ rpc_release }}/bin"
+
+# Set the openstack-release to testing by default
+openstack_release: testing
