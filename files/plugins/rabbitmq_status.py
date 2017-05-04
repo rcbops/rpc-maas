@@ -29,6 +29,8 @@ OVERVIEW_URL = "http://%s:%s/api/overview"
 NODES_URL = "http://%s:%s/api/nodes"
 CONNECTIONS_URL = "http://%s:%s/api/connections?columns=channels"
 QUEUES_URL = "http://%s:%s/api/queues"
+CONSUMERS_QUEUES_URL = "http://%s:%s/api/queues/%s"
+VHOSTS_URL = "http://%s:%s/api/vhosts"
 
 CLUSTERED = True
 CLUSTER_SIZE = 3
@@ -172,6 +174,29 @@ def _get_queue_metrics(session, metrics, host, port):
     }
 
 
+def _get_consumer_metrics(session, metrics, host, port):
+    VHOSTS = []
+    vhosts_response = _get_rabbit_json(session, VHOSTS_URL % (host, port))
+    # get the vhosts
+    for vhost in vhosts_response:
+        VHOSTS.append(vhost['name'])
+
+    queues_without_consumers = 0
+    for vhost in VHOSTS:
+        # uri encode /
+        URI_ENCODED = vhost.replace('/', '%2F')
+        queue_response = _get_rabbit_json(session, CONSUMERS_QUEUES_URL %
+                                          (host, port, URI_ENCODED))
+        for queue in queue_response:
+            if queue['consumers'] == 0:
+                queues_without_consumers += 1
+
+    metrics['queues_without_consumers'] = {
+        'value': queues_without_consumers,
+        'unit': 'queues'
+    }
+
+
 def main():
     (options, _) = parse_args()
     metrics = {}
@@ -183,6 +208,7 @@ def main():
     _get_node_metrics(session, metrics, options.host, options.port,
                       options.name)
     _get_queue_metrics(session, metrics, options.host, options.port)
+    _get_consumer_metrics(session, metrics, options.host, options.port)
 
     status_ok()
 

@@ -86,3 +86,13 @@ alarms      :
             if (rate(metric["rabbitmq_msgs_excl_notifications"]) > {{rabbitmq_queue_growth_rate_threshold / maas_check_period}}) {
                 return new AlarmStatus(CRITICAL, "RabbitMQ Queue growth rate is above configured threshold. Currently above {{ rabbitmq_queue_growth_rate_threshold }}");
             }
+
+    rabbitmq_queus_without_consumers :
+        label                   : rabbitmq_queues_without_consumers--{{ ansible_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan }}"
+        disabled                : {{ (('rabbitmq_queues_without_consumers--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric["rabbitmq_queues_without_consumers"] > {{ rabbitmq_queues_without_consumers_limit }}) {
+                return new AlarmStatus(CRITICAL, "RabbitMQ Queues without consumers is above configured threshold. Currently more than {{ rabbitmq_queues_without_consumers_limit }} queues without consumers");
+            }
