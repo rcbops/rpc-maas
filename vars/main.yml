@@ -1,0 +1,93 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Compatibility variables
+ansible_ssh_host: "{{ ansible_host }}"
+
+
+maas_checks:
+  cdm:
+    - group: hosts
+      label: cpu_check
+      file_name: "cpu_check--{{ inventory_hostname }}.yaml"
+      check:
+        type: agent.cpu
+        alarms:
+          idle_percent_average:
+            label: "idle_percent_average--{{ inventory_hostname | quote }}"
+            notification_plan_id: "{{ maas_notification_plan }}"
+            disabled: "{{ (('memory_check--'+inventory_hostname | quote) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}"
+            criteria: |
+              :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+              if (metric["idle_percent_average"] <= {{ cpu_idle_percent_avg_critical_threshold }}) {
+                  return new AlarmStatus(CRITICAL, "CPU time spent idle has dropped to <= {{ cpu_idle_percent_avg_critical_threshold }}%");
+              }
+              if (metric["idle_percent_average"] <= {{ cpu_idle_percent_avg_warning_threshold }}) {
+                  return new AlarmStatus(WARNING, "CPU time spent idle has dropped to <= {{ cpu_idle_percent_avg_warning_threshold }}%");
+              }
+    - group: hosts
+      label: memory_check
+      file_name: "memory_check--{{ inventory_hostname }}.yaml"
+      check:
+        type: agent.memory
+        alarms:
+          memory_used:
+            label: "memory_check--{{ inventory_hostname | quote }}"
+            notification_plan_id: "{{ maas_notification_plan }}"
+            disabled: "{{ (('memory_check--'+inventory_hostname | quote) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}"
+            criteria: |
+              :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+              if (percentage(metric["actual_used"], metric["total"]) >= {{ memory_used_percentage_critical_threshold }}) {
+                  return new AlarmStatus(CRITICAL, "Memory is {{ memory_used_percentage_critical_threshold }}%+ in use.");
+              }
+              if (percentage(metric["actual_used"], metric["total"]) >= {{ memory_used_percentage_warning_threshold }}) {
+                  return new AlarmStatus(WARNING, "Memory is {{ memory_used_percentage_warning_threshold }}%+ in use.");
+              }
+    - group: hosts
+      label: disk_utilisation
+      file_name: "disk_utilisation--{{ inventory_hostname }}.yaml"
+      check:
+        type: agent.plugin
+        details:
+          file: run_plugin_in_venv.sh
+          args:
+            - "{{ maas_plugin_dir }}disk_utilisation.py"
+            - "{{ ansible_ssh_host }}"
+        alarms: "{{ _maas_host_disk_utilisation_alarms | from_yaml }}"
+
+
+# This Belongs to the "cdm" set of checks.
+#  Generate the disk utilization plugins as a string and is later convert it to yaml for an alarm
+_maas_host_disk_utilisation_alarms: |
+  {% set disk_util_devices = [] %}
+  {% for device in ansible_devices.keys() %}
+  {%   if (device not in maas_excluded_devices | default([])) and (ansible_devices[device].model != 'VIRTUAL-DISK') %}
+  {%     set _ = disk_util_devices.append(device) %}
+  {%   endif %}
+  {% endfor %}
+  {% for device in disk_util_devices %}
+      percentage_disk_utilisation_{{ device }}:
+          label: percentage_disk_utilisation_{{ device }}--{{ ansible_hostname }}
+          notification_plan_id: "{{ maas_notification_plan }}"
+          disabled: {{ (('percentage_disk_utilisation_'+device+'--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+          criteria: |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric["disk_utilisation_{{ device }}"] > {{ disk_utilisation_critical_threshold }}) {
+                return new AlarmStatus(CRITICAL, "Disk IO utilisation for {{ device }} >= {{ disk_utilisation_critical_threshold }}%");
+            }
+            if (metric["disk_utilisation_{{ device }}"] > {{ disk_utilisation_warning_threshold }}) {
+                return new AlarmStatus(WARNING, "Disk IO utilisation for {{ device }} >= {{ disk_utilisation_warning_threshold }}%");
+            }
+  {% endfor %}

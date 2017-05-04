@@ -13,14 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: ensure_local_checks.yml
+- include: maas_checks_generator.yml
   vars:
-    checks: "{{ cpu_memory_checks_list }}"
-
-- include: ensure_local_checks.yml
-  vars:
-    checks: "{{ disk_utilisation_checks_list }}"
-    disk_util_devices: "[{% for device in ansible_devices.keys() %}{% if (device not in maas_excluded_devices|default([])) and (ansible_devices[device].model != 'VIRTUAL-DISK') %}'{{ device }}',{% endif %}{% endfor %}]"
+    check_group: "cdm"
 
 - name: Gathering facts for mounted drives
   set_fact:
@@ -31,7 +26,7 @@
 
 - include: ensure_filesystem_auto_checks.yml
   vars:
-    drives: "{{ mounted_drives|default([]) }}"
+    drives: "{{ mounted_drives | default([]) }}"
   when:
     - maas_filesystem_overrides is undefined
     - maas_filesystem_monitors is undefined

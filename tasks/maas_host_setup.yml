@@ -13,15 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: repo_setup.yml
+- include: maas_host_install.yml
 
-- include: package_install.yml
+- include: maas_host_agent_install_local.yml
 
-- include: raxmon_cli_config.yml
-
-- include: agent_install_local.yml
-
-- include: agent_install_remote.yml
+- include: maas_host_agent_install_remote.yml
   vars:
     entity_name: "{{ inventory_hostname }}{{ maas_fqdn_extension }}"
   when:

@@ -1,5 +1,5 @@
 ---
-# Copyright 2015, Rackspace US, Inc.
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(Cloudnull): This check should be extended to Ubuntu Xenial in the future.
-- name: Install local checks
-  template:
-    src: "container_storage_checks.yaml.j2"
-    dest: "/etc/rackspace-monitoring-agent.conf.d/container_storage_check--{{ inventory_hostname }}.yaml"
+- name: "Generate Checks for [ {{ check_group }} ]"
+  copy:
+    content: "{{ lookup('template', 'checks_base.yaml.j2', convert_data=False) | from_yaml | combine(item.check, recursive=True) | to_nice_yaml }}"
+    dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item.file_name }}"
     owner: "root"
     group: "root"
     mode: "0644"
-  when: ansible_distribution_version == '14.04'
+  when:
+    - inventory_hostname in groups[item.group]
+  with_items:
+    - "{{ maas_checks[check_group] }}"
   delegate_to: "{{ physical_host }}"

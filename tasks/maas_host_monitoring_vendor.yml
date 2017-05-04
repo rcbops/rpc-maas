@@ -1,5 +1,5 @@
 ---
-# Copyright 2014, Rackspace US, Inc.
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,19 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: ensure_remote_checks.yml
-  vars:
-    checks: "{{ openstack_service_remote_checks_list }}"
-    check_disabled: "false"
-
-- include: ensure_remote_backup_checks.yml
-  vars:
-    checks: "{{ openstack_service_remote_checks_list }}"
-    check_disabled: "{{ lb_check_on_single_host | bool }}"
-
-- include: ensure_remote_checks.yml
-  vars:
-    checks: "{{ ssl_cert_checks_list }}"
+# NOTE(Cloudnull): This will load only the one vendor specific host file
+#  and fail if not found when host_check is true
+- include: "maas_host_monitoring_vendor_{{ ansible_system_vendor.split()[0] | lower }}.yml"
   when:
-    - groups['utility'] | length > 0
-    - ssl_check | bool
+    - inventory_hostname in groups['hosts']
+    - host_check | bool

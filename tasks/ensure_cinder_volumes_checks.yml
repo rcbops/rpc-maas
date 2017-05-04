@@ -22,5 +22,5 @@
     mode: "0644"
   with_dict: "{{ cinder_backends | default({}) }}"
   when:
-    - inventory_hostname in groups["cinder_volume"]
+    - inventory_hostname in groups['cinder_volume']
   delegate_to: "{{ physical_host }}"

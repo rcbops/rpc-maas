@@ -1,5 +1,5 @@
 ---
-# Copyright 2014, Rackspace US, Inc.
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,24 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Add MaaS apt keys
-  apt_key:
-    url: "{{ item.url }}"
-    state: "{{ item.state }}"
-  with_items: "{{ maas_apt_keys }}"
-  when:
-    - ansible_distribution == 'Ubuntu'
-    - maas_apt_keys is defined
+- include: maas_checks_process.yml
 
-- name: Add Container repos
-  apt_repository:
-    repo: "{{ item.repo }}"
-    state: "{{ item.state }}"
-    filename: "{{ item.filename | default(omit) }}"
-  with_items: "{{ maas_apt_repos }}"
+- include: ensure_remote_checks.yml
+  vars:
+    ip_address: "{{ maas_external_ip_address }}"
+    checks: "{{ ssl_cert_checks_list }}"
   when:
-    - ansible_distribution == 'Ubuntu'
-    - maas_apt_keys is defined
-  register: add_repos
-  until: add_repos|success
-  retries: 3
+    - remote_check | bool
+    - groups['utility'] | length > 0
+    - ssl_check | bool
+
+- include: maas_checks_container.yml
+  when:
+    - "'all_containers' in groups"
+    - inventory_hostname in groups['all_containers']
