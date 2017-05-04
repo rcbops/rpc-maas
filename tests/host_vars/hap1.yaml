@@ -13,20 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-neutron_provider_networks:
-  network_types: "vxlan,flat"
-  network_mappings: "flat:eth12"
-  network_vxlan_ranges: "1:1000"
-
-ansible_host: 10.1.1.101
-ansible_ssh_host: 10.1.1.101  # Added for compatibility
-tunnel_address: 10.2.1.101
-storage_address: 10.3.1.101
-
+ansible_host: 10.1.1.51
+ansible_ssh_host: 10.1.1.51  # Added for compatibility
 ansible_become: True
 ansible_user: root
-neutron_local_ip: "{{ ansible_host }}"
-
-swift_replication_address: 10.4.1.101
+tunnel_address: 10.2.1.51
+storage_address: 10.3.1.51
+swift_replication_address: 10.4.1.51
 
 swift_storage_address: "{{ storage_address }}"

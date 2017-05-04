@@ -73,7 +73,7 @@ def recon_output(for_ring, options=None):
                                                  '').strip().split("=")[1]
 
     # identify the container we will use for monitoring
-    get_container = shlex.split('lxc-ls -1 --running .*swift_proxy')
+    get_container = shlex.split('lxc-ls -1 --running ".*(swift_proxy|swift)"')
 
     try:
         containers_list = subprocess.check_output(get_container)

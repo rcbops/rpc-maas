@@ -5,11 +5,13 @@ localhost ansible_become=True ansible_connection=local ansible_user=root
 infra1
 openstack1
 swift1
+hap1
 
 [all_containers]
 infra1
 openstack1
 swift1
+hap1
 
 [hosts]
 localhost
@@ -20,17 +22,26 @@ localhost
 
 #### INFRA START HERE
 
-[rabbitmq_all]
-infra1
-
 [galera]
 infra1
 
 [galera_all:children]
 galera
 
+[haproxy]
+hap1
+
+[haproxy_all:children]
+haproxy
+
 [memcached_all]
 infra1
+
+[rabbitmq]
+infra1
+
+[rabbitmq_all:children]
+rabbitmq
 
 [service_all:children]
 rabbitmq_all
