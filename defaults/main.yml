@@ -218,11 +218,6 @@ maas_filesystem_warning_threshold: 80.0
 maas_filesystem_critical_threshold: 90.0
 
 #
-# maas_filesystem_monitors: Explicitly set the filesystems to set up monitors/alerts for.
-#
-#   NOTE: You can override these in your openstack_user_config.yml per device using
-#         "maas_filesystem_overrides".
-#
 # maas_filesystem_monitors:
 #  - filesystem: /
 #    warning_threshold: 80.0
@@ -230,6 +225,29 @@ maas_filesystem_critical_threshold: 90.0
 #  - filesystem: /boot
 #    warning_threshold: 80.0
 #    critical_threshold: 90.0
+_maas_filesystem_monitors: |
+  ---
+  {% set filesystems = [] %}
+  {% for item in ansible_mounts %}
+  {%   if 'xfs' in item.fstype or 'ext' in item.fstype %}
+  - filesystem: "{{ item.mount }}"
+    warning_threshold: "{{ maas_filesystem_warning_threshold }}"
+    critical_threshold: "{{ maas_filesystem_critical_threshold }}"
+  {%   endif %}
+  {% endfor %}
+
+maas_filesystem_monitors: "{{ _maas_filesystem_monitors | from_yaml }}"
+
+#
+# maas_filesystem_monitors: Explicitly set the filesystems to set up monitors/alerts for.
+#
+#   NOTE: You can override these in your openstack_user_config.yml per device using
+#         "maas_filesystem_monitors".
+#   NOTE(cloudnull): The legacy variable "maas_filesystem_overrides" has been deprecated.
+#                    The variable maas_filesystem_monitors can be overridden "as-is".
+#                    The variable "maas_filesystem_overrides" will be removed in Q
+maas_filesystem_overrides: "{{ maas_filesystem_monitors }}"
+
 
 # Maas mysql connection thresholds
 mysql_connection_warning_threshold: 80
