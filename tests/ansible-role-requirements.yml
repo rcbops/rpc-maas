@@ -79,7 +79,6 @@
   src: https://git.openstack.org/openstack/openstack-ansible-plugins
   scm: git
   version: stable/newton
-  version: stable/newton
 - name: haproxy_server
   src: https://git.openstack.org/openstack/openstack-ansible-haproxy_server
   scm: git
