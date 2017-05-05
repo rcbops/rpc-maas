@@ -14,6 +14,7 @@
 # limitations under the License.
 
 ansible_host: 10.1.1.202
+ansible_ssh_host: 10.1.1.202  # Added for compatibility
 ansible_become: True
 ansible_user: root
 tunnel_address: 10.2.1.202

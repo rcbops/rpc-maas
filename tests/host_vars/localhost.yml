@@ -23,6 +23,7 @@ neutron_provider_networks:
   network_vxlan_ranges: "1:1000"
 
 ansible_host: 10.1.1.1
+ansible_ssh_host: 10.1.1.1  # Added for compatibility
 tunnel_address: 10.2.1.1
 storage_address: 10.3.1.1
 neutron_local_ip: "{{ ansible_host }}"

@@ -19,6 +19,9 @@
 # Prepare the cinder-volumes VG
 - include: common/test-setup-cinder-localhost.yml
 
+# Install HAProxy
+- include: test-install-haproxy.yml
+
 # Install RabbitMQ/MariaDB
 - include: common/test-install-infra.yml
 
