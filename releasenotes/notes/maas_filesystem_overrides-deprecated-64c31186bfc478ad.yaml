@@ -1,0 +1,7 @@
+---
+deprecations:
+  - The variable ``maas_filesystem_overrides`` has been deprecated.
+    This option is now simply ``maas_filesystem_monitors``. If the
+    deployer wants to override the file system monitors they can
+    now do so using the default variable ``maas_filesystem_monitors``.
+    The variable ``maas_filesystem_overrides`` will be removed in Q.
