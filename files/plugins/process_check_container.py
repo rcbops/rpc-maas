@@ -53,6 +53,8 @@ def get_processes(parent_pid=None):
     # Don't examine the process of this script.
     excluded_pids = [os.getpid()]
 
+    process = psutil.Process(parent_pid)
+
     # Don't examine the process of the venv wrapper script, either.
     if venv_wrapper_check():
         excluded_pids.append(venv_wrapper_check())
@@ -61,7 +63,12 @@ def get_processes(parent_pid=None):
         procs = [x for x in psutil.process_iter()
                  if x.pid not in excluded_pids]
     else:
-        procs = [x for x in psutil.Process(parent_pid).children()]
+        # psutil 1.2.1 has a children() method for the process object
+        # but the latest psutil uses get_children(). We need to handle this carefully.
+        if getattr(process, "children", None) is not None:
+            procs = [x for x in process.children()]
+        else:
+            procs = [x for x in process.get_children()]
     return procs
 
 
