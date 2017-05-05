@@ -548,6 +548,10 @@ maas_pip_container_packages:
 
 maas_source_plugin_dir: plugins/
 
+# NOTE: (alextricity25) This variable is used by verify-maas.yml playbook
+# in the RPCO integrated repository.
+maas_rpc_scripts_dir: /opt/rpc-openstack/scripts
+
 maas_plugin_dir: /usr/lib/rackspace-monitoring-agent/plugins/
 
 # The following two variables control which checks and alarms are excluded from
