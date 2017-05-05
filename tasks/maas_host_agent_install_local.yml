@@ -35,6 +35,17 @@
     dest: "{{ maas_plugin_dir }}"
     delete: yes
 
+# NOTE(cloudnull): This should be replaced later, the plugin(s) are too rigid
+#                  and make too many assumptions based on 1 simple architecture.
+- name: Set RabbitMQ plugin deployed cluster size
+  lineinfile:
+    dest: "{{ maas_plugin_dir }}/rabbitmq_status.py"
+    regexp: "^CLUSTER_SIZE.*=.*"
+    line: "CLUSTER_SIZE={{ groups['rabbitmq_all'] | length }}"
+  when:
+    - "'rabbitmq_all' in groups"
+    - groups['rabbitmq_all'] | length > 0
+
 - name: Drop in wrapper script to run maas plugins in venv
   template:
     src: "run_plugin_in_venv.sh.j2"

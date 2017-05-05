@@ -67,7 +67,7 @@ openstack1
 openstack1
 
 [cinder_volume]
-localhost
+openstack1
 
 [cinder_all:children]
 cinder_api
@@ -122,7 +122,6 @@ openstack1
 
 [neutron_linuxbridge_agent]
 openstack1
-localhost
 
 [neutron_openvswitch_agent]
 
@@ -162,7 +161,7 @@ openstack1
 openstack1
 
 [nova_compute]
-localhost
+openstack1
 
 [nova_conductor]
 openstack1

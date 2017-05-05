@@ -40,8 +40,6 @@
 
 - include: maas_host_monitoring.yml
   when:
-    - "'hosts' in groups"
-    - groups['hosts'] | length > 0
     - inventory_hostname in groups['hosts']
   tags:
     - maas-checks
@@ -55,7 +53,6 @@
 - include: maas_ceph.yml
   when:
     - "'ceph_all' in groups"
-    - groups['ceph_all'] | length > 0
     - inventory_hostname in groups['ceph_all']
   tags:
     - maas-checks
