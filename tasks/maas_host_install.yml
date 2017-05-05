@@ -15,12 +15,16 @@
 
 - name: Add MaaS apt keys
   apt_key:
-    url: "{{ item.url }}"
+    id: "{{ item.hash_id | default(omit) }}"
+    keyserver: "{{ item.keyserver | default(omit) }}"
+    url: "{{ item.url | default(omit) }}"
     state: "{{ item.state }}"
   with_items: "{{ maas_apt_keys }}"
   when:
     - ansible_distribution == 'Ubuntu'
-    - maas_apt_keys is defined
+  register: add_repo_keys
+  until: add_repo_keys|success
+  retries: 3
 
 - name: Add Container repos
   apt_repository:
@@ -30,7 +34,6 @@
   with_items: "{{ maas_apt_repos }}"
   when:
     - ansible_distribution == 'Ubuntu'
-    - maas_apt_keys is defined
   register: add_repos
   until: add_repos|success
   retries: 3
