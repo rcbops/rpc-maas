@@ -64,7 +64,8 @@ def get_processes(parent_pid=None):
                  if x.pid not in excluded_pids]
     else:
         # psutil 1.2.1 has a children() method for the process object
-        # but the latest psutil uses get_children(). We need to handle this carefully.
+        # but the latest psutil uses get_children(). We need to handle
+        # this carefully.
         if getattr(process, "children", None) is not None:
             procs = [x for x in process.children()]
         else:
