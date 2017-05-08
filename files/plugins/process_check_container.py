@@ -66,9 +66,9 @@ def get_processes(parent_pid=None):
         # psutil 1.2.1 has a children() method for the process object
         # but the latest psutil uses get_children(). We need to handle
         # this carefully.
-        if getattr(process, "children", None) is not None:
+        try:
             procs = [x for x in process.children()]
-        else:
+        except AttributeError:
             procs = [x for x in process.get_children()]
     return procs
 
