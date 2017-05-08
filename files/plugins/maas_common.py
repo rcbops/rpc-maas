@@ -87,55 +87,6 @@ else:
 
         return cinder
 
-try:
-    import glanceclient as g_client
-    from glanceclient import exc as g_exc
-except ImportError:
-    def get_glance_client(*args, **kwargs):
-        status_err('Cannot import glanceclient')
-else:
-    def get_glance_client(token=None, endpoint=None, previous_tries=0):
-        if previous_tries > 3:
-            return None
-
-        # first try to use auth details from auth_ref so we
-        # don't need to auth with keystone every time
-        auth_ref = get_auth_ref()
-        auth_details = get_auth_details()
-        keystone = get_keystone_client(auth_ref)
-
-        if not token:
-            token = keystone.auth_token
-        if not endpoint:
-            endpoint = get_endpoint_url_for_service('image',
-                                                    auth_ref,
-                                                    get_endpoint_type(
-                                                        auth_details))
-
-        glance = g_client.Client('1', endpoint=endpoint, token=token)
-
-        try:
-            # We don't want to be pulling massive lists of images every time we
-            # run
-            image = glance.images.list(limit=1)
-            # Exceptions are only thrown when we iterate over image
-            [i.id for i in image]
-        except g_exc.HTTPUnauthorized:
-            auth_ref = force_reauth()
-            keystone = get_keystone_client(auth_ref)
-            token = keystone.auth_token
-
-            glance = get_glance_client(token, endpoint, previous_tries + 1)
-        # we only want to pass HTTPException back to the calling poller
-        # since this encapsulates all of our actual API failures. Other
-        # exceptions will be treated as script/environmental issues and
-        # sent to status_err
-        except g_exc.HTTPException:
-            raise
-        except Exception as e:
-            status_err(str(e))
-
-        return glance
 
 try:
     from novaclient import client as nova_client
@@ -198,13 +149,26 @@ try:
     from keystoneclient import exceptions as k_exc
     from keystoneclient.v2_0 import client as k2_client
     from keystoneclient.v3 import client as k3_client
+    from openstack import connection
+    from openstack import exceptions as os_ex
 except ImportError:
     def keystone_auth(*args, **kwargs):
         status_err('Cannot import keystoneclient')
 
     def get_keystone_client(*args, **kwargs):
         status_err('Cannot import keystoneclient')
+
+    def get_openstack_conn(*args, **kwargs):
+        status_err('Cannot import openstacksdk')
+
 else:
+    def get_openstack_conn():
+        try:
+            conn = connection.from_config("default")
+        except os_ex.HttpException:
+            raise
+        return conn
+
     def keystone_auth(auth_details):
         try:
             if auth_details['OS_AUTH_URL'].endswith('v3'):

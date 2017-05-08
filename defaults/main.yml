@@ -546,6 +546,7 @@ maas_pip_packages:
   - psutil<=1.2.1
   - apache-libcloud<2.0.0
   - rackspace-monitoring-cli
+  - openstacksdk
   - python-cinderclient
   - python-glanceclient
   - python-heatclient
