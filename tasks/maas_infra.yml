@@ -26,7 +26,7 @@
   delegate_to: "{{ groups['rabbitmq_all'][0] }}"
   when:
     - "'rabbitmq_all' in groups"
-    - inventory_hostname in groups['rabbitmq_all'][0]
+    - inventory_hostname == groups['rabbitmq_all'][0]
 
 - name: Get list of vhosts
   uri:
@@ -38,7 +38,7 @@
   delegate_to: "{{ groups['rabbitmq_all'][0] }}"
   when:
     - "'rabbitmq_all' in groups"
-    - inventory_hostname in groups['rabbitmq_all'][0]
+    - inventory_hostname == groups['rabbitmq_all'][0]
 
 - name: Ensure MaaS rabbitmq user has access to all openstack vhosts
   rabbitmq_user:
@@ -54,7 +54,7 @@
   delegate_to: "{{ groups['rabbitmq_all'][0] }}"
   when:
     - "'rabbitmq_all' in groups"
-    - inventory_hostname in groups['rabbitmq_all'][0]
+    - inventory_hostname == groups['rabbitmq_all'][0]
 
 - name: Drop local .my.cnf file
   template:
