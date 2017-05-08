@@ -94,4 +94,3 @@
 - include: ensure_local_checks.yml
   vars:
     checks: "{{ infra_service_local_checks_list }}"
-    internal_vip_address: "{{ internal_lb_vip_address }}"

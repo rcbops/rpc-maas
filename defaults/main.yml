@@ -660,5 +660,7 @@ swift_service_in_ldap: false
 holland_venv_enabled: true
 holland_venv_bin: "/openstack/venvs/holland-{{ rpc_release }}/bin"
 
+internal_vip_address: "{{ internal_lb_vip_address }}"
+
 # Set the openstack-release to testing by default
 openstack_release: testing
