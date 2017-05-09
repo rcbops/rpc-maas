@@ -535,15 +535,11 @@ maas_requires_pip_packages:
 #
 # maas_pip_packages: These packages are installed inside the virtualenv.
 #
-# NOTE: python-novaclient 7.x changes how the list() method works and requires
-#       more work.
-# NOTE: psutil's API completely changed after 1.x, so we're keeping at 1.2.1
-#       until we can get it sorted out.
 maas_pip_packages:
   - cryptography
   - ipaddr
   - lxml
-  - psutil<=1.2.1
+  - psutil
   - apache-libcloud<2.0.0
   - rackspace-monitoring-cli
   - python-cinderclient
@@ -552,7 +548,7 @@ maas_pip_packages:
   - python-keystoneclient
   - python-magnumclient
   - python-neutronclient
-  - python-novaclient<7.0.0
+  - python-novaclient
   - python-memcached
   - requests
   - swift

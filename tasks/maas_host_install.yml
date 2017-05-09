@@ -67,7 +67,9 @@
   pip:
     name: "{{ item }}"
     state: "{{ maas_pip_package_state }}"
-    extra_args: "{{ pip_install_options | default('') }}"
+    extra_args: >-
+      {{ (pip_install_upper_constraints is defined) | ternary('--constraint ' + pip_install_upper_constraints | default(''),'') }}
+      {{ pip_install_options | default('') }}
     virtualenv: "{{ maas_venv }}"
   register: install_pip_packages
   until: install_pip_packages|success
@@ -79,7 +81,9 @@
   pip:
     name: "{{ item }}"
     state: "{{ maas_pip_package_state }}"
-    extra_args: "{{ pip_install_options | default('') }}"
+    extra_args: >-
+      {{ (pip_install_upper_constraints is defined) | ternary('--constraint ' + pip_install_upper_constraints | default(''),'') }}
+      {{ pip_install_options | default('') }}
     virtualenv: "{{ maas_venv }}"
   register: install_pip_container_packages
   until: install_pip_container_packages|success
