@@ -73,7 +73,7 @@ maas_checks:
 _maas_host_disk_utilisation_alarms: |
   {% set disk_util_devices = [] %}
   {% for device in ansible_devices.keys() %}
-  {%   if (device not in maas_excluded_devices | default([])) and (ansible_devices[device].model != 'VIRTUAL-DISK') %}
+  {%   if (device not in maas_excluded_devices | default([])) and (ansible_devices[device].model != 'VIRTUAL-DISK') and (ansible_devices[device].model != 'QEMU DVD-ROM') %}
   {%     set _ = disk_util_devices.append(device) %}
   {%   endif %}
   {% endfor %}
