@@ -16,3 +16,11 @@ This role will install the following:
       user: root
       roles:
         - { role: "rpc_maas", tags: [ "rpc-maas" ] }
+        
+       
+       
+Submitting Bugs
+###############
+
+Please submit all bugs to the rpc-openstack repository:
+https://github.com/rcbops/rpc-openstack/issues
