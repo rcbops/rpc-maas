@@ -51,6 +51,10 @@
   src: https://git.openstack.org/openstack/openstack-ansible-os_glance
   scm: git
   version: stable/newton
+- name: os_heat
+  src: https://git.openstack.org/openstack/openstack-ansible-os_heat
+  scm: git
+  version: stable/newton
 - name: os_horizon
   src: https://git.openstack.org/openstack/openstack-ansible-os_horizon
   scm: git

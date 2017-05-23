@@ -66,11 +66,15 @@ def recon_output(for_ring, options=None):
     """
 
     # grab the current release
-    with open("/etc/openstack-release") as search:
-        for line in search:
-            if 'DISTRIB_RELEASE' in line:
-                openstack_version = line.replace('\"',
-                                                 '').strip().split("=")[1]
+    with open("/etc/openstack-release") as f:
+        for line in f.readlines():
+            if line.startswith('DISTRIB_RELEASE'):
+                openstack_version = line.split("=")[-1].strip()
+                break
+        else:
+            raise SystemExit(
+                'DISTRIB_RELEASE not found in "/etc/openstack-release"'
+            )
 
     # identify the container we will use for monitoring
     get_container = shlex.split('lxc-ls -1 --running ".*(swift_proxy|swift)"')

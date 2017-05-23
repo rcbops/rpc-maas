@@ -55,6 +55,8 @@ nova_console_ports:
 
 nova_console_port: "{{ nova_console_ports[nova_console_type] }}"
 
+neutron_metadata: True
+neutron_l3: True
 
 # This is used for RPC specific things and is required
 # NOTE(cloudnull): Before this was hardcoded, now it will look at the playbook path and
@@ -85,10 +87,15 @@ swift:
         index: 0
         default: True
 
+# Name of the virtual env to deploy into (maas)
+maas_venv: "/openstack/venvs/maas-{{ rpc_release }}"
+maas_venv_bin: "{{ maas_venv }}/bin"
 
 ####  Set testing venv tags ####
 # Set the venv tags for all services, This is done to
 #  ensure the installation and pathing are correct within RPC MaaS
+openstack_distrib_release: "testing"
+
 cinder_venv_tag: "testing"
 glance_venv_tag: "testing"
 heat_venv_tag: "testing"
