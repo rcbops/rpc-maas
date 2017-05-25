@@ -18,6 +18,7 @@
 import optparse
 import subprocess
 
+from itertools import chain
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -115,8 +116,8 @@ def _get_connection_metrics(session, metrics, host, port):
 
     response = _get_rabbit_json(session, CONNECTIONS_URL % (host, port))
 
-    max_chans = max(connection['channels'] for connection in response
-                    if 'channels' in connection)
+    max_chans = max(chain(connection['channels'] for connection in response
+                    if 'channels' in connection), [0])
     for k in CONNECTIONS_METRICS:
         metrics[k] = {'value': max_chans, 'unit': CONNECTIONS_METRICS[k]}
 
