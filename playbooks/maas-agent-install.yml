@@ -1,0 +1,103 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in witing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Gather facts
+  hosts: hosts
+  gather_facts: "{{ gather_facts | default(true) }}"
+  pre_tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+
+  tasks:
+    - name: Copy over pip constraints
+      copy:
+        src: "files/pip-constraints.txt"
+        dest: "/tmp/pip-constraints.txt"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  tags:
+    - maas-agent-install
+
+- name: Install MaaS Agent
+  hosts: hosts
+  gather_facts: false
+  pre_tasks:
+    - name: Gather variables for each operating system
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "vars/maas-{{ ansible_distribution | lower }}.yml"
+            - "vars/maas-{{ ansible_os_family | lower }}.yml"
+          skip: true
+
+    - name: Include distro install tasks
+      include: "{{ item }}"
+      with_first_found:
+        - files:
+            - "common-tasks/maas-agent-{{ ansible_distribution | lower }}-install.yml"
+            - "common-tasks/maas-agent-{{ ansible_os_family | lower }}-install.yml"
+          skip: true
+
+    - name: Converge MaaS container pip packages
+      set_fact:
+        maas_requires_pip_packages: "{{ maas_requires_pip_packages | union(maas_pip_container_packages) }}"
+      when:
+        - "'lxc_hosts' in groups"
+        - inventory_hostname in groups['lxc_hosts']
+
+    - name: Ensure raspace-monitoring-agent config directory exists
+      file:
+        name: /etc/rackspace-monitoring-agent.conf.d
+        state: directory
+        group: root
+        owner: root
+
+    - name: Install requires pip packages
+      pip:
+        name: "{{ maas_requires_pip_packages | join(' ') }}"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+      register: install_packages
+      until: install_packages|success
+      retries: 5
+      delay: 2
+
+    - name: Converge MaaS container pip packages
+      set_fact:
+        maas_pip_packages: "{{ maas_pip_packages | union(maas_pip_container_packages) }}"
+      when:
+        - "'lxc_hosts' in groups"
+        - inventory_hostname in groups['lxc_hosts']
+
+    - name: Install pip packages to venv
+      pip:
+        name: "{{ maas_pip_packages | join(' ') }}"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          --isolated
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+        virtualenv: "{{ maas_venv }}"
+      register: install_pip_packages
+      until: install_pip_packages|success
+      retries: 5
+      delay: 2
+  vars_files:
+    - vars/main.yml
+    - vars/maas-agent.yml
+    - vars/maas-{{ ansible_distribution | lower }}.yml
+  tags:
+    - maas-agent-install

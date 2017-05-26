@@ -13,9 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
+- include: maas-infra-elasticsearch.yml
+  tags:
+    - maas-infra
 
-- include: "../playbooks/site.yml"
+- include: maas-infra-filebeat.yml
+  tags:
+    - maas-infra
+
+- include: maas-infra-galera.yml
+  tags:
+    - maas-infra
+
+- include: maas-infra-memcached.yml
+  tags:
+    - maas-infra
+
+- include: maas-infra-rabbitmq.yml
+  tags:
+    - maas-infra
+
+- include: maas-infra-rsyslogd.yml
+  tags:
+    - maas-infra

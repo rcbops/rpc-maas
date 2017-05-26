@@ -1,0 +1,157 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Gather facts
+  hosts: heat_all
+  gather_facts: "{{ gather_facts | default(true) }}"
+  pre_tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+
+  tasks:
+    - name: Copy over pip constraints
+      copy:
+        src: "files/pip-constraints.txt"
+        dest: "/tmp/pip-constraints.txt"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  post_tasks:
+    - name: Install heat pip packages to venv
+      pip:
+        name: "{{ maas_openstack_heat_pip_packages | join(' ') }}"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          --isolated
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+        virtualenv: "{{ maas_venv }}"
+      register: install_pip_packages
+      until: install_pip_packages|success
+      retries: 5
+      delay: 2
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-heat
+
+- name: Install checks for openstack heat-api
+  hosts: heat_api
+  gather_facts: false
+  tasks:
+    - name: Install heat api checks
+      template:
+        src: "templates/heat_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/heat_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install heat api lb checks
+      template:
+        src: "templates/lb_api_check_heat_api.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_heat_api.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_remote_check | bool
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-heat
+
+- name: Install checks for openstack heat-api-cfn
+  hosts: heat_api_cfn
+  gather_facts: false
+  tasks:
+    - name: Install heat api cfn checks
+      template:
+        src: "templates/heat_cfn_api_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/heat_cfn_api_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install heat api cfn lb checks
+      template:
+        src: "templates/lb_api_check_heat_cfn.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_heat_cfn.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_remote_check | bool
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-heat
+
+- name: Install checks for openstack heat-api-cloudwatch
+  hosts: heat_api_cloudwatch
+  gather_facts: false
+  tasks:
+    - name: Install heat api cloudwatch checks
+      template:
+        src: "templates/heat_cw_api_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/heat_cw_api_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install heat lb cloudwatch checks
+      template:
+        src: "templates/lb_api_check_heat_cloudwatch.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_heat_cloudwatch.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_remote_check | bool
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-heat

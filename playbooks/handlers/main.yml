@@ -13,9 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
+- name: Restart rax-maas
+  service:
+    name: rackspace-monitoring-agent
+    state: restarted
+  delegate_to: "{{ physical_host | default(inventory_hostname) }}"
+  notify: Allow rax-maas to warmup
 
-- include: "../playbooks/site.yml"
+- name: Allow rax-maas to warmup
+  pause:
+    seconds: 2
+    prompt: "Ensuring RAX-MaaS has had time to start up"

@@ -50,4 +50,4 @@
 - include: test-install-rpc-maas.yml
 
 # Ensure all plugins are functional
-- include: test-rpc-maas-functional.yml
+- include: "../playbooks/maas-verify.yml"

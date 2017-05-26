@@ -1,0 +1,23 @@
+{% set label = "cinder_vg_check" %}
+{% set check_name = label+'--'+ansible_hostname %}
+type        : agent.plugin
+label       : "{{ check_name }}"
+period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
+timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
+disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+details     :
+    file    : run_plugin_in_venv.sh
+    args    : ["{{ maas_plugin_dir }}/vg_check.py", "{{ cinder_backends[item.key]['volume_group'] }}"]
+alarms      :
+    cinder_vg_space_status :
+        label                   : cinder_vg_space_status--{{ ansible_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan }}"
+        disabled                : {{ (('cinder_vg_space_status--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (percentage(metric["{{ cinder_backends[item.key]['volume_group'] }}_vg_used_space"], metric["{{ cinder_backends[item.key]['volume_group'] }}_vg_total_space"]) > {{ maas_cinder_volumes_vg_critical_threshold }}) {
+                return new AlarmStatus(CRITICAL, "space in the {{ cinder_backends[item.key]['volume_group'] }} vg on this host is more than {{ maas_cinder_volumes_vg_critical_threshold }}% used");
+            }
+            if (percentage(metric["{{ cinder_backends[item.key]['volume_group'] }}_vg_used_space"], metric["{{ cinder_backends[item.key]['volume_group'] }}_vg_total_space"]) > {{ maas_cinder_volumes_vg_warning_threshold }}) {
+                return new AlarmStatus(WARNING, "space in the {{ cinder_backends[item.key]['volume_group'] }} vg on this host is more than {{ maas_cinder_volumes_vg_warning_threshold }}% used");
+            }

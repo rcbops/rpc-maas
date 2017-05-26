@@ -36,6 +36,7 @@ internal_lb_vip_address: 10.2.1.51
 
 # Define the galera monitoring user
 galera_monitoring_user: monitoring
+galera_root_password: secrete
 
 # In order to use loopback devices we set this line
 lxc_container_config_list:
@@ -45,7 +46,22 @@ lxc_container_config_list:
 # Used to setup monitoring users.
 maas_rabbitmq_password: secrete
 maas_keystone_password: secrete
+maas_swift_accesscheck_password: secrete
 
+# Keystone overrides for test
+keystone_service_adminuri_insecure: false
+keystone_service_internaluri_insecure: false
+keystone_admin_user_name: admin
+keystone_admin_tenant_name: admin
+keystone_auth_admin_password: "SuperSecretePassword"
+keystone_service_adminuri: "http://{{ hostvars[groups['keystone_all'][0]]['ansible_host'] }}:35357"
+keystone_service_adminurl: "{{ keystone_service_adminuri }}/v3"
+
+openrc_os_password: "{{ keystone_auth_admin_password }}"
+openrc_os_domain_name: "Default"
+
+# Enable the cinder backup service
+cinder_service_backup_program_enabled: true
 
 # Used to define the default nova console type for RPC-MaaS
 nova_console_type: novnc
@@ -61,7 +77,7 @@ neutron_l3: True
 # This is used for RPC specific things and is required
 # NOTE(cloudnull): Before this was hardcoded, now it will look at the playbook path and
 #                  take the git information from the root playbook directory dynamically.
-rpc_release: "{{ lookup('pipe', 'cd ' + playbook_dir.split('common')[0] + '; git describe --tags --abbrev=0; cd -').splitlines()[0].strip() }}"
+maas_release: "{{ lookup('pipe', 'cd ' + playbook_dir.split('common')[0] + '; git describe --tags --abbrev=0; cd -').splitlines()[0].strip() }}"
 
 
 swift_accesscheck_password: secrete
@@ -88,8 +104,11 @@ swift:
         default: True
 
 # Name of the virtual env to deploy into (maas)
-maas_venv: "/openstack/venvs/maas-{{ rpc_release }}"
+maas_venv: "/openstack/venvs/maas-{{ maas_release }}"
 maas_venv_bin: "{{ maas_venv }}/bin"
+
+# Set the openstack release to testing.
+openstack_release: "testing"
 
 ####  Set testing venv tags ####
 # Set the venv tags for all services, This is done to

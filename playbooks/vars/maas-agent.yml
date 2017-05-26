@@ -13,9 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
+maas_requires_pip_packages:
+  - virtualenv
 
-- include: "../playbooks/site.yml"
+maas_pip_container_packages:
+  - lxc-python2
+
+maas_pip_packages:
+  - apache-libcloud
+  - cryptography
+  - ipaddr
+  - lxml
+  - monitorstack
+  - psutil
+  - rackspace-monitoring-cli
+  - requests
+  - waxeye
+
+maas_username: "admin"
+
+maas_api_key: "None"
+
+maas_auth_url: "https://identity.api.rackspacecloud.com/v2.0"
+
+maas_auth_method: "password"
+
+maas_auth_token: "None"

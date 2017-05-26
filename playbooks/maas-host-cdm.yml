@@ -1,0 +1,77 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Gather facts
+  hosts: hosts
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+  tags:
+    - maas-host-cdm
+
+- name: Install checks for CDM
+  hosts: hosts
+  gather_facts: false
+  tasks:
+    - name: Install filesystem Checks
+      template:
+        src: "templates/filesystem.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/filesystem_{{ item.filesystem | replace('/', '.') }}--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_items:
+        - "{{ maas_filesystem_overrides | default(maas_filesystem_monitors) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install disk utilisation Checks
+      template:
+        src: "templates/disk_utilisation.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/disk_utilisation--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      notify:
+        - Restart rax-maas
+
+    - name: Install memory Checks
+      template:
+        src: "templates/memory_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/memory_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      notify:
+        - Restart rax-maas
+
+    - name: Install cpu Checks
+      template:
+        src: "templates/cpu_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cpu_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      notify:
+        - Restart rax-maas
+
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-host.yml
+  tags:
+    - maas-ceph-osds

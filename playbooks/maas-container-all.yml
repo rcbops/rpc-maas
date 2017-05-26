@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
-
-- include: "../playbooks/site.yml"
+- include: maas-container-storage.yml
+  tags:
+    - maas-container

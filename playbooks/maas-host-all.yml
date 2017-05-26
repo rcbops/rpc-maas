@@ -13,9 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
+- include: maas-host-cdm.yml
+  tags:
+    - maas-host
 
-- include: "../playbooks/site.yml"
+- include: maas-host-kernel.yml
+  tags:
+    - maas-host
+
+- include: maas-host-network.yml
+  tags:
+    - maas-host
+
+- include: maas-host-vendor.yml
+  tags:
+    - maas-host
