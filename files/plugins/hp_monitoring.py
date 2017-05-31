@@ -23,22 +23,22 @@ class BadOutputError(maas_common.MaaSException):
 
 
 def check_command(command, startswith, endswith):
-    output = subprocess.check_output(command)
-    lines = output.split('\n')
-    matches = False
-    for line in lines:
-        line = line.strip()
-        if line.startswith(startswith):
-            matches = True
-            if not line.endswith(endswith):
-                status = 0
-                break
-    else:
-        if matches:
-            status = 1
+    status = 0
+    try:
+        output = subprocess.check_output(command)
+        lines = output.split('\n')
+        matches = False
+        for line in lines:
+            line = line.strip()
+            if line.startswith(startswith):
+                matches = True
+                if not line.endswith(endswith):
+                    break
         else:
-            raise BadOutputError(
-                'The output was not in the expected format:\n%s' % output)
+            if matches:
+                status = 1
+    except:
+        pass
     return status
 
 
