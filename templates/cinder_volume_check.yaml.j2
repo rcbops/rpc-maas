@@ -7,7 +7,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : cinder_service_check.py
-    args    : ["--host", "{{ ansible_hostname }}", "{{ internal_vip_address }}"]
+    args    : ["--host", "{{ ansible_nodename }}", "{{ internal_vip_address }}"]
 alarms      :
     cinder_volume_{{ item.key }}_status :
         label                   : cinder_volume_{{ item.key }}_status--{{ ansible_hostname }}

@@ -235,10 +235,44 @@ maas_filesystem_critical_threshold: 90.0
 mysql_connection_warning_threshold: 80
 mysql_connection_critical_threshold: 90
 
+# Maas mysql access denied thresholds
+# e.g If number of access denied errors inbetween checks
+# exceeds 20, the alarm will go into CRITICAL status.
+mysql_access_denied_errors_rate_warning_threshold: 10
+mysql_access_denied_errors_rate_critical_threshold: 20
+
+# Maas mysql aborted clients rate threshold
+# The rate is derived on a per-check basis.
+# In other words, this threshold defines how many
+# aborted_clients per check are needed to trigger
+# an alarm.
+mysql_aborted_clients_rate_warning_threshold: 1
+mysql_aborted_clients_rate_critical_threshold: 2
+
+# Maas mysql aborted connects rate threshold
+# The rate is derived on a per-check basis.
+# In other words, this threshold defines how many
+# aborted_connects per check are needed to trigger
+# an alarm
+mysql_aborted_connects_rate_warning_threshold: 1
+mysql_aborted_connects_rate_critical_threshold: 2
+
+# Maas mysql open file percentage threshold
+mysql_open_files_percentage_warning_threshold: 90
+mysql_open_files_percentage_critical_threshold: 95
+
+# Maas InnoDB row lock time avg thresholds, in milliseconds.
+innodb_row_lock_time_avg_warning_threshold: 2000
+innodb_row_lock_time_avg_critical_threshold: 10000
+
+# Maas InnoDB deadlock thresholds per maas check interval
+innodb_deadlocks_rate_warning_threshold: 1
+innodb_deadlocks_rate_critical_threshold: 2
+
 # cinder-volumes volume group thresholds
 cinder_volumes_vg_warning_threshold: 80.0
 cinder_volumes_vg_critical_threshold: 90.0
-cinder_vg_name: "{{ cinder_backends['lvm']['volume_group'] | default('cinder-volumes') }}"
+cinder_vg_name: "{{ cinder_backends['lvm']['volume_group'] }}"
 
 # MaaS CPU idle threshold
 cpu_idle_percent_avg_threshold: 10.0
@@ -322,7 +356,7 @@ rsyslogd_process_names:
   - rsyslogd
 
 elasticsearch_process_names:
-  # NOTE(cjloader): Unlike rsyslog and filebeat, elasticsearch does not have a
+  # NOTE(cjloader): Unlike rsyslog and beaver, elasticsearch does not have a
   # process name that includes "elasticsearch". The process running
   # elasticsearch is actually named "java" so we search for that here. This is
   # less than ideal, but the best we can do right now.
@@ -421,6 +455,7 @@ swift_recon_checks_list:
   - { name: "swift_object_replication_check", group: "swift_proxy" }
   - { name: "swift_proxy_server_check", group: "swift_proxy" }
   - { name: "swift_quarantine_check", group: "swift_proxy" }
+  - { name: "swift_time_sync_check", group: "swift_proxy" }
 
 openstack_service_remote_checks_list:
   - { name: "lb_api_check_cinder", group: "cinder_api" }
@@ -464,15 +499,16 @@ maas_apt_packages:
 maas_pip_packages:
   - ipaddr
   - lxc-python2
+  - apache-libcloud<2.0.0
   - psutil
   - rackspace-monitoring-cli
   - swift
-  - waxeye
 
 #
 # maas_pip_dependencies: These are pip packages we depend on, but should already be built in
 #                        openstack-ansible
 maas_pip_dependencies:
+  - cryptography
   - requests
   - lxml
   - python-cinderclient
