@@ -63,8 +63,11 @@ def get_controller_cache_status():
 
 
 def get_controller_battery_status():
+   try:
     return check_command(('hpssacli', 'ctrl', 'all', 'show', 'status'),
                          'Battery/Capacitor Status', 'OK')
+   except BadOutputError as e:
+    print e.message
 
 
 def main():
