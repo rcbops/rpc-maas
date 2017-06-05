@@ -521,8 +521,6 @@ maas_pip_dependencies:
 
 maas_source_plugin_dir: plugins/
 
-maas_plugin_dir: /usr/lib/rackspace-monitoring-agent/plugins/
-
 maas_rpc_scripts_dir: /opt/rpc-openstack/scripts
 
 # The following two variables control which checks and alarms are excluded from
