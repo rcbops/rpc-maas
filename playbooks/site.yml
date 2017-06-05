@@ -13,9 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
+- include: maas-agent-all.yml
+  tags:
+    - maas
 
-- include: "../playbooks/site.yml"
+- include: maas-ceph-all.yml
+  tags:
+    - maas
+
+- include: maas-host-all.yml
+  tags:
+    - maas
+
+- include: maas-infra-all.yml
+  tags:
+    - maas
+
+- include: maas-container-all.yml
+  tags:
+    - maas
+
+- include: maas-openstack-all.yml
+  tags:
+    - maas

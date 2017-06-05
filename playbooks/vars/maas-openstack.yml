@@ -1,0 +1,135 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# maas_*_scheme: Override the scheme (http/https) for an individual service.
+#
+# maas_cinder_scheme: https
+# maas_glance_scheme: https
+# maas_keystone_scheme: https
+# maas_neutron_scheme: https
+# maas_nova_scheme: https
+maas_horizon_scheme: https
+# maas_heat_api_scheme: https
+# maas_heat_cfn_scheme: https
+# maas_heat_cloudwatch_scheme: https
+# maas_maas_swift_proxy_scheme: https
+
+#
+# pip installable packages for given services used within maas
+#
+maas_openstack_cinder_pip_packages:
+  - python-cinderclient
+  - python-keystoneclient
+
+maas_openstack_glance_pip_packages:
+  - python-glanceclient
+  - python-keystoneclient
+
+maas_openstack_heat_pip_packages:
+  - python-heatclient
+  - python-keystoneclient
+
+maas_openstack_keystone_pip_packages:
+  - python-heatclient
+
+maas_openstack_magnum_pip_packages:
+  - python-keystoneclient
+  - python-magnumclient
+
+maas_openstack_neutron_pip_packages:
+  - python-keystoneclient
+  - python-neutronclient
+
+maas_openstack_nova_pip_packages:
+  - python-keystoneclient
+  - python-novaclient
+
+maas_openstack_swift_pip_packages:
+  - python-keystoneclient
+
+maas_cinder_volumes_vg_warning_threshold: 80.0
+maas_cinder_volumes_vg_critical_threshold: 90.0
+
+#
+# Nova cloud level resource thresholds
+#
+maas_cloud_resource_warning_memory: 80.0
+maas_cloud_resource_critical_memory: 90.0
+maas_cloud_resource_warning_vcpus: 80.0
+maas_cloud_resource_critical_vcpus: 90.0
+maas_cloud_resource_warning_disk_space: 80.0
+maas_cloud_resource_critical_disk_space: 90.0
+maas_cloud_resource_cpu_allocation_ratio: 2.0
+maas_cloud_resource_mem_allocation_ratio: 1.0
+
+#
+# Default horizon site name
+#
+maas_horizon_site_name: "openstack dashboard"
+
+#
+# Swift object access check
+#
+maas_swift_accesscheck_enabled: true
+maas_swift_accesscheck_container: "accesscheck"
+maas_swift_accesscheck_user_name: "accesscheck"
+maas_swift_operator_role: "swiftoperator"
+maas_swift_service_project_name: "service"
+
+#
+# Instruct the swift service checks to be ldap aware.
+#
+maas_swift_service_in_ldap: false
+
+#
+# Swift MaaS thresholds
+#
+maas_swift_object_quarantine_failed_percentage_threshold: 5.0
+maas_swift_object_quarantine_average_threshold: 25.0
+maas_swift_object_replication_failure_percentage_threshold: 5.0
+maas_swift_object_replication_growth_rate_threshold: 20.0
+maas_swift_object_replication_avg_time_threshold: 50.0
+maas_swift_account_quarantine_failed_percentage_threshold: 5.0
+maas_swift_account_quarantine_average_threshold: 25.0
+maas_swift_account_replication_failure_percentage_threshold: 5.0
+maas_swift_account_replication_growth_rate_threshold: 10.0
+maas_swift_account_replication_avg_time_threshold: 50.0
+maas_swift_container_quarantine_failed_percentage_threshold: 5.0
+maas_swift_container_quarantine_average_threshold: 25.0
+maas_swift_container_replication_failure_percentage_threshold: 5.0
+maas_swift_container_replication_growth_rate_threshold: 10.0
+maas_swift_container_replication_avg_time_threshold: 50.0
+maas_swift_async_pending_failure_percentage_threshold: 5.0
+maas_swift_async_pending_average_threshold: 1000.0
+
+maas_swift_object_process_names:
+  - swift-object-server
+  - swift-object-replicator
+  - swift-object-updater
+  - swift-object-auditor
+  - swift-object-expirer
+
+maas_swift_account_process_names:
+  - swift-account-server
+  - swift-account-replicator
+  - swift-account-reaper
+  - swift-account-auditor
+
+maas_swift_container_process_names:
+  - swift-container-server
+  - swift-container-replicator
+  - swift-container-updater
+  - swift-container-auditor

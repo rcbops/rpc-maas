@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
-
-- include: "../playbooks/site.yml"
+- name: Ensure galera packages are installed
+  apt:
+    pkg: "{{ maas_galera_distro_packages | join(' ') }}"
+    state: "{{ maas_package_state }}"
+    update_cache: yes
+    cache_valid_time: 600
+  delegate_to: "{{ physical_host | default(ansible_host) }}"

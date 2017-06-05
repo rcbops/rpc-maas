@@ -1,0 +1,25 @@
+### Monitorstack plugin framework
+git+https://github.com/openstack/monitorstack@master#egg=monitorstack
+
+### Requirements for RAX-MaaS
+apache-libcloud<2.0.0
+cryptography==1.5
+ipaddr==2.1.11
+lxml===3.6.4
+psutil==5.2.2
+
+### TO BE REPLACED BY MONITORSTACK
+python-cinderclient==1.9.0
+python-glanceclient==2.5.0
+python-heatclient==1.5.1
+python-keystoneclient==3.5.1
+python-magnumclient==2.3.1
+python-neutronclient==6.0.0
+python-novaclient==6.0.1
+### TO BE REPLACED BY MONITORSTACK
+
+### General dependencies
+python-memcached==1.58
+rackspace-monitoring-cli==0.7.2
+requests==2.11.1
+waxeye==0.8.1

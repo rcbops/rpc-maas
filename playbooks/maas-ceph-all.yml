@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
+- include: maas-ceph-mon.yml
+  tags:
+    - maas-ceph
 
-- include: "../playbooks/site.yml"
+- include: maas-ceph-osd.yml
+  tags:
+    - maas-ceph

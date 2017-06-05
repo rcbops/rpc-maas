@@ -1,0 +1,239 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Gather facts
+  hosts: nova_all
+  gather_facts: "{{ gather_facts | default(true) }}"
+  pre_tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+
+  tasks:
+    - name: Copy over pip constraints
+      copy:
+        src: "files/pip-constraints.txt"
+        dest: "/tmp/pip-constraints.txt"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  post_tasks:
+    - name: Install nova pip packages to venv
+      pip:
+        name: "{{ maas_openstack_nova_pip_packages | join(' ') }}"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          --isolated
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+        virtualenv: "{{ maas_venv }}"
+      register: install_pip_packages
+      until: install_pip_packages|success
+      retries: 5
+      delay: 2
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-nova
+
+- name: Install checks for openstack nova-api-metadata
+  hosts: nova_api_metadata
+  gather_facts: false
+  tasks:
+    - name: Install nova nova-api-metadata checks
+      template:
+        src: "nova_api_metadata_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_api_metadata_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+  tags:
+    - maas-openstack-nova
+
+- name: Install checks for openstack nova-api
+  hosts: nova_api_os_compute
+  gather_facts: false
+  tasks:
+    - name: Install nova api checks
+      template:
+        src: "templates/nova_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install nova cloud checks
+      template:
+        src: "templates/nova_cloud_stats_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_cloud_stats_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install nova lb checks
+      template:
+        src: "templates/lb_api_check_nova.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_nova.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_remote_check | bool
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-nova
+
+- name: Install checks for openstack nova-api
+  hosts: nova_scheduler
+  gather_facts: false
+  tasks:
+    - name: Install nova api checks
+      template:
+        src: "templates/nova_scheduler_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_scheduler_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+  tags:
+    - maas-openstack-nova
+
+- name: Install checks for openstack nova-api-metadata
+  hosts: nova_cert
+  gather_facts: false
+  tasks:
+    - name: Install nova nova-api-metadata checks
+      template:
+        src: "nova_cert_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_cert_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+  tags:
+    - maas-openstack-nova
+
+- name: Install checks for openstack nova-compute
+  hosts: nova_compute
+  gather_facts: false
+  tasks:
+    - name: Install nova nova-compute checks
+      template:
+        src: "nova_compute_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_compute_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+  tags:
+    - maas-openstack-nova
+
+- name: Install checks for openstack nova-conductor
+  hosts: nova_conductor
+  gather_facts: false
+  tasks:
+    - name: Install nova nova-conductor checks
+      template:
+        src: "nova_conductor_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_conductor_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+  tags:
+    - maas-openstack-nova
+
+- name: Install checks for openstack nova-console
+  hosts: nova_console
+  gather_facts: false
+  tasks:
+    - name: Install nova nova-conductor checks
+      template:
+        src: "nova_consoleauth_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_consoleauth_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install nova nova-conductor checks
+      template:
+        src: "nova_console_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_console_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+  tags:
+    - maas-openstack-nova

@@ -1,0 +1,42 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Add MaaS apt keys
+  apt_key:
+    id: "{{ maas_keys.hash_id | default(omit) }}"
+    keyserver: "{{ maas_keys.keyserver | default(omit) }}"
+    url: "{{ maas_keys.url | default(omit) }}"
+    state: "{{ maas_keys.state }}"
+  register: add_repo_keys
+  until: add_repo_keys | success
+  retries: 3
+  delay: 2
+
+- name: Add maas repo
+  apt_repository:
+    repo: "{{ maas_repos.repo }}"
+    state: "{{ maas_repos.state }}"
+    update_cache: yes
+  register: add_repos
+  until: add_repos | success
+  retries: 5
+  delay: 2
+
+- name: Ensure container packages are installed
+  apt:
+    pkg: "{{ maas_distro_packages | join(' ') }}"
+    state: "{{ maas_package_state }}"
+    update_cache: yes
+    cache_valid_time: 600

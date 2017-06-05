@@ -1,0 +1,94 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Gather facts
+  hosts: galera_all
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+  tags:
+    - maas-infra-galera
+
+- name: Install checks for infra galera
+  hosts: galera_all
+  gather_facts: false
+  pre_tasks:
+    - name: Gather variables for each operating system
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "vars/maas-{{ ansible_distribution | lower }}.yml"
+            - "vars/maas-{{ ansible_os_family | lower }}.yml"
+          skip: true
+
+    - name: Include distro install tasks
+      include: "{{ item }}"
+      with_first_found:
+        - files:
+            - "common-tasks/maas-infra-{{ ansible_distribution | lower }}-install.yml"
+            - "common-tasks/maas-infra-{{ ansible_os_family | lower }}-install.yml"
+          skip: true
+
+    - name: Check for holland
+      stat:
+        path: "{{ maas_holland_venv_bin }}"
+      register: holland_check
+
+    - name: Set holland enabled fact disabled
+      set_fact:
+        holland_check_disabled: "{{ not holland_check.stat.exists }}"
+
+    - name: Install holland check
+      template:
+        src: "templates/holland_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/holland_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - not holland_check_disabled | bool
+      notify:
+        - Restart rax-maas
+
+  tasks:
+    - name: Drop local .my.cnf file
+      template:
+        src: "templates/client.my.cnf.j2"
+        dest: "/root/.my.cnf"
+        owner: "root"
+        group: "root"
+        mode: "0600"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  post_tasks:
+    - name: Install galera check
+      template:
+        src: "templates/galera_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/galera_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-infra.yml
+  tags:
+    - maas-infra-galera

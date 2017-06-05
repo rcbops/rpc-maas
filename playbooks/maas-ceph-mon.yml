@@ -1,0 +1,66 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Gather facts
+  hosts: mons
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+  tags:
+    - maas-ceph-mons
+
+- name: Install checks for ceph mons
+  hosts: mons[0]
+  gather_facts: false
+  pre_tasks:
+    - name: Create ceph monitoring client
+      command: ceph auth get-or-create client.raxmon mon 'allow r'
+      register: ceph_raxmon_client
+      tags:
+        - skip_ansible_lint
+  tags:
+    - maas-ceph-mons
+
+- name: Install checks for ceph mons
+  hosts: mons
+  gather_facts: false
+  pre_tasks:
+    - name: Write Ceph monitoring client key to file
+      copy:
+        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
+        dest: "/etc/ceph/ceph.client.raxmon.keyring"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  post_tasks:
+    - name: Install local mons checks
+      template:
+        src: "templates/{{ item }}.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item }}.yaml--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - ceph_mon_stats
+        - ceph_cluster_stats
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+  tags:
+    - maas-ceph-mons

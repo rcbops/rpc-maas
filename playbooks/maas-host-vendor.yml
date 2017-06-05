@@ -13,9 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
+- name: Gather facts
+  hosts: hosts
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
 
-- include: "../playbooks/site.yml"
+  post_tasks:
+    - name: Gather variables for each operating system
+      include: "{{ item }}"
+      with_first_found:
+        - files:
+            - "common-tasks/maas-host-vendor-{{ ansible_system_vendor.split()[0] | lower }}.yml"
+          skip: true
+      when:
+        - maas_host_check | bool
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+  tags:
+    - maas-hosts-vendor

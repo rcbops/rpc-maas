@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
-
-- include: "../playbooks/site.yml"
+#
+# Set the container storage threshold
+#
+maas_percent_used_critical_threshold: 85
