@@ -33,13 +33,10 @@
             - "vars/maas-{{ ansible_os_family | lower }}.yml"
           skip: true
 
-    - name: Include distro install tasks
-      include: "{{ item }}"
-      with_first_found:
-        - files:
-            - "common-tasks/maas-infra-{{ ansible_distribution | lower }}-install.yml"
-            - "common-tasks/maas-infra-{{ ansible_os_family | lower }}-install.yml"
-          skip: true
+    - name: Include ubuntu install tasks
+      include: "common-tasks/maas-infra-ubuntu-install.yml"
+      when:
+        - ansible_distribution | lower == 'ubuntu'
 
     - name: Check for holland
       stat:
@@ -92,3 +89,7 @@
     - vars/maas-infra.yml
   tags:
     - maas-infra-galera
+
+# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
+#                  will be globally unified.
+- include: maas-restart.yml

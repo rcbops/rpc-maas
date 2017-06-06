@@ -15,7 +15,7 @@
 
 - name: Install openmanage memory checks
   template:
-    src: "openmanage-memory.yaml.j2"
+    src: "templates/openmanage-memory.yaml.j2"
     dest: "/etc/rackspace-monitoring-agent.conf.d/openmanage-memory--{{ inventory_hostname }}.yaml"
     owner: "root"
     group: "root"
@@ -27,7 +27,7 @@
 
 - name: Install openmanage processors checks
   template:
-    src: "openmanage-processors.yaml.j2"
+    src: "templates/openmanage-processors.yaml.j2"
     dest: "/etc/rackspace-monitoring-agent.conf.d/openmanage-processors--{{ inventory_hostname }}.yaml"
     owner: "root"
     group: "root"
@@ -39,7 +39,7 @@
 
 - name: Install openmanage vdisk checks
   template:
-    src: "openmanage-vdisk.yaml.j2"
+    src: "templates/openmanage-vdisk.yaml.j2"
     dest: "/etc/rackspace-monitoring-agent.conf.d/openmanage-vdisk--{{ inventory_hostname }}.yaml"
     owner: "root"
     group: "root"

@@ -84,8 +84,8 @@ After deployment you can run a local validation playbook to ensure that
 everything is working as expected which can be done with static inventory
 as well as within an OpenStack-Ansible deployment.
 
-
-**With OpenStack-Ansible**
+With OpenStack-Ansible
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -96,7 +96,38 @@ as well as within an OpenStack-Ansible deployment.
     openstack-ansible playbooks/maas-verify.yml
 
 
-**With Static Inventory**
+Running with Ansible 1.9 and OpenStack-Ansible
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Prior to running with Ansible 1.9 with OpenStack-Ansible (using the Mitaka,
+Liberty, Kilo) export the Role and Library path prior to running the
+playbooks.
+
+.. code-block:: bash
+
+    export ANSIBLE_ROLES_PATH=/opt/openstack-ansible/playbooks/roles
+    export ANSIBLE_LIBRARY=/opt/openstack-ansible/playbooks/library
+
+
+The variable ``ansible_ssh_host`` needs to be set within the
+``user_variables.yml`` file.
+
+.. code-block:: bash
+
+    echo 'ansible_host: "{{ ansible_ssh_host }}"' | tee -a /etc/openstack_deploy/user_variables.yml
+
+
+In order to enable console auth checking set the ``nova_console_type`` and
+``nova_console_port`` variables in your ``user_variables.yml`` file.
+
+.. code-block:: bash
+
+    echo 'nova_console_type: spice' | tee -a /etc/openstack_deploy/user_variables.yml
+    echo 'nova_console_port: 6082' | tee -a /etc/openstack_deploy/user_variables.yml
+
+
+With Static Inventory
+~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -112,7 +143,6 @@ This role supports several high level tags: ``maas``, ``maas-agent``,
 ``maas-openstack``. Within each group a tag exists for a specific playbook.
 This gives the deployer the ability to control orchestration even when
 running the general ``site.yml`` playbook.
-
 
 
 Paybook Specific Notes

@@ -49,7 +49,7 @@ galera_all
 memcached_all
 
 [utility]
-infra1
+openstack1
 
 [utility_all:children]
 utility

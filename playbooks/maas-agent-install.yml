@@ -42,12 +42,9 @@
           skip: true
 
     - name: Include distro install tasks
-      include: "{{ item }}"
-      with_first_found:
-        - files:
-            - "common-tasks/maas-agent-{{ ansible_distribution | lower }}-install.yml"
-            - "common-tasks/maas-agent-{{ ansible_os_family | lower }}-install.yml"
-          skip: true
+      include: "common-tasks/maas-agent-ubuntu-install.yml"
+      when:
+        - ansible_distribution | lower == 'ubuntu'
 
     - name: Converge MaaS container pip packages
       set_fact:
@@ -101,3 +98,7 @@
     - vars/maas-{{ ansible_distribution | lower }}.yml
   tags:
     - maas-agent-install
+
+# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
+#                  will be globally unified.
+- include: maas-restart.yml

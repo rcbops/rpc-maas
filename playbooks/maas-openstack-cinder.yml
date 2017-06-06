@@ -18,6 +18,7 @@
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
+    - include: "common-tasks/maas_get_openrc.yml"
 
   tasks:
     - name: Copy over pip constraints
@@ -112,7 +113,7 @@
   tasks:
     - name: Install cinder backup checks
       template:
-        src: "cinder_backup_check.yaml.j2"
+        src: "templates/cinder_backup_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_backup_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -167,3 +168,7 @@
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-cinder
+
+# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
+#                  will be globally unified.
+- include: maas-restart.yml

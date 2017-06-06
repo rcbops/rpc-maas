@@ -14,6 +14,12 @@
 # limitations under the License.
 
 #
+# pip installable packages for given services used within maas
+#
+maas_container_pip_packages:
+  - lxc-python2
+
+#
 # Set the container storage threshold
 #
 maas_percent_used_critical_threshold: 85
