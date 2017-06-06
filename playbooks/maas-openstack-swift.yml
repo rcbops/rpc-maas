@@ -17,19 +17,6 @@
   hosts: swift_all
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
-    - name: Check for installed swift
-      stat:
-        path: "/openstack/venvs/swift-{{ openstack_release }}/bin"
-      register: swift_dir
-    - fail:
-        msg: >-
-          The path "/openstack/venvs/swift-{{ openstack_release }}/bin"
-          must exist for these checks to run. Check the "openstack_release"
-          variable is set correctly and that swift is installed on your target
-          hosts before installing this monitor.
-      when:
-        - not swift_dir.stat.isdir is defined or not swift_dir.stat.isdir | bool
-
     - include: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -202,7 +189,7 @@
 - name: Install checks for openstack swift proxy
   hosts: swift_proxy
   gather_facts: false
-  pre_tasks:
+  tasks:
     # Add a swift user for file checking
     - name: Create a keystone user for swift filecheck
       keystone:
@@ -252,6 +239,7 @@
       copy:
         dest: "/tmp/index.html"
         src: "index.html"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
         - maas_swift_accesscheck_enabled | bool
@@ -261,18 +249,19 @@
     - name: Setup swift container monitoring check
       shell: |
         source /root/openrc
-        /openstack/venvs/swift-{{ openstack_release }}/bin/swift upload \
-                                                                 --object-name index.html \
-                                                                 {{ maas_swift_accesscheck_container }} \
-                                                                 /tmp/index.html
-        /openstack/venvs/swift-{{ openstack_release }}/bin/swift post \
-                                                                 -r '.r:*' {{ maas_swift_accesscheck_container }}
-        /openstack/venvs/swift-{{ openstack_release }}/bin/swift post \
-                                                                 -m 'web-index:index.html' \
-                                                                 {{ maas_swift_accesscheck_container }}
+        {{ maas_venv_bin }}/swift upload \
+          --object-name index.html \
+          {{ maas_swift_accesscheck_container }} \
+          /tmp/index.html;
+        {{ maas_venv_bin }}/swift post \
+          -r '.r:*' {{ maas_swift_accesscheck_container }};
+        {{ maas_venv_bin }}/swift post \
+          -m 'web-index:index.html' \
+          {{ maas_swift_accesscheck_container }};
       args:
         executable: "/bin/bash"
       changed_when: false
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
         - maas_swift_accesscheck_enabled | bool
@@ -282,18 +271,20 @@
     - name: Retrieve check file key
       shell: |
         source /root/openrc;
-        /openstack/venvs/swift-{{ openstack_release }}/bin/swift stat \
-                                                                 {{ maas_swift_accesscheck_container }} \
-                                                                 index.html | grep "Account:" | awk '{print $2}'
+        {{ maas_venv_bin }}/swift stat \
+          {{ maas_swift_accesscheck_container }} \
+          index.html | grep "Account:" | awk '{print $2}';
       args:
         executable: "/bin/bash"
       register: swift_url_key
       changed_when: false
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
         - maas_swift_accesscheck_enabled | bool
         - inventory_hostname in groups['swift_proxy'][0]
 
+  post_tasks:
     # Set the full check URL as a fact
     - name: Set URL fact
       set_fact:
@@ -302,9 +293,7 @@
         - maas_swift_access_url_key is undefined
         - maas_remote_check | bool
         - maas_swift_accesscheck_enabled | bool
-        - inventory_hostname in groups['swift_proxy'][0]
 
-  tasks:
     - name: Install swift container replications checks
       template:
         src: "templates/swift_account_replication_check.yaml.j2"
