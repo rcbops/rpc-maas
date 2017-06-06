@@ -14,11 +14,6 @@
 # limitations under the License.
 
 #
-# Set the openstack-release to master by default
-#
-openstack_release: master
-
-#
 # Set the pip package state, defaults to latest.
 #
 maas_pip_package_state: "latest"
