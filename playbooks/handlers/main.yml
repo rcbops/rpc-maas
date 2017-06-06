@@ -17,10 +17,15 @@
   service:
     name: rackspace-monitoring-agent
     state: restarted
+  register: maas_restart
+  until: maas_restart | success
+  retries: 3
+  delay: 1
   delegate_to: "{{ physical_host | default(inventory_hostname) }}"
-  notify: Allow rax-maas to warmup
+  notify:
+    - Allow rax-maas to warmup
 
 - name: Allow rax-maas to warmup
   pause:
-    seconds: 2
+    seconds: 1
     prompt: "Ensuring RAX-MaaS has had time to start up"
