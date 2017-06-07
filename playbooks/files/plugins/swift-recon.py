@@ -69,7 +69,7 @@ def recon_output(for_ring, options=None):
     with open("/etc/openstack-release") as f:
         for line in f.readlines():
             if line.startswith('DISTRIB_RELEASE'):
-                openstack_version = line.split("=")[-1].strip()
+                openstack_version = line.split("=")[-1].strip().strip('"')
                 break
         else:
             raise SystemExit(
