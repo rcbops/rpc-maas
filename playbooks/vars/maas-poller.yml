@@ -13,36 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-agent-all.yml
-  tags:
-    - maas
+#
+# private_ping_check_count: Number of times to try ping check in private
+#                           network monitoring case. Must be integer
+#                           1-15 inclusive.
+private_ping_check_count: 6
 
-- include: maas-poller-all.yml
-  tags:
-    - maas
-
-- include: maas-ceph-all.yml
-  tags:
-    - maas
-
-- include: maas-host-all.yml
-  tags:
-    - maas
-
-- include: maas-infra-all.yml
-  tags:
-    - maas
-
-- include: maas-container-all.yml
-  tags:
-    - maas
-
-- include: maas-openstack-all.yml
-  tags:
-    - maas
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml
-  vars:
-    maas_force_restart: true
+#
+# private_ssh_port: The port number to use for SSH connections.
+private_ssh_port: 22

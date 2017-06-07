@@ -1,0 +1,8 @@
+# Configuration of the rackspace-monitoring-poller service
+
+ENABLED=true
+
+CONFIG_FILE=/etc/rackspace-monitoring-poller.cfg
+
+# Allows for passing additional options to the 'server' command
+POLLER_SERVE_OPTS="-l /var/log/rackspace-monitoring-poller.log"

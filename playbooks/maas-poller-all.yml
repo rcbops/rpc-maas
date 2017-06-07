@@ -13,36 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-agent-all.yml
+- include: maas-poller-install.yml
   tags:
-    - maas
+    - maas-poller
 
-- include: maas-poller-all.yml
+- include: maas-poller-setup.yml
   tags:
-    - maas
-
-- include: maas-ceph-all.yml
-  tags:
-    - maas
-
-- include: maas-host-all.yml
-  tags:
-    - maas
-
-- include: maas-infra-all.yml
-  tags:
-    - maas
-
-- include: maas-container-all.yml
-  tags:
-    - maas
-
-- include: maas-openstack-all.yml
-  tags:
-    - maas
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml
-  vars:
-    maas_force_restart: true
+    - maas-poller

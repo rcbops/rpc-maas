@@ -1,0 +1,48 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in witing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Gather facts
+  hosts: shared-infra_hosts
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - maas-poller-install
+
+- name: Install MaaS Poller
+  hosts: shared-infra_hosts
+  gather_facts: false
+  pre_tasks:
+    - name: Gather variables for each operating system
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "vars/maas-poller-{{ ansible_distribution | lower }}.yml"
+            - "vars/maas-poller-{{ ansible_os_family | lower }}.yml"
+          skip: false
+
+    - name: Include distro install tasks
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
+        - ansible_distribution | lower == 'ubuntu'
+      include: "common-tasks/maas-poller-ubuntu-install.yml"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-poller-{{ ansible_distribution | lower }}.yml
+  tags:
+    - maas-poller-install

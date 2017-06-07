@@ -13,36 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-agent-all.yml
-  tags:
-    - maas
+maas_keys:
+  url: "https://monitoring.api.rackspacecloud.com/pki/agent/linux.asc"
+  state: "present"
 
-- include: maas-poller-all.yml
-  tags:
-    - maas
+maas_poller_repos:
+  repo: "deb [arch=amd64] http://stable.poller.packages.cloudmonitoring.rackspace.com/debian cloudmonitoring main"
+  state: "present"
 
-- include: maas-ceph-all.yml
-  tags:
-    - maas
-
-- include: maas-host-all.yml
-  tags:
-    - maas
-
-- include: maas-infra-all.yml
-  tags:
-    - maas
-
-- include: maas-container-all.yml
-  tags:
-    - maas
-
-- include: maas-openstack-all.yml
-  tags:
-    - maas
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml
-  vars:
-    maas_force_restart: true
+maas_poller_distro_packages:
+  - rackspace-monitoring-poller

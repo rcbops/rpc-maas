@@ -120,6 +120,7 @@
     - include: handlers/main.yml
   vars_files:
     - vars/main.yml
+    - vars/maas-auth.yml
     - vars/maas-agent.yml
   tags:
     - maas-agent-setup
