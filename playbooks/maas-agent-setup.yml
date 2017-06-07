@@ -54,7 +54,7 @@
 
     - name: Drop in wrapper script to run maas plugins in venv
       template:
-        src: "run_plugin_in_venv.sh.j2"
+        src: "templates/run_plugin_in_venv.sh.j2"
         dest: "{{ maas_plugin_dir }}/run_plugin_in_venv.sh"
         owner: "root"
         group: "root"
@@ -67,13 +67,6 @@
         owner: "root"
         group: "root"
         mode: "0755"
-
-  roles:
-    - role: "openstack_openrc"
-      when:
-        - maas_openstack_install | bool
-      tags:
-        - openrc
 
   post_tasks:
     - name: Assign agent ID to entity
@@ -126,3 +119,7 @@
     - vars/maas-agent.yml
   tags:
     - maas-agent-setup
+
+# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
+#                  will be globally unified.
+- include: maas-restart.yml

@@ -18,6 +18,7 @@
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
+    - include: "common-tasks/maas_get_openrc.yml"
 
   tasks:
     - name: Copy over pip constraints
@@ -25,6 +26,16 @@
         src: "files/pip-constraints.txt"
         dest: "/tmp/pip-constraints.txt"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Retrieve openrc file
+      fetch:
+        src: /root/openrc
+        dest: /root/openrc
+        flat: true
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups['hosts'] }}"
+      when:
+        - "'hosts' in groups"
 
   post_tasks:
     - name: Install swift pip packages to venv
@@ -190,46 +201,40 @@
   hosts: swift_proxy
   gather_facts: false
   tasks:
-    # Add a swift user for file checking
-    - name: Create a keystone user for swift filecheck
-      keystone:
-        command: "ensure_user"
-        endpoint: "{{ keystone_service_adminurl }}"
-        login_user: "{{ keystone_admin_user_name }}"
-        login_password: "{{ keystone_auth_admin_password }}"
-        login_project_name: "{{ keystone_admin_tenant_name }}"
-        user_name: "{{ maas_swift_accesscheck_user_name }}"
-        tenant_name: "{{ maas_swift_service_project_name }}"
-        password: "{{ maas_swift_accesscheck_password }}"
-        insecure: "{{ keystone_service_adminuri_insecure }}"
-      register: add_user
-      until: add_user | success
-      retries: 5
-      delay: 10
+    - name: Create keystone user for swift filecheck
+      shell: |
+        source /root/openrc
+        if ! {{ maas_venv_bin }}/openstack user show "{{ maas_swift_accesscheck_user_name }}"; then
+          if ! {{ maas_venv_bin }}/openstack project show "{{ maas_swift_service_project_name }}"; then
+            {{ maas_venv_bin }}/openstack project create \
+                                          --domain default \
+                                          --description "Service Project" \
+                                          {{ maas_swift_service_project_name }}
+          fi
+          if ! {{ maas_venv_bin }}/openstack role show "{{ maas_swift_operator_role }}"; then
+            {{ maas_venv_bin }}/openstack role create \
+                                          {{ maas_swift_operator_role }}
+          fi
+          MAAS_ID=$({{ maas_venv_bin }}/openstack user create \
+                                                  --domain default \
+                                                  --password "{{ maas_swift_accesscheck_password }}" \
+                                                  "{{ maas_swift_accesscheck_user_name }}" | grep -w id | awk '{print $4}')
+          sleep 1
+          {{ maas_venv_bin }}/openstack role add \
+                                        --project admin \
+                                        --user "${MAAS_ID}" \
+                                        "{{ maas_swift_operator_role }}"
+          exit 3
+        fi
+      args:
+        executable: "/bin/bash"
+      changed_when:
+        - mon_user.rc == 3
+      failed_when:
+        - mon_user.rc not in [0, 3]
+      register: mon_user
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
-        - not maas_swift_service_in_ldap | bool
-        - maas_remote_check | bool
-        - maas_swift_accesscheck_enabled | bool
-        - inventory_hostname in groups['swift_proxy'][0]
-
-    # Assign the swiftoperator role to the file checking user
-    - name: Add swift role to user
-      keystone:
-        command: "ensure_user_role"
-        endpoint: "{{ keystone_service_adminurl }}"
-        login_user: "{{ keystone_admin_user_name }}"
-        login_password: "{{ keystone_auth_admin_password }}"
-        login_project_name: "{{ keystone_admin_tenant_name }}"
-        user_name: "{{ maas_swift_accesscheck_user_name }}"
-        tenant_name: "{{ maas_swift_service_project_name }}"
-        role_name: "{{ maas_swift_operator_role }}"
-        insecure: "{{ keystone_service_adminuri_insecure }}"
-      register: add_user_role
-      until: add_user_role | success
-      retries: 5
-      delay: 10
-      when:
-        - not maas_swift_service_in_ldap | bool
         - maas_remote_check | bool
         - maas_swift_accesscheck_enabled | bool
         - inventory_hostname in groups['swift_proxy'][0]
@@ -238,7 +243,7 @@
     - name: Create index file
       copy:
         dest: "/tmp/index.html"
-        src: "index.html"
+        src: "files/index.html"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
@@ -248,7 +253,7 @@
     # Place an HTML file in a swift container
     - name: Setup swift container monitoring check
       shell: |
-        source /root/openrc
+        source /root/openrc;
         {{ maas_venv_bin }}/swift upload \
           --object-name index.html \
           {{ maas_swift_accesscheck_container }} \
@@ -416,3 +421,7 @@
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-swift
+
+# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
+#                  will be globally unified.
+- include: maas-restart.yml

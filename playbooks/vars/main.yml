@@ -182,12 +182,6 @@ maas_remote_check: true
 maas_keystone_user: maas
 
 #
-# maas_openstack_install: Instructions to installing checks within an OpenStack cloud
-#                         This drops the "openrc" role in places where MaaS will need it.
-#
-maas_openstack_install: true
-
-#
 # maas_agent_upgrade: Allow for automatic MaaS agent upgrades
 #
 #

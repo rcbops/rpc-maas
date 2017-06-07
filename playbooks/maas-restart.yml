@@ -13,7 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Restart rax-maas
-  add_host:
-    name: "{{ physical_host | default(ansible_host) }}"
-    groups: maas_restart_on_host
+- name: Restart MaaS
+  hosts: maas_restart_on_host
+  gather_facts: false
+  tasks:
+    - name: Restart rackspace-monitoring-agent
+      service:
+        name: rackspace-monitoring-agent
+        state: restarted
+      register: _maas_restart
+      until: _maas_restart | success
+      retries: 3
+      delay: 2

@@ -24,7 +24,6 @@ maas_pip_packages:
   - cryptography
   - ipaddr
   - lxml
-  - monitorstack
   - psutil
   - rackspace-monitoring-cli
   - requests

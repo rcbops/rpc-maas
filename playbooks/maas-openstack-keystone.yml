@@ -18,6 +18,7 @@
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
+    - include: "common-tasks/maas_get_openrc.yml"
 
   tasks:
     - name: Copy over pip constraints
@@ -53,41 +54,29 @@
   gather_facts: false
   pre_tasks:
     - name: Create keystone user for monitoring
-      keystone:
-        command: "ensure_user"
-        endpoint: "{{ keystone_service_adminurl }}"
-        login_user: "{{ keystone_admin_user_name }}"
-        login_password: "{{ keystone_auth_admin_password }}"
-        login_project_name: "{{ keystone_admin_tenant_name }}"
-        user_name: "{{ maas_keystone_user }}"
-        tenant_name: "{{ keystone_admin_tenant_name }}"
-        password: "{{ maas_keystone_password }}"
-        insecure: "{{ keystone_service_adminuri_insecure }}"
+      shell: |
+        . /root/openrc
+        if ! {{ maas_venv_bin }}/openstack user show "{{ maas_keystone_user }}"; then
+          MAAS_ID=$({{ maas_venv_bin }}/openstack user create \
+                                                  --domain default \
+                                                  --password "{{ maas_keystone_password }}" \
+                                                  "{{ maas_keystone_user }}" | grep -w id | awk '{print $4}')
+          sleep 1
+          {{ maas_venv_bin }}/openstack role add \
+                                        --project admin \
+                                        --user "${MAAS_ID}" \
+                                        admin
+          exit 3
+        fi
+      args:
+        executable: "/bin/bash"
+      changed_when:
+        - mon_user.rc == 3
+      failed_when:
+        - mon_user.rc not in [0, 3]
+      register: mon_user
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
-        - keystone_service_adminurl is defined
-        - keystone_admin_user_name is defined
-        - keystone_auth_admin_password is defined
-        - keystone_admin_tenant_name is defined
-        - keystone_service_adminuri_insecure is defined
-        - inventory_hostname in groups['keystone_all'][0]
-
-    - name: Add monitoring keystone user to admin role
-      keystone:
-        command: "ensure_user_role"
-        endpoint: "{{ keystone_service_adminurl }}"
-        login_user: "{{ keystone_admin_user_name }}"
-        login_password: "{{ keystone_auth_admin_password }}"
-        login_project_name: "{{ keystone_admin_tenant_name }}"
-        user_name: "{{ maas_keystone_user }}"
-        tenant_name: "{{ keystone_admin_tenant_name }}"
-        role_name: "admin"
-        insecure: "{{ keystone_service_adminuri_insecure }}"
-      when:
-        - keystone_service_adminurl is defined
-        - keystone_admin_user_name is defined
-        - keystone_auth_admin_password is defined
-        - keystone_admin_tenant_name is defined
-        - keystone_service_adminuri_insecure is defined
         - inventory_hostname in groups['keystone_all'][0]
 
   tasks:
@@ -122,3 +111,7 @@
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-keystone
+
+# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
+#                  will be globally unified.
+- include: maas-restart.yml

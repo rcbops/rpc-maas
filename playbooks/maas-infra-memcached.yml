@@ -27,7 +27,7 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
   post_tasks:
-    - name: Install glance pip packages to venv
+    - name: Install memcached pip packages to venv
       pip:
         name: "{{ maas_memcached_pip_packages | join(' ') }}"
         state: "{{ maas_pip_package_state }}"
@@ -69,3 +69,7 @@
     - vars/main.yml
   tags:
     - maas-infra-memcached
+
+# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
+#                  will be globally unified.
+- include: maas-restart.yml

@@ -16,8 +16,24 @@
 - name: Gather facts
   hosts: rabbitmq_all
   gather_facts: "{{ gather_facts | default(true) }}"
-  tasks:
+  pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
+
+  tasks:
+    - name: Install rabbitmq pip packages
+      pip:
+        name: "{{ maas_rabbitmq_pip_packages | join(' ') }}"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          {{ pip_install_options | default('') }}
+      register: install_pip_packages
+      until: install_pip_packages|success
+      retries: 5
+      delay: 2
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-infra.yml
   tags:
     - maas-infra-rabbitmq
 
@@ -81,3 +97,7 @@
     - vars/maas-infra.yml
   tags:
     - maas-infra-rabbitmq
+
+# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
+#                  will be globally unified.
+- include: maas-restart.yml

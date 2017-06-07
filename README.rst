@@ -29,6 +29,19 @@ Example usage with OpenStack-Ansible
     openstack-ansible playbooks/site.yml
 
 
+Running with Ansible 1.9 with OpenStack-Ansible
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Prior to running with Ansible 1.9 with OpenStack-Ansible (using the Mitaka, Liberty, Kilo)
+export the Role and Library path prior to running the playbooks.
+
+.. code-block:: bash
+
+    export ANSIBLE_ROLES_PATH=/opt/openstack-ansible/playbooks/roles
+    export ANSIBLE_LIBRARY=/opt/openstack-ansible/playbooks/library
+    echo 'ansible_host: "{{ ansible_ssh_host }}"' | tee -a /etc/openstack_deploy/user_variables.yml
+
+
 Validating the deployment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
