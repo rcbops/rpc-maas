@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Restart MaaS
-  hosts: maas_restart_on_host
+  hosts: "{{ maas_restart_on_host_override | default('maas_restart_on_host') }}"
   gather_facts: false
   tasks:
     - name: Restart rackspace-monitoring-agent
@@ -25,3 +25,6 @@
       until: _maas_restart | success
       retries: 3
       delay: 2
+      when: >
+        maas_restart_independent | default(true) | bool or
+        maas_force_restart | default(false) | bool
