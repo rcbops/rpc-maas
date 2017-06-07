@@ -96,6 +96,16 @@ With OpenStack-Ansible
     openstack-ansible playbooks/maas-verify.yml
 
 
+With Static Inventory
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+    # Run the test playbook
+    ansible-playbook -i inventory playbooks/maas-verify.yml
+
+
+
 Running with Ansible 1.9 and OpenStack-Ansible
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -124,16 +134,6 @@ In order to enable console auth checking set the ``nova_console_type`` and
 
     echo 'nova_console_type: spice' | tee -a /etc/openstack_deploy/user_variables.yml
     echo 'nova_console_port: 6082' | tee -a /etc/openstack_deploy/user_variables.yml
-
-
-With Static Inventory
-~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: bash
-
-    # Run the test playbook
-    ansible-playbook -i inventory playbooks/maas-verify.yml
-
 
 Tags
 ~~~~
@@ -203,12 +203,25 @@ variable required to be set is ``maas_swift_accesscheck_password``.
     ansible-playbook -e @/etc/openstack_deploy/user_secrets.yml /opt/rpc-maas/playbooks/maas-openstack-swift.yml -i inventory
 
 
+Restart flow control
+####################
+
+When doing an initial deployment of the rpc-maas playbooks it recommended
+set the variable  ``maas_restart_independent`` to **false**. This variable
+instructs the playbooks to only restart the ``rackspace-monitoring-agent``
+once upon the completion of the ``site.yml`` playbook run. If you are
+redeploying specific checks, this variable is not needed.
+
+.. code-block:: bash
+
+    ansible-playbook -e "maas_restart_independent=false" /opt/rpc-maas/playbooks/site.yml
+
+
 Building Static Inventory
 #########################
 
-
 Mandatory Sections
-^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~
 
 To begin you likely will want to define all of your physical hosts within the
 "all" section.
@@ -235,7 +248,7 @@ host machines under the "hosts" section.
 
 
 Optional Sections
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 
 If you have ``containers``, these entries will be added to the "all_containers"
 section.

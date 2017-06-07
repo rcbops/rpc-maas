@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: all
+  hosts: "hosts:all_containers"
   gather_facts: "{{ gather_facts | default(true) }}"
   tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
@@ -22,7 +22,7 @@
     - maas-infra-filebeat
 
 - name: Install checks for infra filebeat
-  hosts: all
+  hosts: "hosts:all_containers"
   gather_facts: false
   tasks:
     - name: Install filebeat check
