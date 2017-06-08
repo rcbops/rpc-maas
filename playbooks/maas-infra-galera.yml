@@ -18,6 +18,10 @@
   gather_facts: "{{ gather_facts | default(true) }}"
   tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
+    - name: Set the current group
+      set_fact:
+        maas_current_group: galera_all
+
   tags:
     - maas-infra-galera
 
