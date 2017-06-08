@@ -50,7 +50,7 @@ def check(auth_ref, args):
     try:
         # We cannot do /os-services?host=X as cinder returns a hostname of
         # X@lvm for cinder-volume binary
-        r = s.get('%s/os-services' % VOLUME_ENDPOINT, verify=False, timeout=10)
+        r = s.get('%s/os-services' % VOLUME_ENDPOINT, verify=False, timeout=5)
     except (exc.ConnectionError,
             exc.HTTPError,
             exc.Timeout) as e:
@@ -102,14 +102,18 @@ def main(args):
     check(auth_ref, args)
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(description="Check Cinder API against"
-                                         " local or remote address")
-        parser.add_argument('hostname',
-                            type=str,
-                            help='Cinder API hostname or IP address')
-        parser.add_argument('--host',
-                            type=str,
-                            help='Only return metrics for the specified host')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Check Cinder API against"
+                                     " local or remote address")
+    parser.add_argument('hostname',
+                        type=str,
+                        help='Cinder API hostname or IP address')
+    parser.add_argument('--host',
+                        type=str,
+                        help='Only return metrics for the specified host')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

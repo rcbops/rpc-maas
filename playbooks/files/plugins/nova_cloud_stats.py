@@ -108,25 +108,29 @@ def main(args):
 
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(
-            description='Check Nova hypervisor stats')
-        parser.add_argument('--cpu',
-                            type=float,
-                            default=1.0,
-                            required=False,
-                            action='store',
-                            dest='cpu_allocation_ratio',
-                            help='cpu allocation ratio')
-        parser.add_argument('--mem',
-                            type=float,
-                            default=1.0,
-                            required=False,
-                            action='store',
-                            dest='mem_allocation_ratio',
-                            help='mem allocation ratio')
-        parser.add_argument('ip', nargs='?',
-                            type=ipaddr.IPv4Address,
-                            help='Nova API IP address')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(
+        description='Check Nova hypervisor stats')
+    parser.add_argument('--cpu',
+                        type=float,
+                        default=1.0,
+                        required=False,
+                        action='store',
+                        dest='cpu_allocation_ratio',
+                        help='cpu allocation ratio')
+    parser.add_argument('--mem',
+                        type=float,
+                        default=1.0,
+                        required=False,
+                        action='store',
+                        dest='mem_allocation_ratio',
+                        help='mem allocation ratio')
+    parser.add_argument('ip', nargs='?',
+                        type=ipaddr.IPv4Address,
+                        help='Nova API IP address')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

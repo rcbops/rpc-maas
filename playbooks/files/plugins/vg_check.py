@@ -17,7 +17,6 @@ import argparse
 import shlex
 import subprocess
 
-
 from maas_common import metric
 from maas_common import print_output
 from maas_common import status_err
@@ -40,6 +39,10 @@ def parse_args():
         description='Check space in a volume group')
     parser.add_argument('vgname',
                         help='Name of volume group to query')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
     return parser.parse_args()
 
 
@@ -54,7 +57,6 @@ def print_metrics(sizes, vgname):
 
 
 def main():
-    args = parse_args()
     vgname = args.vgname
     command = ('vgs %s --noheadings --units M '
                '--nosuffix -o vg_size,vg_free') % (vgname)
@@ -77,5 +79,6 @@ def main():
 
 
 if __name__ == '__main__':
-    with print_output():
+    args = parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main()

@@ -68,18 +68,22 @@ def main(args):
 
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(description='Check neutron agents')
-        parser.add_argument('hostname',
-                            type=str,
-                            help='Neutron API hostname or IP address')
-        parser.add_argument('--host',
-                            type=str,
-                            help='Only return metrics for specified host',
-                            default=None)
-        parser.add_argument('--fqdn',
-                            type=str,
-                            help='Only return metrics for specified fqdn',
-                            default=None)
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Check neutron agents')
+    parser.add_argument('hostname',
+                        type=str,
+                        help='Neutron API hostname or IP address')
+    parser.add_argument('--host',
+                        type=str,
+                        help='Only return metrics for specified host',
+                        default=None)
+    parser.add_argument('--fqdn',
+                        type=str,
+                        help='Only return metrics for specified fqdn',
+                        default=None)
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

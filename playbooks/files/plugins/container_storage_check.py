@@ -62,7 +62,11 @@ def container_check(thresh):
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Container storage checks')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
     parser.add_argument(
         '--thresh',
         required=True,
@@ -73,7 +77,6 @@ def get_args():
 
 
 def main():
-    args = get_args()
     _container_check = False
     try:
         _container_check = container_check(thresh=args.thresh)
@@ -89,5 +92,6 @@ def main():
 
 
 if __name__ == '__main__':
-    with print_output():
+    args = get_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main()

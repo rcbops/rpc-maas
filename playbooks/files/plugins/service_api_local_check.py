@@ -54,7 +54,7 @@ def check(args):
     else:
         url = ''.join((endpoint, path))
     try:
-        r = s.get(url, verify=False, timeout=10)
+        r = s.get(url, verify=False, timeout=5)
     except (exc.ConnectionError,
             exc.HTTPError,
             exc.Timeout):
@@ -78,20 +78,24 @@ def main(args):
 
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(description='Check service is up.')
-        parser.add_argument('name', help='Service name.')
-        parser.add_argument('ip', type=ipaddr.IPv4Address,
-                            help='Service IP address.')
-        parser.add_argument('port', type=int, help='Service port.')
-        parser.add_argument('--path', default='',
-                            help='Service API path, this should include '
-                                 'placeholders for the version "{version}" and'
-                                 ' tenant ID "{tenant_id}" if required.')
-        parser.add_argument('--auth', action='store_true', default=False,
-                            help='Does this API check require auth?')
-        parser.add_argument('--ssl', action='store_true', default=False,
-                            help='Should SSL be used.')
-        parser.add_argument('--version', help='Service API version.')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Check service is up.')
+    parser.add_argument('name', help='Service name.')
+    parser.add_argument('ip', type=ipaddr.IPv4Address,
+                        help='Service IP address.')
+    parser.add_argument('port', type=int, help='Service port.')
+    parser.add_argument('--path', default='',
+                        help='Service API path, this should include '
+                             'placeholders for the version "{version}" and'
+                             ' tenant ID "{tenant_id}" if required.')
+    parser.add_argument('--auth', action='store_true', default=False,
+                        help='Does this API check require auth?')
+    parser.add_argument('--ssl', action='store_true', default=False,
+                        help='Should SSL be used.')
+    parser.add_argument('--version', help='Service API version.')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

@@ -37,7 +37,7 @@ def check(args):
         # an instance ID and other headers
         versions = s.get('%s/' % metadata_endpoint,
                          verify=False,
-                         timeout=10)
+                         timeout=5)
         milliseconds = versions.elapsed.total_seconds() * 1000
         if not versions.ok or '1.0' not in versions.content.splitlines():
             is_up = False
@@ -60,11 +60,15 @@ def main(args):
     check(args)
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(
-            description='Check nova-api-metdata API')
-        parser.add_argument('ip',
-                            type=ipaddr.IPv4Address,
-                            help='nova-api-metadata IP address')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(
+        description='Check nova-api-metdata API')
+    parser.add_argument('ip',
+                        type=ipaddr.IPv4Address,
+                        help='nova-api-metadata IP address')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

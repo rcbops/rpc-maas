@@ -43,7 +43,7 @@ def check(auth_ref, args):
 
     try:
         # /images returns a list of public, non-deleted images
-        r = s.get('%s/images' % registry_endpoint, verify=False, timeout=10)
+        r = s.get('%s/images' % registry_endpoint, verify=False, timeout=5)
         is_up = r.ok
     except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
@@ -65,10 +65,14 @@ def main(args):
 
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(description="Check Glance Registry "
-                                         " against local or remote address")
-        parser.add_argument('ip', type=ipaddr.IPv4Address,
-                            help='Glance Registry IP address')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Check Glance Registry "
+                                     " against local or remote address")
+    parser.add_argument('ip', type=ipaddr.IPv4Address,
+                        help='Glance Registry IP address')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

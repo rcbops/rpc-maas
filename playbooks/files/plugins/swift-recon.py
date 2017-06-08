@@ -425,6 +425,10 @@ def make_parser():
     parser.add_argument('--ring-type', dest='ring',
                         help='Which ring to run statistics for. Only used by '
                              'replication recon.')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
     return parser
 
 
@@ -449,7 +453,6 @@ def get_stats_from(args):
 
 
 def main():
-    parser = make_parser()
     args = parser.parse_args()
 
     try:
@@ -463,5 +466,7 @@ def main():
 
 
 if __name__ == '__main__':
-    with maas_common.print_output():
+    parser = make_parser()
+    args = parser.parse_args()
+    with maas_common.print_output(print_telegraf=args.telegraf_output):
         main()

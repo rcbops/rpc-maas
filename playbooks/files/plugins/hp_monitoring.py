@@ -14,8 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import maas_common
+import argparse
 import subprocess
+
+import maas_common
 
 
 class BadOutputError(maas_common.MaaSException):
@@ -83,5 +85,11 @@ def main():
 
 
 if __name__ == '__main__':
-    with maas_common.print_output():
+    parser = argparse.ArgumentParser(description='HP monitoring checks')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with maas_common.print_output(print_telegraf=args.telegraf_output):
         main()

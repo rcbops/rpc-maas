@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import errno
 
 import maas_common
@@ -61,5 +62,11 @@ def main():
 
 
 if __name__ == '__main__':
-    with maas_common.print_output():
+    parser = argparse.ArgumentParser(description='Conntrack checks')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with maas_common.print_output(print_telegraf=args.telegraf_output):
         main()

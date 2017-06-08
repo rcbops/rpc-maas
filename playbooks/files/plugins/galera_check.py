@@ -13,10 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import optparse
+
+import argparse
 import shlex
 import subprocess
-
 
 from maas_common import metric
 from maas_common import print_output
@@ -54,13 +54,23 @@ def generate_query(host, port, output_type='status'):
 
 
 def parse_args():
-    parser = optparse.OptionParser(usage='%prog [-h] [-H hostname] [-P port]')
-    parser.add_option('-H', '--host', action='store', dest='host',
-                      default=None,
-                      help='Host to override the defaults with')
-    parser.add_option('-P', '--port', action='store', dest='port',
-                      default=None,
-                      help='Port to override the defauults with')
+    parser = argparse.ArgumentParser(description='Galera checks')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    parser.add_argument('-H',
+                        '--host',
+                        action='store',
+                        dest='host',
+                        default=None,
+                        help='Host to override the defaults with')
+    parser.add_argument('-P',
+                        '--port',
+                        action='store',
+                        dest='port',
+                        default=None,
+                        help='Port to override the defauults with')
     return parser.parse_args()
 
 
@@ -107,8 +117,6 @@ def print_metrics(replica_status):
 
 
 def main():
-    options, _ = parse_args()
-
     replica_status = {}
     for output_type in ['status', 'variables']:
         retcode, output, err = galera_check(
@@ -138,5 +146,6 @@ def main():
 
 
 if __name__ == '__main__':
-    with print_output():
+    args = options = parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main()

@@ -72,6 +72,14 @@
         group: "root"
         mode: "0755"
 
+    - name: Drop MaaS telegraf output runner
+      template:
+        src: "files/maas_telegraf_format.py"
+        dest: "{{ maas_plugin_dir }}/maas_telegraf_format.py"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
   post_tasks:
     - name: Assign agent ID to entity
       raxmon:
