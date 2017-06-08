@@ -19,6 +19,9 @@
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
+    - name: Set the current group
+      set_fact:
+        maas_current_group: keystone_all
 
   tasks:
     - name: Copy over pip constraints
