@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import shlex
 import subprocess
 
@@ -32,7 +33,13 @@ def utilisation(time):
     return utils
 
 if __name__ == '__main__':
-    with print_output():
+    parser = argparse.ArgumentParser(description='Disk utilisation checks')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         try:
             utils = utilisation(5)
         except Exception as e:

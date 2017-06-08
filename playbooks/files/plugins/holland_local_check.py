@@ -47,6 +47,10 @@ def parse_args():
     parser.add_argument('holland_backupset', nargs='?',
                         help='Name of the holland backupset',
                         default='rpc_support')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
     return parser.parse_args()
 
 
@@ -84,7 +88,6 @@ def container_holland_lb_check(container, binary, backupset):
 
 
 def main():
-    args = parse_args()
     galera_container = args.galera_container_name
     holland_bin = args.holland_binary
     holland_bs = args.holland_backupset
@@ -111,5 +114,6 @@ def main():
 
 
 if __name__ == '__main__':
-    with print_output():
+    args = parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main()

@@ -32,8 +32,8 @@ everything is working as expected which can be done with static inventory
 as well as within an OpenStack-Ansible deployment.
 
 
-With OpenStack-Ansible
-~~~~~~~~~~~~~~~~~~~~~~
+Running with OpenStack-Ansible
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -44,8 +44,8 @@ With OpenStack-Ansible
     openstack-ansible playbooks/maas-verify.yml
 
 
-With Static Inventory
-~~~~~~~~~~~~~~~~~~~~~
+Running with Static Inventory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -83,8 +83,22 @@ In order to enable console auth checking set the ``nova_console_type`` and
     echo 'nova_console_port: 6082' | tee -a /etc/openstack_deploy/user_variables.yml
 
 
-Recommended Overrides when deploying with specific versions of OpenStack-Ansible
---------------------------------------------------------------------------------
+Collecting metrics for time series analysis
+-------------------------------------------
+
+An available plugin can be executed at any time to run all discovered checks
+found in ``/etc/rackspace-monitoring-agent.conf.d``. These plugins will be
+executed having the output format converted to telegraf line format. This is
+useful when storing local checks in a time series database like influxdb. To
+run the plugin execute the following:
+
+.. code-block:: bash
+
+    /openstack/venvs/maas-${VERSION_NUM}/bin/python /usr/lib/rackspace-monitoring-agent/plugins/maas_telegraf_format.py
+
+
+Recommended Overrides for specific versions of OpenStack-Ansible
+----------------------------------------------------------------
 
 The following sections contain YAML options that should be added to the
 ``user_variables.yml`` file for a given deployment of OpenStack-Ansible.

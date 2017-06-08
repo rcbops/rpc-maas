@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import optparse
+import argparse
 import subprocess
 
 from itertools import chain
@@ -81,25 +80,27 @@ def rabbit_version(node):
 
 
 def parse_args():
-    parser = optparse.OptionParser(
-        usage='%prog [-h] [-H hostname] [-P port] [-u username] [-p password]'
-    )
-    parser.add_option('-H', '--host', action='store', dest='host',
-                      default='localhost',
-                      help='Host address to use when connecting')
-    parser.add_option('-P', '--port', action='store', dest='port',
-                      default='15672',
-                      help='Port to use when connecting')
-    parser.add_option('-U', '--username', action='store', dest='username',
-                      default='guest',
-                      help='Username to use for authentication')
-    parser.add_option('-p', '--password', action='store', dest='password',
-                      default='guest',
-                      help='Password to use for authentication')
-    parser.add_option('-n', '--name', action='store', dest='name',
-                      default=None,
-                      help=("Check a node's cluster membership using the "
-                            'provided name'))
+    parser = argparse.ArgumentParser(description='RabbitMQ checks')
+    parser.add_argument('-H', '--host', action='store', dest='host',
+                        default='localhost',
+                        help='Host address to use when connecting')
+    parser.add_argument('-P', '--port', action='store', dest='port',
+                        default='15672',
+                        help='Port to use when connecting')
+    parser.add_argument('-U', '--username', action='store', dest='username',
+                        default='guest',
+                        help='Username to use for authentication')
+    parser.add_argument('-p', '--password', action='store', dest='password',
+                        default='guest',
+                        help='Password to use for authentication')
+    parser.add_argument('-n', '--name', action='store', dest='name',
+                        default=None,
+                        help=("Check a node's cluster membership using the "
+                              'provided name'))
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
     return parser.parse_args()
 
 
@@ -203,7 +204,6 @@ def _get_consumer_metrics(session, metrics, host, port):
 
 
 def main():
-    (options, _) = parse_args()
     metrics = {}
     session = requests.Session()  # Make a Session to store the auth creds
     session.auth = (options.username, options.password)
@@ -225,5 +225,6 @@ def main():
 
 
 if __name__ == "__main__":
-    with print_output():
+    args = options = parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main()

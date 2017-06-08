@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import json
-import optparse
 import os
 import re
 
@@ -104,14 +104,18 @@ def get_number_of(loglevel, index):
 
 
 def parse_args():
-    parser = optparse.OptionParser(usage='%prog [-h] [-H host] [-P port]')
-    parser.add_option('-H', '--host', action='store', dest='host',
-                      default=None,
-                      help=('Hostname or IP address to use to connect to '
-                            'Elasticsearch'))
-    parser.add_option('-P', '--port', action='store', dest='port',
-                      default=ES_PORT,
-                      help='Port to use to connect to Elasticsearch')
+    parser = argparse.ArgumentParser(description='Elasticsearch checks')
+    parser.add_argument('-H', '--host', action='store', dest='host',
+                        default=None,
+                        help=('Hostname or IP address to use to connect to '
+                              'Elasticsearch'))
+    parser.add_argument('-P', '--port', action='store', dest='port',
+                        default=ES_PORT,
+                        help='Port to use to connect to Elasticsearch')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
     return parser.parse_args()
 
 
@@ -123,7 +127,6 @@ def configure(options):
 
 
 def main():
-    options, _ = parse_args()
     configure(options)
 
     latest = most_recent_index()
@@ -136,5 +139,6 @@ def main():
 
 
 if __name__ == '__main__':
-    with print_output():
+    args = options = parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main()

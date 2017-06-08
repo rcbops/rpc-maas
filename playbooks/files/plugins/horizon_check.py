@@ -53,7 +53,7 @@ def check(args):
     try:
         r = s.get('%s:%s' % (HORIZON_URL, HORIZON_PORT),
                   verify=False,
-                  timeout=10)
+                  timeout=5)
     except (exc.ConnectionError,
             exc.HTTPError,
             exc.Timeout) as e:
@@ -111,14 +111,18 @@ def main(args):
     check(args)
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(description='Check horizon dashboard')
-        parser.add_argument('ip',
-                            type=ipaddr.IPv4Address,
-                            help='horizon dashboard IP address')
-        parser.add_argument('site_name_regexp',
-                            type=str,
-                            default='openstack dashboard',
-                            help='Horizon Site Name')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Check horizon dashboard')
+    parser.add_argument('ip',
+                        type=ipaddr.IPv4Address,
+                        help='horizon dashboard IP address')
+    parser.add_argument('site_name_regexp',
+                        type=str,
+                        default='openstack dashboard',
+                        help='Horizon Site Name')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

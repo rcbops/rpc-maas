@@ -73,11 +73,15 @@ def main(args):
 
 
 if __name__ == '__main__':
-    with print_output():
-        parser = argparse.ArgumentParser(description='Check memcached status')
-        parser.add_argument('ip', type=ipaddr.IPv4Address,
-                            help='memcached IP address.')
-        parser.add_argument('--port', type=int,
-                            default=11211, help='memcached port.')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Check memcached status')
+    parser.add_argument('ip', type=ipaddr.IPv4Address,
+                        help='memcached IP address.')
+    parser.add_argument('--port', type=int,
+                        default=11211, help='memcached port.')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

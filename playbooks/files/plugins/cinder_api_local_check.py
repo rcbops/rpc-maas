@@ -53,11 +53,11 @@ def check(auth_ref, args):
     try:
         vol = s.get('%s/volumes/detail' % VOLUME_ENDPOINT,
                     verify=False,
-                    timeout=10)
+                    timeout=5)
         milliseconds = vol.elapsed.total_seconds() * 1000
         snap = s.get('%s/snapshots/detail' % VOLUME_ENDPOINT,
                      verify=False,
-                     timeout=10)
+                     timeout=5)
         is_up = vol.ok and snap.ok
     except (exc.ConnectionError,
             exc.HTTPError,
@@ -100,11 +100,15 @@ def main(args):
     check(auth_ref, args)
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(description="Check Cinder API against"
-                                         " local or remote address")
-        parser.add_argument('ip',
-                            type=ipaddr.IPv4Address,
-                            help='Cinder API server address')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Check Cinder API against"
+                                     " local or remote address")
+    parser.add_argument('ip',
+                        type=ipaddr.IPv4Address,
+                        help='Cinder API server address')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

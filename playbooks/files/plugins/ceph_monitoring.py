@@ -148,7 +148,10 @@ def get_args():
     parser_osd = subparsers.add_parser('osd')
     parser_osd.add_argument('--osd_ids', required=True,
                             help='Space separated list of OSD IDs')
-
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
     subparsers.add_parser('cluster')
     return parser.parse_args()
 
@@ -167,6 +170,6 @@ def main(args):
 
 
 if __name__ == '__main__':
-    with maas_common.print_output():
-        args = get_args()
+    args = get_args()
+    with maas_common.print_output(print_telegraf=args.telegraf_output):
         main(args)

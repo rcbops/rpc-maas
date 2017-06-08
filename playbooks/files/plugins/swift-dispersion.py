@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import re
 import subprocess
 
@@ -125,5 +126,11 @@ def main():
 # > metric container_total_copies uint64 6
 
 if __name__ == '__main__':
-    with maas_common.print_output():
+    parser = argparse.ArgumentParser(description='Swift dispersion check')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with maas_common.print_output(print_telegraf=args.telegraf_output):
         main()

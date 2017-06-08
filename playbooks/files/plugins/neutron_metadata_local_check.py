@@ -81,9 +81,14 @@ def main(args):
 
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(description='Check neutron proxies')
-        parser.add_argument('neutron_host',
-                            type=str,
-                            help='Neutron API hostname or IP address')
-        main(parser.parse_args())
+    parser = argparse.ArgumentParser(description='Check neutron proxies')
+    parser.add_argument('neutron_host',
+                        type=str,
+                        help='Neutron API hostname or IP address')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
+        main(args)

@@ -77,11 +77,15 @@ def main(args):
 
 
 if __name__ == "__main__":
-    with print_output():
-        parser = argparse.ArgumentParser(
-            description='Check Neutron API against local or remote address')
-        parser.add_argument('ip', nargs='?',
-                            type=ipaddr.IPv4Address,
-                            help='Optional Neutron API server address')
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser(
+        description='Check Neutron API against local or remote address')
+    parser.add_argument('ip', nargs='?',
+                        type=ipaddr.IPv4Address,
+                        help='Optional Neutron API server address')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)

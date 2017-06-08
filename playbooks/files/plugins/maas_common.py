@@ -25,6 +25,8 @@ import re
 import sys
 import traceback
 
+from monitorstack.common import formatters
+
 AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_PASSWORD': None,
                 'OS_TENANT_NAME': None,
@@ -573,17 +575,32 @@ def status_ok(message=None, force_print=False):
     status('okay', message, force_print=force_print)
 
 
-METRICS = []
+METRICS = list()
+TELEGRAF_METRICS = {
+    'variables': dict(),
+    'meta': {
+        'rpc_maas': True
+    }
+}
 
 
 def metric(name, metric_type, value, unit=None):
     global METRICS
+    global TELEGRAF_METRICS
+    TELEGRAF_METRICS['measurement_name'] = '_'.join(name.split('_')[:3])
+    meta = TELEGRAF_METRICS['meta']
+    meta[name] = metric_type
+
     if len(METRICS) > 49:
         status_err('Maximum of 50 metrics per check')
+
     metric_line = 'metric %s %s %s' % (name, metric_type, value)
     if unit is not None:
         metric_line = ' '.join((metric_line, unit))
+
     metric_line = metric_line.replace('\n', '\\n')
+    variables = TELEGRAF_METRICS['variables']
+    variables[name] = value
     METRICS.append(metric_line)
 
 
@@ -602,19 +619,27 @@ except IOError as e:
 
 
 @contextlib.contextmanager
-def print_output():
+def print_output(print_telegraf=False):
     try:
         yield
     except SystemExit as e:
-        if STATUS:
-            print(STATUS)
+        if print_telegraf:
+            TELEGRAF_METRICS['message'] = STATUS
+            formatters.write_telegraf(TELEGRAF_METRICS)
+        else:
+            if STATUS:
+                print(STATUS)
         raise
     except Exception as e:
         logging.exception('The plugin %s has failed with an unhandled '
                           'exception', sys.argv[0])
         status_err(traceback.format_exc(), force_print=True, exception=e)
     else:
-        if STATUS:
-            print(STATUS)
-        for metric in METRICS:
-            print(metric)
+        if print_telegraf:
+            TELEGRAF_METRICS['message'] = STATUS
+            formatters.write_telegraf(TELEGRAF_METRICS)
+        else:
+            if STATUS:
+                print(STATUS)
+            for metric in METRICS:
+                print(metric)
