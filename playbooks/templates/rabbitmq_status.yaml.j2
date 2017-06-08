@@ -87,7 +87,7 @@ alarms      :
                 return new AlarmStatus(CRITICAL, "RabbitMQ Queue growth rate is above configured threshold. Currently above {{ maas_rabbitmq_queue_growth_rate_threshold }}");
             }
 
-    rabbitmq_queus_without_consumers :
+    rabbitmq_queues_without_consumers :
         label                   : rabbitmq_queues_without_consumers--{{ ansible_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
         disabled                : {{ (('rabbitmq_queues_without_consumers--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
