@@ -7,6 +7,4 @@ fi
 # NOTE(cloudnull): Hard coded because this was never addressed upstream
 export OS_API_INSECURE=True
 
-source {{ maas_venv_bin }}/activate
-
-python2.7 "$@"
+{{ maas_venv_bin }}/python "$@"
