@@ -87,7 +87,6 @@ def main():
         status_err(str(e))
     else:
         status_ok()
-    finally:
         metric_bool(
             'container_storage_percent_used_critical',
             _container_check

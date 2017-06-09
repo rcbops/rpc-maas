@@ -83,20 +83,6 @@ In order to enable console auth checking set the ``nova_console_type`` and
     echo 'nova_console_port: 6082' | tee -a /etc/openstack_deploy/user_variables.yml
 
 
-Collecting metrics for time series analysis
--------------------------------------------
-
-An available plugin can be executed at any time to run all discovered checks
-found in ``/etc/rackspace-monitoring-agent.conf.d``. These plugins will be
-executed having the output format converted to telegraf line format. This is
-useful when storing local checks in a time series database like influxdb. To
-run the plugin execute the following:
-
-.. code-block:: bash
-
-    /openstack/venvs/maas-${VERSION_NUM}/bin/python /usr/lib/rackspace-monitoring-agent/plugins/maas_telegraf_format.py
-
-
 Recommended Overrides for specific versions of OpenStack-Ansible
 ----------------------------------------------------------------
 
@@ -248,6 +234,26 @@ variable required to be set is ``maas_swift_accesscheck_password``.
     ansible-playbook -e @/etc/openstack_deploy/user_secrets.yml /opt/rpc-maas/playbooks/maas-openstack-swift.yml -i inventory
 
 
+maas-tigkstack-influxdb.yml
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``maas-tigkstack-influxdb.yml`` playbook will create an influxdb user.
+For this to happen a password must be set in a secrets file somewhere and
+referenced during the playbook run. The variables required are
+``influxdb_db_root_password`` and ``influxdb_db_metric_password``.
+
+.. code-block:: bash
+
+    # Variable file set
+    echo 'influxdb_db_root_password: secrete' | tee -a /etc/openstack_deploy/user_secrets.yml
+    echo 'influxdb_db_metric_password: secrete'  | tee -a /etc/openstack_deploy/user_secrets.yml
+
+    # Example playbook run with variable file.
+    ansible-playbook -e @/etc/openstack_deploy/user_secrets.yml /opt/rpc-maas/playbooks/maas-tigkstack-influxdb.yml -i inventory
+
+
+
+
 Restart flow control
 --------------------
 
@@ -260,3 +266,50 @@ redeploying specific checks, this variable is not needed.
 .. code-block:: bash
 
     ansible-playbook -e "maas_restart_independent=false" /opt/rpc-maas/playbooks/site.yml
+
+
+Deploying the TIGK Stack
+------------------------
+
+If ``the maas-tigkstack-all.yml`` Playbook is run **telegraf** will be
+installed throughout the deployment and **influxdb** will be installed
+within the *log_host*. Enabling this service will immediately being
+collecting metrics within the deployment using the existing MaaS plugins
+and enabled checks.
+
+
+Collecting metrics for time series analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An available plugin can be executed at any time to run all discovered checks
+found in ``/etc/rackspace-monitoring-agent.conf.d``. The existing MaaS plugins
+will be executed having the output format converted to telegraf line format.
+This is useful when storing local checks in a time series database like
+influxdb and is part of the normal TIGK Stack deployment and **telegraf**
+agent configuration.
+
+
+To run the plugin execute the following:
+
+.. code-block:: bash
+
+    /openstack/venvs/maas-${VERSION_NUM}/bin/python /usr/lib/rackspace-monitoring-agent/plugins/maas_telegraf_format.py
+
+
+Setting the job reference
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When deploying the TIGK Stack you can set the job reference variable to create
+a tag on all metrics collected for the specific job. The variable setting is
+``maas_job_reference`` which has a default of **testing**. Setting this job
+variable will provide the ability to select and search through aggregated
+metrics using a simple where clause, example:
+
+.. code-block:: sql
+
+    use telegraf
+    select * from nova_api_metadata where job_reference='testing'
+
+
+This simple query will select everything from the **nova_api_metadata** metric
+where the job reference tag is equal to the string "testing".

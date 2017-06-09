@@ -80,20 +80,29 @@ def check_process_running(process_names, container_name=None):
     of running processes in the specified container name, or on
     this host.
     """
-    procs = get_processes()
-
     if container_name is not None:
         # Get the container's init PID.
-        init_pid = lxc.Container(container_name).init_pid
-
-        # If the container wasn't found, exit now.
-        if init_pid == -1:
-            status_err('Could not find PID for container {}'.format(
-                container_name)
+        try:
+            c = lxc.Container(container_name)
+            # If the container wasn't found, exit now.
+            if c.init_pid == -1:
+                status_err(
+                    'Could not find PID for container {}'.format(
+                        container_name
+                    )
+                )
+        except (Exception, SystemError) as e:
+            status_err(
+                'Container lookup failed on "{}". ERROR: "{}"'.format(
+                    container_name,
+                    e
+                )
             )
-
-        # Get the processes within the container.
-        procs = get_processes(parent_pid=init_pid)
+        else:
+            # Get the processes within the container.
+            procs = get_processes(parent_pid=c.init_pid)
+    else:
+        procs = get_processes()
 
     if not procs:
         # Unable to get a list of process names for the container or host.
