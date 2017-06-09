@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import multiprocessing
 import os
 import subprocess
 
@@ -21,6 +22,52 @@ import yaml
 
 BASE_PATH = '/etc/rackspace-monitoring-agent.conf.d'
 RUN_VENV = '/usr/lib/rackspace-monitoring-agent/plugins/run_plugin_in_venv.sh'
+
+RETURN_QUEUE = multiprocessing.Queue()
+
+
+class Runner:
+    def __init__(self):
+        self.queue = multiprocessing.JoinableQueue()
+        self.processes = [
+            multiprocessing.Process(target=self.run_details)
+            for _ in range(2)
+        ]
+        for p in self.processes:
+            p.start()
+
+    def put(self, item):
+        self.queue.put(item)
+
+    def run_details(self):
+        while True:
+            detail_args = self.queue.get()
+            if not detail_args:
+                break
+
+            detail_args.insert(0, RUN_VENV)
+            detail_args.insert(2, '--telegraf-output')
+            with open(os.devnull, 'w') as null:
+                process = subprocess.Popen(
+                    ' '.join(detail_args),
+                    stdout=subprocess.PIPE,
+                    stderr=null,
+                    executable='/bin/bash',
+                    shell=True
+                )
+
+            output, error = process.communicate()
+            if process.returncode in [0]:
+                RETURN_QUEUE.put(output.strip())
+            else:
+                print(error, output, ' '.join(detail_args))
+
+            self.queue.task_done()
+
+    def terminate(self):
+        self.queue.join()
+        for p in self.processes:
+            p.terminate()
 
 
 def str2bool(boolean):
@@ -37,23 +84,26 @@ def load_yaml(check_file):
         return yaml.load(f.read())
 
 
-def run_details(detail_args):
-    args = detail_args.get('args')
-    if args:
-        args.insert(0, RUN_VENV)
-        args.insert(2, '--telegraf-output')
-        with open(os.devnull, 'w') as null:
-            subprocess.call(args, stderr=null)
-
-
 def main():
-    for _, _, items in os.walk(BASE_PATH):
-        for item in items:
-            check_load = load_yaml(os.path.join(BASE_PATH, item))
-            if not str2bool(boolean=check_load.get('disabled')):
-                details = check_load.get('details')
-                if details:
-                    run_details(detail_args=details)
+    r = Runner()
+    try:
+        for _, _, items in os.walk(BASE_PATH):
+            for item in items:
+                check_load = load_yaml(os.path.join(BASE_PATH, item))
+                if not str2bool(boolean=check_load.get('disabled')):
+                    details = check_load.get('details')
+                    if isinstance(details, dict) and 'args' in details:
+                        r.put(item=details['args'])
+    finally:
+        r.terminate()
+
+    while True:
+        try:
+            q_item = RETURN_QUEUE.get(timeout=1)
+        except Exception:
+            break
+        else:
+            print(q_item)
 
 
 if __name__ == '__main__':

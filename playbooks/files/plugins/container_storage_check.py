@@ -52,6 +52,9 @@ def container_check(thresh):
     containers = lxc.list_containers()
     for container in containers:
         c = lxc.Container(container)
+        if c.init_pid == -1:
+            return True
+
         with Chroot('/proc/%s/root' % int(c.init_pid)):
             for partition in psutil.disk_partitions():
                 percent_used = disk_usage(part=partition)
