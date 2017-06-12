@@ -191,6 +191,17 @@ class RpcMaas(object):
         return alarms
 
 
+def str2bool(boolean):
+    if not boolean:
+        return False
+    elif boolean.lower() in ("yes", "true", "1"):
+        return True
+    elif boolean.lower() in ("no", "false", "0"):
+        return False
+    else:
+        raise BaseException('Not a Boolean')
+
+
 class RpcMaasAgentConfig(object):
     """Read MAAS Agent configuration files
 
@@ -204,10 +215,13 @@ class RpcMaasAgentConfig(object):
         """Read all config files in agentconfdpath"""
         self.checks = {}
         for path in os.listdir(self.agentconfdpath):
-            check = self._parse_config_file(os.path.join(self.agentconfdpath,
-                                                         path))
-            self.checks[check['label']] = check
-        return self.checks
+            check = self._parse_config_file(
+                os.path.join(self.agentconfdpath, path)
+            )
+            if not str2bool(check.get('disabled')):
+                self.checks[check['label']] = check
+        else:
+            return self.checks
 
     def _parse_config_file(self, path):
         """Parse one yaml config file"""
