@@ -54,6 +54,12 @@ openstack1
 [utility_all:children]
 utility
 
+[log_hosts]
+infra1
+
+[log_hosts_all:children]
+log_hosts
+
 
 #### OPENSTACK START HERE
 

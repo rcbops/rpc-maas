@@ -15,7 +15,6 @@
 
 import multiprocessing
 import os
-import subprocess
 
 import yaml
 
@@ -47,20 +46,7 @@ class Runner:
 
             detail_args.insert(0, RUN_VENV)
             detail_args.insert(2, '--telegraf-output')
-            with open(os.devnull, 'w') as null:
-                process = subprocess.Popen(
-                    ' '.join(detail_args),
-                    stdout=subprocess.PIPE,
-                    stderr=null,
-                    executable='/bin/bash',
-                    shell=True
-                )
-
-            output, error = process.communicate()
-            if process.returncode in [0]:
-                RETURN_QUEUE.put(output.strip())
-            else:
-                print(error, output, ' '.join(detail_args))
+            RETURN_QUEUE.put(' '.join(detail_args).strip())
 
             self.queue.task_done()
 
@@ -97,13 +83,17 @@ def main():
     finally:
         r.terminate()
 
+    q_items = list()
     while True:
         try:
             q_item = RETURN_QUEUE.get(timeout=1)
         except Exception:
             break
         else:
-            print(q_item)
+            q_items.append(q_item)
+
+    # Print a sorted list of commands
+    print('\n'.join(sorted(q_items)))
 
 
 if __name__ == '__main__':

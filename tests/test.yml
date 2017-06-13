@@ -51,3 +51,7 @@
 
 # Ensure all plugins are functional
 - include: "../playbooks/maas-verify.yml"
+
+# Run the tigk stack playbooks
+- include: "../playbooks/maas-tigkstack-all.yml"
+

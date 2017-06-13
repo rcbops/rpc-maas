@@ -579,7 +579,7 @@ METRICS = list()
 TELEGRAF_METRICS = {
     'variables': dict(),
     'meta': {
-        'rpc_maas': True
+        'rpc_maas': True  # This should use some form of a job number
     }
 }
 
@@ -587,9 +587,8 @@ TELEGRAF_METRICS = {
 def metric(name, metric_type, value, unit=None):
     global METRICS
     global TELEGRAF_METRICS
-    TELEGRAF_METRICS['measurement_name'] = '_'.join(name.split('_')[:3])
-    meta = TELEGRAF_METRICS['meta']
-    meta[name] = metric_type
+    measurement_name = '_'.join(name.split('_')[:3]).replace('-', '_')
+    TELEGRAF_METRICS['measurement_name'] = measurement_name
 
     if len(METRICS) > 49:
         status_err('Maximum of 50 metrics per check')

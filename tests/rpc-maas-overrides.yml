@@ -125,3 +125,10 @@ neutron_venv_tag: "testing"
 nova_venv_tag: "testing"
 sahara_venv_tag: "testing"
 swift_venv_tag: "testing"
+
+
+# Set vars for tigk stack
+influxdb_db_root_password: SuperSecrete
+influxdb_db_metric_password: SuperDuperSecrete
+grafana_db_password: secrete
+grafana_admin_password: SuperSecrete

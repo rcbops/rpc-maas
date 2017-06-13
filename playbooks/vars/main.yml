@@ -14,6 +14,12 @@
 # limitations under the License.
 
 #
+# Set the maas job reference. This is used by telegraf to add tags to a given set of metrics.
+#   This makes querying metrics easy when aggregating metrics to a single influxdb cluster.
+#
+maas_job_reference: "testing"
+
+#
 # Set the pip package state, defaults to latest.
 #
 maas_pip_package_state: "latest"
