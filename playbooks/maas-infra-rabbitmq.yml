@@ -84,7 +84,7 @@
   post_tasks:
     - name: Install rabbitmq checks
       template:
-        src: "templates/rabbitmq_status.yaml.j2"
+        src: "templates/rax-maas/rabbitmq_status.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/rabbitmq_status--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

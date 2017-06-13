@@ -58,7 +58,7 @@
   tasks:
     - name: Install cinder api checks
       template:
-        src: "templates/cinder_api_local_check.yaml.j2"
+        src: "templates/rax-maas/cinder_api_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_api_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -69,7 +69,7 @@
 
     - name: Install cinder lb checks
       template:
-        src: "templates/lb_api_check_cinder.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_cinder.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_cinder.yaml"
         owner: "root"
         group: "root"
@@ -94,7 +94,7 @@
   tasks:
     - name: Install cinder api checks
       template:
-        src: "templates/cinder_scheduler_check.yaml.j2"
+        src: "templates/rax-maas/cinder_scheduler_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_scheduler_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -116,7 +116,7 @@
   tasks:
     - name: Install cinder backup checks
       template:
-        src: "templates/cinder_backup_check.yaml.j2"
+        src: "templates/rax-maas/cinder_backup_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_backup_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -138,7 +138,7 @@
   tasks:
     - name: Install cinder volume checks
       template:
-        src: "templates/cinder_volume_check.yaml.j2"
+        src: "templates/rax-maas/cinder_volume_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_volume_{{ item.key }}_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -152,7 +152,7 @@
 
     - name: Install cinder vg checks
       template:
-        src: "templates/cinder_vg_check.yaml.j2"
+        src: "templates/rax-maas/cinder_vg_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_vg_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

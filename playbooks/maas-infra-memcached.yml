@@ -57,7 +57,7 @@
   tasks:
     - name: Install memcached check
       template:
-        src: "templates/memcached_status.yaml.j2"
+        src: "templates/rax-maas/memcached_status.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/memcached_status--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

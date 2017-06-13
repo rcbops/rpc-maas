@@ -58,7 +58,7 @@
   tasks:
     - name: Install nova nova-api-metadata checks
       template:
-        src: "templates/nova_api_metadata_local_check.yaml.j2"
+        src: "templates/rax-maas/nova_api_metadata_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_api_metadata_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -80,7 +80,7 @@
   tasks:
     - name: Install nova api checks
       template:
-        src: "templates/nova_api_local_check.yaml.j2"
+        src: "templates/rax-maas/nova_api_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_api_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -91,7 +91,7 @@
 
     - name: Install nova cloud checks
       template:
-        src: "templates/nova_cloud_stats_check.yaml.j2"
+        src: "templates/rax-maas/nova_cloud_stats_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_cloud_stats_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -102,7 +102,7 @@
 
     - name: Install nova lb checks
       template:
-        src: "templates/lb_api_check_nova.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_nova.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_nova.yaml"
         owner: "root"
         group: "root"
@@ -127,7 +127,7 @@
   tasks:
     - name: Install nova api checks
       template:
-        src: "templates/nova_scheduler_check.yaml.j2"
+        src: "templates/rax-maas/nova_scheduler_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_scheduler_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -149,7 +149,7 @@
   tasks:
     - name: Install nova nova-api-metadata checks
       template:
-        src: "templates/nova_cert_check.yaml.j2"
+        src: "templates/rax-maas/nova_cert_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_cert_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -171,7 +171,7 @@
   tasks:
     - name: Install nova nova-compute checks
       template:
-        src: "templates/nova_compute_check.yaml.j2"
+        src: "templates/rax-maas/nova_compute_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_compute_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -193,7 +193,7 @@
   tasks:
     - name: Install nova nova-conductor checks
       template:
-        src: "templates/nova_conductor_check.yaml.j2"
+        src: "templates/rax-maas/nova_conductor_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_conductor_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -215,7 +215,7 @@
   tasks:
     - name: Install nova nova-conductor checks
       template:
-        src: "templates/nova_consoleauth_check.yaml.j2"
+        src: "templates/rax-maas/nova_consoleauth_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_consoleauth_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -226,7 +226,7 @@
 
     - name: Install nova nova-conductor checks
       template:
-        src: "templates/nova_console_check.yaml.j2"
+        src: "templates/rax-maas/nova_console_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_console_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

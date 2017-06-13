@@ -85,7 +85,7 @@
   tasks:
     - name: Install keystone api checks
       template:
-        src: "templates/keystone_api_local_check.yaml.j2"
+        src: "templates/rax-maas/keystone_api_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/keystone_api_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -96,7 +96,7 @@
 
     - name: Install keystone lb checks
       template:
-        src: "templates/lb_api_check_keystone.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_keystone.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_keystone.yaml"
         owner: "root"
         group: "root"

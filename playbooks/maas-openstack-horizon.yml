@@ -32,7 +32,7 @@
   tasks:
     - name: Install horizon checks
       template:
-        src: "templates/horizon_local_check.yaml.j2"
+        src: "templates/rax-maas/horizon_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/horizon_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -43,7 +43,7 @@
 
     - name: Install horizon lb checks
       template:
-        src: "templates/lb_api_check_horizon.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_horizon.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_horizon.yaml"
         owner: "root"
         group: "root"

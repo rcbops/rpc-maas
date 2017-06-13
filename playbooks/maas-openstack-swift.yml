@@ -104,7 +104,7 @@
   tasks:
     - name: Install swift account server checks
       template:
-        src: "templates/swift_account_server_check.yaml.j2"
+        src: "templates/rax-maas/swift_account_server_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_account_server_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -115,7 +115,7 @@
 
     - name: Install swift account process checks
       template:
-        src: "templates/swift_account_process_check.yaml.j2"
+        src: "templates/rax-maas/swift_account_process_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_account_process_check.yaml"
         owner: "root"
         group: "root"
@@ -138,7 +138,7 @@
   tasks:
     - name: Install swift container server checks
       template:
-        src: "templates/swift_container_process_check.yaml.j2"
+        src: "templates/rax-maas/swift_container_process_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_process_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -149,7 +149,7 @@
 
     - name: Install swift container process checks
       template:
-        src: "templates/swift_container_server_check.yaml.j2"
+        src: "templates/rax-maas/swift_container_server_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_server_check.yaml"
         owner: "root"
         group: "root"
@@ -172,7 +172,7 @@
   tasks:
     - name: Install swift container server checks
       template:
-        src: "templates/swift_object_server_check.yaml.j2"
+        src: "templates/rax-maas/swift_object_server_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_server_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -183,7 +183,7 @@
 
     - name: Install swift container process checks
       template:
-        src: "templates/swift_object_process_check.yaml.j2"
+        src: "templates/rax-maas/swift_object_process_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_process_check.yaml"
         owner: "root"
         group: "root"
@@ -245,8 +245,8 @@
     # Copy test HTML file to the swift proxy for uploading
     - name: Create index file
       copy:
+        src: "files/rax-maas/index.html"
         dest: "/tmp/index.html"
-        src: "files/index.html"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
@@ -304,7 +304,7 @@
 
     - name: Install swift container replications checks
       template:
-        src: "templates/swift_account_replication_check.yaml.j2"
+        src: "templates/rax-maas/swift_account_replication_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_account_replication_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -315,7 +315,7 @@
 
     - name: Install swift container async checks
       template:
-        src: "templates/swift_async_check.yaml.j2"
+        src: "templates/rax-maas/swift_async_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_async_check.yaml"
         owner: "root"
         group: "root"
@@ -326,7 +326,7 @@
 
     - name: Install swift container replication checks
       template:
-        src: "templates/swift_container_replication_check.yaml.j2"
+        src: "templates/rax-maas/swift_container_replication_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_replication_check.yaml"
         owner: "root"
         group: "root"
@@ -337,7 +337,7 @@
 
     - name: Install swift md5 checks
       template:
-        src: "templates/swift_md5_check.yaml.j2"
+        src: "templates/rax-maas/swift_md5_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_md5_check.yaml"
         owner: "root"
         group: "root"
@@ -348,7 +348,7 @@
 
     - name: Install swift object replication checks
       template:
-        src: "templates/swift_object_replication_check.yaml.j2"
+        src: "templates/rax-maas/swift_object_replication_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_replication_check.yaml"
         owner: "root"
         group: "root"
@@ -359,7 +359,7 @@
 
     - name: Install swift proxy server checks
       template:
-        src: "templates/swift_proxy_server_check.yaml.j2"
+        src: "templates/rax-maas/swift_proxy_server_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_proxy_server_check.yaml"
         owner: "root"
         group: "root"
@@ -370,7 +370,7 @@
 
     - name: Install swift quarantine checks
       template:
-        src: "templates/swift_quarantine_check.yaml.j2"
+        src: "templates/rax-maas/swift_quarantine_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_quarantine_check.yaml"
         owner: "root"
         group: "root"
@@ -381,7 +381,7 @@
 
     - name: Install swift time sync checks
       template:
-        src: "templates/swift_time_sync_check.yaml.j2"
+        src: "templates/rax-maas/swift_time_sync_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_time_sync_check.yaml"
         owner: "root"
         group: "root"
@@ -392,7 +392,7 @@
 
     - name: Install swift lb health checks
       template:
-        src: "templates/lb_api_check_swift_healthcheck.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_swift_healthcheck.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_swift_healthcheck.yaml"
         owner: "root"
         group: "root"
@@ -405,7 +405,7 @@
 
     - name: Install swift lb access checks
       template:
-        src: "templates/lb_api_check_swift_access.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_swift_access.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_swift_access.yaml"
         owner: "root"
         group: "root"

@@ -80,7 +80,7 @@
   tasks:
     - name: Install local checks
       template:
-        src: "templates/container_storage_checks.yaml.j2"
+        src: "templates/rax-maas/container_storage_checks.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/container_storage_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

@@ -31,7 +31,7 @@
   tasks:
     - name: Install local checks
       template:
-        src: "templates/conntrack_count.yaml.j2"
+        src: "templates/rax-maas/conntrack_count.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/conntrack_count--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

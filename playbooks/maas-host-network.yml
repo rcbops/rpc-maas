@@ -40,7 +40,7 @@
   tasks:
     - name: Install network throughput checks
       template:
-        src: "templates/network_throughput.yaml.j2"
+        src: "templates/rax-maas/network_throughput.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/network_throughput-{{ item.0.name }}-{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -52,7 +52,7 @@
 
     - name: Install conntrack count checks
       template:
-        src: "templates/conntrack_count.yaml.j2"
+        src: "templates/rax-maas/conntrack_count.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/conntrack_count--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

@@ -64,15 +64,18 @@
   ]
 {% endif %}
 
-{% if 'all_containers' in groups and inventory_hostname in groups['all_containers'] %}
-[[inputs.net]]
+{%   set telegraf_commands = [] %}
+{%   set _ = telegraf_commands.extend(telegraf_maas_commands) %}
 
-{% else %}
 [[inputs.exec]]
   commands = [{{ telegraf_commands | map('quote') | join(', ') }}]
   timeout = "{{ telegraf_commands | length * 1.5 | round }}s"
   data_format = "influx"
 
+{% if 'all_containers' in groups and inventory_hostname in groups['all_containers'] %}
+[[inputs.net]]
+
+{% else %}
 [[inputs.cpu]]
   percpu = true
   totalcpu = true

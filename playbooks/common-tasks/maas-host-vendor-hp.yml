@@ -15,7 +15,7 @@
 
 - name: Install hp checks
   template:
-    src: "templates/hp-check.yaml.j2"
+    src: "templates/rax-maas/hp-check.yaml.j2"
     dest: "/etc/rackspace-monitoring-agent.conf.d/hp-check--{{ inventory_hostname }}.yaml"
     owner: "root"
     group: "root"

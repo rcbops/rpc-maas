@@ -53,7 +53,7 @@
 
     - name: Install holland check
       template:
-        src: "templates/holland_local_check.yaml.j2"
+        src: "templates/rax-maas/holland_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/holland_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -67,7 +67,7 @@
   tasks:
     - name: Drop local .my.cnf file
       template:
-        src: "templates/client.my.cnf.j2"
+        src: "templates/rax-maas/client.my.cnf.j2"
         dest: "/root/.my.cnf"
         owner: "root"
         group: "root"
@@ -77,7 +77,7 @@
   post_tasks:
     - name: Install galera check
       template:
-        src: "templates/galera_check.yaml.j2"
+        src: "templates/rax-maas/galera_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/galera_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
