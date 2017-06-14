@@ -58,7 +58,7 @@
   tasks:
     - name: Install neutron server checks
       template:
-        src: "templates/neutron_api_local_check.yaml.j2"
+        src: "templates/rax-maas/neutron_api_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_api_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -69,7 +69,7 @@
 
     - name: Install neutron lb checks
       template:
-        src: "templates/lb_api_check_neutron.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_neutron.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_neutron.yaml"
         owner: "root"
         group: "root"
@@ -94,7 +94,7 @@
   tasks:
     - name: Install neutron dhcp agent checks
       template:
-        src: "templates/neutron_dhcp_agent_check.yaml.j2"
+        src: "templates/rax-maas/neutron_dhcp_agent_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_dhcp_agent_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -117,7 +117,7 @@
   tasks:
     - name: Install neutron l3 agent checks
       template:
-        src: "templates/neutron_l3_agent_check.yaml.j2"
+        src: "templates/rax-maas/neutron_l3_agent_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_l3_agent_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -140,7 +140,7 @@
   tasks:
     - name: Install neutron linux bridge agent checks
       template:
-        src: "templates/neutron_linuxbridge_agent_check.yaml.j2"
+        src: "templates/rax-maas/neutron_linuxbridge_agent_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_linuxbridge_agent_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -163,7 +163,7 @@
   tasks:
     - name: Install neutron metadata agent checks
       template:
-        src: "templates/neutron_metadata_agent_check.yaml.j2"
+        src: "templates/rax-maas/neutron_metadata_agent_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_metadata_agent_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -186,7 +186,7 @@
   tasks:
     - name: Install neutron metadata agent checks
       template:
-        src: "templates/neutron_metering_agent_check.yaml.j2"
+        src: "templates/rax-maas/neutron_metering_agent_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_metering_agent_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

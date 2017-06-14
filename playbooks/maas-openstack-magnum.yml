@@ -58,7 +58,7 @@
   tasks:
     - name: Install magnum api checks
       template:
-        src: "templates/magnum_api_local_check.yaml.j2"
+        src: "templates/rax-maas/magnum_api_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/magnum_api_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -69,7 +69,7 @@
 
     - name: Install magnum conductor checks
       template:
-        src: "templates/magnum_conductor_check.yaml.j2"
+        src: "templates/rax-maas/magnum_conductor_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/magnum_conductor_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

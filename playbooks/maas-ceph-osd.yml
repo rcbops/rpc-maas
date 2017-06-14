@@ -38,7 +38,7 @@
   post_tasks:
     - name: Install local osd checks
       template:
-        src: "templates/ceph_osd_stats.yaml.j2"
+        src: "templates/rax-maas/ceph_osd_stats.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/ceph_osd_stats.yaml--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

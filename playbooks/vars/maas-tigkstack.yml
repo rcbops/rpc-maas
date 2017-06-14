@@ -30,6 +30,7 @@ influxdb_db_metric_user: rpc_maas
 
 # Telegraf vars
 telegraf_interval: 30
+telegraf_maas_commands: []
 
 ## Prometheus Client Outputs Plugin
 telegraf_outputs_prometheus_client: false

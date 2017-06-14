@@ -31,7 +31,7 @@
   tasks:
     - name: Install lb-ssl check
       template:
-        src: "templates/lb_ssl_cert_expiry_check.yaml.j2"
+        src: "templates/rax-maas/lb_ssl_cert_expiry_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_ssl_cert_expiry_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

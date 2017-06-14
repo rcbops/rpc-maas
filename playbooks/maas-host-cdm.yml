@@ -31,7 +31,7 @@
   tasks:
     - name: Install filesystem Checks
       template:
-        src: "templates/filesystem.yaml.j2"
+        src: "templates/rax-maas/filesystem.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/filesystem_{{ item.filesystem | replace('/', '.') }}--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -43,7 +43,7 @@
 
     - name: Install disk utilisation Checks
       template:
-        src: "templates/disk_utilisation.yaml.j2"
+        src: "templates/rax-maas/disk_utilisation.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/disk_utilisation--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -53,7 +53,7 @@
 
     - name: Install memory Checks
       template:
-        src: "templates/memory_check.yaml.j2"
+        src: "templates/rax-maas/memory_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/memory_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -63,7 +63,7 @@
 
     - name: Install cpu Checks
       template:
-        src: "templates/cpu_check.yaml.j2"
+        src: "templates/rax-maas/cpu_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/cpu_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

@@ -50,7 +50,7 @@
   post_tasks:
     - name: Install local mons checks
       template:
-        src: "templates/{{ item }}.yaml.j2"
+        src: "templates/rax-maas/{{ item }}.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item }}.yaml--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

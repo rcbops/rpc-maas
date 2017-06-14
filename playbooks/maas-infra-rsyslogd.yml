@@ -31,7 +31,7 @@
   tasks:
     - name: Install rsyslog check
       template:
-        src: "templates/rsyslogd_process_check.yaml.j2"
+        src: "templates/rax-maas/rsyslogd_process_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/rsyslogd_process_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

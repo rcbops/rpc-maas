@@ -40,7 +40,7 @@
 
     - name: Copy verification tool to host
       copy:
-        src: "files/tools/{{ item }}"
+        src: "files/rax-maas/tools/{{ item }}"
         dest: "/opt/rpc-maas-tools/{{ item }}"
       with_items:
         - rpc-maas-tool.py

@@ -58,7 +58,7 @@
   tasks:
     - name: Install glance api checks
       template:
-        src: "templates/glance_api_local_check.yaml.j2"
+        src: "templates/rax-maas/glance_api_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/glance_api_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -69,7 +69,7 @@
 
     - name: Install glance lb checks
       template:
-        src: "templates/lb_api_check_glance.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_glance.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_glance.yaml"
         owner: "root"
         group: "root"
@@ -94,7 +94,7 @@
   tasks:
     - name: Install glance registry checks
       template:
-        src: "templates/glance_registry_local_check.yaml.j2"
+        src: "templates/rax-maas/glance_registry_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/glance_registry_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"

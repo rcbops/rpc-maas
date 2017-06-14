@@ -13,6 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Deploy maas telegraf helper
+  hosts: "hosts"
+  gather_facts: true
+  tasks:
+    - name: Create plugin dir
+      file:
+        path: "{{ maas_plugin_dir }}"
+        state: directory
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
+    - name: Drop MaaS telegraf output runner
+      template:
+        src: "files/tigkstack/maas_telegraf_format.py"
+        dest: "{{ maas_plugin_dir }}/maas_telegraf_format.py"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-tigkstack.yml
+  tags:
+    - maas-tigkstack-telegraf
+
 - name: Deploy telegraf
   hosts: "hosts:all_containers"
   gather_facts: true
@@ -40,15 +66,15 @@
         mode: "0755"
 
     - name: Return Commands for metric
-      command: "/usr/lib/rackspace-monitoring-agent/plugins/maas_telegraf_format.py"
+      command: "{{ maas_plugin_dir }}/maas_telegraf_format.py"
       changed_when: false
-      register: telegraf_maas_commands
+      register: _telegraf_maas_commands
       when:
         - inventory_hostname in groups['hosts']
 
     - name: Set the telegraf maas commands
       set_fact:
-        telegraf_commands: "{{ telegraf_maas_commands.stdout_lines }}"
+        telegraf_maas_commands: "{{ telegraf_maas_commands | union(_telegraf_maas_commands.stdout_lines) }}"
       when:
         - inventory_hostname in groups['hosts']
 

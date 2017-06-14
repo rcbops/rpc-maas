@@ -58,7 +58,7 @@
   tasks:
     - name: Install heat api checks
       template:
-        src: "templates/heat_api_local_check.yaml.j2"
+        src: "templates/rax-maas/heat_api_local_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/heat_api_local_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -69,7 +69,7 @@
 
     - name: Install heat api lb checks
       template:
-        src: "templates/lb_api_check_heat_api.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_heat_api.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_heat_api.yaml"
         owner: "root"
         group: "root"
@@ -94,7 +94,7 @@
   tasks:
     - name: Install heat api cfn checks
       template:
-        src: "templates/heat_cfn_api_check.yaml.j2"
+        src: "templates/rax-maas/heat_cfn_api_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/heat_cfn_api_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -105,7 +105,7 @@
 
     - name: Install heat api cfn lb checks
       template:
-        src: "templates/lb_api_check_heat_cfn.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_heat_cfn.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_heat_cfn.yaml"
         owner: "root"
         group: "root"
@@ -130,7 +130,7 @@
   tasks:
     - name: Install heat api cloudwatch checks
       template:
-        src: "templates/heat_cw_api_check.yaml.j2"
+        src: "templates/rax-maas/heat_cw_api_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/heat_cw_api_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
@@ -141,7 +141,7 @@
 
     - name: Install heat lb cloudwatch checks
       template:
-        src: "templates/lb_api_check_heat_cloudwatch.yaml.j2"
+        src: "templates/rax-maas/lb_api_check_heat_cloudwatch.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_heat_cloudwatch.yaml"
         owner: "root"
         group: "root"
