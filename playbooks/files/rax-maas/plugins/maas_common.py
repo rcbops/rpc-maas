@@ -27,16 +27,19 @@ import traceback
 
 from monitorstack.common import formatters
 
+
 AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_PASSWORD': None,
                 'OS_TENANT_NAME': None,
                 'OS_AUTH_URL': None,
                 'OS_USER_DOMAIN_NAME': None,
                 'OS_PROJECT_DOMAIN_NAME': None,
+                'OS_PROJECT_NAME': None,
                 'OS_IDENTITY_API_VERSION': None,
                 'OS_AUTH_VERSION': None,
                 'OS_ENDPOINT_TYPE': None,
-                'OS_API_INSECURE': True}
+                'OS_API_INSECURE': True,
+                'OS_REGION_NAME': None}
 
 # OS_API_INSECURE is currently hard coded to false until OSA fix
 # LP #1537117 is implemented
@@ -198,6 +201,7 @@ else:
 
         return nova
 
+
 try:
     from keystoneclient import exceptions as k_exc
     from keystoneclient.v2_0 import client as k2_client
@@ -210,27 +214,56 @@ except ImportError:
         status_err('Cannot import keystoneclient')
 else:
     def keystone_auth(auth_details):
+        keystone = None
+        # NOTE(cloudnull): The password variable maybe double quoted, to fix this
+        #                  we strip away any extra quotes in the variable.
+        pw = auth_details['OS_PASSWORD'].strip('"').strip("'")
+        auth_details['OS_PASSWORD'] = pw
         try:
-            if auth_details['OS_AUTH_URL'].endswith('v3'):
-                k_client = k3_client
+            if (auth_details['OS_IDENTITY_API_VERSION'] == 3 or
+                    auth_details['OS_AUTH_URL'].endswith('v3')):
+                keystone = k3_client.Client(
+                    username=auth_details['OS_USERNAME'],
+                    password=auth_details['OS_PASSWORD'],
+                    user_domain_name=auth_details.get(
+                        'OS_USER_DOMAIN_NAME',
+                        'Default'
+                    ),
+                    project_domain_name=auth_details.get(
+                        'OS_PROJECT_DOMAIN_NAME',
+                        'Default'
+                    ),
+                    project_name=auth_details.get(
+                        'OS_PROJECT_NAME',
+                        'admin'
+                    ),
+                    auth_url=auth_details['OS_AUTH_URL'],
+                    region_name=auth_details['OS_REGION_NAME']
+                )
             else:
-                k_client = k2_client
-            tenant_name = auth_details['OS_TENANT_NAME']
-            keystone = k_client.Client(username=auth_details['OS_USERNAME'],
-                                       password=auth_details['OS_PASSWORD'],
-                                       tenant_name=tenant_name,
-                                       auth_url=auth_details['OS_AUTH_URL'])
+                keystone = k2_client.Client(
+                    username=auth_details['OS_USERNAME'],
+                    password=auth_details['OS_PASSWORD'],
+                    tenant_name=auth_details['OS_TENANT_NAME'],
+                    auth_url=auth_details['OS_AUTH_URL'],
+                    region_name=auth_details['OS_REGION_NAME']
+                )
         except Exception as e:
             status_err(str(e))
+        else:
+            if keystone:
+                return keystone.auth_ref
+            else:
+                raise k_exc.AuthorizationFailure()
+        finally:
+            try:
+                if keystone:
+                    with open(TOKEN_FILE, 'w') as token_file:
+                        json.dump(keystone.auth_ref, token_file)
+            except IOError:
+                # if we can't write the file we go on
+                pass
 
-        try:
-            with open(TOKEN_FILE, 'w') as token_file:
-                json.dump(keystone.auth_ref, token_file)
-        except IOError:
-            # if we can't write the file we go on
-            pass
-
-        return keystone.auth_ref
 
     def get_keystone_client(auth_ref=None, endpoint=None, previous_tries=0):
         if previous_tries > 3:
