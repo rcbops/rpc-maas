@@ -23,7 +23,7 @@
 
 {%   set influx_targets = [] %}
 {%   for item in groups['log_hosts'] %}
-{%     set target = influxdb_protocol + '://' + hostvars[item]['ansible_host'] + ':' + influxdb_port | string %}
+{%     set target = influxdb_protocol + '://' + hostvars[item]['ansible_host'] | default(hostvars[item]['ansible_ssh_host']) + ':' + influxdb_port | string %}
 {%     set _ = influx_targets.extend([target]) %}
 {%   endfor %}
 {%   set all_influx_targets = influx_telegraf_targets | union(influx_targets) %}

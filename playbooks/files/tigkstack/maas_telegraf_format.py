@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 # Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +26,7 @@ RUN_VENV = '/usr/lib/rackspace-monitoring-agent/plugins/run_plugin_in_venv.sh'
 RETURN_QUEUE = multiprocessing.Queue()
 
 
-class Runner:
+class Runner(object):
     def __init__(self):
         self.queue = multiprocessing.JoinableQueue()
         self.processes = [

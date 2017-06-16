@@ -56,14 +56,17 @@ Running with Static Inventory
 Running with Ansible 1.9 and OpenStack-Ansible
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Prior to running with Ansible 1.9 with OpenStack-Ansible (using the Mitaka,
-Liberty, Kilo) export the Role and Library path prior to running the
-playbooks.
+**(Mitaka, Liberty, Kilo)**
 
-.. code-block:: bash
+Running with Ansible 1.9 within OpenStack-Ansible you may need to export a few
+variables to enable proper playbook integration. Within these releases these
+configuration options were covered under an ``ansible.cfg`` file within the
+``openstack-ansible/playbooks`` directory. This means you can execute the
+RPC-MaaS playbooks from that directory or you can export these variables.
 
-    export ANSIBLE_ROLES_PATH=/opt/openstack-ansible/playbooks/roles
-    export ANSIBLE_LIBRARY=/opt/openstack-ansible/playbooks/library
+.. literalinclude:: ../../tests/ansible-env.rc
+   :language: bash
+   :start-after: under the License.
 
 
 The variable ``ansible_ssh_host`` needs to be set within the
@@ -93,77 +96,49 @@ The following sections contain YAML options that should be added to the
 Kilo Overrides
 ~~~~~~~~~~~~~~
 
-.. code-block:: yaml
-
-   # Set overrides for check periods
-   maas_check_period_override:
-     disk_utilisation: 900
-
-   # Disable the following MaaS alarms
-   # Issue: https://github.com/rcbops/u-suk-dev/issues/1081
-   maas_excluded_alarms:
-     - '^idle_percent_average.*'
-     - '^memory_check.*'
-     - '^Network receive rate.*'
-     - '^Network transmit rate.*'
-     - '^percentage_disk_utilisation.*'
-
-   # swift-recon does not have '--time' option in Kilo
-   maas_excluded_checks:
-     - 'swift_time_sync_check'
-
-   # Ansible 1.9 compatibility
-   ansible_host: "{{ ansible_ssh_host }}"
+.. literalinclude:: ../../tests/user_kilo_vars.yml
+   :language: yaml
+   :start-after: under the License.
 
 
 Liberty Overrides
 ~~~~~~~~~~~~~~~~~
 
-.. code-block:: yaml
-
-   # Set overrides for check periods
-   maas_check_period_override:
-     disk_utilisation: 900
-
-   # Disable the following MaaS alarms
-   # Issue: https://github.com/rcbops/u-suk-dev/issues/1081
-   maas_excluded_alarms:
-     - '^idle_percent_average.*'
-     - '^memory_check.*'
-     - '^Network receive rate.*'
-     - '^Network transmit rate.*'
-     - '^percentage_disk_utilisation.*'
-
-   # The ELK stack does not use filebeat in this release
-   maas_excluded_checks:
-     - 'filebeat_process_check'
-
-   # Ansible 1.9 compatibility
-   ansible_host: "{{ ansible_ssh_host }}"
+.. literalinclude:: ../../tests/user_liberty_vars.yml
+   :language: yaml
+   :start-after: under the License.
 
 
 Mitaka Overrides
 ~~~~~~~~~~~~~~~~
 
-.. code-block:: yaml
+.. literalinclude:: ../../tests/user_mitaka_vars.yml
+   :language: yaml
+   :start-after: under the License.
 
-   # Set overrides for check periods
-   maas_check_period_override:
-     disk_utilisation: 900
 
-   # Disable the following MaaS alarms
-   # Issue: https://github.com/rcbops/u-suk-dev/issues/1081
-   maas_excluded_alarms:
-     - '^idle_percent_average.*'
-     - '^memory_check.*'
-     - '^Network receive rate.*'
-     - '^Network transmit rate.*'
-     - '^percentage_disk_utilisation.*'
+Newton Overrides
+~~~~~~~~~~~~~~~~
 
-   maas_excluded_checks: []
+.. literalinclude:: ../../tests/user_newton_vars.yml
+   :language: yaml
+   :start-after: under the License.
 
-   # Ansible 1.9 compatibility
-   ansible_host: "{{ ansible_ssh_host }}"
+
+Ocata Overrides
+~~~~~~~~~~~~~~~
+
+.. literalinclude:: ../../tests/user_ocata_vars.yml
+   :language: yaml
+   :start-after: under the License.
+
+
+Master Overrides
+~~~~~~~~~~~~~~~~
+
+.. literalinclude:: ../../tests/user_master_vars.yml
+   :language: yaml
+   :start-after: under the License.
 
 
 Tags

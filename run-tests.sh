@@ -15,7 +15,7 @@
 
 set -xeuo pipefail
 
-FUNCTIONAL_TEST=${FUNCTIONAL_TEST:-true}
+export FUNCTIONAL_TEST=${FUNCTIONAL_TEST:-true}
 
 # Install python2 for Ubuntu 16.04 and CentOS 7
 if which apt-get; then
@@ -42,15 +42,9 @@ if which yum; then
     sudo yum -y install redhat-lsb-core epel-release
 fi
 
-# This is done to fake nodepool interactions in the RPC gate which will allow
-#  for automatic log collection which will be available within the jenkins
-#  gate.
-if [ "${IRR_CONTEXT:-false}" != false ]; then
-  sudo mkdir -p /etc/nodepool
-fi
-
 if [ "${FUNCTIONAL_TEST}" = true ]; then
   tox -e bindep
+  # Run maas functional tests
   tox -e functional
 else
   tox

@@ -1,5 +1,5 @@
 ---
-# Copyright 2016, Rackspace US, Inc.
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ansible_host: 10.1.1.51
-ansible_ssh_host: 10.1.1.51  # Added for compatibility
-ansible_become: True
-ansible_user: root
-tunnel_address: 10.2.1.51
-storage_address: 10.3.1.51
-swift_replication_address: 10.4.1.51
+# Set overrides for check periods
+maas_check_period_override:
+  disk_utilisation: 900
 
-swift_storage_address: "{{ storage_address }}"
+maas_excluded_alarms: []
+
+maas_excluded_checks: []
+
+# Nova console type is required
+nova_console_type: spice
+nova_console_port: 6082

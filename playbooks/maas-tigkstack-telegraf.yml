@@ -42,6 +42,14 @@
 - name: Deploy telegraf
   hosts: "hosts:all_containers"
   gather_facts: true
+  pre_tasks:
+    - name: Gather variables for each operating system
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "vars/maas-{{ ansible_distribution | lower }}.yml"
+            - "vars/maas-{{ ansible_os_family | lower }}.yml"
+          skip: true
   tasks:
     - name: Add influxdata apt-keys
       apt_key:
@@ -54,10 +62,20 @@
         state: "present"
         update_cache: yes
 
+    - name: Update apt sources
+      apt:
+        update_cache: yes
+        cache_valid_time: 600
+      register: apt_update
+      until: apt_update | success
+      retries: 5
+      delay: 2
+
     - name: Install telegraf
       apt:
-        pkg: "telegraf"
+        pkg: "{{ item }}"
         state: "latest"
+      with_items: "{{ maas_telegraf_distro_packages }}"
 
     - name: Create telegraf plugin dir
       file:

@@ -17,6 +17,14 @@
   hosts: log_hosts
   gather_facts: true
   pre_tasks:
+    - name: Gather variables for each operating system
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "vars/maas-{{ ansible_distribution | lower }}.yml"
+            - "vars/maas-{{ ansible_os_family | lower }}.yml"
+          skip: true
+  tasks:
     - name: Check init system
       command: cat /proc/1/comm
       changed_when: false
@@ -40,13 +48,20 @@
         repo: "deb https://repos.influxdata.com/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
         state: "present"
 
+    - name: Update apt sources
+      apt:
+        update_cache: yes
+        cache_valid_time: 600
+      register: apt_update
+      until: apt_update | success
+      retries: 5
+      delay: 2
+
     - name: Install packages
       apt:
         pkg: "{{ item }}"
         state: "latest"
-      with_items:
-        - git
-        - influxdb
+      with_items: "{{ maas_influxdb_distro_packages }}"
 
     - name: Drop influxdb config file
       template:
