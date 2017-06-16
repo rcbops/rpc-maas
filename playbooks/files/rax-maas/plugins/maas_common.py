@@ -277,10 +277,11 @@ else:
         auth_version = auth_ref['version']
         if not endpoint:
             endpoint = get_endpoint_url_for_service('identity', auth_ref,
-                                                    'admin',
-                                                    version=auth_version)
+                                                    'admin')
         if auth_version == 'v3':
             k_client = k3_client
+            if not endpoint.endswith('v3'):
+                endpoint = '%s/v3' % endpoint
         else:
             k_client = k2_client
         keystone = k_client.Client(auth_ref=auth_ref, endpoint=endpoint)
