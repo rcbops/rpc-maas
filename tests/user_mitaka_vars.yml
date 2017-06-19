@@ -13,20 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Update apt sources
-  apt:
-    update_cache: yes
-    cache_valid_time: 600
-  register: apt_update
-  until: apt_update | success
-  retries: 5
-  delay: 2
+# Set overrides for check periods
+maas_check_period_override:
+  disk_utilisation: 900
 
-- name: Ensure galera packages are installed
-  apt:
-    pkg: "{{ item }}"
-    state: "{{ maas_package_state }}"
-    update_cache: yes
-    cache_valid_time: 600
-  delegate_to: "{{ physical_host | default(ansible_host) }}"
-  with_items: "{{ maas_galera_distro_packages }}"
+# Disable the following MaaS alarms
+# Issue: https://github.com/rcbops/u-suk-dev/issues/1081
+maas_excluded_alarms:
+  - '^idle_percent_average.*'
+  - '^memory_check.*'
+  - '^Network receive rate.*'
+  - '^Network transmit rate.*'
+  - '^percentage_disk_utilisation.*'
+
+maas_excluded_checks: []
+
+# Ansible 1.9 compatibility
+ansible_host: "{{ ansible_ssh_host }}"
+
+# Nova console type is required
+nova_console_type: spice
+nova_console_port: 6082

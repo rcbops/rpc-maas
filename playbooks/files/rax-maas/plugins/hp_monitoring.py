@@ -39,7 +39,7 @@ def check_command(command, startswith, endswith):
         else:
             if matches:
                 status = 1
-    except:
+    except Exception:
         pass
     return status
 

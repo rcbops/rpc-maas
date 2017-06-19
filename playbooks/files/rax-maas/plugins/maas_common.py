@@ -39,7 +39,7 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_AUTH_VERSION': None,
                 'OS_ENDPOINT_TYPE': None,
                 'OS_API_INSECURE': True,
-                'OS_REGION_NAME': None}
+                'OS_REGION_NAME': 'RegionOne'}
 
 # OS_API_INSECURE is currently hard coded to false until OSA fix
 # LP #1537117 is implemented
@@ -215,8 +215,9 @@ except ImportError:
 else:
     def keystone_auth(auth_details):
         keystone = None
-        # NOTE(cloudnull): The password variable maybe double quoted, to fix this
-        #                  we strip away any extra quotes in the variable.
+        # NOTE(cloudnull): The password variable maybe double quoted, to
+        #                  fix this we strip away any extra quotes in
+        #                  the variable.
         pw = auth_details['OS_PASSWORD'].strip('"').strip("'")
         auth_details['OS_PASSWORD'] = pw
         try:
@@ -263,7 +264,6 @@ else:
             except IOError:
                 # if we can't write the file we go on
                 pass
-
 
     def get_keystone_client(auth_ref=None, endpoint=None, previous_tries=0):
         if previous_tries > 3:

@@ -1,4 +1,3 @@
----
 # Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install MaaS
-  hosts: hosts:all_containers
-  user: root
-  gather_facts: true
-
-- include: "../playbooks/site.yml"
+export ANSIBLE_FILTER_PLUGINS="/opt/openstack-ansible/playbooks/plugins/filters"
+export ANSIBLE_LOOKUP_PLUGINS="/opt/openstack-ansible/playbooks/plugins/lookups"
+export ANSIBLE_CALLBACK_PLUGINS="/opt/openstack-ansible/playbooks/plugins/callbacks"
+export ANSIBLE_ACTION_PLUGINS="/opt/openstack-ansible/playbooks/plugins/actions"
+export ANSIBLE_GATHERING="smart"
+export ANSIBLE_CACHE_PLUGIN="jsonfile"
+export ANSIBLE_CACHE_PLUGIN_CONNECTION="/etc/openstack_deploy/ansible_facts"
+export ANSIBLE_CACHE_PLUGIN_TIMEOUT="86400"
+export ANSIBLE_HOST_KEY_CHECKING="false"

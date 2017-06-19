@@ -1,5 +1,5 @@
 ---
-# Copyright 2016, Rackspace US, Inc.
+# Copyright 2015, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,20 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-neutron_provider_networks:
-  network_types: "vxlan,flat"
-  network_mappings: "flat:eth12"
-  network_vxlan_ranges: "1:1000"
-
-ansible_host: 10.1.1.101
-ansible_ssh_host: 10.1.1.101  # Added for compatibility
-tunnel_address: 10.2.1.101
-storage_address: 10.3.1.101
-
-ansible_become: True
-ansible_user: root
-neutron_local_ip: "{{ ansible_host }}"
-
-swift_replication_address: 10.4.1.101
-
-swift_storage_address: "{{ storage_address }}"
+- name: Copy Var files in place
+  hosts: localhost
+  connection: local
+  user: root
+  gather_facts: true
+  tasks:
+    - name: Copy RPC-M vars into place
+      copy:
+        src: "user_{{ ansible_env.IRR_CONTEXT | default('master') }}_vars.yml"
+        dest: "/etc/openstack_deploy/user_rpcm_{{ ansible_env.IRR_CONTEXT | default('master') }}_vars.yml"
+    - name: Copy RPC-M secrets into place
+      copy:
+        src: "user_rpcm_secrets.yml"
+        dest: "/etc/openstack_deploy/user_rpcm_secrets.yml"
