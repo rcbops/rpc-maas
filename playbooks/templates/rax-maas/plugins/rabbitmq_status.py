@@ -23,6 +23,7 @@ from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
+import re
 import requests
 
 OVERVIEW_URL = "http://%s:%s/api/overview"
@@ -168,7 +169,9 @@ def _get_node_metrics(session, metrics, host, port, name):
 def _get_queue_metrics(session, metrics, host, port):
     response = _get_rabbit_json(session, QUEUES_URL % (host, port))
     notification_messages = sum([q['messages'] for q in response
-                                if q['name'].startswith('notifications.')])
+                                if re.match('/^(versioned_)?notifications\.',
+                                            q['name']) and
+                                q['consumers'] > 0])
 
     metrics['notification_messages'] = {
         'value': notification_messages,
