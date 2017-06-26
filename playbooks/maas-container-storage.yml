@@ -22,7 +22,7 @@
       set_fact:
         _known_container_hosts: >
           {% set _var = [] -%}
-          {% for item in groups['all_containers'] -%}
+          {% for item in groups['all_containers'] | default([]) -%}
           {%   if hostvars[item]['physical_host'] | default(false) != item -%}
           {%     if _var.append(hostvars[item]['physical_host']) -%}
           {%     endif -%}

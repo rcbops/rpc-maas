@@ -1,5 +1,5 @@
 [global_tags]
-{% if 'all_containers' in groups and inventory_hostname in groups['all_containers'] %}
+{% if 'all_containers' in groups and inventory_hostname in groups['all_containers'] | default([]) %}
   node_type = "container"
 {% else %}
   node_type = "physical_host"
@@ -72,7 +72,7 @@
   timeout = "{{ telegraf_commands | length * 1.5 | round }}s"
   data_format = "influx"
 
-{% if 'all_containers' in groups and inventory_hostname in groups['all_containers'] %}
+{% if 'all_containers' in groups and inventory_hostname in groups['all_containers'] | default([]) %}
 [[inputs.net]]
 
 {% else %}
