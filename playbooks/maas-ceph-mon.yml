@@ -25,17 +25,7 @@
   tags:
     - maas-ceph-mons
 
-- name: Install checks for ceph mons
-  hosts: mons[0]
-  gather_facts: false
-  pre_tasks:
-    - name: Create ceph monitoring client
-      command: ceph auth get-or-create client.raxmon mon 'allow r'
-      register: ceph_raxmon_client
-      tags:
-        - skip_ansible_lint
-  tags:
-    - maas-ceph-mons
+- include: maas-ceph-raxmon.yml
 
 - name: Install checks for ceph mons
   hosts: mons
