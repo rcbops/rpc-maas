@@ -15,6 +15,6 @@
 
 - name: Restart rax-maas
   add_host:
-    name: "{{ hostvars[item]['physical_host'] | default(ansible_host) }}"
+    name: "{{ hostvars[item]['physical_host'] | default(hostvars[item]['ansible_host']) }}"
     groups: maas_restart_on_host
   with_items: "{{ groups[maas_current_group] }}"
