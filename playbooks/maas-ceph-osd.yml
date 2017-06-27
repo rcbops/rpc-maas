@@ -24,22 +24,19 @@
   tags:
     - maas-ceph-osds
 
-- name: Install keyring for ceph osds
-  hosts: osds
-  gather_facts: false
-  tasks:
-    - name: Write Ceph monitoring client key to file
-      copy:
-        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
-        dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-  tags:
-    - maas-ceph-osds
+- include: maas-ceph-raxmon.yml
 
 - name: Install checks for ceph mons
   hosts: osds
   gather_facts: false
   pre_tasks:
+    - name: Write Ceph monitoring client key to file
+      copy:
+        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
+        dest: "/etc/ceph/ceph.client.raxmon.keyring"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  tasks:
     - name: Discover Ceph facts
       ceph_osd_host_facts:
       register: ceph_osd_facts
