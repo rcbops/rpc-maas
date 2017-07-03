@@ -32,5 +32,4 @@ maas_excluded_checks: []
 ansible_host: "{{ ansible_ssh_host }}"
 
 # Nova console type is required
-nova_console_type: spice
-nova_console_port: 6082
+nova_console_type: novnc

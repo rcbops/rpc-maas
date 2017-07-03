@@ -15,6 +15,11 @@
 
 set -xeuo pipefail
 
+echo "Gate job started"
+echo "+-------------------- START ENV VARS --------------------+"
+env
+echo "+-------------------- START ENV VARS --------------------+"
+
 export FUNCTIONAL_TEST=${FUNCTIONAL_TEST:-true}
 
 # Install python2 for Ubuntu 16.04 and CentOS 7

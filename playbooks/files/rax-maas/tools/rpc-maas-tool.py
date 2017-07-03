@@ -42,6 +42,14 @@ logging.basicConfig(level=logging.DEBUG,
                     stream=sys.stdout)
 LOGGER = logging.getLogger(__name__)
 
+# Exclude checks that RAX MaaS includes by default
+EXCLUDEDCHECK_BASE = [
+    'filesystem',
+    'load_average',
+    'memory',
+    'network'
+]
+
 
 class ParseException(Exception):
     def __init__(self, message, alarm=None, check=None):
@@ -524,8 +532,15 @@ class RpcMassCli(object):
 
     def checks_without_alarms(self):
         """list checks with no alarms"""
-        no_alarms = [c for c in self.rpcm.get_checks(self.args.checkmatch)
-                     if not c.alarms and c.type != 'remote.ping']
+        no_alarms = list()
+        for c in self.rpcm.get_checks(self.args.checkmatch):
+            if not c.alarms and c.type != 'remote.ping':
+                for base_exclude in EXCLUDEDCHECK_BASE:
+                    if base_exclude not in c.label.lower():
+                        break
+                else:
+                    no_alarms.append(c)
+
         if no_alarms:
             LOGGER.info("The following checks have 0 alarms "
                         "registered with the maas api:")
