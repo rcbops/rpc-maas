@@ -133,3 +133,11 @@ maas_swift_container_process_names:
   - swift-container-replicator
   - swift-container-updater
   - swift-container-auditor
+
+# Set the nova console type and port
+nova_console_type: novnc
+nova_console_ports:
+  novnc: 6080
+  spice: 6082
+
+nova_console_port: "{{ nova_console_ports[nova_console_type] }}"
