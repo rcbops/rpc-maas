@@ -61,7 +61,7 @@ def get_controller_status():
 
 def get_controller_cache_status():
     return check_command(('hpssacli', 'ctrl', 'all', 'show', 'status'),
-                         'Cache Status', 'OK')
+                         'Cache Status', ('OK', 'Not Configured'))
 
 
 def get_controller_battery_status():
