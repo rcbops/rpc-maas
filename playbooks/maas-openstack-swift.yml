@@ -301,6 +301,7 @@
         - maas_swift_access_url_key is undefined
         - maas_remote_check | bool
         - maas_swift_accesscheck_enabled | bool
+        - inventory_hostname in groups['swift_proxy'][0]
 
     - name: Install swift container replications checks
       template:
