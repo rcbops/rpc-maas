@@ -71,6 +71,7 @@
     - include: handlers/main.yml
   vars_files:
     - vars/main.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-nova
 
@@ -140,6 +141,7 @@
     - include: handlers/main.yml
   vars_files:
     - vars/main.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-nova
 
@@ -162,6 +164,7 @@
     - include: handlers/main.yml
   vars_files:
     - vars/main.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-nova
 
@@ -184,6 +187,7 @@
     - include: handlers/main.yml
   vars_files:
     - vars/main.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-nova
 
@@ -206,6 +210,7 @@
     - include: handlers/main.yml
   vars_files:
     - vars/main.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-nova
 
@@ -213,7 +218,7 @@
   hosts: nova_console
   gather_facts: false
   tasks:
-    - name: Install nova nova-conductor checks
+    - name: Install nova nova-console-auth checks
       template:
         src: "templates/rax-maas/nova_consoleauth_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_consoleauth_check--{{ inventory_hostname }}.yaml"
@@ -224,7 +229,7 @@
       notify:
         - Restart rax-maas
 
-    - name: Install nova nova-conductor checks
+    - name: Install nova nova-console checks
       template:
         src: "templates/rax-maas/nova_console_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/nova_console_check--{{ inventory_hostname }}.yaml"
@@ -239,6 +244,7 @@
     - include: handlers/main.yml
   vars_files:
     - vars/main.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-nova
 
