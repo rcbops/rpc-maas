@@ -107,6 +107,7 @@
     - include: handlers/main.yml
   vars_files:
     - vars/main.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-cinder
 
