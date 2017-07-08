@@ -35,7 +35,6 @@ ansible_host: "{{ ansible_ssh_host }}"
 
 # Nova console type is required
 nova_console_type: spice
-nova_console_port: 6082
 
 # Repo compatibility for liberty
 repo_server_port: 8181

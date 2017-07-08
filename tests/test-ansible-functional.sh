@@ -28,6 +28,11 @@
 
 set -eovu
 
+echo "Run Functional Tests"
+echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
+env
+echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
+
 ## Vars ----------------------------------------------------------------------
 
 export IRR_CONTEXT="${IRR_CONTEXT:-master}"
@@ -37,7 +42,7 @@ export ROLE_NAME="${ROLE_NAME:-''}"
 
 export ANSIBLE_CALLBACK_WHITELIST="profile_tasks"
 export ANSIBLE_OVERRIDES="${ANSIBLE_OVERRIDES:-$WORKING_DIR/tests/$ROLE_NAME-overrides.yml}"
-export ANSIBLE_PARAMETERS=${ANSIBLE_PARAMETERS:-"-e 'maas_restart_independent=false'"}
+export ANSIBLE_PARAMETERS="${ANSIBLE_PARAMETERS:-false}"
 export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
 # Ansible Inventory will be set to OSA
@@ -61,10 +66,14 @@ echo "TEST_IDEMPOTENCE: ${TEST_IDEMPOTENCE}"
 
 function set_ansible_parameters {
 
+  ANSIBLE_CLI_PARAMETERS=""
+
+  if [ "${ANSIBLE_PARAMETERS}" != false ]; then
+    ANSIBLE_CLI_PARAMETERS+=" ${ANSIBLE_PARAMETERS}"
+  fi
+
   if [ -f "${ANSIBLE_OVERRIDES}" ]; then
-    ANSIBLE_CLI_PARAMETERS="${ANSIBLE_PARAMETERS} -e @${ANSIBLE_OVERRIDES}"
-  else
-    ANSIBLE_CLI_PARAMETERS="${ANSIBLE_PARAMETERS}"
+    ANSIBLE_CLI_PARAMETERS+=" -e @${ANSIBLE_OVERRIDES}"
   fi
 
 }
@@ -92,10 +101,51 @@ function pin_environment {
   . "$WORKING_DIR/tests/ansible-env.rc"
 }
 
+function enable_maas_api {
+  # NOTE(cloudnull): Enable the maas api by setting the "maas_use_api" option to true.
+  #                  This will also pull a token from RAX MaaS and set it as an env var.
+
+  # Create the configuration dir if it's not present
+  if [[ ! -d "/etc/openstack_deploy" ]]; then
+    mkdir -p /etc/openstack_deploy
+  fi
+
+  echo "Show the version of the pip packages in the functional venv."
+  echo "This helps identify issues with pyrax"
+  echo "START PACKAGE LIST"
+  pip list --format=columns || pip list
+  echo "END PACKAGE LIST"
+
+  # Collect a maas auth token for API tests
+  $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
+                                  --api-key "${PUBCLOUD_API_KEY}" get_token_url
+
+  # We're sourcing the file so that it's not written to a collected artifact
+  . ~/maas-vars.rc
+
+  # Write out the varuable file
+  cat > /etc/openstack_deploy/user_rpcm_use_api_variables.yml <<EOF
+---
+# Enable the API usage
+maas_use_api: true
+
+# Will restart the agent service ONLY once at the end of a site.yml run
+maas_restart_independent: false
+
+# Set the default notification plan, in the gate this is set here
+maas_notification_plan: npTechnicalContactsEmail
+EOF
+}
+
 ## Main ----------------------------------------------------------------------
 
 # Set gate job exit traps, this is run regardless of exit state when the job finishes.
 trap gate_job_exit_tasks EXIT
+
+# Enable MaaS API testing if the cloud variables are set.
+if [ ! "${PUBCLOUD_USERNAME:-false}" = false ] && [ ! "${PUBCLOUD_API_KEY:-false}" = false ]; then
+  enable_maas_api
+fi
 
 # Export additional ansible environment variables if running Kilo or Liberty
 if [ "${IRR_CONTEXT}" == "kilo" ]; then
@@ -124,7 +174,6 @@ if [ "${TEST_CHECK_MODE}" == "true" ]; then
 
   # Execute the test playbook in check mode
   execute_ansible_playbook --check ${TEST_PLAYBOOK}
-
 fi
 
 # Set the path for the output log

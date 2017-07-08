@@ -46,13 +46,47 @@
         - rpc-maas-tool.py
         - alarmparser.py
 
+    - name: "Allow MAAS time to run checks before verifying they're created"
+      pause:
+        minutes: 2
+      when:
+        - maas_use_api | bool
+
     - name: Run MaaS verify local
       command: "{{ maas_venv_bin }}/python /opt/rpc-maas-tools/rpc-maas-tool.py --logfile {{ workspace_logs }}/rpc-maas-logs.txt verify-local"
       become: true
       register: maas_verify
       until: maas_verify | success
-      retries: 3
+      retries: 6
       delay: 5
+
+    - name: "Verify Checks & Alarms are registered"
+      command: >
+        {{ maas_venv_bin }}/python /opt/rpc-maas-tools/rpc-maas-tool.py --logfile {{ workspace_logs }}/rpc-maas-api-logs.txt verify-created
+        --entity {{ maas_entity_name }}
+        {% for ec in maas_excluded_checks %}--excludedcheck "{{ ec }}"{% endfor %}
+      become: true
+      register: verify_maas
+      changed_when: false
+      until: verify_maas.rc == 0
+      retries: 6
+      delay: 20
+      when:
+        - maas_use_api | bool
+
+    - name: "Verify Check & Alarm Status"
+      command: >
+        {{ maas_venv_bin }}/python /opt/rpc-maas-tools/rpc-maas-tool.py --logfile {{ workspace_logs }}/rpc-maas-api-logs.txt verify-status
+        --entity {{ maas_entity_name }}
+      become: true
+      register: verify_status
+      changed_when: false
+      until: verify_status.rc == 0
+      retries: 6
+      delay: 20
+      when:
+        - maas_use_api | bool
+        - maas_verify_status | bool
 
   vars:
     working_dir_logs: "{{ lookup('env', 'WORKING_DIR') | default('/tmp', true) }}/logs"

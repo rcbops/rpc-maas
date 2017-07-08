@@ -19,6 +19,11 @@
 
 set -eovu
 
+echo "Building an AIO"
+echo "+-------------------- AIO ENV VARS --------------------+"
+env
+echo "+-------------------- AIO ENV VARS --------------------+"
+
 ## Vars ----------------------------------------------------------------------
 
 export IRR_CONTEXT="${IRR_CONTEXT:-master}"
@@ -27,7 +32,6 @@ export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-aio.log"
 
 ## Functions -----------------------------------------------------------------
-
 function pin_jinja {
   # Pin Jinja2 because versions >2.9 is broken w/ earlier versions of Ansible.
   if ! grep -i 'jinja2' /opt/openstack-ansible/global-requirement-pins.txt; then
@@ -41,15 +45,25 @@ function pin_jinja {
 function pin_galera {
   # NOTE(cloudnull): The MariaDB repos in these releases used https, this broke the deployment.
   #                  These patches simply point at the same repos just without https.
+  # Create the configuration dir if it's not present
   if [[ ! -d "/etc/openstack_deploy" ]]; then
     mkdir -p /etc/openstack_deploy
   fi
+
   cat > /etc/openstack_deploy/user_rpco_galera.yml <<EOF
 ---
 galera_client_apt_repo_url: "http://mirror.rackspace.com/mariadb/repo/${1}/ubuntu"
 galera_apt_repo_url: "http://mirror.rackspace.com/mariadb/repo/${1}/ubuntu"
 galera_apt_percona_xtrabackup_url: "http://repo.percona.com/apt"
 EOF
+}
+
+function disable_security_role {
+  # NOTE(cloudnull): The security role is tested elsewhere, there's no need to run it here.
+  if [[ ! -d "/etc/openstack_deploy" ]]; then
+    mkdir -p /etc/openstack_deploy
+  fi
+  echo "apply_security_hardening: false" | tee -a /etc/openstack_deploy/user_nosec.yml
 }
 
 ## Main ----------------------------------------------------------------------
@@ -117,6 +131,9 @@ pushd /opt/openstack-ansible
 
   # Disable tempest on older releases
   sed -i '/.*run-tempest.sh.*/d' scripts/gate-check-commit.sh  # Disable the tempest run
+
+  # Disable the sec role
+  disable_security_role
 
   # Setup an AIO
   ./scripts/gate-check-commit.sh

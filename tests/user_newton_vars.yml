@@ -22,5 +22,4 @@ maas_excluded_alarms: []
 maas_excluded_checks: []
 
 # Nova console type is required
-nova_console_type: spice
-nova_console_port: 6082
+nova_console_type: novnc

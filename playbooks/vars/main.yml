@@ -58,7 +58,8 @@ maas_fqdn_extension: ""
 #
 # The entity name is the inventory hostname and fqdn extension combined.
 #
-maas_entity_name: "{{ inventory_hostname }}{{ maas_fqdn_extension }}"
+# Set the hostname for use with the api checks
+maas_entity_name: "{{ ansible_hostname }}{{ maas_fqdn_extension }}"
 
 #
 # Plugin directory when all agent plugins will be installed.
@@ -70,6 +71,12 @@ maas_plugin_dir: "/usr/lib/rackspace-monitoring-agent/plugins"
 #               for offline testing
 #
 maas_use_api: false
+
+#
+# maas_verify_status: Test the status of the checks within the MaaS API. This
+#                     will cause a failure on any check reporting CRITICAL.
+#
+maas_verify_status: false
 
 #
 # maas_notification_plan: The Cloud Monitoring notification plan, which defines who will be

@@ -32,10 +32,12 @@ maas_pip_packages:
 
 maas_username: "admin"
 
-maas_api_key: "None"
+maas_api_key: null
 
 maas_auth_url: "https://identity.api.rackspacecloud.com/v2.0"
 
-maas_auth_method: "password"
+maas_auth_method: "token"
 
-maas_auth_token: "None"
+maas_auth_token: "{{ lookup('env', 'MAAS_AUTH_TOKEN') | default(null) }}"
+
+maas_api_url: "{{ lookup('env', 'MAAS_API_URL') | default(null) }}"
