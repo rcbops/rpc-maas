@@ -116,23 +116,7 @@ function influx_pin_environment {
   # NOTE(cloudnull): Create log_host to influx_hosts environmental link.
   ensure_osa_dir
 
-  cat > "/etc/openstack_deploy/env.d/rpcm_influx_hosts.yml" <<EOF
----
-component_skel:
-  influx:
-    belongs_to:
-      - influx_all
-      - influx_hosts
-
-container_skel:
-  influx_container:
-    belongs_to:
-      - log_containers
-    contains:
-      - influx
-    properties:
-      is_metal: true
-EOF
+  cp -v "${WORKING_DIR}/tests/rpcm_influx_hosts.yml.env" "/etc/openstack_deploy/env.d/rpcm_influx_hosts.yml"
 }
 
 function enable_maas_api {

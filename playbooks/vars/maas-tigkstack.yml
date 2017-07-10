@@ -13,14 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Grafana vars
-grafana_port: 8089
-grafana_db_name: grafana
-grafana_db_user: grafana
-
 # InfluxDB vars
 influxdb_admin_port: 8083
 influxdb_port: 8086
+influxdb_vip: localhost
 influxdb_db_name: telegraf
 influxdb_db_retention: 90d
 influxdb_db_retention_policy: rpc_maas
@@ -46,3 +42,418 @@ influxdb_relay_port: 9096
 influxdb_protocol: http
 
 influx_telegraf_targets: []
+
+# Grafana Vars
+grafana_db_host: "{{ groups['galera_all'][0] }}"
+grafana_port: 8089
+grafana_db_name: grafana
+grafana_db_user: grafana
+
+grafana_status_panel_options:
+  fill: 7
+  stack: true
+  lines: false
+  bars: false
+  points: true
+  steppedLine: true
+  yaxes:
+    - format: "none"
+      label: null
+      logBase: 1
+      max: null
+      min: null
+      show: false
+    - format: "none"
+      label: null
+      logBase: 1
+      max: null
+      min: null
+      show: false
+
+grafana_time_panel_options:
+  yaxes:
+    - format: "dtdurationms"
+      label: null
+      logBase: 1
+      max: null
+      min: null
+      show: true
+    - format: "none"
+      label: null
+      logBase: 1
+      max: null
+      min: null
+      show: true
+
+grafana_panels:
+  cinder:
+    - queries:
+        - 'SELECT "cinder_api_local_response_time"  FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: api response time
+      panel_options: "{{ grafana_time_panel_options }}"
+    - queries:
+        - 'SELECT "cinder_api_local_status" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder api status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "cinder_available_snaps" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder available snaps
+      panel_options: {}
+    - queries:
+        - 'SELECT "cinder_available_volumes" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder available volumes
+      panel_options: {}
+    - queries:
+        - 'SELECT "cinder_error_snaps" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder error snaps
+      panel_options: {}
+    - queries:
+        - 'SELECT "cinder_error_volumes" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder error volumes
+      panel_options: {}
+    - queries:
+        - 'SELECT "cinder_in-use_snaps" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder in-use snaps
+      panel_options: {}
+    - queries:
+        - 'SELECT "cinder_in-use_volumes" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder in-use volumes
+      panel_options: {}
+    - queries:
+        - 'SELECT "total_cinder_snapshots" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder snapshots
+      panel_options: {}
+    - queries:
+        - 'SELECT "total_cinder_volumes" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder total volumes
+      panel_options: {}
+    - queries:
+        - 'SELECT "cinder-scheduler_status" FROM "cinder_scheduler_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder scheduler status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "cinder-backup_status" FROM "cinder_volume_lvm_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder backup status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "cinder-volume-lvm_status" FROM "cinder_volume_lvm_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder volume-lvm_ status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "cinder-volumes_vg_free_space" FROM "cinder_volumes_vg_used" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "cinder-volumes_vg_total_space" FROM "cinder_volumes_vg_used" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "cinder-volumes_vg_used_space" FROM "cinder_volumes_vg_used" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: cinder volume-lvm_ status
+      panel_options: {}
+  galera:
+    - queries:
+        - 'SELECT "aborted_clients" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "aborted_connects" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: galera aborted clients and connections
+      panel_options: {}
+    - queries:
+        - 'SELECT "access_denied_errors" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: galera access denied errors
+      panel_options: {}
+    - queries:
+        - 'SELECT "innodb_deadlocks" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: galera innodb deadlocks
+      panel_options: {}
+    - queries:
+        - 'SELECT "innodb_row_lock_time_avg" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: galera innodb row lock time avg
+      panel_options: {}
+    - queries:
+        - 'SELECT "mysql_current_connections" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "mysql_max_seen_connections" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: galera connections
+      panel_options: {}
+    - queries:
+        - 'SELECT "num_of_open_files" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: galera open files
+      panel_options: {}
+    - queries:
+        - 'SELECT "queries_per_second" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: galera queries per second
+      panel_options: {}
+    - queries:
+        - 'SELECT /wsrep_.*_(bytes|size)/ FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: galera queries per second
+      panel_options: {}
+  glance:
+    - queries:
+        - 'SELECT "glance_api_local_response_time"  FROM "glance_killed_images" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "glance_registry_local_response_time"  FROM "glance_registry_local" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: api response time
+      panel_options: "{{ grafana_time_panel_options }}"
+    - queries:
+        - 'SELECT "glance_api_local_status"  FROM "glance_killed_images" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: glance images
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "glance_registry_local_status"  FROM "glance_registry_local" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: glance images
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "glance_active_images", "glance_killed_images", "glance_queued_images"  FROM "glance_killed_images" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: glance images
+      panel_options: {}
+  heat:
+    - queries:
+        - 'SELECT "heat_api_local_response_time"  FROM "heat_api_local" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "heat_cfn_api_local_response_time"  FROM "heat_cfn_api" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "heat_cw_api_local_response_time"  FROM "heat_cw_api" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: api response time
+      panel_options: "{{ grafana_time_panel_options }}"
+    - queries:
+        - 'SELECT "heat_api_local_status"  FROM "heat_api_local" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: heat api status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "heat_cfn_api_local_status"  FROM "heat_cfn_api" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: heat cfn api status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "heat_cw_api_local_status"  FROM "heat_cw_api" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: heat cw api status
+      panel_options: "{{ grafana_status_panel_options }}"
+  neutron:
+    - queries:
+        - 'SELECT "neutron_api_local_response_time"  FROM "neutron_subnets" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: api response time
+      panel_options: "{{ grafana_time_panel_options }}"
+    - queries:
+        - 'SELECT "neutron-dhcp-agent_status" FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: neutron dhcp agent status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "neutron-l3-agent_status" FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: neutron l3 agent status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "neutron-lbaasv2-agent_status" FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: neutron lbaasv2 agent status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "neutron-linuxbridge-agent_status" FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: neutron linuxbridge agent status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "neutron-metadata-agent_status" FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: neutron metadata agent status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "neutron-metering-agent_status" FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: neutron metering agent status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "neutron_agents" FROM "neutron_subnets" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: neutron agents
+      panel_options: {}
+    - queries:
+        - 'SELECT "neutron_api_local_status" FROM "neutron_subnets" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: neutron api status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "neutron_networks", "neutron_routers", "neutron_subnets" FROM "neutron_subnets" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: neutron networks, routers, subnets
+      panel_options: {}
+  nova:
+    - queries:
+        - 'SELECT "nova_api_metadata_local_response_time"  FROM "nova_api_metadata" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "nova_api_local_response_time" FROM "nova_instances_in" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: api response time
+      panel_options: "{{ grafana_time_panel_options }}"
+    - queries:
+        - 'SELECT "nova_api_metadata_local_status" FROM "nova_api_metadata" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: nova api metadata status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "nova-compute_status" FROM "nova_compute_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: nova compute status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "nova-conductor_status" FROM "nova_conductor_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: nova conductor status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "nova-consoleauth_status" FROM "nova_consoleauth_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: nova consoleauth status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "nova_api_local_status" FROM "nova_instances_in" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: nova api status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "nova_instances_in_state_ACTIVE, nova_instances_in_state_ERROR, nova_instances_in_state_STOPPED" FROM "nova_instances_in" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: nova instance states
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "nova_novnc_api_local_status" FROM "nova_novnc_api" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: nova novnc status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "nova-scheduler_status" FROM "nova_scheduler_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: nova novnc status
+      panel_options: "{{ grafana_status_panel_options }}"
+  rsyslog:
+    - queries:
+        - 'SELECT "rsyslogd_process_status" FROM "rsyslogd_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: rsyslog status
+      panel_options: "{{ grafana_status_panel_options }}"
+  rabbitmq:
+    - queries:
+        - 'SELECT "rabbitmq_fd_total", "rabbitmq_fd_used" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: rabbitmq fd
+      panel_options: {}
+    - queries:
+        - 'SELECT "rabbitmq_get" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: rabbitmq get
+      panel_options: {}
+    - queries:
+        - 'SELECT "rabbitmq_max_channels_per_conn" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: rabbitmq max channles per connection
+      panel_options: {}
+    - queries:
+        - 'SELECT "rabbitmq_mem_alarm_status" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: rabbitmq mem alarm status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "rabbitmq_mem_limit" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "rabbitmq_mem_used" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: rabbitmq mem
+      panel_options: {}
+    - queries:
+        - 'SELECT "rabbitmq_messages" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "rabbitmq_messages_ready" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "rabbitmq_messages_unacknowledged" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "rabbitmq_msgs_excl_notifications" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "rabbitmq_notification_messages" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: rabbitmq messages
+      panel_options: {}
+    - queries:
+        - 'SELECT "rabbitmq_queues_without_consumers" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: rabbitmq queues without consumers
+      panel_options: {}
+    - queries:
+        - 'SELECT "rabbitmq_sockets_total" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "rabbitmq_sockets_used" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: rabbitmq sockets
+      panel_options: {}
+  swift:
+    - queries:
+        - 'SELECT "swift_proxy_server_api_local_response_time" FROM "swift_proxy_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "swift_object_server_api_local_response_time" FROM "swift_object_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "swift_container_server_api_local_response_time" FROM "swift_container_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "swift_account_server_api_local_response_time" FROM "swift_account_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: api response time
+      panel_options: "{{ grafana_time_panel_options }}"
+    - queries:
+        - 'SELECT "swift_object_server_api_local_status" FROM "swift_object_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: swift object server status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "swift_container_server_api_local_status" FROM "swift_container_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: swift container server status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "swift_account_server_api_local_status" FROM "swift_account_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: swift account server status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "swift_proxy_server_api_local_status" FROM "swift_proxy_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: proxy service status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "swift-object-auditor_process_status", "swift-object-expirer_process_status", "swift-object-replicator_process_status", "swift-object-server_process_status", "swift-object-updater_process_status" FROM "swift_object_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: swift object process status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "swift-container-auditor_process_status", "swift-container-replicator_process_status", "swift-container-server_process_status", "swift-container-updater_process_status" FROM "swift_container_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: swift container process status
+      panel_options: "{{ grafana_status_panel_options }}"
+    - queries:
+        - 'SELECT "swift-account-auditor_process_status", "swift-account-reaper_process_status", "swift-account-replicator_process_status", "swift-account-server_process_status" FROM "swift_account_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+      measurement: swift account process status
+      panel_options: "{{ grafana_status_panel_options }}"
+
+grafana_target:
+  alias: '$server: $col'
+  dsType: influxdb
+  function: mean
+  groupBy:
+  - interval: auto
+    params: [auto]
+    type: time
+  - key: host
+    params: [tag]
+    type: tag
+  measurement: system_load1
+  policy: default
+  query: ''
+  rawQuery: true
+  refId: A
+  resultFormat: time_series
+  select:
+  - - params: [value]
+      type: field
+    - params: []
+      type: mean
+  tags: []
+
+grafana_panel_skel:
+  aliasColors: {}
+  bars: false
+  dashLength: 10
+  dashes: false
+  fill: 1
+  legend:
+    avg: true
+    current: true
+    max: true
+    min: true
+    show: true
+    total: false
+    values: true
+    alignAsTable: true
+  lines: true
+  linewidth: 1
+  nullPointMode: 'null'
+  percentage: false
+  pointradius: 5
+  points: false
+  renderer: flot
+  seriesOverrides: []
+  spaceLength: 10
+  span: 6
+  stack: false
+  steppedLine: false
+  targets: []
+  thresholds: []
+  timeFrom: null
+  timeShift: null
+  title: "Basic Panel"
+  tooltip:
+    shared: true
+    sort: 0
+    value_type: individual
+  type: graph
+  xaxis:
+    buckets: null
+    mode: time
+    name: null
+    show: true
+    values: []
+  yaxes:
+    - format: short
+      label: null
+      logBase: 1
+      max: null
+      min: null
+      show: true
+    - format: short
+      label: null
+      logBase: 1
+      max: null
+      min: null
+      show: true

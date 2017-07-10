@@ -1,0 +1,151 @@
+---
+# Copyright 2016, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Deploy Grafana
+  hosts: influx_hosts
+  gather_facts: true
+  pre_tasks:
+    - name: Create DB for service
+      mysql_db:
+        login_user: "{{ galera_root_user }}"
+        login_password: "{{ galera_root_password }}"
+        login_host: "{{ galera_address|default('127.0.0.1') }}"
+        name: "{{ grafana_db_name }}"
+        state: "present"
+      delegate_to: "{{ grafana_db_host }}"
+
+    - name: Grant access to the DB for the service
+      mysql_user:
+        login_user: "{{ galera_root_user }}"
+        login_password: "{{ galera_root_password }}"
+        login_host: "{{ galera_address|default('127.0.0.1') }}"
+        name: "{{ grafana_db_user }}"
+        password: "{{ grafana_db_password }}"
+        host: "{{ item }}"
+        state: "present"
+        priv: "{{ grafana_db_name }}.*:ALL"
+      delegate_to: "{{ groups['galera_all'][0] }}"
+      with_items:
+        - "localhost"
+        - "%"
+
+  tasks:
+    - name: Ensure https repos function
+      apt:
+        pkg: "apt-transport-https"
+        state: "latest"
+
+    - name: Add grafana apt-keys
+      apt_key:
+        url: "https://packagecloud.io/gpg.key"
+        state: "present"
+
+    - name: Add grafana repo
+      apt_repository:
+        repo: "deb https://packagecloud.io/grafana/stable/debian/ jessie main"
+        state: "present"
+        update_cache: yes
+
+    - name: Install grafana
+      apt:
+        pkg: "grafana"
+        state: "latest"
+
+    - name: Drop grafana config file
+      template:
+        src: templates/tigkstack/grafana.ini.j2
+        dest: /etc/grafana/grafana.ini
+      register: grafana_config
+
+    - name: Enable and start grafana
+      service:
+        name: "grafana-server"
+        enabled: true
+        state: "{{ (grafana_config | changed) | ternary('restarted', 'started') }}"
+
+  post_tasks:
+    - name: Check for the RPC-MaaS InfluxDB connection
+      uri:
+        force_basic_auth: yes
+        password: "{{ grafana_admin_password }}"
+        user: admin
+        url: "http://localhost:{{ grafana_port }}/api/datasources/RPC-MaaS"
+        status_code: "200,404"
+      register: rpc_maas_influx
+      until: rpc_maas_influx|success
+      retries: 5
+      delay: 5
+
+    - name: Create RPC-MaaS InfluxDB connection
+      uri:
+        force_basic_auth: yes
+        password: "{{ grafana_admin_password }}"
+        user: admin
+        url: "http://localhost:{{ grafana_port }}/api/datasources"
+        method: POST
+        body: "{{ lookup('template','templates/tigkstack/grafana_influx_connection.json.j2') }}"
+        status_code: "200,201"
+        body_format: json
+      register: rpc_maas_influx_conn
+      until: rpc_maas_influx_conn|success
+      retries: 5
+      delay: 5
+      when:
+        - rpc_maas_influx.status != 200
+
+    - name: Upload grafana panels
+      uri:
+        force_basic_auth: yes
+        password: "{{ grafana_admin_password }}"
+        user: admin
+        url: "http://localhost:{{ grafana_port }}/api/dashboards/db"
+        method: POST
+        body: "{{ lookup('file','files/tigkstack/grafana-panels/' + item) }}"
+        status_code: "200,201"
+        body_format: json
+      register: rpc_maas_influx_grafana_dash
+      until: rpc_maas_influx_grafana_dash|success
+      retries: 5
+      delay: 5
+      with_items:
+        - network.json
+        - system.json
+        - summary.json
+      tags:
+        - grafana-panel-upload
+
+    - name: Upload dynamic grafana panels
+      uri:
+        force_basic_auth: yes
+        password: "{{ grafana_admin_password }}"
+        user: admin
+        url: "http://localhost:{{ grafana_port }}/api/dashboards/db"
+        method: POST
+        body: "{{ lookup('template','files/tigkstack/grafana-panels/dynamic.json.j2') }}"
+        status_code: "200,201"
+        body_format: json
+      register: rpc_maas_influx_grafana_dash
+      until: rpc_maas_influx_grafana_dash|success
+      retries: 5
+      delay: 5
+      with_dict: "{{ grafana_panels }}"
+      tags:
+        - grafana-dynamic-panel-upload
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-tigkstack.yml
+  tags:
+    - maas-tigkstack-influxdb

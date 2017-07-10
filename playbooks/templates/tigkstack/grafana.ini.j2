@@ -16,7 +16,7 @@ password = {{ grafana_db_password }}
 [session]
 
 [analytics]
-check_for_updates = true
+check_for_updates = false
 
 [security]
 admin_user = admin
@@ -30,7 +30,6 @@ allow_org_create = false
 
 [auth.anonymous]
 enabled = true
-org_name = OpenStack
 org_role = Viewer
 
 [auth.github]
