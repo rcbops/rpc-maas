@@ -248,9 +248,42 @@ Deploying the TIGK Stack
 
 If ``the maas-tigkstack-all.yml`` Playbook is run **telegraf** will be
 installed throughout the deployment and **influxdb** will be installed
-within the *log_host*. Enabling this service will immediately being
+within the *influx_hosts*. Enabling this service will immediately being
 collecting metrics within the deployment using the existing MaaS plugins
 and enabled checks.
+
+If you're deploying InfluxDB within OpenStack-Ansible you will need to create
+a configuration entry for the *influx_hosts* in either the
+``openstack_user_config.yml`` or an isolated ``conf.d`` file.
+
+Example configuration file:
+
+.. code-block:: yaml
+
+    influx_hosts:
+      aio1:
+        ip: 172.29.236.100
+
+You can also pin the influx_hosts to an existing host group by adding an
+environment file (``env.d``). In the following example *influx_hosts* is
+being linked to the *log_hosts* group within OpenStack-Ansible.
+
+.. code-block:: yaml
+
+    component_skel:
+      influx:
+        belongs_to:
+          - influx_all
+          - influx_hosts
+
+    container_skel:
+      influx_container:
+        belongs_to:
+          - log_containers
+        contains:
+          - influx
+        properties:
+          is_metal: true
 
 
 Collecting metrics for time series analysis

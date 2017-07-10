@@ -65,7 +65,6 @@ echo "TEST_IDEMPOTENCE: ${TEST_IDEMPOTENCE}"
 ## Functions -----------------------------------------------------------------
 
 function set_ansible_parameters {
-
   ANSIBLE_CLI_PARAMETERS=""
 
   if [ "${ANSIBLE_PARAMETERS}" != false ]; then
@@ -75,7 +74,6 @@ function set_ansible_parameters {
   if [ -f "${ANSIBLE_OVERRIDES}" ]; then
     ANSIBLE_CLI_PARAMETERS+=" -e @${ANSIBLE_OVERRIDES}"
   fi
-
 }
 
 function execute_ansible_playbook {
@@ -101,14 +99,46 @@ function pin_environment {
   . "$WORKING_DIR/tests/ansible-env.rc"
 }
 
+function ensure_osa_dir {
+  # NOTE(cloudnull): Create the configuration dirs if not already present
+  if [[ ! -d "/etc/openstack_deploy" ]]; then
+    mkdir -p "/etc/openstack_deploy"
+  fi
+  if [[ ! -d "/etc/openstack_deploy/env.d" ]]; then
+    mkdir -p "/etc/openstack_deploy/env.d"
+  fi
+  if [[ ! -d "/etc/openstack_deploy/conf.d" ]]; then
+    mkdir -p "/etc/openstack_deploy/conf.d"
+  fi
+}
+
+function influx_pin_environment {
+  # NOTE(cloudnull): Create log_host to influx_hosts environmental link.
+  ensure_osa_dir
+
+  cat > "/etc/openstack_deploy/env.d/rpcm_influx_hosts.yml" <<EOF
+---
+component_skel:
+  influx:
+    belongs_to:
+      - influx_all
+      - influx_hosts
+
+container_skel:
+  influx_container:
+    belongs_to:
+      - log_containers
+    contains:
+      - influx
+    properties:
+      is_metal: true
+EOF
+}
+
 function enable_maas_api {
   # NOTE(cloudnull): Enable the maas api by setting the "maas_use_api" option to true.
   #                  This will also pull a token from RAX MaaS and set it as an env var.
-
-  # Create the configuration dir if it's not present
-  if [[ ! -d "/etc/openstack_deploy" ]]; then
-    mkdir -p /etc/openstack_deploy
-  fi
+  ensure_osa_dir
 
   echo "Show the version of the pip packages in the functional venv."
   echo "This helps identify issues with pyrax"
@@ -146,6 +176,9 @@ trap gate_job_exit_tasks EXIT
 if [ ! "${PUBCLOUD_USERNAME:-false}" = false ] && [ ! "${PUBCLOUD_API_KEY:-false}" = false ]; then
   enable_maas_api
 fi
+
+# Link the log_hosts of OSA to influx_hosts
+influx_pin_environment
 
 # Export additional ansible environment variables if running Kilo or Liberty
 if [ "${IRR_CONTEXT}" == "kilo" ]; then
@@ -185,7 +218,6 @@ execute_ansible_playbook ${TEST_PLAYBOOK}
 # If the idempotence test is enabled, then execute the
 # playbook again and verify that nothing changed/failed
 # in the output log.
-
 if [ "${TEST_IDEMPOTENCE}" == "true" ]; then
 
   # Set the path for the output log
@@ -201,5 +233,4 @@ if [ "${TEST_IDEMPOTENCE}" == "true" ]; then
     echo "Idempotence test: fail"
     exit 1
   fi
-
 fi

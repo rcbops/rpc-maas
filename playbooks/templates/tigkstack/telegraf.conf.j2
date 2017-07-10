@@ -22,7 +22,7 @@
   omit_hostname = false
 
 {%   set influx_targets = [] %}
-{%   for item in groups['log_hosts'] %}
+{%   for item in groups['influx_hosts'] | default([]) %}
 {%     set target = influxdb_protocol + '://' + hostvars[item]['ansible_host'] | default(hostvars[item]['ansible_ssh_host']) + ':' + influxdb_port | string %}
 {%     set _ = influx_targets.extend([target]) %}
 {%   endfor %}
