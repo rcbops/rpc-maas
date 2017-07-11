@@ -59,6 +59,7 @@ maas_openstack_nova_pip_packages:
 
 maas_openstack_swift_pip_packages:
   - python-openstackclient
+  - python-swiftclient
 
 #
 # The Cinder backup monitor can be turned on or off based on provided config.
