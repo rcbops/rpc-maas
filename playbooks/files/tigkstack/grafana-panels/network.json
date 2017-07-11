@@ -1,0 +1,836 @@
+{
+  "overwrite": true,
+  "dashboard": {
+    "id": null,
+    "title": "Network Metrics",
+    "description": "Network Metrics",
+    "tags": [
+      "network"
+    ],
+    "style": "dark",
+    "timezone": "browser",
+    "editable": true,
+    "hideControls": false,
+    "sharedCrosshair": true,
+    "rows": [
+      {
+        "collapse": false,
+        "editable": false,
+        "height": 287,
+        "panels": [
+          {
+            "aliasColors": {},
+            "bars": false,
+
+            "editable": true,
+            "error": false,
+            "fill": 1,
+            "grid": {
+              "threshold1": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2": null,
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "id": 42026,
+            "interval": "$inter",
+            "legend": {
+              "alignAsTable": true,
+              "avg": true,
+              "current": true,
+              "max": true,
+              "min": true,
+              "rightSide": true,
+              "show": true,
+              "total": false,
+              "values": true
+            },
+            "lines": true,
+            "linewidth": 1,
+            "links": [],
+            "nullPointMode": "connected",
+            "percentage": false,
+            "pointradius": 5,
+            "points": false,
+            "renderer": "flot",
+            "seriesOverrides": [
+              {
+                "alias": "/ in$/",
+                "transform": "negative-Y"
+              }
+            ],
+            "span": 12,
+            "stack": false,
+            "steppedLine": false,
+            "targets": [
+              {
+                "alias": "$server: $tag_interface: $col",
+                "dsType": "influxdb",
+                "function": "derivative",
+                "groupBy": [
+                  {
+                    "interval": "auto",
+                    "params": [
+                      "auto"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "key": "host",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "interface",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  }
+                ],
+                "measurement": "net_bytes_recv",
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(mean(bytes_recv),1s)*8 as \"in\"  FROM \"net\" WHERE \"host\" =~ /$server$/ AND \"job_reference\" =~ /$job_reference/ AND interface =~ /(vlan|vxlan|eth|ens|p|bond|br).*/ AND $timeFilter GROUP BY time($interval), * fill(none)",
+                "rawQuery": true,
+                "refId": "A",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              },
+              {
+                "alias": "$server: $tag_interface: $col",
+                "dsType": "influxdb",
+                "function": "derivative",
+                "groupBy": [
+                  {
+                    "interval": "auto",
+                    "params": [
+                      "auto"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "key": "host",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "interface",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  }
+                ],
+                "measurement": "net_bytes_recv",
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(mean(bytes_sent),1s)*8 as \"out\" FROM \"net\" WHERE \"host\" =~ /$server$/ AND \"job_reference\" =~ /$job_reference/ AND interface =~ /(vlan|vxlan|eth|ens|p|bond|br).*/ AND $timeFilter GROUP BY time($interval), * fill(none)",
+                "rawQuery": true,
+                "refId": "B",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              }
+            ],
+            "timeFrom": null,
+            "timeShift": null,
+            "title": "Network Usage",
+            "tooltip": {
+              "msResolution": false,
+              "shared": true,
+              "sort": 0,
+              "value_type": "cumulative"
+            },
+            "type": "graph",
+            "xaxis": {
+              "show": true
+            },
+            "yaxes": [
+              {
+                "format": "bps",
+                "logBase": 1,
+                "max": null,
+                "min": null,
+                "show": true
+              },
+              {
+                "format": "short",
+                "logBase": 1,
+                "max": null,
+                "min": null,
+                "show": true
+              }
+            ]
+          },
+          {
+            "aliasColors": {},
+            "bars": true,
+
+            "editable": true,
+            "error": false,
+            "fill": 1,
+            "grid": {
+              "threshold1": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2": null,
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "id": 28572,
+            "interval": "$inter",
+            "legend": {
+              "alignAsTable": true,
+              "avg": true,
+              "current": true,
+              "max": true,
+              "min": true,
+              "rightSide": true,
+              "show": true,
+              "total": false,
+              "values": true
+            },
+            "lines": false,
+            "linewidth": 1,
+            "links": [],
+            "nullPointMode": "connected",
+            "percentage": false,
+            "pointradius": 5,
+            "points": false,
+            "renderer": "flot",
+            "seriesOverrides": [
+              {
+                "alias": "/ in$/",
+                "transform": "negative-Y"
+              }
+            ],
+            "span": 12,
+            "stack": false,
+            "steppedLine": false,
+            "targets": [
+              {
+                "alias": "$server: $tag_interface: $col",
+                "dsType": "influxdb",
+                "function": "derivative",
+                "groupBy": [
+                  {
+                    "interval": "auto",
+                    "params": [
+                      "auto"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "key": "host",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "interface",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  }
+                ],
+                "measurement": "net_bytes_recv",
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(mean(packets_recv), 1s) as \"in\" FROM \"net\" WHERE \"host\" =~ /$server$/ AND \"job_reference\" =~ /$job_reference/ AND interface =~ /(vlan|vxlan|eth|ens|p|bond|br).*/ AND $timeFilter GROUP BY time($interval), * fill(none)",
+                "rawQuery": true,
+                "refId": "A",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              },
+              {
+                "alias": "$server: $tag_interface: $col",
+                "dsType": "influxdb",
+                "function": "derivative",
+                "groupBy": [
+                  {
+                    "interval": "auto",
+                    "params": [
+                      "auto"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "key": "host",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "interface",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  }
+                ],
+                "measurement": "net_bytes_recv",
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(mean(packets_sent), 1s) as \"out\" FROM \"net\" WHERE \"host\" =~ /$server$/ AND \"job_reference\" =~ /$job_reference/ AND interface =~ /(vlan|vxlan|eth|ens|p|bond|br).*/ AND $timeFilter GROUP BY time($interval), * fill(none)",
+                "rawQuery": true,
+                "refId": "B",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              }
+            ],
+            "timeFrom": null,
+            "timeShift": null,
+            "title": "Network Packets",
+            "tooltip": {
+              "msResolution": false,
+              "shared": true,
+              "sort": 0,
+              "value_type": "cumulative"
+            },
+            "type": "graph",
+            "xaxis": {
+              "show": true
+            },
+            "yaxes": [
+              {
+                "format": "pps",
+                "label": "",
+                "logBase": 1,
+                "max": null,
+                "min": null,
+                "show": true
+              },
+              {
+                "format": "short",
+                "logBase": 1,
+                "max": null,
+                "min": null,
+                "show": true
+              }
+            ]
+          },
+          {
+            "aliasColors": {},
+            "bars": true,
+
+            "editable": true,
+            "error": false,
+            "fill": 1,
+            "grid": {
+              "threshold1": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2": null,
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "id": 58901,
+            "interval": "$inter",
+            "legend": {
+              "alignAsTable": true,
+              "avg": true,
+              "current": true,
+              "max": true,
+              "min": true,
+              "rightSide": true,
+              "show": true,
+              "total": false,
+              "values": true
+            },
+            "lines": false,
+            "linewidth": 1,
+            "links": [],
+            "minSpan": 6,
+            "nullPointMode": "connected",
+            "percentage": false,
+            "pointradius": 5,
+            "points": false,
+            "renderer": "flot",
+            "seriesOverrides": [],
+            "span": 12,
+            "stack": false,
+            "steppedLine": false,
+            "targets": [
+              {
+                "alias": "$server: $tag_interface: $col",
+                "dsType": "influxdb",
+                "function": "derivative",
+                "groupBy": [
+                  {
+                    "interval": "auto",
+                    "params": [
+                      "auto"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "key": "host",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "interface",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  }
+                ],
+                "measurement": "net_bytes_recv",
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(mean(drop_in), 1s) as \"in\" FROM \"net\" WHERE \"host\" =~ /$server$/ AND \"job_reference\" =~ /$job_reference/ AND interface =~ /(vlan|vxlan|eth|ens|p|bond|br).*/ AND $timeFilter GROUP BY time($interval), host,interface fill(none)",
+                "rawQuery": true,
+                "refId": "A",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              },
+              {
+                "alias": "$server: $tag_interface: $col",
+                "dsType": "influxdb",
+                "function": "derivative",
+                "groupBy": [
+                  {
+                    "interval": "auto",
+                    "params": [
+                      "auto"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "key": "host",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "interface",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  }
+                ],
+                "measurement": "net_bytes_recv",
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(mean(drop_out), 1s) as \"out\" FROM \"net\" WHERE \"host\" =~ /$server$/ AND \"job_reference\" =~ /$job_reference/ AND interface =~ /(vlan|vxlan|eth|ens|p|bond|br).*/ AND $timeFilter GROUP BY time($interval), host,interface fill(none)",
+                "rawQuery": true,
+                "refId": "B",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              }
+            ],
+            "timeFrom": null,
+            "timeShift": null,
+            "title": "Packets Drop",
+            "tooltip": {
+              "msResolution": false,
+              "shared": true,
+              "sort": 0,
+              "value_type": "individual"
+            },
+            "type": "graph",
+            "xaxis": {
+              "show": true
+            },
+            "yaxes": [
+              {
+                "format": "short",
+                "label": "Packets drop",
+                "logBase": 1,
+                "max": null,
+                "min": 0,
+                "show": true
+              },
+              {
+                "format": "short",
+                "logBase": 1,
+                "max": null,
+                "min": null,
+                "show": true
+              }
+            ]
+          },
+          {
+            "aliasColors": {},
+            "bars": true,
+
+            "editable": true,
+            "error": false,
+            "fill": 1,
+            "grid": {
+              "threshold1": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2": null,
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "id": 50643,
+            "interval": "$inter",
+            "legend": {
+              "alignAsTable": true,
+              "avg": true,
+              "current": true,
+              "max": true,
+              "min": true,
+              "rightSide": true,
+              "show": true,
+              "total": false,
+              "values": true
+            },
+            "lines": false,
+            "linewidth": 2,
+            "links": [],
+            "minSpan": 6,
+            "nullPointMode": "connected",
+            "percentage": false,
+            "pointradius": 5,
+            "points": false,
+            "renderer": "flot",
+            "seriesOverrides": [],
+            "span": 12,
+            "stack": false,
+            "steppedLine": false,
+            "targets": [
+              {
+                "alias": "$server: $tag_interface: $col",
+                "dsType": "influxdb",
+                "function": "derivative",
+                "groupBy": [
+                  {
+                    "interval": "auto",
+                    "params": [
+                      "auto"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "key": "host",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "interface",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  }
+                ],
+                "measurement": "net_bytes_recv",
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(mean(err_in), 1s) as \"in\" FROM \"net\" WHERE \"host\" =~ /$server$/ AND \"job_reference\" =~ /$job_reference/ AND interface =~ /(vlan|vxlan|eth|ens|p|bond|br).*/ AND $timeFilter GROUP BY time($interval), host,interface fill(none)",
+                "rawQuery": true,
+                "refId": "A",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              },
+              {
+                "alias": "$server: $tag_interface: $col",
+                "dsType": "influxdb",
+                "function": "derivative",
+                "groupBy": [
+                  {
+                    "interval": "auto",
+                    "params": [
+                      "auto"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "key": "host",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "interface",
+                    "params": [
+                      "tag"
+                    ],
+                    "type": "tag"
+                  }
+                ],
+                "measurement": "net_bytes_recv",
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(mean(err_out), 1s) as \"out\" FROM \"net\" WHERE \"host\" =~ /$server$/ AND \"job_reference\" =~ /$job_reference/ AND interface =~ /(vlan|vxlan|eth|ens|p|bond|br).*/ AND $timeFilter GROUP BY time($interval), host,interface fill(none)",
+                "rawQuery": true,
+                "refId": "B",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              }
+            ],
+            "timeFrom": null,
+            "timeShift": null,
+            "title": "Packets Error",
+            "tooltip": {
+              "msResolution": false,
+              "shared": true,
+              "sort": 0,
+              "value_type": "cumulative"
+            },
+            "type": "graph",
+            "xaxis": {
+              "show": true
+            },
+            "yaxes": [
+              {
+                "format": "short",
+                "label": "Packets drop",
+                "logBase": 1,
+                "max": null,
+                "min": 0,
+                "show": true
+              },
+              {
+                "format": "short",
+                "logBase": 1,
+                "max": null,
+                "min": null,
+                "show": true
+              }
+            ]
+          }
+        ],
+        "showTitle": true,
+        "title": "Network"
+      }
+    ],
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": [
+        "15s",
+        "1m",
+        "15m",
+        "1h"
+      ],
+      "time_options": [
+        "5m",
+        "15m",
+        "1h",
+        "6h",
+        "12h",
+        "24h",
+        "2d",
+        "7d",
+        "30d"
+      ]
+    },
+    "templating": {
+      "enable": true,
+      "list": [
+        {
+          "current": {},
+          "hide": 0,
+          "includeAll": false,
+          "label": "Job Reference",
+          "multi": true,
+          "name": "job_reference",
+          "options": [],
+          "query": "SHOW TAG VALUES FROM system WITH KEY=job_reference",
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        },
+        {
+          "current": {},
+          "hide": 0,
+          "includeAll": false,
+          "label": "Server",
+          "multi": true,
+          "name": "server",
+          "options": [],
+          "query": "SHOW TAG VALUES FROM system WITH KEY=host",
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        },
+        {
+          "auto": true,
+          "auto_count": 100,
+          "auto_min": "30s",
+          "current": {
+            "selected": true,
+            "text": "auto",
+            "value": "$__auto_interval"
+          },
+
+          "hide": 0,
+          "includeAll": false,
+          "label": "Interval",
+          "multi": false,
+          "name": "inter",
+          "options": [
+            {
+              "selected": true,
+              "text": "auto",
+              "value": "$__auto_interval"
+            },
+            {
+              "selected": false,
+              "text": "30s",
+              "value": "30s"
+            },
+            {
+              "selected": false,
+              "text": "1m",
+              "value": "1m"
+            },
+            {
+              "selected": false,
+              "text": "2m",
+              "value": "2m"
+            },
+            {
+              "selected": false,
+              "text": "5m",
+              "value": "5m"
+            },
+            {
+              "selected": false,
+              "text": "10m",
+              "value": "10m"
+            },
+            {
+              "selected": false,
+              "text": "30m",
+              "value": "30m"
+            },
+            {
+              "selected": false,
+              "text": "1h",
+              "value": "1h"
+            }
+          ],
+          "query": "30s,1m,2m,5m,10m,30m,1h",
+          "refresh": 0,
+          "type": "interval"
+        }
+      ]
+    },
+    "annotations": {
+      "list": []
+    },
+    "schemaVersion": 12,
+    "version": 38,
+    "links": [],
+    "gnetId": 61
+  }
+}

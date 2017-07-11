@@ -29,17 +29,17 @@
 {%   set all_influx_targets = influx_telegraf_targets | union(influx_targets) %}
 
 [[outputs.influxdb]]
-{% if all_influx_targets | length > 1 %}
-  urls = [{{ all_influx_targets | map('quote') | join(', ') }}]
-{% else %}
+{% if all_influx_targets | length == 1 %}
   urls = ["{{ all_influx_targets[0] }}"]
+{% elif all_influx_targets | length > 0 %}
+  urls = [{{ all_influx_targets | map('quote') | join(', ') }}]
 {% endif %}
   database = "{{ influxdb_db_name }}"
   precision = "s"
   write_consistency = "any"
   timeout = "30s"
 
-{% if telegraf_outputs_prometheus_client is defined %}
+{% if telegraf_outputs_prometheus_client | bool %}
 [[outputs.prometheus_client]]
   listen = ":{{ telegraf_outputs_prometheus_client_listen }}"
   expiration_interval = "{{ telegraf_outputs_prometheus_client_expiration_interval }}s"

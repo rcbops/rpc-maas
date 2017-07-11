@@ -268,22 +268,9 @@ You can also pin the influx_hosts to an existing host group by adding an
 environment file (``env.d``). In the following example *influx_hosts* is
 being linked to the *log_hosts* group within OpenStack-Ansible.
 
-.. code-block:: yaml
-
-    component_skel:
-      influx:
-        belongs_to:
-          - influx_all
-          - influx_hosts
-
-    container_skel:
-      influx_container:
-        belongs_to:
-          - log_containers
-        contains:
-          - influx
-        properties:
-          is_metal: true
+.. literalinclude:: ../../tests/rpcm_influx_hosts.yml.env
+   :language: yaml
+   :start-after: under the License.
 
 
 Collecting metrics for time series analysis

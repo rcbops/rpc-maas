@@ -43,6 +43,19 @@
   hosts: "hosts:all_containers"
   gather_facts: true
   pre_tasks:
+    - name: Check init system
+      command: cat /proc/1/comm
+      changed_when: false
+      register: _pid1_name
+      tags:
+        - always
+
+    - name: Set the name of pid1
+      set_fact:
+        pid1_name: "{{ _pid1_name.stdout }}"
+      tags:
+        - always
+
     - name: Gather variables for each operating system
       include_vars: "{{ item }}"
       with_first_found:
@@ -77,11 +90,14 @@
         state: "latest"
       with_items: "{{ maas_telegraf_distro_packages }}"
 
-    - name: Create telegraf plugin dir
+    - name: Create telegraf plugin dir(s)
       file:
-        path: "/opt/telegraf"
+        path: "{{ item }}"
         state: directory
         mode: "0755"
+      with_items:
+        - /etc/systemd/system/telegraf.service.d
+        - /opt/telegraf
 
     - name: Return Commands for metric
       command: "{{ maas_plugin_dir }}/maas_telegraf_format.py"
@@ -108,6 +124,21 @@
           USER="root"
           GROUP="root"
         dest: /etc/default/telegraf
+
+    - name: Set telegraf defaults systemd
+      copy:
+        content: |
+          [Service]
+          User=root
+        dest: /etc/systemd/system/telegraf.service.d/telegraf.conf
+      when:
+        - pid1_name == "systemd"
+
+    - name: Reload systemd daemon
+      command: "systemctl daemon-reload"
+      changed_when: false
+      when:
+        - pid1_name == "systemd"
 
     - name: Enable and restart telegraf
       service:
