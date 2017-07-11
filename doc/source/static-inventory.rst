@@ -426,3 +426,18 @@ section.
     swift_proxy
     swift_cont
     swift_obj
+
+
+influx_hosts
+~~~~~~~~~~~~
+
+If you have node(s) running ``influx``, add the node(s) into the "influx_hosts"
+section.
+
+.. code-block:: ini
+
+    [influx_hosts]
+    influx1
+
+    [influx_all:children]
+    influx_hosts

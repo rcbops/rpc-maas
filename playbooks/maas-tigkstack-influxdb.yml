@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Deploy influxdb
-  hosts: log_hosts
+  hosts: influx_hosts
   gather_facts: true
   pre_tasks:
     - name: Gather variables for each operating system
@@ -24,6 +24,7 @@
             - "vars/maas-{{ ansible_distribution | lower }}.yml"
             - "vars/maas-{{ ansible_os_family | lower }}.yml"
           skip: true
+
   tasks:
     - name: Check init system
       command: cat /proc/1/comm
