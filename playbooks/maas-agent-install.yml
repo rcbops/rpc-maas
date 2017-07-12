@@ -63,6 +63,39 @@
         group: root
         owner: root
 
+    - name: Check for pip
+      command: pip --version
+      failed_when: false
+      changed_when:
+        - pip_present.rc != 0
+      register: pip_present
+
+    - name: Get Modern PIP
+      get_url:
+        url: "{{ maas_pip_upstream_url }}"
+        dest: "/opt/get-pip.py"
+        force: true
+        validate_certs: "{{ maas_pip_validate_certs }}"
+      register: get_pip
+      until: get_pip | success
+      retries: 5
+      delay: 2
+      when:
+        - pip_present.rc != 0
+
+    - name: Install Modern PIP
+      command: >
+        python /opt/get-pip.py {{ maas_pip_source_install_options }}
+                               {{ maas_pip_get_pip_options }}
+                               {{ maas_pip_packages | map('quote') | join (' ') }}
+      changed_when: pip_install.stdout.find('Successfully installed') != -1
+      register: pip_install
+      until: pip_install | success
+      retries: 3
+      delay: 2
+      when:
+        - pip_present.rc != 0
+
     - name: Install requires pip packages
       pip:
         name: "{{ maas_requires_pip_packages | join(' ') }}"
