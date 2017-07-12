@@ -63,9 +63,12 @@ def check(auth_ref, args):
             exc.HTTPError,
             exc.Timeout) as e:
         is_up = False
+        metric_bool('client_success', False, m_name='maas_cinder')
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_cinder')
+        status_err(str(e), m_name='maas_cinder')
     else:
+        metric_bool('client_success', True, m_name='maas_cinder')
         # gather some metrics
         vol_statuses = [v['status'] for v in vol.json()['volumes']]
         vol_status_count = collections.Counter(vol_statuses)
@@ -75,8 +78,8 @@ def check(auth_ref, args):
         snap_status_count = collections.Counter(snap_statuses)
         total_snaps = len(snap.json()['snapshots'])
 
-    status_ok()
-    metric_bool('cinder_api_local_status', is_up)
+    status_ok(m_name='maas_cinder')
+    metric_bool('cinder_api_local_status', is_up, m_name='maas_cinder')
     # only want to send other metrics if api is up
     if is_up:
         metric('cinder_api_local_response_time',

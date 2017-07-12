@@ -44,10 +44,13 @@ def check(args, auth_details):
         is_up = True
     except (exc.HttpServerError, exc.ClientException):
         is_up = False
+        metric_bool('client_success', False, m_name='maas_keystone')
     # Any other exception presumably isn't an API error
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_keystone')
+        status_err(str(e), m_name='maas_keystone')
     else:
+        metric_bool('client_success', True, m_name='maas_keystone')
         # time something arbitrary
         start = time.time()
         keystone.services.list()
@@ -62,8 +65,8 @@ def check(args, auth_details):
             project_count = len(keystone.projects.list())
             user_count = len(keystone.users.list(domain='Default'))
 
-    status_ok()
-    metric_bool('keystone_api_local_status', is_up)
+    status_ok(m_name='maas_keystone')
+    metric_bool('keystone_api_local_status', is_up, m_name='maas_keystone')
     # only want to send other metrics if api is up
     if is_up:
         metric('keystone_api_local_response_time',

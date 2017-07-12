@@ -38,14 +38,17 @@ def check(auth_ref, args):
         api_is_up = True
     except exc.HttpError as e:
         api_is_up = False
+        metric_bool('client_success', False, m_name='maas_magnum')
     # Any other exception presumably isn't an API error
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_magnum')
+        status_err(str(e), m_name='maas_magnum')
     else:
+        metric_bool('client_success', True, m_name='maas_magnum')
         services = magnum.mservices.list()
 
-    status_ok()
-    metric_bool('magnum_api_local_status', api_is_up)
+    status_ok(m_name='maas_magnum')
+    metric_bool('magnum_api_local_status', api_is_up, m_name='maas_magnum')
     if api_is_up:
         for service in services:
             metric_bool('_'.join([service.binary, 'status']),

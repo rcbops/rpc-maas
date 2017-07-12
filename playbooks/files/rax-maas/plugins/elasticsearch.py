@@ -72,7 +72,8 @@ def most_recent_index():
     indices = find_indices()
 
     if not indices:
-        status_err('There are no elasticsearch indices to search')
+        status_err('There are no elasticsearch indices to search',
+                   m_name='maas_elasticsearch')
 
     return indices[-1]
 
@@ -89,7 +90,7 @@ def get_json(url, data):
     try:
         r = requests.get(url, data=data)
     except exceptions as e:
-        status_err(str(e))
+        status_err(str(e), m_name='maas_elasticsearch')
 
     return r.json()
 
@@ -133,7 +134,7 @@ def main():
     num_errors = get_number_of('ERROR', latest)
     num_warnings = get_number_of('WARN*', latest)
 
-    status_ok()
+    status_ok(m_name='maas_galera')
     metric('NUMBER_OF_LOG_ERRORS', 'uint32', num_errors)
     metric('NUMBER_OF_LOG_WARNINGS', 'uint32', num_warnings)
 

@@ -83,7 +83,8 @@ def recon_output(for_ring, options=None):
         containers_list = subprocess.check_output(get_container)
         container = containers_list.splitlines()[0]
     except (IndexError, subprocess.CalledProcessError):
-        status_err('no running swift proxy containers found')
+        status_err('no running swift proxy containers found',
+                   m_name='maas_swift')
 
     # kilo didn't have venvs so check if kilo
     if openstack_version == "11.2.17":
@@ -239,7 +240,8 @@ def swift_async():
     else:
         # If we didn't find a non-empty dict, error out
         maas_common.status_err(
-            'No data could be collected about pending async operations'
+            'No data could be collected about pending async operations',
+            m_name='maas_swift'
         )
     return {'async': stats}
 
@@ -314,9 +316,13 @@ def swift_md5():
         # If there was an error checking the md5sum, error out immediately
         if line.startswith('!!'):
             error_dict = error_re.search(line).groupdict()
-            maas_common.status_err('md5 mismatch for {0} on host {1}'.format(
-                checking_dict.get('check'), error_dict['address']
-            ))
+            maas_common.status_err(
+                'md5 mismatch for {0} on host {1}'.format(
+                    checking_dict.get('check'),
+                    error_dict['address']
+                ),
+                m_name='maas_swift'
+            )
         results_match = result_re.match(line)
         if results_match:
             check_name = checking_dict['check'].replace('.', '_')
@@ -442,7 +448,8 @@ def get_stats_from(args):
         stats = swift_quarantine()
     elif args.recon == 'replication':
         if args.ring not in {"account", "container", "object"}:
-            maas_common.status_err('no ring provided to check')
+            maas_common.status_err('no ring provided to check',
+                                   m_name='maas_swift')
         stats = swift_replication(args.ring)
     elif args.recon == 'time':
         stats = swift_time()
@@ -458,10 +465,10 @@ def main():
     try:
         stats = get_stats_from(args)
     except (ParseError, CommandNotRecognized) as e:
-        maas_common.status_err(str(e))
+        maas_common.status_err(str(e), m_name='maas_swift')
 
     if stats:
-        maas_common.status_ok()
+        maas_common.status_ok(m_name='maas_swift')
         print_nested_stats(stats)
 
 

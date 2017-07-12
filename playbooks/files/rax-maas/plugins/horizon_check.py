@@ -58,11 +58,14 @@ def check(args):
             exc.HTTPError,
             exc.Timeout) as e:
         is_up = False
+        metric_bool('client_success', False, m_name='maas_horizon')
     else:
         if not (r.ok and
                 re.search(args.site_name_regexp, r.content, re.IGNORECASE)):
-            status_err('could not load login page')
-
+            metric_bool('client_success', False, m_name='maas_horizon')
+            status_err('could not load login page', m_name='maas_horizon')
+        else:
+            metric_bool('client_success', True, m_name='maas_horizon')
         splash_status_code = r.status_code
         splash_milliseconds = r.elapsed.total_seconds() * 1000
 
@@ -89,16 +92,16 @@ def check(args):
         except (exc.ConnectionError,
                 exc.HTTPError,
                 exc.Timeout) as e:
-            status_err('While logging in: %s' % e)
+            status_err('While logging in: %s' % e, m_name='maas_horizon')
 
         if not (l.ok and re.search('overview', l.content, re.IGNORECASE)):
-            status_err('could not log in')
+            status_err('could not log in', m_name='maas_horizon')
 
         login_status_code = l.status_code
         login_milliseconds = l.elapsed.total_seconds() * 1000
 
-    status_ok()
-    metric_bool('horizon_local_status', is_up)
+    status_ok(m_name='maas_horizon')
+    metric_bool('horizon_local_status', is_up, m_name='maas_horizon')
 
     if is_up:
         metric('splash_status_code', 'uint32', splash_status_code, 'http_code')

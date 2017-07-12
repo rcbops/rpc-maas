@@ -81,10 +81,11 @@ def check_process_running(process_names):
 
     if not procs:
         # Unable to get a list of process names for the container or host.
-        status_err('Could not get a list of running processes')
+        status_err('Could not get a list of running processes',
+                   m_name='maas_process')
 
     # Since we've fetched a process list, report status_ok.
-    status_ok()
+    status_ok(m_name='maas_process')
 
     # Make a list of command lines from each PID. There's a chance that one or
     # more PIDs may have exited already and this causes a NoSuchProcess
@@ -106,14 +107,15 @@ def check_process_running(process_names):
     # they exist on the system.
     for process_name in process_names:
         matches = [x for x in cmdlines if process_name in x]
-        metric_bool('%s_process_status' % process_name, len(matches) > 0)
+        metric_bool('%s_process_status' % process_name, len(matches) > 0,
+                    m_name='maas_host')
 
 
 def main(args):
     """Main function."""
     if not args.processes:
         # The command line does not have any process names specified
-        status_err('No executable names supplied')
+        status_err('No executable names supplied', m_name='maas_process')
 
     check_process_running(process_names=args.processes)
 

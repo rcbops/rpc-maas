@@ -19,6 +19,7 @@ import shlex
 import subprocess
 
 from maas_common import metric
+from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
@@ -75,7 +76,7 @@ def parse_args():
 
 
 def print_metrics(replica_status):
-    status_ok()
+    status_ok(m_name='maas_galera')
     metric('wsrep_replicated_bytes', 'int64',
            replica_status['wsrep_replicated_bytes'], 'bytes')
     metric('wsrep_received_bytes', 'int64',
@@ -124,21 +125,27 @@ def main():
         )
 
         if retcode > 0:
-            status_err(err)
+            metric_bool('client_success', False, m_name='maas_galera')
+            status_err(err, m_name='maas_galera')
 
         if not output:
-            status_err('No output received from mysql. Cannot gather metrics.')
+            metric_bool('client_success', False, m_name='maas_galera')
+            status_err('No output received from mysql. Cannot gather metrics.',
+                       m_name='maas_galera')
 
         show_list = output.split('\n')[1:-1]
         for i in show_list:
             replica_status[i.split('\t')[0]] = i.split('\t')[1]
 
     if replica_status['wsrep_cluster_status'] != "Primary":
-        status_err("there is a partition in the cluster")
+        metric_bool('client_success', False, m_name='maas_galera')
+        status_err("there is a partition in the cluster",
+                   m_name='maas_galera')
 
     if (replica_status['wsrep_local_state_uuid'] !=
             replica_status['wsrep_cluster_state_uuid']):
-        status_err("the local node is out of sync")
+        metric_bool('client_success', False, m_name='maas_galera')
+        status_err("the local node is out of sync", m_name='maas_galera')
 
     if (int(replica_status['wsrep_local_state']) == 4 and
             replica_status['wsrep_local_state_comment'] == "Synced"):

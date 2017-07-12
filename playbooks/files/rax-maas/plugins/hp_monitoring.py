@@ -79,9 +79,9 @@ def main():
     status['hardware_controller_battery_status'] = \
         get_controller_battery_status()
 
-    maas_common.status_ok()
+    maas_common.status_ok(m_name='maas_hwvendor')
     for name, value in status.viewitems():
-        maas_common.metric_bool(name, value)
+        maas_common.metric_bool(name, value, m_name='maas_hwvendor')
 
 
 if __name__ == '__main__':

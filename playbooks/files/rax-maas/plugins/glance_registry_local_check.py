@@ -47,11 +47,14 @@ def check(auth_ref, args):
         is_up = r.ok
     except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
+        metric_bool('client_success', False, m_name='maas_glance')
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_glance')
+        status_err(str(e), m_name='maas_glance')
 
-    status_ok()
-    metric_bool('glance_registry_local_status', is_up)
+    status_ok(m_name='maas_glance')
+    metric_bool('client_success', True, m_name='maas_glance')
+    metric_bool('glance_registry_local_status', is_up, m_name='maas_glance')
     # only want to send other metrics if api is up
     if is_up:
         milliseconds = r.elapsed.total_seconds() * 1000

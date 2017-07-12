@@ -47,7 +47,7 @@ def parse_args():
 
 
 def print_metrics(sizes, vgname):
-    status_ok()
+    status_ok(m_name='maas_cinder')
     metric('%s_vg_total_space' % vgname, 'int64',
            sizes['totalsize'], 'Megabytes')
     metric('%s_vg_free_space' % vgname, 'int64',
@@ -63,11 +63,12 @@ def main():
     retcode, output, err = run_command(command)
 
     if retcode > 0:
-        status_err(err)
+        status_err(err, m_name='maas_cinder')
 
     if not output:
         status_err('No output received from vgs command. '
-                   'Cannot gather metrics.')
+                   'Cannot gather metrics.',
+                   m_name='maas_cinder')
 
     totalsize, free = [int(float(x)) for x in output.split()]
     used = totalsize - free

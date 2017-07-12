@@ -84,12 +84,16 @@ def main():
     try:
         _container_check = container_check(thresh=args.thresh)
     except Exception as e:
-        status_err(str(e))
-    else:
-        status_ok()
         metric_bool(
             'container_storage_percent_used_critical',
-            _container_check
+            _container_check, m_name='maas_container'
+        )
+        status_err(str(e), m_name='maas_container')
+    else:
+        status_ok(m_name='maas_container')
+        metric_bool(
+            'container_storage_percent_used_critical',
+            _container_check, m_name='maas_container'
         )
 
 

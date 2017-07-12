@@ -166,7 +166,7 @@ def main(args):
     if args.subparser_name == 'mon':
         kwargs['host'] = args.host
     get_statistics[args.subparser_name](**kwargs)
-    maas_common.status_ok()
+    maas_common.status_ok(m_name='maas_ceph')
 
 
 if __name__ == '__main__':
