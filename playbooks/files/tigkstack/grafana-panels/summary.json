@@ -476,7 +476,8 @@
       "enable": true,
       "list": [
         {
-          "current": {},
+          "allValue": null,
+          "datasource": null,
           "hide": 0,
           "includeAll": false,
           "label": "Job Reference",
@@ -486,31 +487,65 @@
           "query": "SHOW TAG VALUES FROM system WITH KEY=job_reference",
           "refresh": 1,
           "regex": "",
-          "type": "query"
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
         },
         {
-          "current": {},
+          "current": {
+            "text": "physical_host",
+            "value": [
+              "physical_host"
+            ]
+          },
+          "allValue": null,
+          "datasource": null,
           "hide": 0,
-          "includeAll": false,
+          "includeAll": true,
+          "label": "Node Type",
+          "multi": true,
+          "name": "node_type",
+          "options": [],
+          "query": "SHOW TAG VALUES FROM system WITH KEY=\"node_type\" WHERE \"job_reference\" =~ /$job_reference/",
+          "refresh": 2,
+          "regex": "",
+          "sort": 1,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        },
+        {
+          "allValue": null,
+          "datasource": null,
+          "hide": 0,
+          "includeAll": true,
           "label": "Server",
           "multi": true,
           "name": "server",
           "options": [],
-          "query": "SHOW TAG VALUES FROM system WITH KEY=host",
+          "query": "SHOW TAG VALUES FROM system WITH KEY=host WHERE \"node_type\" =~ /$node_type$/ ",
           "refresh": 1,
           "regex": "",
-          "type": "query"
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
         },
         {
           "auto": true,
           "auto_count": 100,
           "auto_min": "30s",
           "current": {
-            "selected": true,
             "text": "auto",
             "value": "$__auto_interval"
           },
-
           "hide": 0,
           "includeAll": false,
           "label": "Interval",
@@ -559,7 +594,7 @@
             }
           ],
           "query": "30s,1m,2m,5m,10m,30m,1h",
-          "refresh": 0,
+          "refresh": 2,
           "type": "interval"
         }
       ]
