@@ -38,6 +38,11 @@
       with_items:
         - "localhost"
         - "%"
+  vars_files:
+    - vars/main.yml
+    - vars/maas-tigkstack.yml
+  tags:
+    - maas-tigkstack-grafana
 
 - name: Deploy Grafana
   hosts: influx_hosts
@@ -159,4 +164,4 @@
     - vars/main.yml
     - vars/maas-tigkstack.yml
   tags:
-    - maas-tigkstack-influxdb
+    - maas-tigkstack-grafana

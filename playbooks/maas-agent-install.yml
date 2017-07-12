@@ -87,7 +87,7 @@
       command: >
         python /opt/get-pip.py {{ maas_pip_source_install_options }}
                                {{ maas_pip_get_pip_options }}
-                               {{ maas_pip_packages | map('quote') | join (' ') }}
+                               {{ maas_pip_install_packages | map('quote') | join (' ') }}
       changed_when: pip_install.stdout.find('Successfully installed') != -1
       register: pip_install
       until: pip_install | success
