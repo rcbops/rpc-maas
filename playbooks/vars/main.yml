@@ -199,3 +199,9 @@ maas_keystone_user: maas
 #
 #
 maas_agent_upgrade: true
+
+#
+# maas_raxmon_ssl_verify: Allow enabling or disabling raxmon ssl verification
+#
+#
+maas_raxmon_ssl_verify: true
