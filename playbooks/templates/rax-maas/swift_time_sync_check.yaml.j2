@@ -1,5 +1,5 @@
 {% set label = "swift_time_sync_check" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -10,9 +10,9 @@ details     :
     args    : ["{{ maas_plugin_dir }}/swift-recon.py", "time"]
 alarms      :
     swift_time_sync_check :
-        label                   : swift_time_sync_check--{{ ansible_hostname }}
+        label                   : swift_time_sync_check--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('swift_time_sync_check--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_time_sync_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["time_sync_time_differ"] > 30) {

@@ -313,7 +313,7 @@ where the job reference tag is equal to the string "testing".
 Legacy Ceph monitoring
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Early versions of RPC-O have a specific Ceph deployment that deployed
+Early versions of RPC-O have a specific Ceph deployment style that deployed
 all of the Ceph components in containers in a very RPC-O specific way.
 To monitor these environments the RPC-MaaS checks need to descend into the
 containers and run the various plugins from within the environment which is

@@ -1,5 +1,5 @@
 {% set label = "cpu_check" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 type              : agent.cpu
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"

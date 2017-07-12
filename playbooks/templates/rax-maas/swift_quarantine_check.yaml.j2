@@ -1,5 +1,5 @@
 {% set label = "swift_quarantine_check" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -10,9 +10,9 @@ details     :
     args    : ["{{ maas_plugin_dir }}/swift-recon.py", "quarantine"]
 alarms      :
     swift_quarantine_object_failed :
-        label                   : swift_quarantine_object_failed--{{ ansible_hostname }}
+        label                   : swift_quarantine_object_failed--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('swift_quarantine_object_failed--'+ansible_hostname )| match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_quarantine_object_failed--'+inventory_hostname )| match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["objects_failed"] > {{ maas_swift_object_quarantine_failed_percentage_threshold }}) {
@@ -20,9 +20,9 @@ alarms      :
             }
 
     swift_quarantine_object_avg :
-        label                   : swift_quarantine_object_avg--{{ ansible_hostname }}
+        label                   : swift_quarantine_object_avg--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('swift_quarantine_object_avg--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_quarantine_object_avg--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["objects_avg"] > {{ maas_swift_object_quarantine_average_threshold }}) {
@@ -30,9 +30,9 @@ alarms      :
             }
 
     swift_quarantine_account_failed :
-        label                   : swift_quarantine_account_failed--{{ ansible_hostname }}
+        label                   : swift_quarantine_account_failed--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('swift_quarantine_account_failed--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_quarantine_account_failed--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["accounts_failed"] > {{ maas_swift_account_quarantine_failed_percentage_threshold }}) {
@@ -40,9 +40,9 @@ alarms      :
             }
 
     swift_quarantine_account_avg :
-        label                   : swift_quarantine_account_avg--{{ ansible_hostname }}
+        label                   : swift_quarantine_account_avg--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('swift_quarantine_account_avg--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_quarantine_account_avg--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["accounts_avg"] > {{ maas_swift_account_quarantine_average_threshold }}) {
@@ -50,9 +50,9 @@ alarms      :
             }
 
     swift_quarantine_container_failed :
-        label                   : swift_quarantine_container_failed--{{ ansible_hostname }}
+        label                   : swift_quarantine_container_failed--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('swift_quarantine_container_failed--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_quarantine_container_failed--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["containers_failed"] > {{ maas_swift_container_quarantine_failed_percentage_threshold }}) {
@@ -60,9 +60,9 @@ alarms      :
             }
 
     swift_quarantine_container_avg :
-        label                   : swift_quarantine_container_avg--{{ ansible_hostname }}
+        label                   : swift_quarantine_container_avg--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('swift_quarantine_container_avg--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_quarantine_container_avg--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["containers_avg"] > {{ maas_swift_container_quarantine_average_threshold }}) {

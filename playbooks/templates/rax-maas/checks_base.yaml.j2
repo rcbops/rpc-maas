@@ -1,5 +1,5 @@
 ---
-{% set label_name = item.label+'--'+ansible_hostname %}
+{% set label_name = item.label+'--'+inventory_hostname %}
 label: "{{ label_name }}"
 period: "{{ maas_check_period_override[item.label] | default(maas_check_period) }}"
 timeout: "{{ maas_check_timeout_override[item.label] | default(maas_check_timeout) }}"

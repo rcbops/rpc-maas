@@ -1,5 +1,5 @@
 {% set label = "filebeat_process_check" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -11,12 +11,12 @@ details     :
 alarms      :
 {% for process in filebeat_process_names %}
     {{ process }}_process_status:
-        label                   : {{ process }}_process_status--{{ ansible_hostname }}
+        label                   : {{ process }}_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : "{{ ((process+'_process_status--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}"
+        disabled                : "{{ ((process+'_process_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}"
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["{{ process }}_process_status"] != 1 ) {
-                return new AlarmStatus(CRITICAL, "Filebeat process {{ process }} not running on {{ ansible_hostname }}");
+                return new AlarmStatus(CRITICAL, "Filebeat process {{ process }} not running on {{ inventory_hostname }}");
             }
 {% endfor %}

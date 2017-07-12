@@ -1,5 +1,5 @@
 {% set label = "neutron_l3_agent_check" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -10,9 +10,9 @@ details     :
     args    : ["{{ maas_plugin_dir }}/neutron_service_check.py", "--host", "{{ ansible_nodename }}", "--fqdn", "{{ ansible_fqdn }}", "{{ internal_vip_address }}"]
 alarms      :
     neutron_l3_agent_status :
-        label                   : neutron_l3_agent_status--{{ ansible_hostname }}
+        label                   : neutron_l3_agent_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('neutron_l3_agent_status--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('neutron_l3_agent_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["neutron-l3-agent_status"] != 1) {

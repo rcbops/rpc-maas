@@ -1,5 +1,5 @@
 {% set label = "disk_utilisation" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -11,9 +11,9 @@ details     :
 alarms      :
 {% for device in maas_disk_util_devices %}
     percentage_disk_utilisation_{{ device }}:
-        label                   : percentage_disk_utilisation_{{ device }}--{{ ansible_hostname }}
+        label                   : percentage_disk_utilisation_{{ device }}--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('percentage_disk_utilisation_'+device+'--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('percentage_disk_utilisation_'+device+'--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["disk_utilisation_{{ device }}"] > {{ maas_disk_utilisation_critical_threshold }}) {
