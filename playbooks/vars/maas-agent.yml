@@ -57,7 +57,7 @@ maas_pip_source_install_options: ""
 
 # This list var can be used to specify specific versions of pip, setuptools,
 # wheel and any other packages which must be installed when pip installs.
-maas_pip_packages:
+maas_pip_install_packages:
   - pip
   - setuptools
   - wheel
