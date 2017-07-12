@@ -164,9 +164,6 @@ def main():
 
     # Provide the ability to enable or disable SSL certificate verification
     # with raxmon
-    CA_CERT_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                           'data/cacert.pem')
-    libcloud.security.CA_CERTS_PATH.append(CA_CERT_PATH)
     cfg = ConfigParser.RawConfigParser()
     cfg.read(module.params['raxmon_cfg'])
     verify_ssl = cfg.get('ssl', 'verify')
