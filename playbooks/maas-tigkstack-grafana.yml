@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Deploy Grafana
-  hosts: influx_hosts
+  hosts: galera_all[0]
   gather_facts: true
   pre_tasks:
     - name: Create DB for service
@@ -24,7 +24,6 @@
         login_host: "{{ galera_address|default('127.0.0.1') }}"
         name: "{{ grafana_db_name }}"
         state: "present"
-      delegate_to: "{{ grafana_db_host }}"
 
     - name: Grant access to the DB for the service
       mysql_user:
@@ -36,11 +35,13 @@
         host: "{{ item }}"
         state: "present"
         priv: "{{ grafana_db_name }}.*:ALL"
-      delegate_to: "{{ groups['galera_all'][0] }}"
       with_items:
         - "localhost"
         - "%"
 
+- name: Deploy Grafana
+  hosts: influx_hosts
+  gather_facts: true
   tasks:
     - name: Ensure https repos function
       apt:
@@ -74,6 +75,16 @@
         name: "grafana-server"
         enabled: true
         state: "{{ (grafana_config | changed) | ternary('restarted', 'started') }}"
+
+    - name: Create grafana db dir
+      file:
+        path: "/var/lib/grafana/db"
+        user: grafana
+        owner: grafana
+        state: directory
+        mode: "0755"
+      when:
+        - groups['galera_all'] | default([]) | length > 0
 
   post_tasks:
     - name: Check for the RPC-MaaS InfluxDB connection

@@ -148,6 +148,8 @@ maas_restart_independent: false
 
 # Set the default notification plan, in the gate this is set here
 maas_notification_plan: npTechnicalContactsEmail
+
+maas_entity_name: "{{ ansible_hostname }}{{ maas_fqdn_extension }}"
 EOF
 }
 

@@ -59,7 +59,7 @@ maas_fqdn_extension: ""
 # The entity name is the inventory hostname and fqdn extension combined.
 #
 # Set the hostname for use with the api checks
-maas_entity_name: "{{ ansible_hostname }}{{ maas_fqdn_extension }}"
+maas_entity_name: "{{ inventory_hostname }}{{ maas_fqdn_extension }}"
 
 #
 # Plugin directory when all agent plugins will be installed.
