@@ -70,6 +70,30 @@ grafana_status_panel_options:
       min: null
       show: false
 
+grafana_single_status_panel_options:
+  type: singlestat
+  span: 6
+  maxDataPoints: 100
+  format: "percent"
+  sparkline:
+    show: false
+  thresholds: "30,70"
+  colors:
+    - "rgba(220, 0, 0, 0.9)"
+    - "rgba(201, 209, 0, 0.89)"
+    - "rgba(7, 166, 0, 0.97)"
+  gauge:
+    show: true
+    minValue: 0
+    maxValue: 100
+    thresholdMarkers: true
+    thresholdLabels: true
+  height: "350px"
+  prefixFontSize: "50%"
+  valueFontSize: "50%"
+  postfixFontSize: "50%"
+  colorValue: true
+
 grafana_time_panel_options:
   yaxes:
     - format: "dtdurationms"
@@ -136,7 +160,7 @@ grafana_panels:
       measurement: cinder backup status
       panel_options: "{{ grafana_status_panel_options }}"
     - queries:
-        - 'SELECT "cinder-volume-lvm_status" FROM "cinder_volume_lvm_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
+        - 'SELECT "cinder-volume-lvm_status" FROM "cinder_error_snaps" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: cinder volume-lvm_ status
       panel_options: "{{ grafana_status_panel_options }}"
     - queries:
@@ -145,6 +169,23 @@ grafana_panels:
         - 'SELECT "cinder-volumes_vg_used_space" FROM "cinder_volumes_vg_used" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: cinder volume-lvm_ status
       panel_options: {}
+  "cinder availability":
+    - queries:
+        - 'SELECT mean("cinder-volume-lvm_status") * 100 FROM "cinder_volume_lvm_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: cinder lvm availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("cinder-backup_status") * 100 FROM "cinder_volume_lvm_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: cinder backup availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("cinder-scheduler_status") * 100 FROM "cinder_scheduler_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: cinder lvm availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("cinder_api_local_status") * 100 FROM "cinder_scheduler_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: cinder lvm availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
   galera:
     - queries:
         - 'SELECT "aborted_clients" FROM "aborted_connects" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
@@ -198,6 +239,15 @@ grafana_panels:
         - 'SELECT "glance_active_images", "glance_killed_images", "glance_queued_images"  FROM "glance_killed_images" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: glance images
       panel_options: {}
+  "glance availability":
+    - queries:
+        - 'SELECT mean("glance_api_local_status") * 100 FROM "glance_killed_images" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: glance api availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("glance_registry_local_status") * 100 FROM "glance_registry_local" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: glance api availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
   heat:
     - queries:
         - 'SELECT "heat_api_local_response_time"  FROM "heat_api_local" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
@@ -217,6 +267,19 @@ grafana_panels:
         - 'SELECT "heat_cw_api_local_status"  FROM "heat_cw_api" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: heat cw api status
       panel_options: "{{ grafana_status_panel_options }}"
+  "heat availability":
+    - queries:
+        - 'SELECT mean("heat_api_local_status") * 100 FROM "heat_api_local" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: heat api availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("heat_cfn_api_local_status") * 100 FROM "heat_cfn_api" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: heat cfn api availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("heat_cw_api_local_status") * 100 FROM "heat_cw_api" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: heat cw api availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
   neutron:
     - queries:
         - 'SELECT "neutron_api_local_response_time"  FROM "neutron_subnets" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
@@ -258,6 +321,35 @@ grafana_panels:
         - 'SELECT "neutron_networks", "neutron_routers", "neutron_subnets" FROM "neutron_subnets" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: neutron networks, routers, subnets
       panel_options: {}
+  "neutron availability":
+    - queries:
+        - 'SELECT mean("neutron-dhcp-agent_status") * 100 FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: neutron dhcp agent availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("neutron-l3-agent_status") * 100 FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: neutron l3 agent availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("neutron-lbaasv2-agent_status") * 100 FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: neutron lbaasv2 agent availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("neutron-linuxbridge-agent_status") * 100 FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: neutron linuxbridge agent availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("neutron-metadata-agent_status") * 100 FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter  GROUP BY time($__interval) fill(null)'
+      measurement: neutron metadata agent availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("neutron-metering-agent_status") * 100 FROM "neutron_linuxbridge_agent_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter  GROUP BY time($__interval) fill(null)'
+      measurement: neutron metering agent availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("neutron_api_local_status") * 100 FROM "neutron_subnets" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: neutron api availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
   nova:
     - queries:
         - 'SELECT "nova_api_metadata_local_response_time"  FROM "nova_api_metadata" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
@@ -296,11 +388,45 @@ grafana_panels:
         - 'SELECT "nova-scheduler_status" FROM "nova_scheduler_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: nova novnc status
       panel_options: "{{ grafana_status_panel_options }}"
+  "nova availability":
+    - queries:
+        - 'SELECT mean("nova-scheduler_status") * 100 FROM "nova_scheduler_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: nova scheduler availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("nova_novnc_api_local_status") * 100 FROM "nova_novnc_api" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: nova novnc availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("nova_api_metadata_local_status") * 100 FROM "nova_api_metadata" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: nova api metadata status
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("nova-compute_status") * 100 FROM "nova_compute_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: nova compute status
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("nova-conductor_status") * 100 FROM "nova_conductor_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: nova conductor status
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("nova-consoleauth_status") * 100 FROM "nova_consoleauth_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: nova consoleauth status
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("nova_api_local_status") * 100 FROM "nova_instances_in" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: nova api status
+      panel_options: "{{ grafana_single_status_panel_options }}"
   rsyslog:
     - queries:
         - 'SELECT "rsyslogd_process_status" FROM "rsyslogd_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: rsyslog status
       panel_options: "{{ grafana_status_panel_options }}"
+  "rsyslog availability":
+    - queries:
+        - 'SELECT mean("rsyslogd_process_status") * 100 FROM "rsyslogd_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: rsyslog availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
   rabbitmq:
     - queries:
         - 'SELECT "rabbitmq_fd_total", "rabbitmq_fd_used" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
@@ -340,6 +466,11 @@ grafana_panels:
         - 'SELECT "rabbitmq_sockets_used" FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: rabbitmq sockets
       panel_options: {}
+  "rabbitmq availability":
+    - queries:
+        - 'SELECT mean("rabbitmq_mem_alarm_status") * 100 FROM "rabbitmq_messages_ready" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: rabbitmq availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
   swift:
     - queries:
         - 'SELECT "swift_proxy_server_api_local_response_time" FROM "swift_proxy_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
@@ -365,10 +496,6 @@ grafana_panels:
       measurement: proxy service status
       panel_options: "{{ grafana_status_panel_options }}"
     - queries:
-        - 'SELECT "swift-object-auditor_process_status", "swift-object-expirer_process_status", "swift-object-replicator_process_status", "swift-object-server_process_status", "swift-object-updater_process_status" FROM "swift_object_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
-      measurement: swift object process status
-      panel_options: "{{ grafana_status_panel_options }}"
-    - queries:
         - 'SELECT "swift-container-auditor_process_status", "swift-container-replicator_process_status", "swift-container-server_process_status", "swift-container-updater_process_status" FROM "swift_container_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: swift container process status
       panel_options: "{{ grafana_status_panel_options }}"
@@ -376,6 +503,43 @@ grafana_panels:
         - 'SELECT "swift-account-auditor_process_status", "swift-account-reaper_process_status", "swift-account-replicator_process_status", "swift-account-server_process_status" FROM "swift_account_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter'
       measurement: swift account process status
       panel_options: "{{ grafana_status_panel_options }}"
+  "swift availability":
+    - queries:
+        - 'SELECT mean("swift_proxy_server_api_local_status") * 100 FROM "swift_proxy_server" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: swift proxy availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("swift-account-auditor_process_status") * 100 FROM "swift_account_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: swift account process availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("swift-account-reaper_process_status") * 100 FROM "swift_account_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: swift account reaper process availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("swift-account-replicator_process_status") * 100 FROM "swift_account_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: swift account replicator process availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("swift-account-server_process_status") * 100 FROM "swift_account_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: swift account server process availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("swift-container-auditor_process_status") * 100 FROM "swift_container_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: swift container auditor process availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("swift-container-replicator_process_status") * 100 FROM "swift_container_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: swift container replicator process availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("swift-container-server_process_status") * 100 FROM "swift_container_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: swift container server process availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
+    - queries:
+        - 'SELECT mean("swift-container-updater_process_status") * 100 FROM "swift_container_auditor_process_status" WHERE "host" =~ /$server$/ AND "job_reference" =~ /$job_reference/ AND $timeFilter GROUP BY time($__interval) fill(null)'
+      measurement: swift container updater process availability
+      panel_options: "{{ grafana_single_status_panel_options }}"
 
 grafana_target:
   alias: '$server: $col'
@@ -429,7 +593,6 @@ grafana_panel_skel:
   stack: false
   steppedLine: false
   targets: []
-  thresholds: []
   timeFrom: null
   timeShift: null
   title: "Basic Panel"
@@ -438,22 +601,3 @@ grafana_panel_skel:
     sort: 0
     value_type: individual
   type: graph
-  xaxis:
-    buckets: null
-    mode: time
-    name: null
-    show: true
-    values: []
-  yaxes:
-    - format: short
-      label: null
-      logBase: 1
-      max: null
-      min: null
-      show: true
-    - format: short
-      label: null
-      logBase: 1
-      max: null
-      min: null
-      show: true
