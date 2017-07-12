@@ -23,6 +23,8 @@ maas_repos:
 
 maas_distro_packages:
   - git
+  - libffi-dev
+  - libssl-dev
   - rackspace-monitoring-agent
 
 maas_galera_distro_packages:
