@@ -58,7 +58,8 @@ try:
 
 except ImportError:
     def get_cinder_client(*args, **kwargs):
-        status_err('Cannot import cinderclient')
+        metric_bool('client_success', False, m_name='maas_cinder')
+        status_err('Cannot import cinderclient', m_name='maas_cinder')
 else:
 
     def get_cinder_client(previous_tries=0):
@@ -88,7 +89,8 @@ else:
         except (c_exc.Unauthorized, c_exc.AuthorizationFailure) as e:
             cinder = get_cinder_client(previous_tries + 1)
         except Exception as e:
-            status_err(str(e))
+            metric_bool('client_success', False, m_name='maas_cinder')
+            status_err(str(e), m_name='maas_cinder')
 
         return cinder
 
@@ -97,7 +99,8 @@ try:
     from glanceclient import exc as g_exc
 except ImportError:
     def get_glance_client(*args, **kwargs):
-        status_err('Cannot import glanceclient')
+        metric_bool('client_success', False, m_name='maas_glance')
+        status_err('Cannot import glanceclient', m_name='maas_glance')
 else:
     def get_glance_client(token=None, endpoint=None, previous_tries=0):
         if previous_tries > 3:
@@ -138,7 +141,8 @@ else:
         except g_exc.HTTPException:
             raise
         except Exception as e:
-            status_err(str(e))
+            metric_bool('client_success', False, m_name='maas_glance')
+            status_err(str(e), m_name='maas_glance')
 
         return glance
 
@@ -147,7 +151,8 @@ try:
     from novaclient.client import exceptions as nova_exc
 except ImportError:
     def get_nova_client(*args, **kwargs):
-        status_err('Cannot import novaclient')
+        metric_bool('client_success', False, m_name='maas_nova')
+        status_err('Cannot import novaclient', m_name='maas_nova')
 else:
     def get_nova_client(auth_token=None, bypass_url=None, previous_tries=0):
         if previous_tries > 3:
@@ -197,7 +202,8 @@ else:
         except nova_exc.ClientException:
             raise
         except Exception as e:
-            status_err(str(e))
+            metric_bool('client_success', False, m_name='maas_nova')
+            status_err(str(e), m_name='maas_nova')
 
         return nova
 
@@ -208,10 +214,12 @@ try:
     from keystoneclient.v3 import client as k3_client
 except ImportError:
     def keystone_auth(*args, **kwargs):
-        status_err('Cannot import keystoneclient')
+        metric_bool('client_success', False, m_name='maas_keystone')
+        status_err('Cannot import keystoneclient', m_name='maas_keystone')
 
     def get_keystone_client(*args, **kwargs):
-        status_err('Cannot import keystoneclient')
+        metric_bool('client_success', False, m_name='maas_keystone')
+        status_err('Cannot import keystoneclient', m_name='maas_keystone')
 else:
     def keystone_auth(auth_details):
         keystone = None
@@ -250,7 +258,8 @@ else:
                     region_name=auth_details['OS_REGION_NAME']
                 )
         except Exception as e:
-            status_err(str(e))
+            metric_bool('client_success', False, m_name='maas_keystone')
+            status_err(str(e), m_name='maas_keystone')
         else:
             if keystone:
                 return keystone.auth_ref
@@ -296,10 +305,12 @@ else:
             keystone = get_keystone_client(auth_ref,
                                            endpoint,
                                            previous_tries + 1)
-        except (k_exc.HttpServerError, k_exc.ClientException):
-            raise
+        except (k_exc.HttpServerError, k_exc.ClientException) as e:
+            metric_bool('client_success', False, m_name='maas_keystone')
+            status_err(str(e), m_name='maas_keystone')
         except Exception as e:
-            status_err(str(e))
+            metric_bool('client_success', False, m_name='maas_keystone')
+            status_err(str(e), m_name='maas_keystone')
 
         return keystone
 
@@ -309,7 +320,8 @@ try:
     from neutronclient.neutron import client as n_client
 except ImportError:
     def get_neutron_client(*args, **kwargs):
-        status_err('Cannot import neutronclient')
+        metric_bool('client_success', False, m_name='maas_neutron')
+        status_err('Cannot import neutronclient', m_name='maas_neutron')
 else:
     def get_neutron_client(token=None, endpoint_url=None, previous_tries=0):
         if previous_tries > 3:
@@ -359,7 +371,8 @@ else:
         except n_exc.NeutronClientException as e:
             raise
         except Exception as e:
-            status_err(str(e))
+            metric_bool('client_success', False, m_name='maas_neutron')
+            status_err(str(e), m_name='maas_neutron')
 
         return neutron
 
@@ -369,7 +382,8 @@ try:
     from heatclient import exc as h_exc
 except ImportError:
     def get_heat_client(*args, **kwargs):
-        status_err('Cannot import heatclient')
+        metric_bool('client_success', False, m_name='maas_heat')
+        status_err('Cannot import heatclient', m_name='maas_heat')
 else:
     def get_heat_client(token=None, endpoint=None, previous_tries=0):
         if previous_tries > 3:
@@ -404,7 +418,8 @@ else:
         except h_exc.HTTPException:
             raise
         except Exception as e:
-            status_err(str(e))
+            metric_bool('client_success', False, m_name='maas_heat')
+            status_err(str(e), m_name='maas_heat')
 
         return heat
 
@@ -414,7 +429,8 @@ try:
     from magnumclient.common.apiclient import exceptions as magnum_exc
 except ImportError:
     def get_magnum_client(*args, **kwargs):
-        status_err('Cannot import magnumclient')
+        metric_bool('client_success', False, m_name='maas_magnum')
+        status_err('Cannot import magnumclient', m_name='maas_magnum')
 else:
     def get_magnum_client(token=None, endpoint=None, previous_tries=0):
         if previous_tries > 3:
@@ -449,7 +465,8 @@ else:
         except magnum_exc.HttpError:
             raise
         except Exception as e:
-            status_err(str(e))
+            metric_bool('client_success', False, m_name='maas_magnum')
+            status_err(str(e), m_name='maas_magnum')
 
         return magnum
 
@@ -511,7 +528,7 @@ def get_auth_from_file():
     except IOError as e:
         if e.errno == errno.ENOENT:
             return None
-        status_err(e)
+        status_err(str(e), m_name='maas_keystone')
 
 
 def get_auth_details(openrc_file=OPENRC):
@@ -532,14 +549,14 @@ def get_auth_details(openrc_file=OPENRC):
                     auth_details[k] = v
     except IOError as e:
         if e.errno != errno.ENOENT:
-            status_err(e)
+            status_err(str(e), m_name='maas_keystone')
         # no openrc file, so we try the environment
         for key in auth_details.keys():
             auth_details[key] = os.environ.get(key)
 
     for key in auth_details.keys():
         if auth_details[key] is None:
-            status_err('%s not set' % key)
+            status_err('%s not set' % key, m_name='maas_keystone')
 
     return auth_details
 
@@ -578,6 +595,28 @@ def force_reauth():
 
 
 STATUS = ''
+METRICS = list()
+TELEGRAF_ENABLED = False
+TELEGRAF_METRICS = {
+    'variables': dict(),
+    'meta': {
+        'rpc_maas': True  # This should use some form of a job number
+    }
+}
+
+
+def _telegraf_metric_name(name=None, m_name=None):
+    global TELEGRAF_METRICS
+    if 'measurement_name' in TELEGRAF_METRICS:
+        return
+    elif m_name:
+        pass
+    elif name and not m_name:
+        m_name = '_'.join(name.split('_')[:3]).replace('-', '_')
+    elif not name and not m_name:
+        raise SystemExit('A name or m_name option must be provided')
+
+    TELEGRAF_METRICS['measurement_name'] = m_name
 
 
 def status(status, message, force_print=False):
@@ -594,7 +633,8 @@ def status(status, message, force_print=False):
         print(STATUS)
 
 
-def status_err(message=None, force_print=False, exception=None):
+def status_err(message=None, force_print=False, exception=None, m_name=None):
+    _telegraf_metric_name(m_name=m_name)
     if exception:
         # a status message cannot exceed 256 characters
         # 'error ' plus up to 250 from the end of the exception
@@ -602,44 +642,39 @@ def status_err(message=None, force_print=False, exception=None):
     status('error', message, force_print=force_print)
     if exception:
         raise exception
-    sys.exit(1)
+    if TELEGRAF_ENABLED:
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 
-def status_ok(message=None, force_print=False):
+def status_ok(message=None, force_print=False, m_name=None):
     status('okay', message, force_print=force_print)
+    _telegraf_metric_name(m_name=m_name)
 
 
-METRICS = list()
-TELEGRAF_METRICS = {
-    'variables': dict(),
-    'meta': {
-        'rpc_maas': True  # This should use some form of a job number
-    }
-}
-
-
-def metric(name, metric_type, value, unit=None):
+def metric(name, metric_type, value, unit=None, m_name=None):
     global METRICS
     global TELEGRAF_METRICS
-    measurement_name = '_'.join(name.split('_')[:3]).replace('-', '_')
-    TELEGRAF_METRICS['measurement_name'] = measurement_name
+    if 'measurement_name' not in TELEGRAF_METRICS:
+        _telegraf_metric_name(name=name, m_name=m_name)
 
     if len(METRICS) > 49:
-        status_err('Maximum of 50 metrics per check')
+        status_err('Maximum of 50 metrics per check', m_name='maas')
 
     metric_line = 'metric %s %s %s' % (name, metric_type, value)
     if unit is not None:
         metric_line = ' '.join((metric_line, unit))
 
     metric_line = metric_line.replace('\n', '\\n')
+    METRICS.append(metric_line)
     variables = TELEGRAF_METRICS['variables']
     variables[name] = value
-    METRICS.append(metric_line)
 
 
-def metric_bool(name, success):
+def metric_bool(name, success, m_name=None):
     value = success and 1 or 0
-    metric(name, 'uint32', value)
+    metric(name, 'uint32', value, m_name=m_name)
 
 
 try:
@@ -653,6 +688,9 @@ except IOError as e:
 
 @contextlib.contextmanager
 def print_output(print_telegraf=False):
+    if print_telegraf:
+        global TELEGRAF_ENABLED
+        TELEGRAF_ENABLED = True
     try:
         yield
     except SystemExit as e:
@@ -666,7 +704,8 @@ def print_output(print_telegraf=False):
     except Exception as e:
         logging.exception('The plugin %s has failed with an unhandled '
                           'exception', sys.argv[0])
-        status_err(traceback.format_exc(), force_print=True, exception=e)
+        status_err(traceback.format_exc(), force_print=True, exception=e,
+                   m_name='maas')
     else:
         if print_telegraf:
             TELEGRAF_METRICS['message'] = STATUS

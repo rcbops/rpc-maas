@@ -48,7 +48,8 @@ def all_okay(report, regex_find):
     """
     fields = regex_find.findall(report)
     if not fields:
-        status_err('There were no Health or Status fields to check.')
+        status_err('There were no Health or Status fields to check.',
+                   m_name='maas_hwvendor')
     return all(v.lower() == 'ok' for v in fields)
 
 
@@ -64,21 +65,24 @@ def check_openmanage_version():
                                          stderr=subprocess.STDOUT)
     except OSError:
         # OSError happens when subprocess cannot find the executable to run
-        status_err('The OpenManage tools do not appear to be installed.')
+        status_err('The OpenManage tools do not appear to be installed.',
+                   m_name='maas_hwvendor')
     except subprocess.CalledProcessError as e:
-        status_err(str(e))
+        status_err(str(e), m_name='maas_hwvendor')
 
     match = re.search(OM_PATTERN % {'field': 'Version',
                                     'group_pattern': '[0-9.]+'},
                       output)
     if not match:
-        status_err('Could not find the version information')
+        status_err('Could not find the version information',
+                   m_name='maas_hwvendor')
 
     version = match.groups()[0]
     if version not in SUPPORTED_VERSIONS:
         status_err(
             'Expected version in %s to be installed but found %s'
-            % (SUPPORTED_VERSIONS, version)
+            % (SUPPORTED_VERSIONS, version),
+            m_name='maas_hwvendor'
         )
 
 
@@ -86,7 +90,8 @@ def main():
     if len(sys.argv[1:]) != 2:
         args = ' '.join(sys.argv[1:])
         status_err(
-            'Requires 2 arguments, arguments provided: "%s"' % args
+            'Requires 2 arguments, arguments provided: "%s"' % args,
+            m_name='maas_hwvendor'
         )
 
     report_type = sys.argv[1].lower()
@@ -98,9 +103,10 @@ def main():
     try:
         report = hardware_report(report_type, report_request)
     except (OSError, subprocess.CalledProcessError) as e:
-        status_err(str(e))
+        metric_bool('hardware_%s_status' % report_request, False)
+        status_err(str(e), m_name='maas_hwvendor')
 
-    status_ok()
+    status_ok(m_name='maas_hwvendor')
     metric_bool('hardware_%s_status' % report_request,
                 all_okay(report, regex[report_type]))
 

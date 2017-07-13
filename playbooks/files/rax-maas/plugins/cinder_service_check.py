@@ -54,10 +54,17 @@ def check(auth_ref, args):
     except (exc.ConnectionError,
             exc.HTTPError,
             exc.Timeout) as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_cinder')
+        status_err(str(e), m_name='maas_cinder')
 
     if not r.ok:
-        status_err('Could not get response from Cinder API')
+        metric_bool('client_success', False, m_name='maas_cinder')
+        status_err(
+            'Could not get response from Cinder API',
+            m_name='cinder'
+        )
+    else:
+        metric_bool('client_success', True, m_name='maas_cinder')
 
     services = r.json()['services']
 
@@ -69,9 +76,12 @@ def check(auth_ref, args):
                         service['host'] == args.host)]
 
     if len(services) == 0:
-        status_err('No host(s) found in the service list')
+        status_err(
+            'No host(s) found in the service list',
+            m_name='maas_cinder'
+        )
 
-    status_ok()
+    status_ok(m_name='maas_cinder')
 
     if args.host:
 

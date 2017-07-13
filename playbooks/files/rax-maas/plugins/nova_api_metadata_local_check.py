@@ -43,11 +43,15 @@ def check(args):
             is_up = False
     except (exc.ConnectionError, exc.HTTPError, exc.Timeout) as e:
         is_up = False
+        metric_bool('client_success', False, m_name='maas_nova')
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_nova')
+        status_err(str(e), m_name='maas_nova')
+    else:
+        metric_bool('client_success', True, m_name='maas_nova')
 
-    status_ok()
-    metric_bool('nova_api_metadata_local_status', is_up)
+    status_ok(m_name='maas_nova')
+    metric_bool('nova_api_metadata_local_status', is_up, m_name='maas_nova')
     # only want to send other metrics if api is up
     if is_up:
         metric('nova_api_metadata_local_response_time',

@@ -46,10 +46,13 @@ def check(auth_ref, args):
         is_up = True
     except exc.HTTPException:
         is_up = False
+        metric_bool('client_success', False, m_name='maas_glance')
     # Any other exception presumably isn't an API error
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_glance')
+        status_err(str(e), m_name='maas_glance')
     else:
+        metric_bool('client_success', True, m_name='maas_glance')
         # time something arbitrary
         start = time.time()
         glance.images.list(search_opts={'all_tenants': 1})
@@ -59,8 +62,8 @@ def check(auth_ref, args):
         images = glance.images.list(search_opts={'all_tenants': 1})
         status_count = collections.Counter([s.status for s in images])
 
-    status_ok()
-    metric_bool('glance_api_local_status', is_up)
+    status_ok(m_name='maas_glance')
+    metric_bool('glance_api_local_status', is_up, m_name='maas_glance')
 
     # only want to send other metrics if api is up
     if is_up:

@@ -31,9 +31,12 @@ def check(args):
 
     # not gathering api status metric here so catch any exception
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_neutron')
+        status_err(str(e), m_name='maas_neutron')
+    else:
+        metric_bool('client_success', True, m_name='maas_neutron')
 
-    # gather nova service states
+    # gather neutron service states
     if args.host:
         agents = neutron.list_agents(host=args.host)['agents']
     elif args.fqdn:
@@ -42,10 +45,14 @@ def check(args):
         agents = neutron.list_agents()['agents']
 
     if len(agents) == 0:
-        status_err("No host(s) found in the agents list")
+        metric_bool('agents_found', False, m_name='maas_neutron')
+        status_err("No host(s) found in the agents list",
+                   m_name='maas_neutron')
+    else:
+        metric_bool('agents_found', True, m_name='maas_neutron')
 
     # return all the things
-    status_ok()
+    status_ok(m_name='maas_neutron')
     for agent in agents:
         agent_is_up = True
         if agent['admin_state_up'] and not agent['alive']:
@@ -60,7 +67,7 @@ def check(args):
                                          agent['id'],
                                          agent['host'])
 
-        metric_bool(name, agent_is_up)
+        metric_bool(name, agent_is_up, m_name='maas_neutron')
 
 
 def main(args):

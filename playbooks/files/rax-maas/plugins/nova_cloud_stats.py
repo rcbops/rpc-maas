@@ -22,6 +22,7 @@ from maas_common import get_auth_ref
 from maas_common import get_keystone_client
 from maas_common import get_nova_client
 from maas_common import metric
+from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
@@ -76,8 +77,10 @@ def check(auth_ref, args):
             nova = get_nova_client()
 
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_nova')
+        status_err(str(e), m_name='maas_nova')
     else:
+        metric_bool('client_success', True, m_name='maas_nova')
         # get some cloud stats
         stats = nova.hypervisor_stats.statistics()
         cloud_stats = collections.defaultdict(dict)
@@ -94,7 +97,7 @@ def check(auth_ref, args):
             cloud_stats[metric_name]['type'] = \
                 vals['type']
 
-    status_ok()
+    status_ok(m_name='maas_nova')
     for metric_name in cloud_stats.iterkeys():
         metric('cloud_resource_%s' % metric_name,
                cloud_stats[metric_name]['type'],

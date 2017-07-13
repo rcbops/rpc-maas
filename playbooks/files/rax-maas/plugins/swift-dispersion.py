@@ -88,7 +88,8 @@ def main():
     except OSError:
         # If the subprocess call returns anything other than exit code 0.
         # we should probably error out too.
-        maas_common.status_err('Could not access object dispersion report')
+        maas_common.status_err('Could not access object dispersion report',
+                               m_name='maas_swift')
 
     try:
         container_out = generate_report('container')
@@ -96,12 +97,14 @@ def main():
     except OSError:
         # If the subprocess call returns anything other than exit code 0.
         # we should probably error out too.
-        maas_common.status_err('Could not access container dispersion report')
+        maas_common.status_err('Could not access container dispersion report',
+                               m_name='maas_swift')
 
     if not (object_match and container_match):
-        maas_common.status_err('Could not parse dispersion report output')
+        maas_common.status_err('Could not parse dispersion report output',
+                               m_name='maas_swift')
 
-    maas_common.status_ok()
+    maas_common.status_ok(m_name='maas_swift')
     print_metrics('object', object_match)
     print_metrics('container', container_match)
 

@@ -31,6 +31,7 @@ def check(args):
 
     NETWORK_ENDPOINT = 'http://{ip}:9696'.format(ip=args.ip)
 
+    is_up = False
     try:
         if args.ip:
             neutron = get_neutron_client(endpoint_url=NETWORK_ENDPOINT)
@@ -41,11 +42,13 @@ def check(args):
     # if we get a NeutronClientException don't bother sending any other metric
     # The API IS DOWN
     except exc.NeutronClientException:
-        is_up = False
+        metric_bool('client_success', False, m_name='maas_neutron')
     # Any other exception presumably isn't an API error
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_neutron')
+        status_err(str(e), m_name='maas_neutron')
     else:
+        metric_bool('client_success', True, m_name='maas_neutron')
         # time something arbitrary
         start = time.time()
         neutron.list_agents()
@@ -58,8 +61,8 @@ def check(args):
         routers = len(neutron.list_routers()['routers'])
         subnets = len(neutron.list_subnets()['subnets'])
 
-    status_ok()
-    metric_bool('neutron_api_local_status', is_up)
+    status_ok(m_name='maas_neutron')
+    metric_bool('neutron_api_local_status', is_up, m_name='maas_neutron')
     # only want to send other metrics if api is up
     if is_up:
         metric('neutron_api_local_response_time',

@@ -48,7 +48,7 @@ def check(args):
     s = requests.Session()
 
     s.headers.update(headers)
-
+    short_name = args.name.split('_')[0]
     if path and not path.startswith('/'):
         url = '/'.join((endpoint, path))
     else:
@@ -59,10 +59,14 @@ def check(args):
             exc.HTTPError,
             exc.Timeout):
         up = False
+        metric_bool('client_success', False,
+                    m_name='maas_{name}'.format(name=short_name))
     else:
         up = True
+        metric_bool('client_success', True,
+                    m_name='maas_{name}'.format(name=short_name))
 
-    status_ok()
+    status_ok(m_name='maas_{name}'.format(name=short_name))
     metric_bool('{name}_api_local_status'.format(name=args.name), up)
 
     if up and r.ok:

@@ -109,13 +109,15 @@ def _get_rabbit_json(session, url):
     try:
         response = session.get(url)
     except requests.exceptions.ConnectionError as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_rabbitmq')
+        status_err(str(e), m_name='maas_rabbitmq')
 
     if response.ok:
         return response.json()
     else:
+        metric_bool('client_success', False, m_name='maas_rabbitmq')
         status_err('Received status {0} from RabbitMQ API'.format(
-            response.status_code))
+            response.status_code), m_name='maas_rabbitmq')
 
 
 def _get_connection_metrics(session, metrics, host, port):
@@ -153,14 +155,17 @@ def _get_node_metrics(session, metrics, host, port, name):
 
     if CLUSTERED:
         if len(response) < CLUSTER_SIZE:
-            status_err('cluster too small')
+            status_err('cluster too small', m_name='maas_rabbitmq')
         if not is_cluster_member:
-            status_err('{0} not a member of the cluster'.format(name))
+            status_err('{0} not a member of the cluster'.format(name),
+                       m_name='maas_rabbitmq')
         if sum([len(n['partitions']) for n in response]):
-            status_err('At least one partition found in the rabbit cluster')
+            status_err('At least one partition found in the rabbit cluster',
+                       m_name='maas_rabbitmq')
         if any([len(n['cluster_links']) != CLUSTER_SIZE - 1
                 for n in response]):
-            status_err('At least one rabbit node is missing a cluster link')
+            status_err('At least one rabbit node is missing a cluster link',
+                       m_name='maas_rabbitmq')
 
     for k, v in NODES_METRICS.items():
         metrics[k] = {'value': nodes_matching_name[0][k], 'unit': v}
@@ -218,7 +223,7 @@ def main():
     _get_queue_metrics(session, metrics, options.host, options.port)
     _get_consumer_metrics(session, metrics, options.host, options.port)
 
-    status_ok()
+    status_ok(m_name='maas_rabbitmq')
 
     for k, v in metrics.items():
         if v['value'] is True or v['value'] is False:

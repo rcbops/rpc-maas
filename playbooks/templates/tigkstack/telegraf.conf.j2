@@ -6,15 +6,19 @@
 {% endif %}
   job_reference = "{{ maas_job_reference }}"
 
-{% set interval = (telegraf_interval | int) + 10 %}
+{%   set telegraf_commands = [] %}
+{%   set _ = telegraf_commands.extend(telegraf_maas_commands) %}
+
+{% set command_interval = telegraf_commands | length * 3 | round %}
+{% set interval = ((telegraf_interval | int) > command_interval) | ternary(telegraf_interval, command_interval) %}
 
 [agent]
-  interval = "{{ interval }}s"
+  interval = "{{ interval | round }}s"
   round_interval = false
   metric_batch_size = 1024
   metric_buffer_limit = 10240
   collection_jitter = "8s"
-  flush_interval = "{{ interval * 1.5 | round }}s"
+  flush_interval = "{{ interval + 10 | round }}s"
   flush_jitter = "8s"
   debug = false
   quiet = true
@@ -60,12 +64,9 @@
   ]
 {% endif %}
 
-{%   set telegraf_commands = [] %}
-{%   set _ = telegraf_commands.extend(telegraf_maas_commands) %}
-
 [[inputs.exec]]
   commands = [{{ telegraf_commands | map('quote') | join(', ') }}]
-  timeout = "{{ telegraf_commands | length * 1.5 | round }}s"
+  timeout = "10s"
   data_format = "influx"
 
 {% if 'all_containers' in groups and inventory_hostname in groups['all_containers'] | default([]) %}

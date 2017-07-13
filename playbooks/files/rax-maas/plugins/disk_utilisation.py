@@ -43,8 +43,8 @@ if __name__ == '__main__':
         try:
             utils = utilisation(5)
         except Exception as e:
-            status_err(e)
+            status_err(e, m_name='maas_disk_utilisation')
         else:
-            status_ok()
+            status_ok(m_name='maas_disk_utilisation')
             for util in utils:
                 metric('disk_utilisation_%s' % util[0], 'double', util[1], '%')

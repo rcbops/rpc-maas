@@ -54,9 +54,9 @@ def main():
     try:
         metrics = get_metrics()
     except maas_common.MaaSException as e:
-        maas_common.status_err(str(e))
+        maas_common.status_err(str(e), m_name='maas_conntrack')
     else:
-        maas_common.status_ok()
+        maas_common.status_ok(m_name='maas_conntrack')
         for name, data in metrics.viewitems():
             maas_common.metric(name, 'uint32', data['value'])
 

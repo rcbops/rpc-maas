@@ -86,19 +86,25 @@ def check_process_running(process_names, container_name=None):
             c = lxc.Container(container_name)
             # If the container wasn't found, exit now.
             if c.init_pid == -1:
+                metric_bool('container_success', False,
+                            m_name='maas_container')
                 status_err(
                     'Could not find PID for container {}'.format(
                         container_name
-                    )
+                    ),
+                    m_name='maas_container'
                 )
         except (Exception, SystemError) as e:
+            metric_bool('container_success', False, m_name='maas_container')
             status_err(
                 'Container lookup failed on "{}". ERROR: "{}"'.format(
                     container_name,
                     e
-                )
+                ),
+                m_name='maas_container'
             )
         else:
+            metric_bool('container_success', True, m_name='maas_container')
             # Get the processes within the container.
             procs = get_processes(parent_pid=c.init_pid)
     else:
@@ -106,10 +112,12 @@ def check_process_running(process_names, container_name=None):
 
     if not procs:
         # Unable to get a list of process names for the container or host.
-        status_err('Could not get a list of running processes')
+        metric_bool('container_success', False, m_name='maas_container')
+        status_err('Could not get a list of running processes',
+                   m_name='maas_container')
 
     # Since we've fetched a process list, report status_ok.
-    status_ok()
+    status_ok(m_name='maas_container')
 
     # Make a list of command lines from each PID. There's a chance that one or
     # more PIDs may have exited already and this causes a NoSuchProcess
@@ -138,7 +146,8 @@ def main(args):
     """Main function."""
     if not args.processes:
         # The command line does not have any process names specified
-        status_err('No executable names supplied')
+        metric_bool('container_success', False, m_name='maas_container')
+        status_err('No executable names supplied', m_name='maas_container')
 
     check_process_running(container_name=args.container,
                           process_names=args.processes)

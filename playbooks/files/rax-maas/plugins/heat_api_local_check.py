@@ -45,18 +45,21 @@ def check(auth_ref, args):
         is_up = True
     except exc.HTTPException as e:
         is_up = False
+        metric_bool('client_success', False, m_name='maas_heat')
     # Any other exception presumably isn't an API error
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_heat')
+        status_err(str(e), m_name='maas_heat')
     else:
+        metric_bool('client_success', True, m_name='maas_heat')
         # time something arbitrary
         start = time.time()
         heat.build_info.build_info()
         end = time.time()
         milliseconds = (end - start) * 1000
 
-    status_ok()
-    metric_bool('heat_api_local_status', is_up)
+    status_ok(m_name='maas_heat')
+    metric_bool('heat_api_local_status', is_up, m_name='maas_heat')
     if is_up:
         # only want to send other metrics if api is up
         metric('heat_api_local_response_time',

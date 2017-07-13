@@ -36,7 +36,11 @@ def check(args):
         containers_list = subprocess.check_output(FIND_CONTAINER)
         container = containers_list.splitlines()[0]
     except (IndexError, subprocess.CalledProcessError):
-        status_err('no running neutron agents containers found')
+        metric_bool('agents_found', False, m_name='maas_neutron')
+        status_err('no running neutron agents containers found',
+                   m_name='maas_neutron')
+    else:
+        metric_bool('agents_found', True, m_name='maas_neutron')
 
     network_endpoint = 'http://{host}:9696'.format(host=args.neutron_host)
     try:
@@ -44,7 +48,10 @@ def check(args):
 
     # not gathering api status metric here so catch any exception
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_neutron')
+        status_err(str(e), m_name='maas_neutron')
+    else:
+        metric_bool('client_success', True, m_name='maas_neutron')
 
     # only check networks which have a port with DHCP enabled
     ports = neutron.list_ports(device_owner='network:dhcp')['ports']
@@ -67,13 +74,15 @@ def check(args):
                 failures.append(net_id)
 
     is_ok = len(failures) == 0
-    metric_bool('neutron-metadata-agent-proxy_status', is_ok)
+    metric_bool('neutron-metadata-agent-proxy_status', is_ok,
+                m_name='maas_neutron')
 
     if is_ok:
-        status_ok()
+        status_ok(m_name='maas_neutron')
     else:
         status_err('neutron metadata agent proxies fail on host %s '
-                   'net_ids: %s' % (container, ','.join(failures)))
+                   'net_ids: %s' % (container, ','.join(failures)),
+                   m_name='maas_neutron')
 
 
 def main(args):

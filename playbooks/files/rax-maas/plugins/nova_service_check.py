@@ -40,7 +40,10 @@ def check(auth_ref, args):
 
     # not gathering api status metric here so catch any exception
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_nova')
+        status_err(str(e), m_name='maas_nova')
+    else:
+        metric_bool('client_success', True, m_name='maas_nova')
 
     # gather nova service states
     if args.host:
@@ -49,10 +52,10 @@ def check(auth_ref, args):
         services = nova.services.list()
 
     if len(services) == 0:
-        status_err("No host(s) found in the service list")
+        status_err("No host(s) found in the service list", m_name='maas_nova')
 
     # return all the things
-    status_ok()
+    status_ok(m_name='maas_nova')
     for service in services:
         service_is_up = True
 
@@ -64,7 +67,7 @@ def check(auth_ref, args):
         else:
             name = '%s_on_host_%s_status' % (service.binary, service.host)
 
-        metric_bool(name, service_is_up)
+        metric_bool(name, service_is_up, m_name='maas_nova')
 
 
 def main(args):

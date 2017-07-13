@@ -58,15 +58,17 @@ def main(args):
         current_version = stats['version']
     except (TypeError, IndexError):
         is_up = False
+        metric_bool('client_success', False, m_name='maas_memcached')
     else:
         is_up = True
+        metric_bool('client_success', True, m_name='maas_memcached')
         if current_version not in VERSIONS:
             status_err('This plugin has only been tested with version %s '
                        'of memcached, and you are using version %s'
-                       % (VERSIONS, current_version))
+                       % (VERSIONS, current_version), m_name='maas_memcached')
 
-    status_ok()
-    metric_bool('memcache_api_local_status', is_up)
+    status_ok(m_name='maas_memcached')
+    metric_bool('memcache_api_local_status', is_up, m_name='maas_memcached')
     if is_up:
         for m, u in MEMCACHE_METRICS.iteritems():
             metric('memcache_%s' % m, 'uint64', stats[m], u)

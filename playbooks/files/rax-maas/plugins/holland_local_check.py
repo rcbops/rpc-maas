@@ -66,7 +66,8 @@ def container_holland_lb_check(container, binary, backupset):
                                        (container, binary))
 
     if retcode > 0:
-            status_err('Could not list holland backupsets: %s' % (err))
+            status_err('Could not list holland backupsets: %s' % (err),
+                       m_name='maas_holland')
 
     for line in output.split():
         if backupset + '/' in line:
@@ -102,12 +103,12 @@ def main():
 
     if len([backup for backup in backupsets
             if yesterday or today in backup[0]]) > 0:
-        status_ok()
-        metric_bool('holland_backup_status', True)
+        status_ok(m_name='maas_holland')
+        metric_bool('holland_backup_status', True, m_name='maas_holland')
     else:
+        metric_bool('holland_backup_status', False, m_name='maas_holland')
         status_err('Could not find Holland backup from %s or %s'
-                   % (yesterday, today))
-        metric_bool('holland_backup_status', False)
+                   % (yesterday, today), m_name='maas_holland')
 
     # Print metric about last backup
     print_metrics('holland_backup_size', float(backupsets[-1][1]) / 1024)

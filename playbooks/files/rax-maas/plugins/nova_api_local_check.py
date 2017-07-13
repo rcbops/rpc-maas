@@ -50,10 +50,13 @@ def check(auth_ref, args):
         is_up = True
     except exc.ClientException:
         is_up = False
+        metric_bool('client_success', False, m_name='maas_nova')
     # Any other exception presumably isn't an API error
     except Exception as e:
-        status_err(str(e))
+        metric_bool('client_success', False, m_name='maas_nova')
+        status_err(str(e), m_name='maas_nova')
     else:
+        metric_bool('client_success', True, m_name='maas_nova')
         # time something arbitrary
         start = time.time()
         nova.services.list()
@@ -64,8 +67,8 @@ def check(auth_ref, args):
         # gather some metrics
         status_count = collections.Counter([s.status for s in servers])
 
-    status_ok()
-    metric_bool('nova_api_local_status', is_up)
+    status_ok(m_name='maas_nova')
+    metric_bool('nova_api_local_status', is_up, m_name='maas_nova')
     # only want to send other metrics if api is up
     if is_up:
         metric('nova_api_local_response_time',
