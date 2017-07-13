@@ -86,6 +86,7 @@
         influx -username {{ influxdb_db_root_name }}
         -password {{ influxdb_db_root_password }}
         -execute "{{ item }}"
+      no_log: True
       with_items:
         - "CREATE DATABASE {{ influxdb_db_name }}"
         - "CREATE RETENTION POLICY {{ influxdb_db_retention_policy }} ON {{ influxdb_db_name }} DURATION {{ influxdb_db_retention }} REPLICATION {{ influxdb_db_replication }}"
