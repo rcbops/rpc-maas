@@ -84,7 +84,7 @@
     - name: Create grafana db dir
       file:
         path: "/var/lib/grafana/db"
-        user: grafana
+        group: grafana
         owner: grafana
         state: directory
         mode: "0755"
