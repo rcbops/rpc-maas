@@ -19,17 +19,17 @@
   pre_tasks:
     - name: Create DB for service
       mysql_db:
-        login_user: "{{ galera_root_user }}"
+        login_user: "{{ galera_root_user | default('root') }}"
         login_password: "{{ galera_root_password }}"
-        login_host: "{{ galera_address|default('127.0.0.1') }}"
+        login_host: "{{ galera_address | default(hostvars[groups['galera_all'][0]]['ansible_host']) }}"
         name: "{{ grafana_db_name }}"
         state: "present"
 
     - name: Grant access to the DB for the service
       mysql_user:
-        login_user: "{{ galera_root_user }}"
+        login_user: "{{ galera_root_user | default('root') }}"
         login_password: "{{ galera_root_password }}"
-        login_host: "{{ galera_address|default('127.0.0.1') }}"
+        login_host: "{{ galera_address | default(hostvars[groups['galera_all'][0]]['ansible_host']) }}"
         name: "{{ grafana_db_user }}"
         password: "{{ grafana_db_password }}"
         host: "{{ item }}"

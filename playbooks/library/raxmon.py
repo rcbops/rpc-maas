@@ -160,6 +160,18 @@ def main():
     # importing the correct libraries
     from rackspace_monitoring.providers import get_driver
     from rackspace_monitoring.types import Provider
+    import libcloud.security
+
+    # Provide the ability to enable or disable SSL certificate verification
+    # with raxmon
+    cfg = ConfigParser.RawConfigParser()
+    cfg.read(module.params['raxmon_cfg'])
+    verify_ssl = cfg.get('ssl', 'verify')
+    if verify_ssl == 'true':
+        verify_ssl = True
+    else:
+        verify_ssl = False
+    libcloud.security.VERIFY_SSL_CERT = verify_ssl
 
     conn = _get_conn(get_driver, Provider, module.params['raxmon_cfg'])
 

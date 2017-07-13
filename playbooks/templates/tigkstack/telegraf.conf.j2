@@ -29,11 +29,7 @@
 {%   set all_influx_targets = influx_telegraf_targets | union(influx_targets) %}
 
 [[outputs.influxdb]]
-{% if all_influx_targets | length == 1 %}
-  urls = ["{{ all_influx_targets[0] }}"]
-{% elif all_influx_targets | length > 0 %}
-  urls = [{{ all_influx_targets | map('quote') | join(', ') }}]
-{% endif %}
+  urls = [{% for item in all_influx_targets %}"{{ item }}"{% if not loop.last %}, {% endif %}{% endfor %}]
   database = "{{ influxdb_db_name }}"
   precision = "s"
   write_consistency = "any"
