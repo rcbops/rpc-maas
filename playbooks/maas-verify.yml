@@ -46,6 +46,25 @@
         - rpc-maas-tool.py
         - alarmparser.py
 
+    - name: Copy over pip constraints
+      copy:
+        src: "files/pip-constraints.txt"
+        dest: "/tmp/pip-constraints.txt"
+
+    - name: Install verify pip packages to venv
+      pip:
+        name: "{{ maas_verify_pip_packages | join(' ') }}"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          --isolated
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+        virtualenv: "{{ maas_venv }}"
+      register: install_pip_packages
+      until: install_pip_packages|success
+      retries: 5
+      delay: 2
+
     - name: "Allow MAAS time to run checks before verifying they're created"
       pause:
         minutes: 2
@@ -93,3 +112,4 @@
     workspace_logs: "{{ lookup('env', 'WORKING_DIR') | default('/tmp', true) }}/../../logs"
   vars_files:
     - vars/main.yml
+    - vars/maas-verify.yml
