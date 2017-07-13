@@ -3,7 +3,8 @@
 {%- set _panel = grafana_panel_skel -%}
 {%- for query in item['queries'] -%}
 {%- set _target = grafana_target -%}
-{%- set _ = _target.update({"query": query}) -%}
+{%- set q = query | to_json -%}
+{%- set _ = _target.update({"query": q.strip('"')}) -%}
 {%- set _ = _panel['targets'].append(_target) -%}
 {%- endfor -%}
 {%- set _ = _panel.update({"title": item['measurement'], "id": loop.index}) -%}
@@ -27,7 +28,7 @@
       {
         "collapse": false,
         "height": 250,
-        "panels": {{ panels}},
+        "panels": {{ panels | to_nice_json }},
         "repeat": null,
         "repeatIteration": null,
         "repeatRowId": null,

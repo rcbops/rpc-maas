@@ -21,7 +21,7 @@
       mysql_db:
         login_user: "{{ galera_root_user | default('root') }}"
         login_password: "{{ galera_root_password }}"
-        login_host: "{{ galera_address | default(hostvars[groups['galera_all'][0]]['ansible_host']) }}"
+        login_host: "127.0.0.1"
         name: "{{ grafana_db_name }}"
         state: "present"
 
@@ -29,7 +29,7 @@
       mysql_user:
         login_user: "{{ galera_root_user | default('root') }}"
         login_password: "{{ galera_root_password }}"
-        login_host: "{{ galera_address | default(hostvars[groups['galera_all'][0]]['ansible_host']) }}"
+        login_host: "127.0.0.1"
         name: "{{ grafana_db_user }}"
         password: "{{ grafana_db_password }}"
         host: "{{ item }}"
@@ -38,6 +38,15 @@
       with_items:
         - "localhost"
         - "%"
+
+    - name: Set galera_address
+      set_fact:
+        galera_address: "{{ ansible_host }}"
+      when:
+        - not galera_address is defined
+      tags:
+        - always
+
   vars_files:
     - vars/main.yml
     - vars/maas-tigkstack.yml
@@ -93,25 +102,26 @@
 
   post_tasks:
     - name: Check for the RPC-MaaS InfluxDB connection
-      uri:
+      _uri:
         force_basic_auth: yes
         password: "{{ grafana_admin_password }}"
         user: admin
         url: "http://localhost:{{ grafana_port }}/api/datasources/RPC-MaaS"
         status_code: "200,404"
+        body_format: json
       register: rpc_maas_influx
       until: rpc_maas_influx|success
       retries: 5
       delay: 5
 
     - name: Create RPC-MaaS InfluxDB connection
-      uri:
+      _uri:
         force_basic_auth: yes
         password: "{{ grafana_admin_password }}"
         user: admin
         url: "http://localhost:{{ grafana_port }}/api/datasources"
         method: POST
-        body: "{{ lookup('template','templates/tigkstack/grafana_influx_connection.json.j2') }}"
+        body: "{{ lookup('template', 'templates/tigkstack/grafana_influx_connection.json.j2', convert_data=False) | to_json }}"
         status_code: "200,201"
         body_format: json
       register: rpc_maas_influx_conn
@@ -122,13 +132,13 @@
         - rpc_maas_influx.status != 200
 
     - name: Upload grafana panels
-      uri:
+      _uri:
         force_basic_auth: yes
         password: "{{ grafana_admin_password }}"
         user: admin
         url: "http://localhost:{{ grafana_port }}/api/dashboards/db"
         method: POST
-        body: "{{ lookup('file','files/tigkstack/grafana-panels/' + item) }}"
+        body: "{{ lookup('file', 'files/tigkstack/grafana-panels/' + item, convert_data=False) | to_json }}"
         status_code: "200,201"
         body_format: json
       register: rpc_maas_influx_grafana_dash
@@ -143,13 +153,13 @@
         - grafana-panel-upload
 
     - name: Upload dynamic grafana panels
-      uri:
+      _uri:
         force_basic_auth: yes
         password: "{{ grafana_admin_password }}"
         user: admin
         url: "http://localhost:{{ grafana_port }}/api/dashboards/db"
         method: POST
-        body: "{{ lookup('template','files/tigkstack/grafana-panels/dynamic.json.j2') }}"
+        body: "{{ lookup('template', 'files/tigkstack/grafana-panels/dynamic.json.j2', convert_data=False) | to_json }}"
         status_code: "200,201"
         body_format: json
       register: rpc_maas_influx_grafana_dash

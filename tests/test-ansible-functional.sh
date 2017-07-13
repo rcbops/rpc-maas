@@ -128,11 +128,24 @@ function enable_maas_api {
   echo "This helps identify issues with pyrax"
   echo "START PACKAGE LIST"
   pip list --format=columns || pip list
+  /usr/bin/env python -c 'import sys; print(sys.path)'
   echo "END PACKAGE LIST"
 
+  # NOTE(cloudnull): In order to verify maas "pyrax" must be installed, which is a terrible piece
+  #                  of software and is poorly maintained. To ensure it does not infect the rest
+  #                  of the stack "pyrax" along with the test requirements are installed in a
+  #                  different virtualenv which are done in three tasks. These three tasks are being
+  #                  run in this particular order to ensure "pyrax" installs correctly.
+  PYTHON_BIN="$(which python)"
+  virtualenv --python="${PYTHON_BIN}" /opt/test-maas
+  /opt/test-maas/bin/pip install "jinja2" --isolated --upgrade --force-reinstall
+  /opt/test-maas/bin/pip install -r test-requirements.txt --isolated --upgrade --force-reinstall
+  /opt/test-maas/bin/pip install "pyrax" --isolated --upgrade --force-reinstall
+
   # Collect a maas auth token for API tests
-  $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
-                                  --api-key "${PUBCLOUD_API_KEY}" get_token_url
+  /opt/test-maas/bin/python $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
+                                                            --api-key "${PUBCLOUD_API_KEY}" \
+                                                            get_token_url
 
   # We're sourcing the file so that it's not written to a collected artifact
   . ~/maas-vars.rc

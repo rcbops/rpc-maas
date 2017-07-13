@@ -20,5 +20,4 @@ sphinxmark>=0.1.14 # Apache-2.0
 futures
 rackspace_monitoring
 waxeye
-pyrax
 click
