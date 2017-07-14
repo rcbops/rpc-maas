@@ -67,7 +67,7 @@
 
     - name: "Allow MAAS time to run checks before verifying they're created"
       pause:
-        minutes: 2
+        minutes: 5
       when:
         - maas_use_api | bool
 
