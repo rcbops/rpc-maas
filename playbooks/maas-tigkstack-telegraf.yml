@@ -25,6 +25,27 @@
         group: "root"
         mode: "0755"
 
+    - name: Copy over pip constraints
+      copy:
+        src: "files/pip-constraints.txt"
+        dest: "/tmp/pip-constraints.txt"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Install maas_telegraf_format pip packages to venv
+      pip:
+        name: "{{ maas_telegraf_format_pip_packages | join(' ') }}"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          --isolated
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+        virtualenv: "{{ maas_venv }}"
+      register: install_pip_packages
+      until: install_pip_packages | success
+      retries: 5
+      delay: 2
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
     - name: Drop MaaS telegraf output runner
       template:
         src: "files/tigkstack/maas_telegraf_format.py"
@@ -100,7 +121,7 @@
         - /opt/telegraf
 
     - name: Return Commands for metric
-      command: "{{ maas_plugin_dir }}/maas_telegraf_format.py"
+      command: "{{ maas_venv_bin }}/python {{ maas_plugin_dir }}/maas_telegraf_format.py"
       changed_when: false
       register: _telegraf_maas_commands
       when:

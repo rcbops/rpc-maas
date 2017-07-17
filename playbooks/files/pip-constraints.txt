@@ -23,6 +23,7 @@ python-openstackclient==3.2.1
 
 ### General dependencies
 python-memcached==1.58
+PyYAML==3.12
 rackspace-monitoring-cli==0.7.2
 requests==2.11.1
 waxeye==0.8.1

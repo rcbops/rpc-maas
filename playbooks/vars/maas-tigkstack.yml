@@ -601,3 +601,6 @@ grafana_panel_skel:
     sort: 0
     value_type: individual
   type: graph
+
+maas_telegraf_format_pip_packages:
+  - "PyYAML"
