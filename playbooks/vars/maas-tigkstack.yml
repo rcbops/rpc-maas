@@ -24,6 +24,10 @@ influxdb_db_replication: 1
 influxdb_db_root_name: root
 influxdb_db_metric_user: rpc_maas
 
+# Access user name and password for the provided influx db name
+influxdb_db_user: ''
+influxdb_db_password: ''
+
 # Telegraf vars
 telegraf_interval: 30
 telegraf_maas_commands: []

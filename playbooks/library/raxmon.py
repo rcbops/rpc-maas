@@ -16,7 +16,7 @@
 
 import ConfigParser
 
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import *  # noqa: ignore=H303
 
 
 DOCUMENTATION = """

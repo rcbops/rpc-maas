@@ -24,6 +24,7 @@ maas_repos:
 maas_distro_packages:
   - git
   - libffi-dev
+  - libjpeg8-dev
   - libssl-dev
   - rackspace-monitoring-agent
 
