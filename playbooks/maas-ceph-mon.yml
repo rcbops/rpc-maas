@@ -37,6 +37,13 @@
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
+    - name: Write Ceph monitoring client key to file within legacy rpc hosts
+      copy:
+        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
+        dest: "/etc/ceph/ceph.client.raxmon.keyring"
+      when:
+        - maas_rpc_legacy_ceph | bool
+
   post_tasks:
     - name: Install local mons checks
       template:

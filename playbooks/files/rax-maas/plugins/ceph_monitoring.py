@@ -23,29 +23,44 @@ import subprocess
 STATUSES = {'HEALTH_OK': 2, 'HEALTH_WARN': 1, 'HEALTH_ERR': 0}
 
 
-def check_command(command):
+def check_command(command, container_name=None):
+    if container_name:
+        lxc_command = ['lxc-attach',
+                       '-n',
+                       container_name,
+                       '--',
+                       'bash',
+                       '-c']
+        lxc_command.append("{}".format(' '.join(command)))
+        command = [str(i) for i in lxc_command]
     output = subprocess.check_output(command, stderr=subprocess.STDOUT)
     lines = output.strip().split('\n')
     return json.loads(lines[-1])
 
 
-def get_ceph_status(client, keyring, fmt='json'):
+def get_ceph_status(client, keyring, fmt='json', container_name=None):
     return check_command(('ceph', '--format', fmt, '--name', client,
-                          '--keyring', keyring, 'status'))
+                          '--keyring', keyring, 'status'),
+                         container_name=container_name)
 
 
-def get_ceph_pg_dump_osds(client, keyring, fmt='json'):
+def get_ceph_pg_dump_osds(client, keyring, fmt='json', container_name=None):
     return check_command(('ceph', '--format', fmt, '--name', client,
-                          '--keyring', keyring, 'pg', 'dump', 'osds'))
+                          '--keyring', keyring, 'pg', 'dump', 'osds'),
+                         container_name=container_name)
 
 
-def get_ceph_osd_dump(client, keyring, fmt='json'):
+def get_ceph_osd_dump(client, keyring, fmt='json', container_name=None):
     return check_command(('ceph', '--format', fmt, '--name', client,
-                          '--keyring', keyring, 'osd', 'dump'))
+                          '--keyring', keyring, 'osd', 'dump'),
+                         container_name=container_name)
 
 
-def get_mon_statistics(client=None, keyring=None, host=None):
-    ceph_status = get_ceph_status(client=client, keyring=keyring)
+def get_mon_statistics(client=None, keyring=None, host=None,
+                       container_name=None):
+    ceph_status = get_ceph_status(client=client,
+                                  keyring=keyring,
+                                  container_name=container_name)
     mon = [m for m in ceph_status['monmap']['mons']
            if m['name'] == host]
     mon_in = mon[0]['rank'] in ceph_status['quorum']
@@ -58,9 +73,14 @@ def get_mon_statistics(client=None, keyring=None, host=None):
     maas_common.metric('mon_health', 'uint32', health_status)
 
 
-def get_osd_statistics(client=None, keyring=None, osd_ids=None):
-    osd_dump = get_ceph_osd_dump(client=client, keyring=keyring)
-    pg_osds_dump = get_ceph_pg_dump_osds(client=client, keyring=keyring)
+def get_osd_statistics(client=None, keyring=None, osd_ids=None,
+                       container_name=None):
+    osd_dump = get_ceph_osd_dump(client=client,
+                                 keyring=keyring,
+                                 container_name=container_name)
+    pg_osds_dump = get_ceph_pg_dump_osds(client=client,
+                                         keyring=keyring,
+                                         container_name=container_name)
     for osd_id in osd_ids:
         osd_ref = 'osd.%s' % osd_id
         for _osd in osd_dump['osds']:
@@ -81,10 +101,12 @@ def get_osd_statistics(client=None, keyring=None, osd_ids=None):
                 break
 
 
-def get_cluster_statistics(client=None, keyring=None):
+def get_cluster_statistics(client=None, keyring=None, container_name=None):
     metrics = []
 
-    ceph_status = get_ceph_status(client=client, keyring=keyring)
+    ceph_status = get_ceph_status(client=client,
+                                  keyring=keyring,
+                                  container_name=container_name)
     # Get overall cluster health
     metrics.append({
         'name': 'cluster_health',
@@ -137,8 +159,16 @@ def get_cluster_statistics(client=None, keyring=None):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', required=True, help='Ceph client name')
-    parser.add_argument('--keyring', required=True, help='Ceph client keyring')
+    parser.add_argument('--name',
+                        required=True,
+                        help='Ceph client name')
+    parser.add_argument('--keyring',
+                        required=True,
+                        help='Ceph client keyring')
+    parser.add_argument('--container-name',
+                        required=False,
+                        default=None,
+                        help='Ceph Container Name')
 
     subparsers = parser.add_subparsers(dest='subparser_name')
 
@@ -165,6 +195,9 @@ def main(args):
         kwargs['osd_ids'] = [int(i) for i in args.osd_ids.split(' ')]
     if args.subparser_name == 'mon':
         kwargs['host'] = args.host
+
+    kwargs['container_name'] = args.container_name
+
     get_statistics[args.subparser_name](**kwargs)
     maas_common.status_ok(m_name='maas_ceph')
 
