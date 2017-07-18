@@ -205,3 +205,9 @@ maas_agent_upgrade: true
 #
 #
 maas_raxmon_ssl_verify: true
+
+#
+# maas_rpc_legacy_ceph: Instruct rpc-maas that the ceph deployment is using the old RPC
+#                       methods thereby installing ceph within containers.
+#
+maas_rpc_legacy_ceph: false
