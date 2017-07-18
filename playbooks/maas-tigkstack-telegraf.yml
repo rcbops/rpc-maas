@@ -29,7 +29,18 @@
       copy:
         src: "files/pip-constraints.txt"
         dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Install virtualenv pip package
+      pip:
+        name: "virtualenv"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+      register: install_packages
+      until: install_packages|success
+      retries: 5
+      delay: 2
 
     - name: Install maas_telegraf_format pip packages to venv
       pip:
@@ -44,7 +55,6 @@
       until: install_pip_packages | success
       retries: 5
       delay: 2
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Drop MaaS telegraf output runner
       template:
