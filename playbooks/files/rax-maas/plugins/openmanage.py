@@ -17,7 +17,6 @@
 import argparse
 import re
 import subprocess
-import sys
 
 from maas_common import metric_bool
 from maas_common import print_output
@@ -86,16 +85,16 @@ def check_openmanage_version():
         )
 
 
-def main():
-    if len(sys.argv[1:]) != 2:
-        args = ' '.join(sys.argv[1:])
+def main(args):
+    if len(args.omc) != 2:
+        args = ' '.join(args.omc)
         status_err(
             'Requires 2 arguments, arguments provided: "%s"' % args,
             m_name='maas_hwvendor'
         )
 
-    report_type = sys.argv[1].lower()
-    report_request = sys.argv[2].lower()
+    report_type = args.omc[0].lower()
+    report_request = args.omc[1].lower()
 
     # If we're not using the correct version of OpenManage, error out
     check_openmanage_version()
@@ -117,6 +116,9 @@ if __name__ == '__main__':
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('omc',
+                        nargs='+',
+                        help='Run OpenManage checks ["type", "request"]')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
-        main()
+        main(args)
