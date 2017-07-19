@@ -8,7 +8,7 @@ disabled          : "{{ (inventory_hostname != groups['heat_api'][0] or check_na
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
-    url           : "{{ maas_heat_api_scheme | default(maas_scheme)}}://{{ maas_external_ip_address }}:8004"
+    url           : "{{ maas_heat_api_scheme | default(maas_scheme)}}://{{ maas_external_hostname }}:8004"
 monitoring_zones_poll:
 {% for zone in maas_monitoring_zones %}
   - {{ zone }}

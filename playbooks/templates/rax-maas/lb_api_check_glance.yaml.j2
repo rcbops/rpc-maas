@@ -8,7 +8,7 @@ disabled          : "{{ (inventory_hostname != groups['glance_api'][0] or check_
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
-    url           : "{{ maas_glance_scheme | default(maas_scheme)}}://{{ maas_external_ip_address }}:9292"
+    url           : "{{ maas_glance_scheme | default(maas_scheme)}}://{{ maas_external_hostname }}:9292"
 monitoring_zones_poll:
 {% for zone in maas_monitoring_zones %}
   - {{ zone }}

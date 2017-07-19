@@ -96,6 +96,17 @@ internal_vip_address: "{{ internal_lb_vip_address }}"
 # ****************************************************
 
 #
+# maas_external_hostname: The hostname to use when constructing URLs for remote
+#                         API checks.
+#
+#   NOTE: In most environments this should match maas_external_ip_address. This
+#         variable exists to support environments where the monitored URL is
+#         not externally resolvable, which requires different values for MaaS's
+#         `url` and `target_hostname` settings.
+#
+maas_external_hostname: "{{ maas_external_ip_address }}"
+
+#
 # maas_alarm_local_consecutive_count: The number of consecutive failures before an alert is
 #                                     generated for local checks.
 #
