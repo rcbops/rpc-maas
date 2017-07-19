@@ -8,7 +8,7 @@ disabled          : "{{ (inventory_hostname != groups['horizon'][0] or check_nam
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
-    url           : "{{ maas_horizon_scheme | default(maas_scheme)}}://{{ maas_external_ip_address }}:443/auth/login"
+    url           : "{{ maas_horizon_scheme | default(maas_scheme)}}://{{ maas_external_ip_address }}:443/auth/login/"
 monitoring_zones_poll:
 {% for zone in maas_monitoring_zones %}
   - {{ zone }}
