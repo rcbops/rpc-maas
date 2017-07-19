@@ -1,5 +1,5 @@
 {% set label = "ceph_cluster_stats" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 {% set ceph_args = [maas_plugin_dir + "/ceph_monitoring.py", "--name", "client.raxmon", "--keyring", "/etc/ceph/ceph.client.raxmon.keyring"] %}
 {% if maas_rpc_legacy_ceph | bool %}
 {%   set _ = ceph_args.extend(["--container-name", container_name]) %}
@@ -18,9 +18,9 @@ details     :
     args    : {{ ceph_args }}
 alarms      :
     ceph_health_err :
-        label                   : ceph_health_err--{{ ansible_hostname }}
+        label                   : ceph_health_err--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('ceph_health_err--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('ceph_health_err--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["cluster_health"] == 0) {
@@ -28,9 +28,9 @@ alarms      :
             }
 
     ceph_health_warn :
-        label                   : ceph_health_warn--{{ ansible_hostname }}
+        label                   : ceph_health_warn--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('ceph_health_warn--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('ceph_health_warn--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["cluster_health"] == 1) {

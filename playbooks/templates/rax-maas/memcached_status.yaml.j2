@@ -1,5 +1,5 @@
 {% set label = "memcached_status" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -10,18 +10,18 @@ details     :
     args    : ["{{ maas_plugin_dir }}/memcached_status.py", "{{ ansible_host }}"]
 alarms      :
     memcache_api_local_status :
-        label                   : memcache_api_local_status--{{ ansible_hostname }}
+        label                   : memcache_api_local_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('memcache_api_local_status--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('memcache_api_local_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["memcache_api_local_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "memcache unavailable");
             }
     memcache_curr_connections :
-        label                   : memcache_curr_connections--{{ ansible_hostname }}
+        label                   : memcache_curr_connections--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('memcache_curr_connections--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('memcache_curr_connections--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["memcache_curr_connections"] > {{ ((memcached_connections | default(1024) *0.9) | round | int) }}) {

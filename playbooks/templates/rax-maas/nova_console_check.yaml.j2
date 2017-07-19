@@ -1,5 +1,5 @@
 {% set label = "nova_console_check" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 {% if nova_console_type == 'spice' %}
 {% set console_service_name = 'nova_spice' %}
 {% set nova_console_base_url = 'spice_auto.html' %}
@@ -17,9 +17,9 @@ details     :
     args    : ["{{ maas_plugin_dir }}/service_api_local_check.py", "{{ console_service_name }}", "{{ ansible_host }}", "{{ nova_console_port }}", "--path", "{{ nova_console_base_url }}"]
 alarms      :
     nova_{{ console_service_name }}_api_local_status :
-        label                   : nova_{{ console_service_name}}_api_local_status--{{ ansible_hostname }}
+        label                   : nova_{{ console_service_name}}_api_local_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('nova_{{ console_service_name}}_api_local_status--'+ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('nova_{{ console_service_name}}_api_local_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["{{ console_service_name }}_api_local_status"] != 1) {

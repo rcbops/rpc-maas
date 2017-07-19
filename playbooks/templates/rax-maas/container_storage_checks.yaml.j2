@@ -1,5 +1,5 @@
 {% set label = "container_storage_check" %}
-{% set check_name = label+'--'+ansible_hostname %}
+{% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -10,9 +10,9 @@ details     :
     args    : ["{{ maas_plugin_dir }}/container_storage_check.py", "--thresh", "{{ maas_percent_used_critical_threshold }}"]
 alarms      :
     container_storage_percent_used_critical:
-        label                   : container_storage_percent_used--{{ ansible_hostname }}
+        label                   : container_storage_percent_used--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan }}"
-        disabled                : {{ (('container_storage_percent_used_critical--' + ansible_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('container_storage_percent_used_critical--' + inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["container_storage_percent_used_critical"] != 1) {
