@@ -8,7 +8,7 @@ disabled          : "{{ (inventory_hostname != groups['keystone_all'][0] or chec
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
-    url           : "{{ maas_keystone_scheme | default(maas_scheme)}}://{{ maas_external_ip_address }}:5000"
+    url           : "{{ maas_keystone_scheme | default(maas_scheme)}}://{{ maas_external_hostname }}:5000"
 monitoring_zones_poll:
 {% for zone in maas_monitoring_zones %}
   - {{ zone }}
