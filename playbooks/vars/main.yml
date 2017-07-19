@@ -222,3 +222,10 @@ maas_raxmon_ssl_verify: true
 #                       methods thereby installing ceph within containers.
 #
 maas_rpc_legacy_ceph: false
+
+# maas_proxy_url: (Optional) Specifies an HTTP proxy for use by the MaaS agent.
+#
+#   NOTE: In an openstack-ansible deployment, this would typically be set
+#         to "{{ proxy_env_url }}".
+#
+# maas_proxy_url: http://username:pa$$w0rd@10.10.10.9:9000/

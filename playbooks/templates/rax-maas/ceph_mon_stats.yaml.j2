@@ -2,11 +2,11 @@
 {% set check_name = label+'--'+ansible_hostname %}
 {% set ceph_args = [maas_plugin_dir + "/ceph_monitoring.py", "--name", "client.raxmon", "--keyring", "/etc/ceph/ceph.client.raxmon.keyring"] %}
 {% if maas_rpc_legacy_ceph | bool %}
-{%   set _ = ceph_args.extend(["--container-name " + container_name]) %}
+{%   set _ = ceph_args.extend(["--container-name", container_name]) %}
 {% endif %}
-{% set _ = ceph_args.extend(["mon", "--host " + ansible_hostname]) %}
-{% set _ceph_args = ceph_args | join(' ') | string %}
-{% set ceph_args = _ceph_args.split() %}
+{% set _ = ceph_args.extend(["mon", "--host", ansible_hostname]) %}
+{% set _ceph_args = ceph_args | to_yaml(width=1000) %}
+{% set ceph_args = _ceph_args %}
 
 type        : agent.plugin
 label       : "{{ check_name }}"
