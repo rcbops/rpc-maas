@@ -313,9 +313,9 @@ where the job reference tag is equal to the string "testing".
 Legacy Ceph monitoring
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Early versions of RPC-O have a specific Ceph deployment capability that deployed
-all of the Ceph components in containers in a very RPC-O specific way. In order
-to monitor these environments the RPC-MaaS checks need to descend into the
+Early versions of RPC-O have a specific Ceph deployment that deployed
+all of the Ceph components in containers in a very RPC-O specific way.
+To monitor these environments the RPC-MaaS checks need to descend into the
 containers and run the various plugins from within the environment which is
 different than more modern deployments using the "ceph-ansible" project. To
 enable legacy monitoring of RPC-O Ceph set the option `maas_rpc_legacy_ceph`
