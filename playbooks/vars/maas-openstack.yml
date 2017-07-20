@@ -25,6 +25,7 @@ maas_horizon_scheme: https
 # maas_heat_api_scheme: https
 # maas_heat_cfn_scheme: https
 # maas_heat_cloudwatch_scheme: https
+# maas_ironic_api_scheme: https
 # maas_maas_swift_proxy_scheme: https
 
 #
@@ -40,6 +41,10 @@ maas_openstack_glance_pip_packages:
 
 maas_openstack_heat_pip_packages:
   - python-heatclient
+  - python-keystoneclient
+
+maas_openstack_ironic_pip_packages:
+  - python-ironicclient
   - python-keystoneclient
 
 maas_openstack_keystone_pip_packages:
