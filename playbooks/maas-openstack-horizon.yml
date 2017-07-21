@@ -54,6 +54,20 @@
       notify:
         - Restart rax-maas
 
+    - name: Install lb-ssl check
+      template:
+        src: "templates/rax-maas/lb_ssl_cert_expiry_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_ssl_cert_expiry_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_ssl_check | bool
+        - maas_remote_check | bool
+      notify:
+        - Restart rax-maas
+
   handlers:
     - include: handlers/main.yml
   vars_files:
