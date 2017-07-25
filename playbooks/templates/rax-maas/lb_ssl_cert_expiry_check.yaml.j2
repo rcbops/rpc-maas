@@ -12,7 +12,7 @@ details           :
 alarms            :
     lb_ssl_alarm_cert_expiry:
         label               : lb_ssl_alarm_cert_expiry
-        notification_plan_id: "{{ maas_notification_plan }}"
+        notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled            : {{ ('lb_ssl_alarm_cert_expiry' | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria            : |
             if (metric['cert_end_in'] < 604800) {

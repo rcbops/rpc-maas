@@ -11,7 +11,7 @@ details     :
 alarms      :
     wsrep_cluster_size :
         label                   : wsrep_cluster_size--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('wsrep_cluster_size--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -20,7 +20,7 @@ alarms      :
             }
     wsrep_local_state :
         label                   : wsrep_local_state--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('wsrep_local_state--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -29,7 +29,7 @@ alarms      :
             }
     percentage_used_mysql_connections :
         label                   : percentage_used_mysql_connections--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('percentage_used_mysql_connections--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -41,7 +41,7 @@ alarms      :
             }
     open_file_size_limit_reached :
         label                   : open_file_size_limit_reached--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('open_file_size_limit_reached--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -53,7 +53,7 @@ alarms      :
             }
     innodb_row_lock_time_avg :
         label                   : innodb_row_lock_time_avg--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('innodb_row_lock_time_avg--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -65,7 +65,7 @@ alarms      :
             }
     innodb_deadlocks :
         label                   : innodb_deadlocks--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('innodb_deadlocks--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -77,7 +77,7 @@ alarms      :
             }
     access_denied_errors :
         label                   : access_denied_errors--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('access_denied_errors--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -89,7 +89,7 @@ alarms      :
             }
     aborted_clients :
         label                   : aborted_clients--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('aborted_clients--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -101,7 +101,7 @@ alarms      :
             }
     aborted_connects :
         label                   : aborted_connects--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('aborted_connects--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}

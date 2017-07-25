@@ -85,6 +85,17 @@ maas_verify_status: false
 maas_notification_plan: npManaged
 
 #
+# Customizing override for maas_notification_plan.
+# If a customer wants to see alerts pertaining to certain checks. This will allow each check
+# to be overridden with a specific notification plan. The override should include the check
+# label and appropriate notification plan to override it with.
+#
+#   maas_notification_plan_override:
+#     - lb_api_check_keystone: npHj234ksd
+#
+maas_notification_plan_override: {}
+
+#
 # maas_external_ip_address:
 #
 maas_external_ip_address: "{{ external_lb_vip_address }}"

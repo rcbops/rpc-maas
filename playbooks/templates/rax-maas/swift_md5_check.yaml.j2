@@ -11,7 +11,7 @@ details     :
 alarms      :
     swift_ring_md5_check :
         label                   : swift_ring_md5_check--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_ring_md5_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -21,7 +21,7 @@ alarms      :
 
     swift_conf_md5_check :
         label                   : swift_conf_md5_check--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_conf_md5_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}

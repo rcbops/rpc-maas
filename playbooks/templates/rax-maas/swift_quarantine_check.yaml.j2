@@ -11,7 +11,7 @@ details     :
 alarms      :
     swift_quarantine_object_failed :
         label                   : swift_quarantine_object_failed--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_quarantine_object_failed--'+inventory_hostname )| match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -21,7 +21,7 @@ alarms      :
 
     swift_quarantine_object_avg :
         label                   : swift_quarantine_object_avg--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_quarantine_object_avg--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -31,7 +31,7 @@ alarms      :
 
     swift_quarantine_account_failed :
         label                   : swift_quarantine_account_failed--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_quarantine_account_failed--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -41,7 +41,7 @@ alarms      :
 
     swift_quarantine_account_avg :
         label                   : swift_quarantine_account_avg--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_quarantine_account_avg--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -51,7 +51,7 @@ alarms      :
 
     swift_quarantine_container_failed :
         label                   : swift_quarantine_container_failed--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_quarantine_container_failed--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -61,7 +61,7 @@ alarms      :
 
     swift_quarantine_container_avg :
         label                   : swift_quarantine_container_avg--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_quarantine_container_avg--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}

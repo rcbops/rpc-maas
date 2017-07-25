@@ -11,7 +11,7 @@ details     :
 alarms      :
     swift_object_replication_failure_check :
         label                   : swift_object_replication_failure_check--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_object_replication_failure_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -20,7 +20,7 @@ alarms      :
             }
     swift_object_replication_rate_check :
         label                   : swift_object_replication_rate_check--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_object_replication_rate_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -29,7 +29,7 @@ alarms      :
             }
     swift_object_replication_avg_time_check :
         label                   : swift_object_replication_avg_time_check--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('swift_object_replication_avg_time_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}

@@ -19,7 +19,7 @@ details     :
 alarms      :
     ceph_health_err :
         label                   : ceph_health_err--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('ceph_health_err--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -29,7 +29,7 @@ alarms      :
 
     ceph_health_warn :
         label                   : ceph_health_warn--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('ceph_health_warn--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}

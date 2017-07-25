@@ -16,7 +16,7 @@ details:
 alarms:
     alarm-network-receive:
         label: Network receive rate on {{ item.0.name }}
-        notification_plan_id: "{{ maas_notification_plan }}"
+        notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled            : {{ (('Network receive rate on '+item.0.name) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria: |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
@@ -29,7 +29,7 @@ alarms:
             return new AlarmStatus(OK, "Network receive rate on {{ item.0.name }} is below your warning threshold of {{ item.0.rx_pct_warn }}% utilisation.");
     alarm-network-transmit:
         label: Network transmit rate on {{ item.0.name }}
-        notification_plan_id: "{{ maas_notification_plan }}"
+        notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled            : {{ (('Network transmit rate on '+item.0.name) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria: |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
