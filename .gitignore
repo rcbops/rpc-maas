@@ -69,3 +69,7 @@ tests/*.retry
 # Vagrant artifacts
 .vagrant
 
+# Eclipse artifactsw
+.project
+.pydevproject
+
