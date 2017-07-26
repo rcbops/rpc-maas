@@ -396,6 +396,28 @@ If you have node(s) running ``nova``, add the node(s) into the "nova" section.
     nova_console
     nova_scheduler
     nova_api_placement
+    
+
+ironic_all
+~~~~~~~~
+    
+If you have node(s) running ``ironic``, add the node(s) into the "ironic" section.
+
+.. code-block:: ini
+	
+	[ironic_api]
+    openstack1
+    
+    [ironic_compute]
+    openstack1
+
+    [ironic_conductor]
+    openstack1
+
+    [ironic_all:children]
+    ironic_api
+    ironic_compute
+    ironic_conductor
 
 
 swift_all
