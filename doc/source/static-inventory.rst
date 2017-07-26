@@ -405,7 +405,7 @@ If you have node(s) running ``ironic``, add the node(s) into the "ironic" sectio
 
 .. code-block:: ini
 	
-	[ironic_api]
+    [ironic_api]
     openstack1
     
     [ironic_compute]
