@@ -7,7 +7,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (inventory_hostname in groups['swift_proxy'][0-1] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/swift-recon.py", "async-pendings"]
+    args    : ["{{ maas_plugin_dir }}/swift-recon.py", "--swift-recon-path", "{{ swift_recon_path }}", "async-pendings"]
 alarms      :
     swift_async_failure_check :
         label                   : swift_async_failure_check--{{ inventory_hostname }}

@@ -40,3 +40,5 @@ nova_console_port: 6082
 # Repo compatibility for Kilo
 openstack_upstream_domain: "rpc-repo.rackspace.com"
 repo_pip_default_index: "http://{{ openstack_upstream_domain }}/pools"
+
+swift_recon_path: "/usr/local/bin/"
