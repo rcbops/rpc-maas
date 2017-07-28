@@ -146,6 +146,21 @@ IP address of service to test
     metric heat_api_local_response_time double 22.752 ms
 
 ***
+#### ironic_api_local_check.py
+
+##### Description:
+Polls a (native) ironic API living on the specified IP. Checks to see if the API is up, and then also gathers a list of metrics to return--
+
+##### Mandatory Arguments:
+IP address of service to test
+##### Example Output:
+
+    status okay
+    metric client_success uint32 1
+    metric ironic_api_local_status uint32 1
+    metric ironic_api_local_response_time double 42.690 ms
+
+***
 #### magnum_api_local_check.py
 
 ##### Description:

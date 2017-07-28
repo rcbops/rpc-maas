@@ -425,6 +425,59 @@ else:
 
 
 try:
+    from ironicclient import client as ironic_client
+    from ironicclient import exc as ironic_exc
+except ImportError:
+    def get_ironic_client(*args, **kwargs):
+        metric_bool('client_success', False, m_name='maas_ironic')
+        status_err('Cannot import ironicclient', m_name='maas_ironic')
+else:
+    def get_ironic_client(token=None, endpoint=None, previous_tries=0):
+        if previous_tries > 3:
+            return None
+
+        auth_ref = get_auth_ref()
+        auth_details = get_auth_details()
+        keystone = get_keystone_client(auth_ref)
+        if not token:
+            token = keystone.auth_token
+        if not endpoint:
+            endpoint = get_endpoint_url_for_service('baremetal',
+                                                    auth_ref,
+                                                    get_endpoint_type(
+                                                        auth_details))
+
+        ironic = ironic_client.get_client(
+            '1', os_auth_token=token,
+            ironic_url=endpoint,
+            insecure=auth_details['OS_API_INSECURE'])
+
+        try:
+            nodes = ironic.node.list()
+            [node.uuid for node in nodes]
+
+        except (ironic_exc.Unauthorized, ironic_exc.AuthorizationFailure,
+                AttributeError) as e:
+
+            auth_ref = force_reauth()
+            keystone = get_keystone_client(auth_ref)
+            token = keystone.auth_token
+
+            ironic = get_ironic_client(token, endpoint, previous_tries + 1)
+
+            # we only want to pass ClientException back to the calling poller
+            # since this encapsulates all of our actual API failures. Other
+            # exceptions will be treated as script/environmental issues and
+            # sent to status_err
+        except ironic_exc.ClientException:
+            raise
+        except Exception as e:
+            status_err(str(e))
+
+        return ironic
+
+
+try:
     from magnumclient import client as magnum_client
     from magnumclient.common.apiclient import exceptions as magnum_exc
 except ImportError:
