@@ -12,7 +12,7 @@ alarms      :
 {% for process in elasticsearch_process_names %}
     {{ process }}_process_status:
         label                   : {{ process }}_process_status--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan }}"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ ((process+'_process_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
