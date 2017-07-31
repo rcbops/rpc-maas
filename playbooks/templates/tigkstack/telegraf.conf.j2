@@ -9,16 +9,24 @@
 {%   set telegraf_commands = [] %}
 {%   set _ = telegraf_commands.extend(telegraf_maas_commands) %}
 
-{% set command_interval = telegraf_commands | length * 3 | round %}
-{% set interval = ((telegraf_interval | int) > command_interval) | ternary(telegraf_interval, command_interval) %}
+{% set interval = (telegraf_interval | int) | round %}
+{#
+Each collection can take input_command_timeout seconds, and
+could be started at last after collection_jitter seconds.
+Taking 2 more seconds for safety, and we should have the time it
+takes to get metrics, worst case scenario.
+#}
+{% set c_jitter = collection_jitter | default(8) %}
+{% set input_timeout = input_command_timeout | default(5) %}
+{% set f_interval = (interval + (c_jitter + input_timeout)) | int | round + 2 %}
 
 [agent]
   interval = "{{ interval | round }}s"
   round_interval = false
-  metric_batch_size = 1024
-  metric_buffer_limit = 10240
-  collection_jitter = "8s"
-  flush_interval = "{{ interval + 10 | round }}s"
+  metric_batch_size = 2048
+  metric_buffer_limit = 20480
+  collection_jitter = "{{ c_jitter }}s"
+  flush_interval = "{{ f_interval }}s"
   flush_jitter = "8s"
   debug = false
   quiet = true
@@ -64,10 +72,12 @@
   ]
 {% endif %}
 
+{% for command in telegraf_commands %}
 [[inputs.exec]]
-  commands = [{{ telegraf_commands | map('quote') | join(', ') }}]
-  timeout = "10s"
+  commands = ["{{ command }}"]
+  timeout = "{{ input_timeout }}s"
   data_format = "influx"
+{% endfor %}
 
 {% if 'all_containers' in groups and inventory_hostname in groups['all_containers'] | default([]) %}
 [[inputs.net]]
