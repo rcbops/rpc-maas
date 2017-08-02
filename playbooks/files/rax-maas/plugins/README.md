@@ -161,6 +161,20 @@ IP address of service to test
     metric ironic_api_local_response_time double 42.690 ms
 
 ***
+#### ironic_capacity_check.py
+
+##### Description:
+Polls a (native) ironic API living on the specified IP. Checks the percentage of nodes in maintenance--
+
+##### Mandatory Arguments:
+IP address of service to test
+##### Example Output:
+
+    status okay
+	metric client_success uint32 1
+	metric ironic_capacity double 0.00 %
+
+***
 #### magnum_api_local_check.py
 
 ##### Description:
