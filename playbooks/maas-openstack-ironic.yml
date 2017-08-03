@@ -79,6 +79,17 @@
         - maas_remote_check | bool
       notify:
         - Restart rax-maas
+        
+    - name: Install rabbitmq checks
+      template:
+        src: "templates/rax-maas/rabbitmq_status.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/rabbitmq_status--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
 
   handlers:
     - include: handlers/main.yml
