@@ -147,6 +147,10 @@ maas_swift_container_process_names:
   - swift-container-updater
   - swift-container-auditor
 
+# the release of OpenStack Swift that has been deployed
+swift_release: "{{ openstack_release }}"
+swift_recon_path: "/openstack/venvs/swift-{{ swift_release }}/bin"
+
 # Set the nova console type and port
 nova_console_type: novnc
 nova_console_ports:
