@@ -105,6 +105,21 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       notify:
         - Restart rax-maas
+        
+- name: Install checks for openstack ironic-conductor
+  hosts: ironic_conductor
+  gather_facts: false
+  tasks:
+    - name: Install ironic ironic-conductor checks
+      template:
+        src: "templates/rax-maas/ironic_conductor_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/ironic_conductor_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
 
   handlers:
     - include: handlers/main.yml
