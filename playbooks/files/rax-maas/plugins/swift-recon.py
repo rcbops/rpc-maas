@@ -23,6 +23,7 @@
 # python swift-recon.py quarantine
 
 import argparse
+import os
 import re
 import shlex
 import subprocess
@@ -39,7 +40,7 @@ class CommandNotRecognized(maas_common.MaaSException):
     pass
 
 
-def recon_output(for_ring, options=None):
+def recon_output(for_ring, options=None, swift_recon_path=None):
     """Run swift-recon and filter out extraneous printed lines.
 
     ::
@@ -65,17 +66,6 @@ def recon_output(for_ring, options=None):
     :rtype: list
     """
 
-    # grab the current release
-    with open("/etc/openstack-release") as f:
-        for line in f.readlines():
-            if line.startswith('DISTRIB_RELEASE'):
-                openstack_version = line.split("=")[-1].strip().strip('"')
-                break
-        else:
-            raise SystemExit(
-                'DISTRIB_RELEASE not found in "/etc/openstack-release"'
-            )
-
     # identify the container we will use for monitoring
     get_container = shlex.split('lxc-ls -1 --running ".*(swift_proxy|swift)"')
 
@@ -86,20 +76,11 @@ def recon_output(for_ring, options=None):
         status_err('no running swift proxy containers found',
                    m_name='maas_swift')
 
-    # kilo didn't have venvs so check if kilo
-    if openstack_version == "11.2.17":
-        swift_recon_path = '/usr/local/bin/'
-    else:
-        venv_path = '/openstack/venvs/swift-%s/bin' % (openstack_version)
-        swift_recon_path = 'source %s/activate; python2.7 %s/' % (venv_path,
-                                                                  venv_path)
-
-    command = ['swift-recon', for_ring]
+    command = [os.path.join(swift_recon_path or "", 'swift-recon'), for_ring]
     command.extend(options or [])
     command_options = ' '.join(command)
-    full_command = shlex.split('lxc-attach -n %s -- bash -c "%s%s"' % (
-                               container, swift_recon_path,
-                               command_options))
+    full_command = shlex.split('lxc-attach -n %s -- bash -c "%s"' % (
+                               container, command_options))
     out = subprocess.check_output(full_command)
     return filter(lambda s: s and not s.startswith(('==', '-')),
                   out.split('\n'))
@@ -134,7 +115,8 @@ def _parse_into_dict(line, parsed_by):
         raise ParseError("Cannot parse '{0}' for statistics.".format(line))
 
 
-def recon_stats_dicts(for_ring, options, starting_with, parsed_by):
+def recon_stats_dicts(for_ring, options, starting_with, parsed_by,
+                      swift_recon_path=None):
     """Return a list of dictionaries of parsed statistics.
 
     Swift-recon has a standard format for it's statistics:
@@ -156,10 +138,11 @@ def recon_stats_dicts(for_ring, options, starting_with, parsed_by):
     """
     return map(lambda l: _parse_into_dict(l, parsed_by),
                filter(lambda s: s.startswith(starting_with),
-                      recon_output(for_ring, options)))
+                      recon_output(for_ring, options,
+                                   swift_recon_path=swift_recon_path)))
 
 
-def swift_replication(for_ring):
+def swift_replication(for_ring, swift_recon_path=None):
     """Parse swift-recon's replication statistics and return them.
 
     ::
@@ -200,7 +183,8 @@ def swift_replication(for_ring):
     """
     regexp = stat_regexp_generator(r'replication_(?P<replication_type>\w+)')
     replication_dicts = recon_stats_dicts(for_ring, ['-r'], '[replication_',
-                                          regexp)
+                                          regexp,
+                                          swift_recon_path=swift_recon_path)
 
     # reduce could work here but would require an enclosed function which is
     # less readable than this loop
@@ -211,7 +195,7 @@ def swift_replication(for_ring):
     return replication_statistics
 
 
-def swift_async():
+def swift_async(swift_recon_path=None):
     """Parse swift-recon's async pendings statistics and return them.
 
     ::
@@ -230,7 +214,7 @@ def swift_async():
     """
     regexp = stat_regexp_generator('async_pending')
     async_dicts = recon_stats_dicts('object', ['-a'], '[async_pending]',
-                                    regexp)
+                                    regexp, swift_recon_path=swift_recon_path)
     stats = {}
     for async_dict in async_dicts:
         if async_dict:
@@ -246,7 +230,7 @@ def swift_async():
     return {'async': stats}
 
 
-def swift_quarantine():
+def swift_quarantine(swift_recon_path=None):
     """Parse swift-recon's quarantined objects and return them.
 
     ::
@@ -278,7 +262,8 @@ def swift_quarantine():
     """
     regexp = stat_regexp_generator('quarantined_(?P<ring>\w+)')
     quarantined_dicts = recon_stats_dicts('-q', [], '[quarantined_',
-                                          regexp)
+                                          regexp,
+                                          swift_recon_path=swift_recon_path)
 
     quarantined_statistics = {}
     for quar_dict in quarantined_dicts:
@@ -287,7 +272,7 @@ def swift_quarantine():
     return quarantined_statistics
 
 
-def swift_md5():
+def swift_md5(swift_recon_path=None):
     """Parse swift-recon's md5 check output and return it.
 
     ::
@@ -303,7 +288,8 @@ def swift_md5():
     result_re = re.compile(
         '(?P<success>\d+)/(?P<total>\d+)[^\d]+(?P<errors>\d+).*'
     )
-    output = recon_output('--md5')  # We need to pass --md5 as a string here
+    # We need to pass --md5 as a string here
+    output = recon_output('--md5', swift_recon_path=swift_recon_path)
     md5_statistics = {}
     checking_dict = {}
     for line in output:
@@ -332,7 +318,7 @@ def swift_md5():
     return md5_statistics
 
 
-def swift_time():
+def swift_time(swift_recon_path=None):
     """Parse swift-recon's time sync check output and return it.
 
     ::
@@ -348,7 +334,8 @@ def swift_time():
     result_re = re.compile(
         '(?P<success>\d+)/(?P<total>\d+)[^\d]+(?P<errors>\d+).*'
     )
-    output = recon_output('--time')  # We need to pass --time as a string here
+    # We need to pass --time as a string here
+    output = recon_output('--time', swift_recon_path=swift_recon_path)
     time_statistics = {}
     checking_dict = {}
     times = [0]
@@ -435,24 +422,28 @@ def make_parser():
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--swift-recon-path',
+                        default='/usr/local/bin',
+                        help='The path for the swift-recon directory.')
     return parser
 
 
 def get_stats_from(args):
     stats = {}
     if args.recon == 'async-pendings':
-        stats = swift_async()
+        stats = swift_async(swift_recon_path=args.swift_recon_path)
     elif args.recon == 'md5':
-        stats = swift_md5()
+        stats = swift_md5(swift_recon_path=args.swift_recon_path)
     elif args.recon == 'quarantine':
-        stats = swift_quarantine()
+        stats = swift_quarantine(swift_recon_path=args.swift_recon_path)
     elif args.recon == 'replication':
         if args.ring not in {"account", "container", "object"}:
             maas_common.status_err('no ring provided to check',
                                    m_name='maas_swift')
-        stats = swift_replication(args.ring)
+        stats = swift_replication(args.ring,
+                                  swift_recon_path=args.swift_recon_path)
     elif args.recon == 'time':
-        stats = swift_time()
+        stats = swift_time(swift_recon_path=args.swift_recon_path)
     else:
         raise CommandNotRecognized('unrecognized command "{0}"'.format(
             args.recon))
