@@ -48,6 +48,59 @@
         owner: root
         group: root
 
+    - name: Install check for poller's file descriptor usage
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
+      template:
+        src: "templates/rax-maas/maas_poller_fd_count.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/maas_poller_fd_count--{{ inventory_hostname }}.yaml"
+        mode: 0644
+        owner: root
+        group: root
+
+    # NOTE: This step is currently handled directly in the systemd
+    # service config file.
+    - name: Increase MaaS poller file descriptor limit on 14.04
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
+        - ansible_distribution_version == "14.04"
+      lineinfile:
+        name: /etc/init/rackspace-monitoring-poller.conf
+        regexp: "^limit nofile 16384 16384"
+        insertbefore: "^pre-start script"
+        line: "limit nofile 16384 16384"
+
+    - name: Add poller config in systemd unit file on 16.04
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
+        - ansible_distribution_version == "16.04"
+      lineinfile:
+        name: /lib/systemd/system/rackspace-monitoring-poller.systemd.service
+        insertafter: '^\[Service\]'
+        line: "EnvironmentFile=/etc/default/rackspace-monitoring-poller"
+
+    - name: Use poller config in systemd unit file on 16.04
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
+        - ansible_distribution_version == "16.04"
+      lineinfile:
+        name: /lib/systemd/system/rackspace-monitoring-poller.systemd.service
+        regexp: "^ExecStart="
+        insertafter: "^[Service]"
+        line: "ExecStart=/usr/bin/rackspace-monitoring-poller serve --config $CONFIG_FILE $POLLER_SERVE_OPTS"
+
+    - name: Reload systemd unit configurations on 16.04
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
+        - ansible_distribution_version == "16.04"
+      command: "systemctl daemon-reload"
+      changed_when: False
+
     # NOTE: With the way the poller is currently named, we can't
     # start it up one way for both Trusty and Xenial. The systemd
     # setup requires the full "systemd.service" at the end.
@@ -76,5 +129,6 @@
   vars_files:
     - vars/main.yml
     - vars/maas-poller.yml
+    - vars/maas-host.yml
   tags:
     - maas-poller-setup

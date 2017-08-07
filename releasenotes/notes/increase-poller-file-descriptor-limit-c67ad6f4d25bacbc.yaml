@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Set the file descriptor limit for rackspace-monitoring-poller to 16384.
+    This change ensures that regardless of which platform the poller is
+    running on, the file descriptor limit will be set to 16384.
+
+    Additionally, this change adds a check on rackspace-monitoring-poller's
+    file descriptor usage, prefixed with ``maas_poller_fd_count``, which
+    creates a warning alert at 80% capacity and a critical alert at 90%
+    capacity of the 16384 limit.

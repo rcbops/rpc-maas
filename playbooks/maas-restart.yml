@@ -31,7 +31,7 @@
         - maas_private_monitoring_enabled | bool
         - maas_restart_independent | default(true) | bool or
           maas_force_restart | default(false) | bool
-        - ansible_distribution == "16.04"
+        - ansible_distribution_version == "16.04"
 
     - name: Restart rackspace-monitoring-poller (upstart)
       service:
@@ -47,7 +47,7 @@
         - maas_private_monitoring_enabled | bool
         - maas_restart_independent | default(true) | bool or
           maas_force_restart | default(false) | bool
-        - ansible_distribution == "14.04"
+        - ansible_distribution_version == "14.04"
 
     - name: Restart rackspace-monitoring-agent
       service:
