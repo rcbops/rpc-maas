@@ -25,8 +25,8 @@ from maas_common import print_output
 
 def check(auth_ref, args):
     name = "ironic-conductor_status"
-    for proc in psutil.process_iter(attrs=['pid', 'name']):
-        if 'ironic-conducto' in proc['name']:
+    for proc in psutil.process_iter():
+        if 'ironic-conducto' in proc.name():
             metric_bool(name, True)
             break
     else:
