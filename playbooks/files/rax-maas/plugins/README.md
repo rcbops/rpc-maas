@@ -164,15 +164,16 @@ IP address of service to test
 #### ironic_capacity_check.py
 
 ##### Description:
-Polls a (native) ironic API living on the specified IP. Checks the percentage of nodes in maintenance--
+Polls a (native) ironic API living on the specified IP. Gather the number of total nodes and up nodes (nodes not in maintenance)
 
 ##### Mandatory Arguments:
 IP address of service to test
 ##### Example Output:
 
     status okay
-	metric client_success uint32 1
-	metric ironic_capacity double 0.00 %
+    metric client_success uint32 1
+    metric ironic_total_nodes_count uint32 1
+    metric ironic_up_nodes_count uint32 1
 
 ***
 #### magnum_api_local_check.py

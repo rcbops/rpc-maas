@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import argparse
-import time
 
 import ipaddr
 from ironicclient import exc
@@ -46,21 +45,21 @@ def check(auth_ref, args):
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_ironic')
         status_err(str(e), m_name='maas_ironic')
+        return
     else:
         metric_bool('client_success', True, m_name='maas_ironic')
         # pass limit=0 to list all nodes list without pagination
         all_nodes = ironic.node.list(limit=0)
+        status_ok(m_name='maas_ironic')
 
-    status_ok(m_name='maas_ironic')
     if is_up:
         maint_nodes = [node for node in all_nodes if node.maintenance]
-        maint_nodes_percentage = len(maint_nodes)/len(all_nodes)
+        total_nodes = len(all_nodes)
+        up_nodes = total_nodes - len(maint_nodes)
         # question: is capacity the maint_nodes_percentage
         # or 1 - maint_nodes_percentage ?
-        metric('ironic_capacity',
-               'double',
-               '%.2f' % maint_nodes_percentage,
-               '%')
+        metric('ironic_total_nodes_count', 'uint32', total_nodes)
+        metric('ironic_up_nodes_count', 'uint32', up_nodes)
 
 
 def main(args):
