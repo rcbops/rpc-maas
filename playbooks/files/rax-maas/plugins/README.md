@@ -172,8 +172,9 @@ IP address of service to test
 
     status okay
     metric client_success uint32 1
-    metric ironic_total_nodes_count uint32 1
+    metric ironic_maint_nodes_count uint32 0
     metric ironic_up_nodes_count uint32 1
+    metric ironic_total_nodes_count uint32 1
 
 ***
 #### magnum_api_local_check.py

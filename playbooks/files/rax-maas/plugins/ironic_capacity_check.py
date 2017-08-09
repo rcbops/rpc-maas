@@ -54,12 +54,12 @@ def check(auth_ref, args):
 
     if is_up:
         maint_nodes = [node for node in all_nodes if node.maintenance]
+        maint_nodes_count = len(maint_nodes)
         total_nodes = len(all_nodes)
-        up_nodes = total_nodes - len(maint_nodes)
-        # question: is capacity the maint_nodes_percentage
-        # or 1 - maint_nodes_percentage ?
-        metric('ironic_total_nodes_count', 'uint32', total_nodes)
+        up_nodes = total_nodes - maint_nodes_count
+        metric('ironic_maint_nodes_count', 'uint32', maint_nodes_count)
         metric('ironic_up_nodes_count', 'uint32', up_nodes)
+        metric('ironic_total_nodes_count', 'uint32', total_nodes)
 
 
 def main(args):
