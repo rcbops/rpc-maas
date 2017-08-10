@@ -15,6 +15,6 @@ alarms      :
         disabled                : {{ (('ironic_compute_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["ironic_compute_nova-compute_status"] != 1) {
+            if (metric["ironic-compute_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "ironic-compute down");
             }

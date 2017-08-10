@@ -63,10 +63,11 @@ def check(auth_ref, args):
             service_is_up = False
 
         if args.host:
-            name = 'ironic_compute_%s_status' % service.binary
+            name = '%s_status' % service.binary
         else:
-            name = 'ironic_compute_%s_on_host_%s_status' % (
-                service.binary, service.host)
+            name = '%s_on_host_%s_status' % (service.binary, service.host)
+
+        name = name.replace('nova', 'ironic', 1)
 
         metric_bool(name, service_is_up, m_name='maas_nova')
 
