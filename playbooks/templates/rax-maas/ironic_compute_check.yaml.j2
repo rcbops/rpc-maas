@@ -7,7 +7,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/nova_service_check.py", "--host", "{{ ansible_nodename }}", "{{ internal_vip_address }}"]
+    args    : ["{{ maas_plugin_dir }}/ironic_compute_nova_service_check.py", "--host", "{{ ansible_nodename }}", "{{ internal_vip_address }}"]
 alarms      :
     ironic_compute_status :
         label                   : ironic_compute_status--{{ inventory_hostname }}
@@ -15,6 +15,6 @@ alarms      :
         disabled                : {{ (('ironic_compute_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["nova-compute_status"] != 1) {
+            if (metric["ironic_compute_nova-compute_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "ironic-compute down");
             }
