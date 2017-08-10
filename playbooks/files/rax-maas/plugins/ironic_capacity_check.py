@@ -57,7 +57,6 @@ def check(auth_ref, args):
         maint_nodes_count = len(maint_nodes)
         total_nodes = len(all_nodes)
         up_nodes = total_nodes - maint_nodes_count
-        metric('ironic_maint_nodes_count', 'uint32', maint_nodes_count)
         metric('ironic_up_nodes_count', 'uint32', up_nodes)
         metric('ironic_total_nodes_count', 'uint32', total_nodes)
 
