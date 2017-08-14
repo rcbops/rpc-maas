@@ -90,6 +90,13 @@
         - maas_remote_check | bool
       notify:
         - Restart rax-maas
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-ironic
     
 - name: Install checks for openstack ironic-compute
   hosts: ironic_compute
@@ -105,6 +112,13 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       notify:
         - Restart rax-maas
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-ironic
         
 - name: Install checks for openstack ironic-conductor
   hosts: ironic_conductor
