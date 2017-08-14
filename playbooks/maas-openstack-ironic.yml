@@ -66,6 +66,17 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       notify:
         - Restart rax-maas
+        
+    - name: Install ironic capacity checks
+      template:
+        src: "templates/rax-maas/ironic_capacity_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/ironic_capacity_check.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
 
     - name: Install ironic api lb checks
       template:
