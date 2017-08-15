@@ -89,6 +89,12 @@ maas_cloud_resource_cpu_allocation_ratio: 2.0
 maas_cloud_resource_mem_allocation_ratio: 1.0
 
 #
+# Bare-metal/Ironic capacity thresholds
+#
+maas_capacity_percent_warning_threshold: 20.0
+maas_capacity_percent_critical_threshold: 10.0
+
+#
 # Default horizon site name
 #
 maas_horizon_site_name: "openstack"
