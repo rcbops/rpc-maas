@@ -136,6 +136,29 @@
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-ironic
+    
+- name: Install checks for openstack ironic-compute
+  hosts: ironic_compute
+  gather_facts: false
+  tasks:
+    - name: Install ironic ironic-compute checks
+      template:
+        src: "templates/rax-maas/ironic_compute_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/ironic_compute_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+  
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-ironic
 
 # NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
 #                  will be globally unified.
