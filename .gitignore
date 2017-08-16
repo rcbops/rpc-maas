@@ -72,4 +72,3 @@ tests/*.retry
 # Eclipse artifacts
 .project
 .pydevproject
-
