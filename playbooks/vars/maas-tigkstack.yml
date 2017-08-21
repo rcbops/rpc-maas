@@ -13,6 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#
+# Set the influxdata distro package source & key
+#
+maas_influxdata_key:
+  url: "https://repos.influxdata.com/influxdb.key"
+
+maas_influxdata_repo:
+  url: "deb https://repos.influxdata.com/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+
+#
+# Set the grafana distro package source & key
+#
+maas_grafana_key:
+  url: "https://packagecloud.io/gpg.key"
+
+maas_grafana_repo:
+  url: "deb https://packagecloud.io/grafana/stable/debian/ jessie main"
+
 # InfluxDB vars
 influxdb_admin_port: 8083
 influxdb_port: 8086
