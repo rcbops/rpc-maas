@@ -30,6 +30,15 @@ maas_pip_package_state: "latest"
 maas_package_state: "latest"
 
 #
+# Set the influxdata distro package source & key
+#
+maas_influxdata_key:
+  url: "https://repos.influxdata.com/influxdb.key"
+
+maas_influxdata_repo:
+  url: "deb https://repos.influxdata.com/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+
+#
 # MaaS release version, this was tied to the RPC release version
 #   however it is now release independent.
 #

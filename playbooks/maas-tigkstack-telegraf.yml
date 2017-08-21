@@ -97,12 +97,16 @@
   tasks:
     - name: Add influxdata apt-keys
       apt_key:
-        url: "https://repos.influxdata.com/influxdb.key"
+        id: "{{ maas_influxdata_key.id | default(omit) }}"
+        keyserver: "{{ maas_influxdata_key.keyserver | default(omit) }}"
+        data: "{{ maas_influxdata_key.data | default(omit) }}"
+        url: "{{ maas_influxdata_key.url | default(omit) }}"
         state: "present"
 
     - name: Add influxdata repo
       apt_repository:
-        repo: "deb https://repos.influxdata.com/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+        repo: "{{ maas_influxdata_repo.url }}"
+        filename: "{{ maas_influxdata_repo.filename | default(omit) }}"
         state: "present"
         update_cache: yes
 
