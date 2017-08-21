@@ -28,6 +28,7 @@
   apt_repository:
     repo: "{{ maas_repos.repo }}"
     state: "{{ maas_repos.state }}"
+    filename: "{{ maas_repos.filename | default(omit) }}"
     update_cache: yes
   register: add_repos
   until: add_repos | success
