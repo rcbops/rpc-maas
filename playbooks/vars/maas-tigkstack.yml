@@ -14,6 +14,15 @@
 # limitations under the License.
 
 #
+# Set the influxdata distro package source & key
+#
+maas_influxdata_key:
+  url: "https://repos.influxdata.com/influxdb.key"
+
+maas_influxdata_repo:
+  url: "deb https://repos.influxdata.com/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+
+#
 # Set the grafana distro package source & key
 #
 maas_grafana_key:
