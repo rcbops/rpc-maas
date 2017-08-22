@@ -110,6 +110,8 @@ pushd /opt/openstack-ansible
     git checkout "06d0fd344b5b06456a418745fe9937a3fbedf9b2"  # Last commit of Liberty
     pin_jinja
     pin_galera "10.0"
+    # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
+    sed -i 's/\(_container\: \).*/\11/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
 
   elif [ "${IRR_CONTEXT}" == "mitaka" ]; then
     git checkout "fbafe397808ef3ee3447fe8fefa6ac7e5c6ff144"  # Last commit of Mitaka
