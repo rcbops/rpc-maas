@@ -74,6 +74,9 @@ maas_cpu_idle_percent_avg_critical_threshold: 1.0
 maas_nf_conntrack_warning_threshold: 80
 maas_nf_conntrack_critical_threshold: 90
 
+maas_poller_fd_warning_threshold: 80
+maas_poller_fd_critical_threshold: 90
+
 maas_network_checks_list:
   - name: "{{ ansible_default_ipv4.interface }}"
     max_speed: null

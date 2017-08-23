@@ -1,0 +1,27 @@
+{% set label = "private_ssh_check" %}
+{% set check_name = label+'--'+inventory_hostname %}
+type              : remote.tcp
+label             : "{{ check_name }}"
+period            : "{{ maas_check_period_override[check_name] | default(maas_check_period) }}"
+timeout           : "{{ maas_check_timeout_override[check_name] | default(maas_check_timeout) }}"
+disabled          : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+target_hostname   : "{{ ansible_default_ipv4.address }}"
+details           :
+  port            : {{ private_ssh_port }}
+  banner_match    : "SSH"
+monitoring_zones_poll:
+  - "{{ maas_private_monitoring_zone }}"
+metadata          :
+  event-type-override: "ssh"
+alarms            :
+  Banner_Match              :
+        label               : banner_match--{{ inventory_hostname|quote }}
+        notification_plan_id: "{{ maas_notification_plan }}"
+        disabled            : {{ (('private_ssh_check--'+inventory_hostname | quote) | match(
+        maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria            : |
+            :set consecutiveCount=3
+            if (metric['banner_match'] == "") {
+                return new AlarmStatus(CRITICAL, 'Banner not found. Expected: SSH');
+            }
+            return new AlarmStatus(OK, 'SSH service responds as expected.');

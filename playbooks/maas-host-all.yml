@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- include: maas-host-private-checks.yml
+  tags:
+    - maas-host
+
 - include: maas-host-cdm.yml
   tags:
     - maas-host

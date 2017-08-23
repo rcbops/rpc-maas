@@ -17,14 +17,51 @@
   hosts: "{{ maas_restart_on_host_override | default('maas_restart_on_host') }}"
   gather_facts: false
   tasks:
+    - name: Restart rackspace-monitoring-poller (systemd)
+      service:
+        name: rackspace-monitoring-poller.systemd.service
+        state: restarted
+        sleep: 10
+      register: _maas_poller_restart
+      until: _maas_poller_restart | success
+      retries: 3
+      delay: 2
+      when:
+        - physical_host in groups['shared-infra_hosts']
+        - maas_private_monitoring_enabled | bool
+        - maas_restart_independent | default(true) | bool or
+          maas_force_restart | default(false) | bool
+        - ansible_distribution_version == "16.04"
+
+    - name: Restart rackspace-monitoring-poller (upstart)
+      service:
+        name: rackspace-monitoring-poller
+        state: restarted
+        sleep: 10
+      register: _maas_poller_restart
+      until: _maas_poller_restart | success
+      retries: 3
+      delay: 2
+      when:
+        - physical_host in groups['shared-infra_hosts']
+        - maas_private_monitoring_enabled | bool
+        - maas_restart_independent | default(true) | bool or
+          maas_force_restart | default(false) | bool
+        - ansible_distribution_version == "14.04"
+
     - name: Restart rackspace-monitoring-agent
       service:
         name: rackspace-monitoring-agent
         state: restarted
-      register: _maas_restart
-      until: _maas_restart | success
+      register: _maas_agent_restart
+      until: _maas_agent_restart | success
       retries: 3
       delay: 2
       when: >
         maas_restart_independent | default(true) | bool or
         maas_force_restart | default(false) | bool
+
+  vars_files:
+    - vars/main.yml
+  tags:
+    - maas-restart

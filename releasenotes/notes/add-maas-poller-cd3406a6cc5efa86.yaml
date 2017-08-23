@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Add support for the rackspace-monitoring-poller, which enables the
+    monitoring of private networks. This introduces a private version of the
+    set of API checks that are made against each of the OpenStack services,
+    all with the prefix ``private_lb_api_check``.
+
+    In order to have the poller installed and setup, the
+    ``maas_private_monitoring_enabled`` variable needs to be set to ``True``,
+    and a value for ``maas_private_monitoring_zone`` must be set.

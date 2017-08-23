@@ -184,6 +184,19 @@ maas_monitoring_zones:
   - mzhkg
 
 #
+# maas_private_monitoring_enabled: This flag indicates if the
+#                                  rackspace-monitoring-poller will be
+#                                  installed and configured.
+#
+maas_private_monitoring_enabled: false
+
+#
+# maas_private_monitoring_zone: Specifies the private zone for use with
+#                               rackspace-monitoring-poller.
+#
+maas_private_monitoring_zone:
+
+#
 # host_check: This flag indicates if the host-related hardware monitoring checks and alarms should
 #             be deployed.
 #
