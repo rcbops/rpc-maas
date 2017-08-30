@@ -17,6 +17,7 @@
 import argparse
 import json
 import maas_common
+import requests
 import subprocess
 
 
@@ -54,6 +55,28 @@ def get_ceph_osd_dump(client, keyring, fmt='json', container_name=None):
     return check_command(('ceph', '--format', fmt, '--name', client,
                           '--keyring', keyring, 'osd', 'dump'),
                          container_name=container_name)
+
+
+def get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=None):
+    # curl -sL -w "%{http_code}\n" "http://$RGWHOST:$RGWPORT" -o /dev/null
+    host_url = "http://%s:%s" % (rgw_host, rgw_port)
+    req = 
+    return check_command(('curl', '-sL',  '-w', '"%{http_code}"', host_url,
+                          '-o', '/dev/null'),
+                         container_name=container_name)
+
+
+def get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=None):
+    host_url = "http://%s:%s" % (rgw_host, rgw_port)
+    try:
+        sc = requests.get("http://cephrgw:7488").status_code
+        if sc > 299:
+            status_code = 1
+        else:
+            status_code = 2
+    except requests.exceptions.ConnectionError as e: 
+        status_code = 0
+    return status_code
 
 
 def get_mon_statistics(client=None, keyring=None, host=None,
@@ -100,6 +123,13 @@ def get_osd_statistics(client=None, keyring=None, osd_ids=None,
                 osd = _osd
                 break
 
+
+def  get_rgw_checkup(client, keyring=None, rgw_port=None,
+                     rgw_hosts=None, container_name=None):
+    for rgw_host in rgw_hosts:
+        status = get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=container_name)
+        maas_common.metric('rgw.%s_up' % rgw_host, 'uint32', status)
+	
 
 def get_cluster_statistics(client=None, keyring=None, container_name=None):
     metrics = []
@@ -178,6 +208,12 @@ def get_args():
     parser_osd = subparsers.add_parser('osd')
     parser_osd.add_argument('--osd_ids', required=True,
                             help='Space separated list of OSD IDs')
+    
+    parser_rgw = subparsers.add_parser('rgw')
+    parser_rgw.add_argument('--rgw_port', required=True, help='RGW port')
+    parser_rgw.add_argument('--rgw_hosts', required=True,
+                            help='Space separated list of RGW hosts')
+
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,
@@ -189,12 +225,17 @@ def get_args():
 def main(args):
     get_statistics = {'cluster': get_cluster_statistics,
                       'mon': get_mon_statistics,
+                      'rgw': get_rgw_checkup,
                       'osd': get_osd_statistics}
     kwargs = {'client': args.name, 'keyring': args.keyring}
     if args.subparser_name == 'osd':
         kwargs['osd_ids'] = [int(i) for i in args.osd_ids.split(' ')]
     if args.subparser_name == 'mon':
         kwargs['host'] = args.host
+    if args.subparser_name == 'rgw':
+        kwargs['rgw_port'] = args.rgw_port
+        kwargs['rgw_hosts'] = [str(h) for h in args.rgw_hosts.split(' ')]
+    
 
     kwargs['container_name'] = args.container_name
 
