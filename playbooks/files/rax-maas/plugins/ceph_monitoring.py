@@ -58,18 +58,9 @@ def get_ceph_osd_dump(client, keyring, fmt='json', container_name=None):
 
 
 def get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=None):
-    # curl -sL -w "%{http_code}\n" "http://$RGWHOST:$RGWPORT" -o /dev/null
-    host_url = "http://%s:%s" % (rgw_host, rgw_port)
-    req = 
-    return check_command(('curl', '-sL',  '-w', '"%{http_code}"', host_url,
-                          '-o', '/dev/null'),
-                         container_name=container_name)
-
-
-def get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=None):
     host_url = "http://%s:%s" % (rgw_host, rgw_port)
     try:
-        sc = requests.get("http://cephrgw:7488").status_code
+        sc = requests.get(host_url).status_code
         if sc > 299:
             status_code = 1
         else:
