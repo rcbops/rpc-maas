@@ -14,13 +14,13 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: cephadmin
+  hosts: rgws
   gather_facts: "{{ gather_facts | default(true) }}"
   tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
       set_fact:
-        maas_current_group: cephadmin
+        maas_current_group: rgws
 
   tags:
     - maas-ceph-rgws
@@ -28,18 +28,18 @@
 - include: maas-ceph-raxmon.yml
 
 - name: Install checks for ceph rgws
-  hosts: cephadmin
+  hosts: rgws
   gather_facts: false
   pre_tasks:
     - name: Write Ceph monitoring client key to file
       copy:
-        content: "{{ [hostvars[groups['cephadmin'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
+        content: "{{ [hostvars[groups['rgws'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Write Ceph monitoring client key to file within legacy rpc hosts
       copy:
-        content: "{{ [hostvars[groups['cephadmin'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
+        content: "{{ [hostvars[groups['rgws'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       when:
         - maas_rpc_legacy_ceph | bool
