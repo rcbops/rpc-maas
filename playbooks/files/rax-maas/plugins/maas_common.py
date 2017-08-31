@@ -616,8 +616,8 @@ def get_auth_details(openrc_file=OPENRC):
 
 def get_url_for_type(endpoint, url_type, auth_version):
     if auth_version == 'v3':
-        return endpoint['url'] if (endpoint['interface'] == url_type
-            and 'v3' in endpoint['url']) else None
+        return endpoint['url'] if (endpoint['interface'] == url_type and
+                                   'v3' in endpoint['url']) else None
     else:
         return endpoint[url_type + 'URL']
 
