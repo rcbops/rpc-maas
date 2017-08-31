@@ -49,6 +49,7 @@ influxdb_db_password: ''
 # Telegraf vars
 telegraf_interval: 30
 telegraf_maas_commands: []
+telegraf_plugin_ping_urls: []
 
 ## Prometheus Client Outputs Plugin
 telegraf_outputs_prometheus_client: false

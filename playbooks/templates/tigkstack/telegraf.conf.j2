@@ -104,3 +104,8 @@ takes to get metrics, worst case scenario.
 [[inputs.swap]]
 
 {% endif %}
+
+{% if telegraf_plugin_ping_urls | default([]) %}
+[[inputs.ping]]
+urls = ["{{ telegraf_plugin_ping_urls | join('", "') }}"]
+{% endif %}
