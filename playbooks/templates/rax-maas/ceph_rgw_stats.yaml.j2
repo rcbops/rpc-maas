@@ -17,7 +17,7 @@ details     :
     args    : {{ ceph_args }}
 alarms      :
     ceph_rgw_check.{{ ansible_host }} :
-        label                   : ceph_rgw_check.{{ ansible-host }}--{{ inventory_hostname }}
+        label                   : ceph_rgw_check.{{ ansible_host }}--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('ceph_rgw_check.'+ansible_host|string+'--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
