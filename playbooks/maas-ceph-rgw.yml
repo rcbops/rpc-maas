@@ -21,7 +21,6 @@
     - name: Set the current group
       set_fact:
         maas_current_group: rgws
-
   tags:
     - maas-ceph-rgws
 
