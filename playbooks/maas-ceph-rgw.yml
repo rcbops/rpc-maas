@@ -21,6 +21,7 @@
     - name: Set the current group
       set_fact:
         maas_current_group: rgws
+  
   tags:
     - maas-ceph-rgws
 
@@ -32,13 +33,13 @@
   pre_tasks:
     - name: Write Ceph monitoring client key to file
       copy:
-        content: "{{ [hostvars[groups['rgws'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
+        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Write Ceph monitoring client key to file within legacy rpc hosts
       copy:
-        content: "{{ [hostvars[groups['rgws'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
+        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       when:
         - maas_rpc_legacy_ceph | bool
