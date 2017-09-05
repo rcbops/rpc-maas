@@ -61,11 +61,11 @@ def get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=None):
     host_url = "http://%s:%s" % (rgw_host, rgw_port)
     try:
         sc = requests.get(host_url).status_code
-        if sc > 299:
+        if (sc >= 200) and (sc < 300):
             status_code = 1
         else:
             status_code = 2
-    except requests.exceptions.ConnectionError as e: 
+    except requests.exceptions.ConnectionError as e:
         status_code = 0
     return status_code
 
@@ -115,12 +115,13 @@ def get_osd_statistics(client=None, keyring=None, osd_ids=None,
                 break
 
 
-def  get_rgw_checkup(client, keyring=None, rgw_port=None,
-                     rgw_hosts=None, container_name=None):
+def get_rgw_checkup(client, keyring=None, rgw_port=None,
+                    rgw_hosts=None, container_name=None):
     for rgw_host in rgw_hosts:
-        status = get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=container_name)
+        status = get_ceph_rgw_hostcheck(rgw_host, rgw_port,
+                                        container_name=container_name)
         maas_common.metric('rgw.%s_up' % rgw_host, 'uint32', status)
-	
+
 
 def get_cluster_statistics(client=None, keyring=None, container_name=None):
     metrics = []
@@ -199,7 +200,7 @@ def get_args():
     parser_osd = subparsers.add_parser('osd')
     parser_osd.add_argument('--osd_ids', required=True,
                             help='Space separated list of OSD IDs')
-    
+
     parser_rgw = subparsers.add_parser('rgw')
     parser_rgw.add_argument('--rgw_port', required=True, help='RGW port')
     parser_rgw.add_argument('--rgw_hosts', required=True,
@@ -226,7 +227,6 @@ def main(args):
     if args.subparser_name == 'rgw':
         kwargs['rgw_port'] = args.rgw_port
         kwargs['rgw_hosts'] = [str(h) for h in args.rgw_hosts.split(' ')]
-    
 
     kwargs['container_name'] = args.container_name
 
