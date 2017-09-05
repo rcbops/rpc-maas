@@ -62,9 +62,9 @@ def get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=None):
     try:
         sc = requests.get(host_url).status_code
         if (sc >= 200) and (sc < 300):
-            status_code = 1
-        else:
             status_code = 2
+        else:
+            status_code = 1
     except requests.exceptions.ConnectionError as e:
         status_code = 0
     return status_code
