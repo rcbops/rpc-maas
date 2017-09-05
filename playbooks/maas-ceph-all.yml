@@ -20,3 +20,7 @@
 - include: maas-ceph-osd.yml
   tags:
     - maas-ceph
+
+- include: maas-ceph-rgw.yml
+  tags:
+    - maas-ceph
