@@ -1,0 +1,15 @@
+---
+features:
+  - |
+    Add support for the RPC ironic deployment, which enables the
+    monitoring of the RPC ironic service. This introduces a private version of the
+    set of API checks that make against the OpenStack Ironic, including:
+    ironic capacity check:  the percentage of ironic up nodes to total nodes count
+    ironic conductor check: ensure ironic conductor is running
+    ironic compute check:   make sure nova compute service is available
+    
+    You can define threshold for ironic capacity check, from 
+    ``maas_capacity_percent_warning_threshold`` variable, which defaults to 20.0, and
+    ``maas_capacity_percent_critical_threshold`` variable, which defaults to 10.0
+    
+
