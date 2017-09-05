@@ -65,8 +65,9 @@ def get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=None):
             status_code = 2
         else:
             status_code = 1
-    except requests.exceptions.ConnectionError as e:
+    except requests.exceptions.ConnectionError:
         status_code = 0
+
     return status_code
 
 
