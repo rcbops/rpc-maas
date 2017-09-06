@@ -82,10 +82,10 @@ alarms      :
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric["access_denied_errors"]) > {{ maas_mysql_access_denied_errors_rate_warning_threshold }}) {
-                return new AlarmStatus(WARNING, "Access denied errors rate is greater than {{ maas_mysql_access_denied_errors_rate_warning_threshold }} per maas_check_period_override[label] | default(maas_check_period) seconds");
+                return new AlarmStatus(WARNING, "Access denied errors rate is greater than {{ maas_mysql_access_denied_errors_rate_warning_threshold }} per {{ (maas_check_period_override[label] | default(maas_check_period)) }} seconds");
             }
             if (rate(metric["access_denied_errors"]) > {{ maas_mysql_access_denied_errors_rate_critical_threshold }}) {
-                return new AlarmStatus(CRITICAL, "Access denied errors rate is greater than {{ maas_mysql_access_denied_errors_rate_critical_threshold }} per maas_check_period_override[label] | default(maas_check_period) seconds");
+                return new AlarmStatus(CRITICAL, "Access denied errors rate is greater than {{ maas_mysql_access_denied_errors_rate_critical_threshold }} per {{ (maas_check_period_override[label] | default(maas_check_period)) }} seconds");
             }
     aborted_clients :
         label                   : aborted_clients--{{ inventory_hostname }}
@@ -94,10 +94,10 @@ alarms      :
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric["aborted_clients"]) > {{ maas_mysql_aborted_clients_rate_warning_threshold }}) {
-                return new AlarmStatus(WARNING, "Aborted clients rate is greater than {{ maas_mysql_aborted_clients_rate_warning_threshold }} per maas_check_period_override[label] | default(maas_check_period) seconds");
+                return new AlarmStatus(WARNING, "Aborted clients rate is greater than {{ maas_mysql_aborted_clients_rate_warning_threshold }} per {{ (maas_check_period_override[label] | default(maas_check_period)) }} seconds");
             }
             if (rate(metric["aborted_clients"]) > {{ maas_mysql_aborted_clients_rate_critical_threshold }}) {
-                return new AlarmStatus(CRITICAL, "Aborted clients rate is greater than {{ maas_mysql_aborted_clients_rate_critical_threshold }} per maas_check_period_override[label] | default(maas_check_period) seconds");
+                return new AlarmStatus(CRITICAL, "Aborted clients rate is greater than {{ maas_mysql_aborted_clients_rate_critical_threshold }} per {{ (maas_check_period_override[label] | default(maas_check_period)) }} seconds");
             }
     aborted_connects :
         label                   : aborted_connects--{{ inventory_hostname }}
@@ -106,8 +106,8 @@ alarms      :
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric["aborted_connects"]) > {{ maas_mysql_aborted_connects_rate_warning_threshold }}) {
-                return new AlarmStatus(WARNING, "Aborted connects rate is greater than {{ maas_mysql_aborted_connects_rate_warning_threshold }} per maas_check_period_override[label] | default(maas_check_period) seconds");
+                return new AlarmStatus(WARNING, "Aborted connects rate is greater than {{ maas_mysql_aborted_connects_rate_warning_threshold }} per {{ (maas_check_period_override[label] | default(maas_check_period)) }} seconds");
             }
             if (rate(metric["aborted_connects"]) > {{ maas_mysql_aborted_connects_rate_critical_threshold }}) {
-                return new AlarmStatus(CRITICAL, "Aborted connects rate is greater than {{ maas_mysql_aborted_connects_rate_critical_threshold }} per maas_check_period_override[label] | default(maas_check_period) seconds");
+                return new AlarmStatus(CRITICAL, "Aborted connects rate is greater than {{ maas_mysql_aborted_connects_rate_critical_threshold }} per {{ (maas_check_period_override[label] | default(maas_check_period)) }} seconds");
             }
