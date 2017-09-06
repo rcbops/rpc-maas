@@ -79,8 +79,8 @@ maas_poller_fd_critical_threshold: 90
 
 maas_network_checks_list:
   - name: "{{ ansible_default_ipv4.interface }}"
-    max_speed: null
-    rx_pct_warn: 40
-    rx_pct_crit: 60
-    tx_pct_warn: 40
-    tx_pct_crit: 60
+    max_speed: "{{ ((ansible_default_ipv4 | default({})).speed | default(1000) | int) * 131072 }}"
+    rx_pct_warn: 60
+    rx_pct_crit: 80
+    tx_pct_warn: 60
+    tx_pct_crit: 80
