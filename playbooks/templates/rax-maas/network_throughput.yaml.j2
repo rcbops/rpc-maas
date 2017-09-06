@@ -1,6 +1,6 @@
 {% set label = "network_throughput_"+item.0.name %}
 {% set check_name = label+'--'+inventory_hostname %}
-{% set max_speed = item.0.max_speed | default(0, boolean=true) %}
+{% set max_speed = item.0.max_speed %}
 {% set rx_warn = (max_speed | int * item.0.rx_pct_warn | float / 100) | int %}
 {% set rx_crit = (max_speed | int * item.0.rx_pct_crit | float / 100) | int %}
 {% set tx_warn = (max_speed | int * item.0.tx_pct_warn | float / 100) | int %}
