@@ -36,7 +36,8 @@
 
 - name: Ensure container packages are installed
   apt:
-    pkg: "{{ maas_poller_distro_packages | join(' ') }}"
+    pkg: "{{ item }}"
     state: "{{ maas_package_state }}"
     update_cache: yes
     cache_valid_time: 600
+  with_items: "{{ maas_poller_distro_packages }}"
