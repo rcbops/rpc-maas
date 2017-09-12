@@ -15,8 +15,8 @@ alarms      :
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (percentage(metric['used'], metric['total']) >= {{ item.critical_threshold }}) {
-                return new AlarmStatus(CRITICAL, "{{ item }} filesystem is >= {{ item.critical_threshold }}% full.");
+                return new AlarmStatus(CRITICAL, "{{ item.filesystem }} filesystem is >= {{ item.critical_threshold }}% full.");
             }
             if (percentage(metric['used'], metric['total']) >= {{ item.warning_threshold }}) {
-                return new AlarmStatus(WARNING, "{{ item }} filesystem is >= {{ item.warning_threshold }}% full.");
+                return new AlarmStatus(WARNING, "{{ item.filesystem }} filesystem is >= {{ item.warning_threshold }}% full.");
             }
