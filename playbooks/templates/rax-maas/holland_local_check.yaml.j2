@@ -7,7 +7,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}holland_local_check.py", "{{ container_name }}"]
+    args    : ["{{ maas_plugin_dir }}/holland_local_check.py", "{{ container_name }}"]
 alarms      :
      holland_backup_status:
         label                   : holland_backup_status--{{ inventory_hostname }}
