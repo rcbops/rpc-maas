@@ -55,7 +55,7 @@ def parse_args():
 
 
 def print_metrics(name, size):
-    metric('hollabd_backup_size', 'double', size, 'Megabytes')
+    metric('holland_backup_size', 'double', size, 'Megabytes')
 
 
 def container_holland_lb_check(container, binary, backupset):
