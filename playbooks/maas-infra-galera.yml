@@ -51,7 +51,7 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
-        - maas_holland_venv_enabled | bool
+        - maas_holland_enabled
       notify:
         - Restart rax-maas
 

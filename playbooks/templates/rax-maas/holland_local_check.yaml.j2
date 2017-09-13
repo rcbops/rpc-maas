@@ -1,8 +1,6 @@
 {% set label = "holland_local_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
-{% if maas_holland_venv_enabled | bool %}
-{% set holland_venv_bin = (maas_holland_venv_enabled  | bool) | ternary('/openstack/venvs/holland-{{ rpc_release }}/bin','/usr/local/bin') %}
-{% endif %}
+{% set holland_venv_bin = (maas_holland_venv_enabled | bool | ternary(maas_holland_venv_bin,'/usr/local/bin')) %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"

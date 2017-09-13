@@ -255,6 +255,12 @@ maas_rpc_legacy_ceph: false
 # maas_proxy_url: http://username:pa$$w0rd@10.10.10.9:9000/
 
 #
+# maas_holland_enabled: (Optional) Instruct rpc-maas to deploy holland check
+#
+#
+maas_holland_enabled: false
+
+#
 # maas_holland_venv_enabled: Instruct rpc-maas that the holland executable is within a venv
 #                            in the galera containers (RPC-O newton and onward).
 #
