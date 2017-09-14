@@ -42,15 +42,6 @@
       when:
         - ansible_distribution | lower == 'ubuntu'
 
-    - name: Check for holland
-      stat:
-        path: "{{ maas_holland_venv_bin }}"
-      register: holland_check
-
-    - name: Set holland enabled fact disabled
-      set_fact:
-        holland_check_disabled: "{{ not holland_check.stat.exists }}"
-
     - name: Install holland check
       template:
         src: "templates/rax-maas/holland_local_check.yaml.j2"
@@ -60,7 +51,7 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
-        - not holland_check_disabled | bool
+        - maas_holland_enabled
       notify:
         - Restart rax-maas
 

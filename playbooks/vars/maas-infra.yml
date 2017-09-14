@@ -19,7 +19,7 @@ elasticsearch_process_names:
 filebeat_process_names:
   - filebeat
 
-maas_holland_venv_bin: "/openstack/venvs/holland-{{ maas_release }}/bin"
+maas_holland_venv_bin: "/openstack/venvs/holland-{{ rpc_release }}/bin"
 maas_mysql_connection_warning_threshold: 80
 maas_mysql_connection_critical_threshold: 90
 maas_mysql_access_denied_errors_rate_warning_threshold: 10
