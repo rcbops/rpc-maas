@@ -28,6 +28,7 @@ maas_distro_packages:
   - libssl-dev
   - libxml2-dev
   - libxslt-dev
+  - sysstat
   - rackspace-monitoring-agent
 
 maas_galera_distro_packages:
