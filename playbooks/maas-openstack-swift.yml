@@ -116,7 +116,7 @@
     - name: Install swift account process checks
       template:
         src: "templates/rax-maas/swift_account_process_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_account_process_check.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_account_process_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -150,7 +150,7 @@
     - name: Install swift container process checks
       template:
         src: "templates/rax-maas/swift_container_server_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_server_check.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_server_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -184,7 +184,7 @@
     - name: Install swift container process checks
       template:
         src: "templates/rax-maas/swift_object_process_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_process_check.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_process_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -199,8 +199,103 @@
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-swift
+    
+- name: Install swift-recon checks for openstack swift proxy
+  hosts: swift_proxy
+  gather_facts: false
+  tasks:
+    - name: Set recon nodes fact
+      set_fact:
+        maas_swift_recon_nodes: "{{ (maas_swift_multi_region_proxy_nodes | length == 2) | ternary(maas_swift_multi_region_proxy_nodes, groups['swift_proxy'][0:2]) }}"
+      when:
+        - maas_swift_recon_nodes is undefined
+    
+    - name: Install swift account replications checks
+      template:
+        src: "templates/rax-maas/swift_account_replication_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_account_replication_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
 
-- name: Install checks for openstack swift proxy
+    - name: Install swift container async checks
+      template:
+        src: "templates/rax-maas/swift_async_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_async_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install swift container replication checks
+      template:
+        src: "templates/rax-maas/swift_container_replication_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_replication_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install swift md5 checks
+      template:
+        src: "templates/rax-maas/swift_md5_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_md5_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install swift object replication checks
+      template:
+        src: "templates/rax-maas/swift_object_replication_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_replication_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+   
+    - name: Install swift quarantine checks
+      template:
+        src: "templates/rax-maas/swift_quarantine_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_quarantine_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+    - name: Install swift time sync checks
+      template:
+        src: "templates/rax-maas/swift_time_sync_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_time_sync_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+   
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-swift
+
+- name: Install accesscheck for openstack swift proxy
   hosts: swift_proxy
   gather_facts: false
   tasks:
@@ -303,87 +398,10 @@
         - maas_swift_accesscheck_enabled | bool
         - inventory_hostname in groups['swift_proxy'][0]
 
-    - name: Install swift container replications checks
-      template:
-        src: "templates/rax-maas/swift_account_replication_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_account_replication_check--{{ inventory_hostname }}.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-
-    - name: Install swift container async checks
-      template:
-        src: "templates/rax-maas/swift_async_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_async_check.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-
-    - name: Install swift container replication checks
-      template:
-        src: "templates/rax-maas/swift_container_replication_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_replication_check.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-
-    - name: Install swift md5 checks
-      template:
-        src: "templates/rax-maas/swift_md5_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_md5_check.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-
-    - name: Install swift object replication checks
-      template:
-        src: "templates/rax-maas/swift_object_replication_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_replication_check.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-
     - name: Install swift proxy server checks
       template:
         src: "templates/rax-maas/swift_proxy_server_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_proxy_server_check.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-
-    - name: Install swift quarantine checks
-      template:
-        src: "templates/rax-maas/swift_quarantine_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_quarantine_check.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-
-    - name: Install swift time sync checks
-      template:
-        src: "templates/rax-maas/swift_time_sync_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_time_sync_check.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/swift_proxy_server_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -394,7 +412,7 @@
     - name: Install swift lb health checks
       template:
         src: "templates/rax-maas/lb_api_check_swift_healthcheck.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_swift_healthcheck.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_swift_healthcheck--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -408,7 +426,7 @@
     - name: Install swift lb access checks
       template:
         src: "templates/rax-maas/lb_api_check_swift_access.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_swift_access.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_swift_access--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -423,7 +441,7 @@
     - name: Install swift private lb health checks
       template:
         src: "templates/rax-maas/private_lb_api_check_swift_healthcheck.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_swift_healthcheck.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_swift_healthcheck--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -437,7 +455,7 @@
     - name: Install swift private lb access checks
       template:
         src: "templates/rax-maas/private_lb_api_check_swift_access.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_swift_access.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_swift_access--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
