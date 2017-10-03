@@ -199,6 +199,9 @@ def get_args():
     parser_osd = subparsers.add_parser('osd')
     parser_osd.add_argument('--osd_ids', required=True,
                             help='Space separated list of OSD IDs')
+    parser_rgw = subparsers.add_parser('rgw')
+    parser_rgw.add_argument('--rgw_port', required=True, help='RGW port')
+    parser_rgw.add_argument('--rgw_host', required=True, help='RGW host')
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,
