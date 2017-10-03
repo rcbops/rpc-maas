@@ -109,7 +109,7 @@
 
   vars:
     working_dir_logs: "{{ lookup('env', 'WORKING_DIR') | default('/tmp', true) }}/logs"
-    workspace_logs: "{{ lookup('env', 'WORKING_DIR') | default('/tmp', true) }}/../../logs"
+    workspace_logs: "{{ lookup('env', 'RE_HOOK_ARTIFACT_DIR') | default('/tmp', true) }}"
   vars_files:
     - vars/main.yml
     - vars/maas-verify.yml
