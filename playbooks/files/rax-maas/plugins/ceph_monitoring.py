@@ -17,6 +17,7 @@
 import argparse
 import json
 import maas_common
+import requests
 import subprocess
 
 
@@ -36,6 +37,19 @@ def check_command(command, container_name=None):
     output = subprocess.check_output(command, stderr=subprocess.STDOUT)
     lines = output.strip().split('\n')
     return json.loads(lines[-1])
+
+
+def get_ceph_rgw_hostcheck(rgw_host, rgw_port, container_name=None):
+    host_url = "http://%s:%s" % (rgw_host, rgw_port)
+    try:
+        sc = requests.get(host_url).status_code
+        if (sc >= 200) and (sc < 300):
+            status_code = 2
+        else:
+            status_code = 1
+    except requests.exceptions.ConnectionError:
+        status_code = 0
+    return status_code
 
 
 def get_ceph_status(client, keyring, fmt='json', container_name=None):
@@ -71,6 +85,13 @@ def get_mon_statistics(client=None, keyring=None, host=None,
             health_status = STATUSES[each['health']]
             break
     maas_common.metric('mon_health', 'uint32', health_status)
+
+
+def get_rgw_checkup(client, keyring=None, rgw_port=None,
+                    rgw_host=None, container_name=None):
+    rgw_status = get_ceph_rgw_hostcheck(rgw_host, rgw_port,
+                                        container_name=container_name)
+    maas_common.metric('rgw_up', 'uint32', rgw_status)
 
 
 def get_osd_statistics(client=None, keyring=None, osd_ids=None,
@@ -178,6 +199,9 @@ def get_args():
     parser_osd = subparsers.add_parser('osd')
     parser_osd.add_argument('--osd_ids', required=True,
                             help='Space separated list of OSD IDs')
+    parser_rgw = subparsers.add_parser('rgw')
+    parser_rgw.add_argument('--rgw_port', required=True, help='RGW port')
+    parser_rgw.add_argument('--rgw_host', required=True, help='RGW host')
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,
@@ -189,12 +213,16 @@ def get_args():
 def main(args):
     get_statistics = {'cluster': get_cluster_statistics,
                       'mon': get_mon_statistics,
+                      'rgw': get_rgw_checkup,
                       'osd': get_osd_statistics}
     kwargs = {'client': args.name, 'keyring': args.keyring}
     if args.subparser_name == 'osd':
         kwargs['osd_ids'] = [int(i) for i in args.osd_ids.split(' ')]
     if args.subparser_name == 'mon':
         kwargs['host'] = args.host
+    if args.subparser_name == 'rgw':
+        kwargs['rgw_port'] = args.rgw_port
+        kwargs['rgw_host'] = args.rgw_host
 
     kwargs['container_name'] = args.container_name
 
