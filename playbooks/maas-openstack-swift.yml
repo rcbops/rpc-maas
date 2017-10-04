@@ -206,7 +206,7 @@
   tasks:
     - name: Set recon nodes fact
       set_fact:
-        maas_swift_recon_nodes: "{{ (maas_swift_multi_region_proxy_nodes | length == 2) | ternary(maas_swift_multi_region_proxy_nodes, groups['swift_proxy'][0:2]) }}"
+        maas_swift_recon_nodes: "{{ (maas_swift_multi_region_proxy_nodes | length > 0) | ternary(maas_swift_multi_region_proxy_nodes, groups['swift_proxy'][0:2]) }}"
       when:
         - maas_swift_recon_nodes is undefined
     
