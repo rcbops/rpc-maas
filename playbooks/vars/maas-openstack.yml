@@ -114,6 +114,11 @@ maas_swift_service_project_name: "service"
 maas_swift_service_in_ldap: false
 
 #
+# Swift multi-region proxy nodes overrides (for swift-recon checks)
+#
+maas_swift_multi_region_proxy_nodes: []
+
+#
 # Swift MaaS thresholds
 #
 maas_swift_object_quarantine_failed_percentage_threshold: 5.0
