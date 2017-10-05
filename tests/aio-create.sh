@@ -66,6 +66,24 @@ function disable_security_role {
   echo "apply_security_hardening: false" | tee -a /etc/openstack_deploy/user_nosec.yml
 }
 
+function enable_ironic {
+  if [[ ! -d "/etc/openstack_deploy" ]]; then
+    mkdir -p /etc/openstack_deploy
+  fi
+  echo "
+  confd_overrides:
+    aio:
+      - name: cinder.yml.aio
+      - name: glance.yml.aio
+      - name: heat.yml.aio
+      - name: horizon.yml.aio
+      - name: keystone.yml.aio
+      - name: neutron.yml.aio
+      - name: nova.yml.aio
+      - name: swift.yml.aio
+      - name: ironic.yml.aio" | tee -a /etc/openstack_deploy/user_ironic.yml
+}
+
 ## Main ----------------------------------------------------------------------
 
 echo "Gate test starting
@@ -120,9 +138,11 @@ pushd /opt/openstack-ansible
 
   elif [ "${IRR_CONTEXT}" == "newton" ]; then
     git checkout "stable/newton"  # Branch checkout of Newton (Current Stable)
+    enable_ironic
 
   elif [ "${IRR_CONTEXT}" == "ocata" ]; then
     git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
+    enable_ironic
   fi
 
   # Disbale tempest on newer releases
