@@ -103,6 +103,20 @@ fi
 
 mkdir -p "${ANSIBLE_LOG_DIR}"
 
+if [ "${IRR_CONTEXT}" == "ceph" ]; then
+
+  if [ -d "/opt/rpc-ceph" ]; then
+    rm -rf /opt/rpc-ceph
+  fi
+
+  git clone https://github.com/rcbops/rpc-ceph /opt/rpc-ceph
+  export RPC_MAAS_DIR="$(pwd)"
+  pushd /opt/rpc-ceph
+    bash /opt/rpc-ceph/run_tests.sh
+  popd
+  exit 0
+fi
+
 if [ ! -d "/opt/openstack-ansible" ]; then
   git clone https://github.com/openstack/openstack-ansible /opt/openstack-ansible
 else
