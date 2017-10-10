@@ -114,7 +114,7 @@ if [ "${IRR_CONTEXT}" == "ceph" ]; then
   pushd /opt/rpc-ceph
     bash /opt/rpc-ceph/run_tests.sh
   popd
-  exit 0
+  exit
 fi
 
 if [ ! -d "/opt/openstack-ansible" ]; then
