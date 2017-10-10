@@ -21,6 +21,7 @@ env
 echo "+-------------------- START ENV VARS --------------------+"
 
 export FUNCTIONAL_TEST=${FUNCTIONAL_TEST:-true}
+export IRR_CONTEXT=${IRR_CONTEXT:-"undefined"}
 
 # Install python2 for Ubuntu 16.04 and CentOS 7
 if which apt-get; then
@@ -46,7 +47,11 @@ sudo pip install bindep tox
 if which yum; then
     sudo yum -y install redhat-lsb-core epel-release
 fi
-
+if [ "${IRR_CONTEXT}" = "ceph" ]; then
+  export ANSIBLE_BINARY="ansible-playbook"
+  export ANSIBLE_INVENTORY="/opt/rpc-ceph/tests/inventory"
+  export ANSIBLE_OVERRIDES="/opt/rpc-ceph/tests/test-vars.yml"
+fi
 if [ "${FUNCTIONAL_TEST}" = true ]; then
   tox -e bindep
   # Run maas functional tests
