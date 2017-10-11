@@ -78,7 +78,7 @@
         - maas_private_monitoring_zone is defined
         - ansible_distribution_version == "16.04"
       lineinfile:
-        name: /lib/systemd/system/rackspace-monitoring-poller.systemd.service
+        name: /lib/systemd/system/rackspace-monitoring-poller.service
         insertafter: '^\[Service\]'
         line: "EnvironmentFile=/etc/default/rackspace-monitoring-poller"
 
@@ -88,7 +88,7 @@
         - maas_private_monitoring_zone is defined
         - ansible_distribution_version == "16.04"
       lineinfile:
-        name: /lib/systemd/system/rackspace-monitoring-poller.systemd.service
+        name: /lib/systemd/system/rackspace-monitoring-poller.service
         regexp: "^ExecStart="
         insertafter: "^[Service]"
         line: "ExecStart=/usr/bin/rackspace-monitoring-poller serve --config $CONFIG_FILE $POLLER_SERVE_OPTS"
@@ -101,16 +101,13 @@
       command: "systemctl daemon-reload"
       changed_when: False
 
-    # NOTE: With the way the poller is currently named, we can't
-    # start it up one way for both Trusty and Xenial. The systemd
-    # setup requires the full "systemd.service" at the end.
     - name: Start MaaS poller (systemd)
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
         - ansible_distribution_version == "16.04"
       service:
-        name: rackspace-monitoring-poller.systemd.service
+        name: rackspace-monitoring-poller.service
         state: started
         enabled: yes
 

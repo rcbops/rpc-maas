@@ -19,7 +19,7 @@
   tasks:
     - name: Restart rackspace-monitoring-poller (systemd)
       service:
-        name: rackspace-monitoring-poller.systemd.service
+        name: rackspace-monitoring-poller.service
         state: restarted
         sleep: 10
       register: _maas_poller_restart
