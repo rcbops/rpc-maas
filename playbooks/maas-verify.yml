@@ -83,7 +83,7 @@
       command: >
         {{ maas_venv_bin }}/python /opt/rpc-maas-tools/rpc-maas-tool.py --logfile {{ workspace_logs }}/rpc-maas-api-logs.txt verify-created
         --entity {{ maas_entity_name }}
-        {% for ec in maas_excluded_checks %}--excludedcheck "{{ ec }}"{% endfor %}
+        {% for ec in maas_excluded_checks %} --excludedcheck "{{ ec }}" {% endfor %}
       become: true
       register: verify_maas
       changed_when: false
