@@ -157,6 +157,13 @@ pushd /opt/openstack-ansible
   elif [ "${IRR_CONTEXT}" == "ocata" ]; then
     git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
     enable_ironic
+
+  elif [ "${IRR_CONTEXT}" == "pike" ]; then
+    git checkout "stable/pike"  # Branch checkout of Pike (Current Stable)
+    enable_ironic
+
+  else
+    enable_ironic
   fi
 
   # Disbale tempest on newer releases
@@ -172,5 +179,5 @@ pushd /opt/openstack-ansible
   disable_security_role
 
   # Setup an AIO
-  ./scripts/gate-check-commit.sh
+  sudo -H --preserve-env ./scripts/gate-check-commit.sh
 popd
