@@ -4,6 +4,7 @@
 {% set console_service_name = 'nova_spice' %}
 {% set nova_console_base_url = 'spice_auto.html' %}
 {% elif nova_console_type == 'novnc' %}
+{% set nova_console_port = '6080' %}
 {% set console_service_name = 'nova_novnc' %}
 {% set nova_console_base_url = 'vnc_auto.html' %}
 {% endif %}
