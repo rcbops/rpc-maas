@@ -1,0 +1,11 @@
+{% set times = times or 1 %}
+{% set concurrency = concurrency or 1 %}
+
+
+KeystoneBasic.authenticate_user_and_validate_token:
+  -
+    args: {}
+    runner:
+      type: "constant"
+      times: {{ times }}
+      concurrency: {{ concurrency }}

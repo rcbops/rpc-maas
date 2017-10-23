@@ -20,3 +20,28 @@ maas_check_period_override:
 maas_excluded_alarms: []
 
 maas_excluded_checks: []
+
+maas_rally_enabled: true
+
+# NOTE(cfarquhar): The scenarios that create instances are disabled for now
+# since public cloud AIOs are unreliable in terms of performance.
+
+maas_rally_check_overrides:
+  cinder:
+    enabled: false
+  glance:
+    enabled: true
+  keystone:
+    enabled: true
+  neutron_ports:
+    enabled: true
+  neutron_secgroups:
+    enabled: true
+  nova:
+    enabled: false
+  nova_cinder:
+    enabled: false
+  swift:
+    enabled: true
+    extra_user_roles:
+      - "swiftoperator"

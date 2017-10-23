@@ -1,0 +1,44 @@
+{% set name = item.key %}
+{% set label = "rally_"+item.key %}
+{% set check_name = label+'--'+inventory_hostname %}
+{% set period = item.value.poll_interval %}
+{% set timeout = period - 1 %}
+{% set times = item.value.times %}
+{% set concurrency = item.value.concurrency %}
+{% set crit_threshold = item.value.crit_threshold %}
+{% set warn_threshold = item.value.warn_threshold %}
+{% set alarm_consecutive_count = item.value.alarm_consecutive_count %}
+{% set duration_threshold_percent = item.value.duration_threshold %}
+{% set duration_threshold_seconds = (period*item.value.duration_threshold/100.0)|float %}
+
+type        : agent.plugin
+label       : "{{ check_name }}"
+period      : "{{ period }}"
+timeout     : "{{ timeout }}"
+disabled    : "{{ (inventory_hostname not in maas_rally_primary_node or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+details     :
+    file    : run_plugin_in_rally_venv.sh
+    args    : ["{{ maas_plugin_dir }}/rally_performance.py", "{{ name }}", "-t {{ times }}", "-c {{ concurrency }}" {% for k,v in item.value.extra_vars.iteritems() | list %}, "-e {{k}}={{v}}" {% endfor %}]
+    timeout : {{ timeout * 1000 | int}}
+alarms      :
+    rally_{{ name }}_total_95pctl :
+        label                   : rally_{{ name }}_total_95pctl--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (("rally_{{ name }}_total_95pctl--{{ inventory_hostname }}") | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ alarm_consecutive_count }}
+            if (metric['{{ name }}_total_95pctl'] > {{ warn_threshold }}) {
+                return new AlarmStatus(CRITICAL, "{{ name }} performance metric exceeds warning threshold of {{ warn_threshold }} seconds");
+            }
+            if (metric['{{ name }}_total_95pctl'] > {{ crit_threshold }}) {
+                return new AlarmStatus(CRITICAL, "{{ name }} performance metric exceeds BREACH threshold of {{ crit_threshold }} seconds");
+            }
+    rally_{{ name }}_maas_check_duration :
+        label                   : rally_{{ name }}_maas_check_duration--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (("rally_{{ name }}_maas_check_duration--{{ inventory_hostname }}") | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ alarm_consecutive_count }}
+            if (metric["maas_check_duration"] > {{ '%0.2f' | format(duration_threshold_seconds|float) }}) {
+                return new AlarmStatus(CRITICAL, "{{ name }} performance test duration exceeds {{ duration_threshold_percent }}% of {{ period }} second polling interval.");
+            }

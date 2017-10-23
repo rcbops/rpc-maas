@@ -1,0 +1,335 @@
+#
+#  Performance monitoring has the potential to negatively impact performance
+#  and availability for an environment's primary users.  Careful consideration
+#  and tuning is required before enabling maas_rally.  The maas_rally playbook
+#  will bail out unless this is set to true. 	
+#
+maas_rally_enabled: false
+
+#
+#  The ansible host group where the maas_rally performance monitoring plugin
+#  will be installed.
+#
+maas_rally_target_group: shared-infra_hosts
+
+#
+#  The node from which checks will run.  The maas_rally plugin will be installed
+#  on all hosts in `maas_rally_target_group`, but performance checks (each of
+#  which consumes resources) should only execute from a single node to avoid
+#  uncoordinated resource consumption.  The best practice is to override this
+#  with a single hostname (e.g. infra01) in user vars.  Then, if the primary
+#  node fails maas_rally_primary_node can be updated to resume monitoring from
+#  another node.
+#
+maas_rally_primary_node: "{{ groups[maas_rally_target_group][0] }}"
+
+#
+#  The maas_rally_check_overrides dictionary is the primary configuration
+#  mechanism for maas_rally scenarios.  Each first-level key represents a
+#  scenario, and corresponds to a rally task definition file in
+#  `playbooks/files/rax-maas/rally/tasks/`.  Look in that directory or in the
+#  maas_rally_check_defaults variable to discover available scenarios.
+#
+#  The per-check (second-level keys) variables are described below.  At a
+#  minimum, deployers should select appropriate values for `times`,
+#  `poll_interval`, `warn_threshold`, and `crit_threshold` for each enabled
+#  scenario based on the characteristics of the environment being monitored.
+#  Undefined variables are inherited from `maas_rally_check_default_template`
+#  and `maas_rally_check_defaults` in that order.  
+#
+#  Per-check (second-level) keys:
+#
+#    - enabled: Boolean indicating whether the check should be deployed.  Each
+#      check must explicitly be enabled.
+#      Default: false
+#
+#    - times: Total number of times a rally task will be run per invocation of
+#      the plugin.
+#      Default: 1
+#
+#    - concurrency: Number of rally tasks that will run in parallel. In most
+#      cases, where the goal is to measure performance while impacting it
+#      minimally, default value of 1 should be used.
+#      Default: 1
+#
+#    - poll_interval: Polling interval in seconds.
+#      Default: 1800 (30 minutes)
+#
+#    - warn_threshold: A warning alarm is generated when the 95%ile metric
+#      exceeds this threshold (in seconds).
+#      Default: 300 (5 minutes)
+#
+#    - crit_threshold: An SLA breach alarm is generated with the 95%ile metric
+#      exceeds this threshold (in seconds).
+#      Default: 600 (10 minutes)
+#
+#    - alarm_consecutive_count: The number of failed polls that trigger an
+#      alarm.  Defaults to 2 to allow for running the check locally for
+#      diagnostic purposes and to avoid alerting during a MaaS agent restart.
+#      Either of those events can lock the maas_rally scenario and cause a
+#      single-poll failure. 
+#      Default: 2
+#
+#    - duration_threshold: The percentage of the polling interval used to warn
+#      about potential polling overruns. Example: If a check is configured to
+#      with a 300 second (5 minute) polling interface and this threshold is set
+#      at 75%, then we will receive an alert if the performance check takes
+#      more than 225 seconds (3 minutes, 45 seconds) to complete. 
+#      Default: 75 (percent)
+#
+#    - project: The keystone project the scenario runs in.  The playbook will
+#      create this project if it does not exist.
+#      Default: rally_<scenario name>
+#
+#    - user_name: The keystone user that the scenario runs as. The playbook will
+#      create this user if it does not exist.
+#      Default: rally_<scenario name>
+#
+#    - user_password: The password for the keystone user the scenario runs as.
+#      Default: {{ maas_rally_users_password }}
+#
+#  Example:
+#
+#    maas_rally_check_overrides:
+#      cinder:
+#        enabled: true
+#        poll_interval: 300
+#        times: 2
+#        warn_threshold: 75
+#        crit_threshold: 95
+#      glance:
+#        enabled: true
+#        poll_interval: 120
+#        times: 2
+#        warn_threshold: 25
+#        crit_threshold: 45
+#      keystone:
+#        enabled: true
+#        poll_interval: 120
+#        times: 10
+#        warn_threshold: 1.65
+#        crit_threshold: 2.5
+#      neutron_ports:
+#        enabled: true
+#        poll_interval: 120
+#        times: 2
+#        warn_threshold: 20
+#        crit_threshold: 30
+#      neutron_secgroups:
+#        enabled: true
+#        poll_interval: 120
+#        times: 2
+#        warn_threshold: 24
+#        crit_threshold: 40
+#      nova:
+#        enabled: true
+#        poll_interval: 300
+#        times: 2
+#        warn_threshold: 35
+#        crit_threshold: 50
+#      nova_cinder:
+#        enabled: true
+#        poll_interval: 200
+#        times: 2
+#        warn_threshold: 70
+#        crit_threshold: 90
+#      swift:
+#        enabled: true
+#        poll_interval: 60
+#        warn_threshold: 2.5
+#        crit_threshold: 5
+#        user_name: swift_monitor
+#        user_password: swiftsecrete
+#        extra_user_roles:
+#          - "swiftoperator"
+maas_rally_check_overrides: {}
+
+#
+#  Galera username for rally.  N.B.: maas_rally_galera_password must be set
+#  in user secrets.
+#
+maas_rally_galera_user: maas_rally
+
+#
+#  Name for galera database where Rally data will be stored
+#
+maas_rally_galera_database: maas_rally
+
+#
+#  Address for galera database where Rally data will be stored.
+#
+maas_rally_galera_address: "{{ galera_address }}"
+
+#
+#  How rally deployments communicate with OpenStack endpoints.
+#
+maas_rally_auth_url: "{{ maas_scheme }}://{{ internal_vip_address }}:5000/v3/"
+maas_rally_region_name: "{{ keystone_service_region | default('RegionOne') }}"
+maas_rally_endpoint_type: "internal"
+
+#
+# Admin user variables
+#
+maas_rally_admin_user_name: "{{ keystone_admin_user_name | default('admin') }}"
+maas_rally_admin_project_name: "{{ keystone_admin_tenant_name | default('admin') }}"
+maas_rally_admin_password: "{{ keystone_auth_admin_password }}"
+maas_rally_admin_domain_name: Default
+
+#
+#  NOTE: Variables beyond this point probably do not need to be overridden for
+#  most use cases (e.g. unless you are adding new scenarios or there is
+#  something non-standard in your environment
+#
+
+#
+# Name of the virtual env to deploy maas_rally into
+#
+maas_rally_venv: "/openstack/venvs/maas-rally-{{ maas_release }}"
+maas_rally_venv_bin: "{{ maas_rally_venv }}/bin"
+
+#
+# Repo and commit/tag/branch for rally
+#
+maas_rally_git_repo: "https://github.com/openstack/rally"
+maas_rally_git_version: "stable/0.9"
+
+#
+# Set the pip package state, defaults to present
+#
+maas_rally_pip_package_state: present
+
+#
+# pip packages required for plugin functionality
+#
+maas_rally_pip_packages:
+  - "git+{{ maas_rally_git_repo }}@{{ maas_rally_git_version }}#egg=rally"
+  - numpy
+  - pymysql
+
+#
+#  Default values for performance checks.  They are intentionally conservative
+#  here to reduce the risk of negatively impacting a production environment by
+#  enabling checks without tuning their configurations.  The expectation is
+#  that these are overridden on a per-check basis, using environment- specific
+#  values, in the maas_rally_check_overrides dictionary.
+#
+#  See the documentation block for maas_rally_check_overrides for information
+#  about each variable.
+#
+maas_rally_default_times: 1
+maas_rally_default_concurrency: 1
+maas_rally_default_poll_interval: 1800
+maas_rally_default_duration_threshold: 75
+maas_rally_default_warn_threshold: 300
+maas_rally_default_crit_threshold: 600
+maas_rally_default_alarm_consecutive_count: 2
+
+#
+#  This dictionary is a template containing default values for all checks. In
+#  most cases, deployers should make changes in maas_rally_check_overrides
+#  rather than here.
+#
+#  See the documentation block for maas_rally_check_overrides for information
+#  about each variable.
+#
+maas_rally_check_default_template:
+  enabled: false
+  times: "{{ maas_rally_default_times }}"
+  concurrency: "{{ maas_rally_default_concurrency }}"
+  warn_threshold: "{{ maas_rally_default_warn_threshold }}"
+  crit_threshold: "{{ maas_rally_default_crit_threshold }}"
+  poll_interval: "{{ maas_rally_default_poll_interval }}"
+  duration_threshold: "{{ maas_rally_default_duration_threshold }}"
+  user_password: "{{ maas_rally_users_password }}"
+  alarm_consecutive_count: "{{ maas_rally_default_alarm_consecutive_count }}"
+  extra_user_roles: []
+  extra_vars: {}
+  creates_instances: false
+  per_iter_quotas:    # Resources required per iteration of the scenario. These
+    instances: 0      # values are multipled by the scenario's concurrency.
+    cores: 0
+    ram: 0
+    fixed-ips: 0
+    floating-ips: 0
+    ports: 0
+    snapshots: 0
+    volumes: 0
+    gigabytes: 0
+
+#
+#  Defaults for each check.  These values are merged with
+#  maas_rally_check_default_template for each check, with these values taking
+#  precedence. In most cases, deployers should make changes in
+#  maas_rally_check_overrides rather than here.
+#
+maas_rally_check_defaults:
+  neutron_secgroups: {}
+  glance: {}
+  keystone: {}
+  swift: {}
+  cinder:
+    per_iter_quotas:
+      instances: 1
+      cores: 1
+      ram: 256
+      fixed-ips: 1
+      ports: 4
+      volumes: 2       # Double because rally doesn't seem to wait for cinder
+      gigabytes: 2     # volumes to be scrubbed.
+    creates_instances: true
+  neutron_ports:
+    per_iter_quotas:
+      ports: 1
+  nova_cinder:
+    per_iter_quotas:
+      instances: 1
+      cores: 1
+      ram: 256
+      fixed-ips: 1
+      ports: 4
+      volumes: 2       # Double because rally doesn't seem to wait for cinder
+      gigabytes: 20    # volumes to be scrubbed.
+    creates_instances: true
+  nova:
+    per_iter_quotas:
+      instances: 1
+      cores: 1
+      ram: 256
+      fixed-ips: 1
+      ports: 4
+    creates_instances: true
+
+#
+#  Combine check defaults and overrides.  These are applied on top of the
+#  template defined in maas_rally_check_default_template.
+#
+maas_rally_checks: "{{ maas_rally_check_defaults | combine(maas_rally_check_overrides, recursive=True) }}"
+
+#
+# Disables configuration validation
+#
+maas_rally_skip_config_validation: false
+
+
+#
+# Varibles required to populate clouds.yaml
+#
+
+## Endpoint types
+openrc_clouds_yml_interface: internal
+
+## Default credentials
+openrc_os_username: admin
+openrc_os_tenant_name: admin
+openrc_os_auth_url: "{{ keystone_service_internalurl }}"
+openrc_region_name: "{{ service_region }}"
+
+## Create clouds.yml file
+openrc_openstack_client_config_dir_dest: "{{ ansible_env.HOME }}/.config/openstack"
+openrc_openstack_client_config_dir_owner: "{{ ansible_user_id }}"
+openrc_openstack_client_config_dir_group: "{{ ansible_user_id }}"
+openrc_openstack_client_config_dir_mode: "0700"
+openrc_clouds_yml_file_dest: "{{ openrc_openstack_client_config_dir_dest }}/clouds.yaml"
+openrc_clouds_yml_file_owner: "{{ ansible_user_id }}"
+openrc_clouds_yml_file_group: "{{ ansible_user_id }}"
+openrc_clouds_yml_file_mode: "0600"
