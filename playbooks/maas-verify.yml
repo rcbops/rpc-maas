@@ -70,6 +70,7 @@
         minutes: 5
       when:
         - maas_use_api | bool
+        - maas_verify_wait | bool
 
     - name: Run MaaS verify local
       command: "{{ maas_venv_bin }}/python /opt/rpc-maas-tools/rpc-maas-tool.py --logfile {{ workspace_logs }}/rpc-maas-logs.txt verify-local"

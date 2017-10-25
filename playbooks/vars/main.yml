@@ -86,6 +86,15 @@ maas_verify_status: false
 maas_verify_registration: false
 
 #
+# maas_verify_wait: Pause for 5 minutes before running verifications.
+#                   This option should be used after an initial deployment of
+#                    MaaS
+#
+maas_verify_wait: true
+
+
+
+#
 # maas_notification_plan: The Cloud Monitoring notification plan, which defines who will be
 #                         notified, and for what.
 #
