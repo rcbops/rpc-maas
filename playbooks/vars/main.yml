@@ -79,6 +79,13 @@ maas_use_api: false
 maas_verify_status: false
 
 #
+# maas_verify_registration: Ensure all checks present in config files
+#                           Are also registered with the API. Fail on any
+#                           discrepancies.
+#
+maas_verify_registration: false
+
+#
 # maas_notification_plan: The Cloud Monitoring notification plan, which defines who will be
 #                         notified, and for what.
 #

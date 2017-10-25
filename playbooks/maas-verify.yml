@@ -92,6 +92,7 @@
       delay: 20
       when:
         - maas_use_api | bool
+        - maas_verify_registration | bool
 
     - name: "Verify Check & Alarm Status"
       command: >
