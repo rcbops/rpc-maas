@@ -25,7 +25,8 @@ from maas_common import status_ok
 
 def check(args):
 
-    NETWORK_ENDPOINT = 'http://{hostname}:9696'.format(hostname=args.hostname)
+    NETWORK_ENDPOINT = '{protocol}://{hostname}:9696'.format(
+        protocol=args.protocol, hostname=args.hostname)
     try:
         neutron = get_neutron_client(endpoint_url=NETWORK_ENDPOINT)
 
@@ -91,6 +92,10 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--protocol',
+                        type=str,
+                        default='http',
+                        help='Protocol for client requests')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)

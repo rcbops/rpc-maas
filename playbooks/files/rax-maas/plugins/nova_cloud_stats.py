@@ -66,8 +66,8 @@ def check(auth_ref, args):
     tenant_id = keystone.tenant_id
 
     COMPUTE_ENDPOINT = (
-        'http://{ip}:8774/v2.1/{tenant_id}'
-        .format(ip=args.ip, tenant_id=tenant_id)
+        '{protocol}://{ip}:8774/v2.1/{tenant_id}'
+        .format(ip=args.ip, tenant_id=tenant_id, protocol=args.protocol)
     )
 
     try:
@@ -134,6 +134,10 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--protocol',
+                        type=str,
+                        help='Protocol to use for contacting nova',
+                        default='http')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
