@@ -102,10 +102,12 @@ def parse_args():
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
-    parser.add_argument('--protocol',
-                        type=str,
-                        default='http',
-                        help='Protocol to use for rabbit checks')
+    parser.add_argument('--http',
+                        action='store_true',
+                        help='Use http for checks')
+    parser.add_argument('--https',
+                        action='store_true',
+                        help='Use https for checks')
     return parser.parse_args()
 
 
@@ -222,15 +224,17 @@ def main():
     session = requests.Session()  # Make a Session to store the auth creds
     session.auth = (options.username, options.password)
 
-    _get_connection_metrics(session, metrics, options.protocol,
+    protocol = 'https' if options.https else 'http'
+
+    _get_connection_metrics(session, metrics, protocol,
                             options.host, options.port)
-    _get_overview_metrics(session, metrics, options.protocol,
+    _get_overview_metrics(session, metrics, protocol,
                           options.host, options.port)
-    _get_node_metrics(session, metrics, options.protocol, options.host,
+    _get_node_metrics(session, metrics, protocol, options.host,
                       options.port, options.name)
-    _get_queue_metrics(session, metrics, options.protocol, options.host,
+    _get_queue_metrics(session, metrics, protocol, options.host,
                        options.port)
-    _get_consumer_metrics(session, metrics, options.protocol, options.host,
+    _get_consumer_metrics(session, metrics, protocol, options.host,
                           options.port)
 
     status_ok(m_name='maas_rabbitmq')
