@@ -26,3 +26,8 @@ Submitting Bugs
 
 Please submit all bugs to the rpc-maas repository:
 https://github.com/rcbops/rpc-maas/issues
+
+Test
+----
+
+Testing the gate.
