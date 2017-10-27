@@ -37,8 +37,10 @@ def check(auth_ref, args):
     auth_token = keystone.auth_token
 
     VOLUME_ENDPOINT = (
-        'http://{hostname}:8776/v1/{tenant}'.format(hostname=args.hostname,
-                                                    tenant=keystone.tenant_id)
+        '{protocol}://{hostname}:8776/v1/{tenant}'.format(
+            protocol=args.protocol,
+            hostname=args.hostname,
+            tenant=keystone.tenant_id)
     )
 
     s = requests.Session()
@@ -124,6 +126,10 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--protocol',
+                        type=str,
+                        default='http',
+                        help='Protocol to use for cinder client')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)

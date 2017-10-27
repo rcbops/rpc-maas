@@ -265,3 +265,37 @@ maas_holland_enabled: false
 #                            in the galera containers (RPC-O newton and onward).
 #
 maas_holland_venv_enabled: false
+
+#
+# nova_service_check_protocol: Protocol to use when authenticating for nova
+#                              service checks. Valid values are "http" or
+#                              "https".
+# TODO Should this be moved to the openstack vars file?
+nova_service_check_protocol: 'http'
+
+#
+# rabbitmq_http_protocol: Protocol to use when authenticating for rabbitmq
+#                         service checks. Valid values are "http" or
+#                         "https".
+# TODO Should this be moved to the openstack vars file?
+rabbitmq_http_protocol: 'http'
+
+#
+# neutron_client_protocol: Protocol to use when authenticating for neutron
+#                          service checks. Valid values are "http" or
+#                          "https".
+# TODO Should this be moved to the openstack vars file?
+neutron_client_protocol: 'http'
+
+#
+# cinder_client_protocol: Protocol to use when authenticating for cinder
+#                         service checks. Valid values are "http" or
+#                         "https".
+# TODO Should this be moved to the openstack vars file?
+cinder_client_protocol: 'http'
+
+#
+# ceph_radosgw_protocol: Protocol to use for ceph radosgw checks. Valid values
+#                        are "http" or "https".
+#
+ceph_radosgw_protocol: 'http'

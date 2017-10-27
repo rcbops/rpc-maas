@@ -26,12 +26,12 @@ from maas_common import status_ok
 import re
 import requests
 
-OVERVIEW_URL = "http://%s:%s/api/overview"
-NODES_URL = "http://%s:%s/api/nodes"
-CONNECTIONS_URL = "http://%s:%s/api/connections?columns=channels"
-QUEUES_URL = "http://%s:%s/api/queues"
-CONSUMERS_QUEUES_URL = "http://%s:%s/api/queues/%s"
-VHOSTS_URL = "http://%s:%s/api/vhosts"
+OVERVIEW_URL = "%s://%s:%s/api/overview"
+NODES_URL = "%s://%s:%s/api/nodes"
+CONNECTIONS_URL = "%s://%s:%s/api/connections?columns=channels"
+QUEUES_URL = "%s://%s:%s/api/queues"
+CONSUMERS_QUEUES_URL = "%s://%s:%s/api/queues/%s"
+VHOSTS_URL = "%s://%s:%s/api/vhosts"
 
 CLUSTERED = True
 # NOTE(cloudnull): The cluster size is set using a Jinja2 variable
@@ -102,12 +102,18 @@ def parse_args():
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--http',
+                        action='store_true',
+                        help='Use http for checks')
+    parser.add_argument('--https',
+                        action='store_true',
+                        help='Use https for checks')
     return parser.parse_args()
 
 
 def _get_rabbit_json(session, url):
     try:
-        response = session.get(url)
+        response = session.get(url, verify=False)
     except requests.exceptions.ConnectionError as e:
         metric_bool('client_success', False, m_name='maas_rabbitmq')
         status_err(str(e), m_name='maas_rabbitmq')
@@ -120,9 +126,10 @@ def _get_rabbit_json(session, url):
             response.status_code), m_name='maas_rabbitmq')
 
 
-def _get_connection_metrics(session, metrics, host, port):
+def _get_connection_metrics(session, metrics, protocol, host, port):
 
-    response = _get_rabbit_json(session, CONNECTIONS_URL % (host, port))
+    response = _get_rabbit_json(session, CONNECTIONS_URL % (protocol,
+                                                            host, port))
 
     max_chans = max(chain(connection['channels'] for connection in response
                     if 'channels' in connection), '0')
@@ -130,8 +137,8 @@ def _get_connection_metrics(session, metrics, host, port):
         metrics[k] = {'value': max_chans, 'unit': CONNECTIONS_METRICS[k]}
 
 
-def _get_overview_metrics(session, metrics, host, port):
-    response = _get_rabbit_json(session, OVERVIEW_URL % (host, port))
+def _get_overview_metrics(session, metrics, protocol, host, port):
+    response = _get_rabbit_json(session, OVERVIEW_URL % (protocol, host, port))
 
     for k in OVERVIEW_METRICS:
         if k in response:
@@ -140,8 +147,8 @@ def _get_overview_metrics(session, metrics, host, port):
                     metrics[a] = {'value': response[k][a], 'unit': b}
 
 
-def _get_node_metrics(session, metrics, host, port, name):
-    response = _get_rabbit_json(session, NODES_URL % (host, port))
+def _get_node_metrics(session, metrics, protocol, host, port, name):
+    response = _get_rabbit_json(session, NODES_URL % (protocol, host, port))
 
     # Either use the option provided by the commandline flag or the current
     # hostname
@@ -171,8 +178,8 @@ def _get_node_metrics(session, metrics, host, port, name):
         metrics[k] = {'value': nodes_matching_name[0][k], 'unit': v}
 
 
-def _get_queue_metrics(session, metrics, host, port):
-    response = _get_rabbit_json(session, QUEUES_URL % (host, port))
+def _get_queue_metrics(session, metrics, protocol, host, port):
+    response = _get_rabbit_json(session, QUEUES_URL % (protocol, host, port))
     notification_messages = sum([q['messages'] for q in response
                                 if re.match('/^(versioned_)?notifications\.',
                                             q['name']) and
@@ -188,9 +195,10 @@ def _get_queue_metrics(session, metrics, host, port):
     }
 
 
-def _get_consumer_metrics(session, metrics, host, port):
+def _get_consumer_metrics(session, metrics, protocol, host, port):
     VHOSTS = []
-    vhosts_response = _get_rabbit_json(session, VHOSTS_URL % (host, port))
+    vhosts_response = _get_rabbit_json(session, VHOSTS_URL % (protocol,
+                                                              host, port))
     # get the vhosts
     for vhost in vhosts_response:
         VHOSTS.append(vhost['name'])
@@ -200,7 +208,7 @@ def _get_consumer_metrics(session, metrics, host, port):
         # uri encode /
         URI_ENCODED = vhost.replace('/', '%2F')
         queue_response = _get_rabbit_json(session, CONSUMERS_QUEUES_URL %
-                                          (host, port, URI_ENCODED))
+                                          (protocol, host, port, URI_ENCODED))
         for queue in queue_response:
             if queue['consumers'] == 0 and queue['messages'] > 0:
                 queues_without_consumers += 1
@@ -216,12 +224,18 @@ def main():
     session = requests.Session()  # Make a Session to store the auth creds
     session.auth = (options.username, options.password)
 
-    _get_connection_metrics(session, metrics, options.host, options.port)
-    _get_overview_metrics(session, metrics, options.host, options.port)
-    _get_node_metrics(session, metrics, options.host, options.port,
-                      options.name)
-    _get_queue_metrics(session, metrics, options.host, options.port)
-    _get_consumer_metrics(session, metrics, options.host, options.port)
+    protocol = 'https' if options.https else 'http'
+
+    _get_connection_metrics(session, metrics, protocol,
+                            options.host, options.port)
+    _get_overview_metrics(session, metrics, protocol,
+                          options.host, options.port)
+    _get_node_metrics(session, metrics, protocol, options.host,
+                      options.port, options.name)
+    _get_queue_metrics(session, metrics, protocol, options.host,
+                       options.port)
+    _get_consumer_metrics(session, metrics, protocol, options.host,
+                          options.port)
 
     status_ok(m_name='maas_rabbitmq')
 

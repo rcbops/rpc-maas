@@ -7,7 +7,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (not maas_monitor_cinder_backup | bool or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/cinder_service_check.py", "--host", "{{ ansible_nodename }}", "{{ internal_vip_address }}"]
+    args    : ["{{ maas_plugin_dir }}/cinder_service_check.py", "--host", "{{ ansible_nodename }}", "--protocol", "{{ cinder_client_protocol }}", "{{ internal_vip_address }}"]
 alarms      :
     cinder_backup_status :
         label                   : cinder_backup_status--{{ inventory_hostname }}
