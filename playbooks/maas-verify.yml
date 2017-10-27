@@ -22,7 +22,6 @@
       file:
         path: "{{ workspace_logs }}"
         state: "directory"
-        mode: "1777"
 
     - name: Create tools dir
       file:
