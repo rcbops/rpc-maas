@@ -59,7 +59,7 @@ maas_fqdn_extension: ""
 # The entity name is the inventory hostname and fqdn extension combined.
 #
 # Set the hostname for use with the api checks
-maas_entity_name: "{{ inventory_hostname }}{{ maas_fqdn_extension }}"
+maas_entity_name: "{{ ansible_hostname }}{{ maas_fqdn_extension }}"
 
 #
 # Plugin directory when all agent plugins will be installed.
@@ -77,6 +77,22 @@ maas_use_api: false
 #                     will cause a failure on any check reporting CRITICAL.
 #
 maas_verify_status: false
+
+#
+# maas_verify_registration: Ensure all checks present in config files
+#                           Are also registered with the API. Fail on any
+#                           discrepancies.
+#
+maas_verify_registration: false
+
+#
+# maas_verify_wait: Pause for 5 minutes before running verifications.
+#                   This option should be used after an initial deployment of
+#                    MaaS
+#
+maas_verify_wait: true
+
+
 
 #
 # maas_notification_plan: The Cloud Monitoring notification plan, which defines who will be

@@ -90,6 +90,10 @@ function execute_ansible_playbook {
 }
 
 function gate_job_exit_tasks {
+  # This environment variable captures the exit code
+  # which was present when the trap was initiated.
+  # This would be the success/failure of the test.
+  export TEST_EXIT_CODE=$?
   source "${COMMON_TESTS_PATH}/test-log-collect.sh"
 }
 

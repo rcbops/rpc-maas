@@ -22,7 +22,6 @@
       file:
         path: "{{ workspace_logs }}"
         state: "directory"
-        mode: "0755"
 
     - name: Create tools dir
       file:
@@ -70,6 +69,7 @@
         minutes: 5
       when:
         - maas_use_api | bool
+        - maas_verify_wait | bool
 
     - name: Run MaaS verify local
       command: "{{ maas_venv_bin }}/python /opt/rpc-maas-tools/rpc-maas-tool.py --logfile {{ workspace_logs }}/rpc-maas-logs.txt verify-local"
@@ -92,6 +92,7 @@
       delay: 20
       when:
         - maas_use_api | bool
+        - maas_verify_registration | bool
 
     - name: "Verify Check & Alarm Status"
       command: >
