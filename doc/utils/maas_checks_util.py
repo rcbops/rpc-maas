@@ -1,6 +1,9 @@
 import collections
 import itertools
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import re
 
 from ansible.plugins.filter import core as ansible_filters
@@ -31,7 +34,7 @@ class SilentUndefined(jinja2.Undefined):
 
     def _return_name(self, *args, **kwargs):
         """Return the name as a string when it's undefined"""
-        return f"{self._undefined_name}"
+        return str(self._undefined_name)
 
     # For any access, return the string.
     __getitem__ = __getattr__ =_return_name
@@ -359,16 +362,16 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
 
 def _main():
     for check, details in check_details("../.."):
-        print(f"Check: {check}")
+        print("Check: {}".format(check))
         for alarm, variables in details.items():
-            print(f"\tAlarm: {alarm}")
+            print("\tAlarm: {}".format(alarm))
             for key, value in variables.items():
                 if key == "_criteria":
                     for criteria in value:
-                        for type, parameter in criteria.items():
-                            print(f"\t\t{type}: {parameter}")
+                        for typ, parameter in criteria.items():
+                            print("\t\t{}: {}".format(typ, parameter))
                 else:
-                    print(f"\t\tVariable: {key} = {value}")
+                    print("\t\tVariable: {} = {}".format(key, value))
 
 
 if __name__ == "__main__":
