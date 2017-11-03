@@ -28,7 +28,6 @@ maas_pip_packages:
   - psutil
   - rackspace-monitoring-cli
   - requests
-  - waxeye
 
 ## PIP for maas
 # Path to pip download/installation script.
