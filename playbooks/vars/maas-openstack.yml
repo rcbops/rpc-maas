@@ -169,3 +169,15 @@ nova_console_ports:
   spice: 6082
 
 nova_console_port: "{{ nova_console_ports[nova_console_type] }}"
+
+octavia_process_names:
+  - uwsgi
+  - "octavia-worker.log]"
+  - octavia-health-manager
+  - octavia-housekeeping
+
+octavia_process_names_sanitized:
+  - uwsgi
+  - octavia-workerlog
+  - octavia-health-manager
+  - octavia-housekeeping

@@ -49,6 +49,10 @@
   tags:
     - maas-openstack
 
+- include: maas-openstack-octavia.yml
+  tags:
+    - maas-openstack
+
 - include: maas-openstack-swift.yml
   tags:
     - maas-openstack
