@@ -171,6 +171,29 @@
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron
+    
+- name: Install checks for openstack neutron OVS agent
+  hosts: neutron_openvswitch_agent
+  gather_facts: false
+  tasks:
+    - name: Install neutron OVS agent checks
+      template:
+        src: "templates/rax-maas/neutron_ovs_agent_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_ovs_agent_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      notify:
+        - Restart rax-maas
+
+  handlers:
+    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-neutron
 
 - name: Install checks for openstack neutron metadata agent
   hosts: neutron_metadata_agent
@@ -195,7 +218,7 @@
   tags:
     - maas-openstack-neutron
 
-- name: Install checks for openstack neutron metadata agent
+- name: Install checks for openstack neutron metering agent
   hosts: neutron_metering_agent
   gather_facts: false
   tasks:
