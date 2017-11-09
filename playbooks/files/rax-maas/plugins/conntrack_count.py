@@ -16,12 +16,25 @@
 
 import argparse
 import errno
-
+import lxc
 import maas_common
+import tempfile
 
 
 class MissingModuleError(maas_common.MaaSException):
     pass
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Check netfilter conntrack')
+    parser.add_argument('--container', nargs='?',
+                        help='Name of the container to check against')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    return parser.parse_args()
 
 
 def get_value(path):
@@ -50,9 +63,51 @@ def get_metrics():
     return metrics
 
 
+def get_metrics_lxc_container(container_name=''):
+
+    # Return 0 values if we can't determine current state
+    # from a container
+    metrics = {
+        'nf_conntrack_count': {'value': 0},
+        'nf_conntrack_max': {'value': 0}}
+
+    # Create lxc container object
+    cont = lxc.Container(container_name)
+
+    if not (cont.init_pid > 1 and
+            cont.running and
+            cont.state == "RUNNING"):
+        raise maas_common.MaaSException('Container %s not in running state' %
+                                        cont.name)
+
+    # Check if container is even running
+    try:
+        with tempfile.TemporaryFile() as tmpfile:
+            if cont.attach_wait(lxc.attach_run_command,
+                                ['cat',
+                                 '/proc/sys/net/netfilter/nf_conntrack_count',
+                                 '/proc/sys/net/netfilter/nf_conntrack_max'],
+                                stdout=tmpfile) > -1:
+
+                tmpfile.seek(0)
+                output = tmpfile.read()
+                metrics = {
+                    'nf_conntrack_count': {'value': output.split('\n')[0]},
+                    'nf_conntrack_max': {'value': output.split('\n')[1]}}
+
+            return metrics
+
+    except maas_common.MaaSException as e:
+        maas_common.status_err(str(e), m_name='maas_conntrack')
+
+
 def main():
     try:
-        metrics = get_metrics()
+        if not args.container:
+            metrics = get_metrics()
+        else:
+            metrics = get_metrics_lxc_container(args.container)
+
     except maas_common.MaaSException as e:
         maas_common.status_err(str(e), m_name='maas_conntrack')
     else:
@@ -62,11 +117,6 @@ def main():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Conntrack checks')
-    parser.add_argument('--telegraf-output',
-                        action='store_true',
-                        default=False,
-                        help='Set the output format to telegraf')
-    args = parser.parse_args()
+    args = parse_args()
     with maas_common.print_output(print_telegraf=args.telegraf_output):
         main()

@@ -16,3 +16,7 @@
 - include: maas-container-storage.yml
   tags:
     - maas-container
+
+- include: maas-container-conntrack.yml
+  tags:
+    - maas-container
