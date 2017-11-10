@@ -184,6 +184,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: neutron_plugin_type | search("ovs")  
       notify:
         - Restart rax-maas
 
