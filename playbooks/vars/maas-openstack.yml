@@ -27,6 +27,7 @@ maas_horizon_scheme: https
 # maas_heat_cloudwatch_scheme: https
 # maas_ironic_api_scheme: https
 # maas_maas_swift_proxy_scheme: https
+# maas_octavia_scheme: https
 
 #
 # pip installable packages for given services used within maas
