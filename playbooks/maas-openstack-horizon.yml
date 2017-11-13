@@ -84,6 +84,21 @@
       notify:
         - Restart rax-maas
 
+    - name: Install private lb-ssl check
+      template:
+        src: "templates/rax-maas/private_lb_ssl_cert_expiry_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_ssl_cert_expiry_check.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_ssl_check | bool
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+      notify:
+        - Restart rax-maas
+
   handlers:
     - include: handlers/main.yml
   vars_files:
