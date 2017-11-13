@@ -85,14 +85,14 @@ function enable_ironic {
 }
 
 function install_ovs {
-  if [ ! -z ${use_ovs+x} ]; then  
-  	sed -i 's/neutron_linuxbridge_agent/neutron_openvswitch_agent/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
-	echo '
+  if [ ! -z ${use_ovs+x} ]; then
+    sed -i 's/neutron_linuxbridge_agent/neutron_openvswitch_agent/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
+    echo '
 openstack_host_specific_kernel_modules:
   - name: "openvswitch"
   - pattern: "CONFIG_OPENVSWITCH"
   - group: "network_hosts"
-  		  
+
 neutron_plugin_type: ml2.ovs
 neutron_ml2_drivers_type: "vlan"
 neutron_provider_networks:
@@ -184,7 +184,7 @@ pushd /opt/openstack-ansible
   else
     enable_ironic
   fi
-  
+
   # Install ovs agent if applicable
   install_ovs
 
