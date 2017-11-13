@@ -84,6 +84,25 @@ function enable_ironic {
       - name: ironic.yml.aio" | tee -a /etc/openstack_deploy/user_ironic.yml
 }
 
+function install_ovs {
+  if [ ! -z ${use_ovs+x} ]; then  
+  	sed -i 's/neutron_linuxbridge_agent/neutron_openvswitch_agent/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
+	echo '
+	  openstack_host_specific_kernel_modules:
+		- name: "openvswitch"
+		- pattern: "CONFIG_OPENVSWITCH"
+		- group: "network_hosts"
+		  
+      neutron_plugin_type: ml2.ovs
+		neutron_ml2_drivers_type: "vlan"
+		neutron_provider_networks:
+		  - network_flat_networks: "*"
+		  - network_types: "vlan"
+		  - network_vlan_ranges: "physnet1:1:1"
+		  - network_mappings: "physnet1:br-provider"' | tee -a /etc/openstack_deploy/user_variables.yml
+  fi
+}
+
 ## Main ----------------------------------------------------------------------
 
 echo "Gate test starting
@@ -165,6 +184,9 @@ pushd /opt/openstack-ansible
   else
     enable_ironic
   fi
+  
+  # Install ovs agent if applicable
+  install_ovs
 
   # Disbale tempest on newer releases
   if [[ -f "tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2" ]]; then
