@@ -16,7 +16,7 @@
 - name: Restart MaaS
   hosts: "{{ maas_restart_on_host_override | default('maas_restart_on_host') }}"
   gather_facts: false
-  serial: 1
+  serial: "{{ maas_restart_serial | default(1) }}"
   tasks:
     - name: Restart rackspace-monitoring-poller (systemd)
       service:
