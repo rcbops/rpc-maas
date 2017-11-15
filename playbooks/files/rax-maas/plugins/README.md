@@ -265,10 +265,10 @@ polls the neutron api and gets a list of all neutron agents running in the envir
 Hostname or IP address of service to test
 ##### Example Output:
 
-    metric neutron-metadata-agent_8a1a5b16-8546-4801-a31f-e07dce8c068b_on_host_big3.localdomain uint32 1
-    metric neutron-linuxbridge-agent_cac1fd39-e23d-47ea-aa20-99f0accf5584_on_host_aio1_nova_compute_container-19824c74 uint32 1
-    metric neutron-dhcp-agent_d89db127-2bc7-473a-bcb0-ac89345397e0_on_host_big3.localdomain uint32 1
-    metric neutron-linuxbridge-agent_e86cee43-47bf-42cd-872f-a623e458e549_on_host_big3.localdomain uint32 1
+    metric neutron-metadata-agent_status uint32 1
+    metric neutron-linuxbridge-agent_status uint32 1
+    metric neutron-dhcp-agent_status uint32 1
+    metric neutron-linuxbridge-agent_status uint32 1
     ...
 
 ***

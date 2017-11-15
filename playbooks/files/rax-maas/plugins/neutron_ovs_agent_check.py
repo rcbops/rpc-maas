@@ -27,7 +27,7 @@ except ImportError:
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
-from process_check_container import get_processes
+from process_check_host import get_processes
 
 
 def check_process_statuses(container_or_host_name, container=None):
