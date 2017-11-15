@@ -19,7 +19,7 @@ alarms      :
                 return new AlarmStatus(CRITICAL, "neutron-ovs-agent down");
             }
     
-   ovsdb_server_process_status :
+    ovsdb_server_process_status :
         label                   : ovsdb_server_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('ovsdb_server_process_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
@@ -29,7 +29,7 @@ alarms      :
                 return new AlarmStatus(CRITICAL, "ovsdb-server down");
             }
    
-   ovs_vswitchd_process_status :
+    ovs_vswitchd_process_status :
         label                   : ovs_vswitchd_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('ovs_vswitchd_process_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
