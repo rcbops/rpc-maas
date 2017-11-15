@@ -17,8 +17,7 @@ alarms      :
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["neutron-openvswitch-agent_process_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "neutron-ovs-agent down");
-            }
-    
+            }    
     ovsdb_server_process_status :
         label                   : ovsdb_server_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
@@ -27,8 +26,7 @@ alarms      :
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["ovsdb-server_process_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "ovsdb-server down");
-            }
-   
+            }   
     ovs_vswitchd_process_status :
         label                   : ovs_vswitchd_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
