@@ -145,7 +145,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: neutron_plugin_type is not defined or (neutron_plugin_type | search("linuxbridge"))
+      when: neutron_plugin_type is not defined or (neutron_plugin_type | search("lxb"))
 
   vars_files:
     - vars/main.yml
