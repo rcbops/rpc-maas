@@ -60,7 +60,7 @@ def check_process_statuses(container_or_host_name, container=None):
                 cmdlines.append(map(os.path.basename,
                                     proc.cmdline))
         except Exception as e:
-            status_err('Error while retrieving process %s, exception: %s'
+            status_err('Error while retrieving process %s, ERROR: %s'
                        % (proc.cmdline, str(e)),
                        m_name='maas_neutron')
             pass
@@ -80,9 +80,8 @@ def check_process_statuses(container_or_host_name, container=None):
                    )
                    ]
 
-        metric_bool('%s_process_status_on_host_%s' % (
-                    pattern.sub('', process_name),
-                    container_or_host_name
+        metric_bool('%s_process_status' % (
+                    pattern.sub('', process_name)
                     ),
                     len(matches) > 0)
 
@@ -94,8 +93,7 @@ def check(args):
         neutron_agent_containers = []
         for container in containers:
             if 'neutron_agents' in container:
-                metric_bool('agents_found_on_host_%s' %
-                            container,
+                metric_bool('agents_found',
                             True, m_name='maas_neutron')
                 neutron_agent_containers.append(container)
 
@@ -111,8 +109,7 @@ def check(args):
                 c = lxc.Container(neutron_agent_container)
                 # If the container wasn't found, exit now.
                 if c.init_pid == -1:
-                    metric_bool('container_success_on_host_%s' %
-                                neutron_agent_container,
+                    metric_bool('container_success',
                                 False,
                                 m_name='maas_neutron_agent_container')
                     status_err(
@@ -133,8 +130,7 @@ def check(args):
                     m_name='maas_neutron_agent_container'
                 )
             else:
-                metric_bool('container_success_on_host_%s' %
-                            neutron_agent_container, True,
+                metric_bool('container_success', True,
                             m_name='maas_neutron_agent_container')
 
             # c is the lxc container instance of this

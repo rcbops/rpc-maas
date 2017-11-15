@@ -279,11 +279,11 @@ polls the neutron agent to ensure openvswtich agent is up and running
 
 ##### Example Output:
 
-    metric agents_found_on_host_aio1_neutron_agents_container-dc456596 uint32 1
-    metric container_success_on_host_aio1_neutron_agents_container-dc456596 uint32 1
-    metric ovsdb-server_process_status_on_host_aio1_neutron_agents_container-dc456596 uint32 1
-    metric ovs-vswitchd_process_status_on_host_aio1_neutron_agents_container-dc456596 uint32 1
-    metric neutron-openvswitch-agent_process_status_on_host_aio1_neutron_agents_container-dc456596 uint32 1
+    metric agents_found uint32 1
+    metric container_success uint32 1
+    metric ovsdb-server_process_status uint32 1
+    metric ovs-vswitchd_process_status uint32 1
+    metric neutron-openvswitch-agent_process_status uint32 1
 
 ***
 #### neutron_metadata_local_check.py
