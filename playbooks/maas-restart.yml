@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Restart MaaS
-  hosts: "{{ maas_restart_on_host_override | default('maas_restart_on_host') }}"
+  hosts: hosts
   gather_facts: false
   serial: "{{ maas_restart_serial | default(1) }}"
   tasks:
