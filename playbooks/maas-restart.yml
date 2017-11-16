@@ -29,7 +29,14 @@
       delay: 2
       when:
         - maas_private_monitoring_enabled | bool
+<<<<<<< Upstream, based on branch 'master' of https://github.com/rcbops/rpc-maas.git
         - physical_host in groups['shared-infra_hosts']
+=======
+        - ceph_standalone or 
+          physical_host in groups['shared-infra_hosts']
+        - maas_restart_independent | default(true) | bool or
+          maas_force_restart | default(false) | bool
+>>>>>>> c93a06e Turtles-317:  Add ceph_standalone override options
         - ansible_distribution_version == "16.04"
 
     - name: Restart rackspace-monitoring-poller (upstart)
@@ -43,7 +50,14 @@
       delay: 2
       when:
         - maas_private_monitoring_enabled | bool
+<<<<<<< Upstream, based on branch 'master' of https://github.com/rcbops/rpc-maas.git
         - physical_host in groups['shared-infra_hosts']
+=======
+        - ceph_standalone or 
+          physical_host in groups['shared-infra_hosts']
+        - maas_restart_independent | default(true) | bool or
+          maas_force_restart | default(false) | bool
+>>>>>>> c93a06e Turtles-317:  Add ceph_standalone override options
         - ansible_distribution_version == "14.04"
 
     - name: Restart rackspace-monitoring-agent

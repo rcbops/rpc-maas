@@ -391,3 +391,7 @@ glance_local_api_port: '9292'
 #
 glance_local_api_protocol: 'http'
 
+# 
+# ceph_standalone: whether it is deployed in a ceph_standalone environment
+#
+ceph_standalone: false
