@@ -21,7 +21,6 @@
     - name: Set the current group
       set_fact:
         maas_current_group: rsyslog_all
-
   tags:
     - maas-infra-rsyslog
 
@@ -37,8 +36,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
   handlers:
     - include: handlers/main.yml
@@ -47,7 +44,3 @@
     - vars/maas-infra.yml
   tags:
     - maas-infra-rsyslog
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

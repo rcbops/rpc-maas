@@ -30,8 +30,6 @@
       when:
         - maas_private_monitoring_enabled | bool
         - physical_host in groups['shared-infra_hosts']
-        - maas_restart_independent | default(true) | bool or
-          maas_force_restart | default(false) | bool
         - ansible_distribution_version == "16.04"
 
     - name: Restart rackspace-monitoring-poller (upstart)
@@ -46,8 +44,6 @@
       when:
         - maas_private_monitoring_enabled | bool
         - physical_host in groups['shared-infra_hosts']
-        - maas_restart_independent | default(true) | bool or
-          maas_force_restart | default(false) | bool
         - ansible_distribution_version == "14.04"
 
     - name: Restart rackspace-monitoring-agent
@@ -58,9 +54,6 @@
       until: _maas_agent_restart | success
       retries: 5
       delay: 3
-      when: >
-        maas_restart_independent | default(true) | bool or
-        maas_force_restart | default(false) | bool
 
   vars_files:
     - vars/main.yml

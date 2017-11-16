@@ -21,7 +21,6 @@
     - name: Set the current group
       set_fact:
         maas_current_group: octavia_all
-
   tags:
     -  maas-openstack-octavia
 
@@ -37,10 +36,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-  handlers:
-    - include: handlers/main.yml
+
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -59,8 +55,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
+
     - name: Install neutron private lb checks
       template:
         src: "templates/rax-maas/private_lb_api_check_octavia.yaml.j2"
@@ -72,16 +67,9 @@
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
-      notify:
-        - Restart rax-maas
-  handlers:
-    - include: handlers/main.yml
+
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-octavia
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

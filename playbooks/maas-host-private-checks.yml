@@ -42,15 +42,9 @@
       with_items:
         - { name: "private_ping_check" }
         - { name: "private_ssh_check" }
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-poller.yml
   tags:
     - maas-poller-setup
-
-- include: maas-restart.yml
