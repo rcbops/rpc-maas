@@ -450,6 +450,16 @@ section.
     swift_cont
     swift_obj
 
+hummingbird_all
+~~~~~~~~~~~~~~~
+
+If you have node(s) running ``hummingbird``, add the node(s) into the "hummingbird"
+section.
+
+.. code-block:: ini
+
+    [hummingbird]
+    hbird1
 
 influx_hosts
 ~~~~~~~~~~~~

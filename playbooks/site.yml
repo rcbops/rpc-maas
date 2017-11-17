@@ -41,6 +41,11 @@
   tags:
     - maas
 
+- include: maas-hummingbird.yml
+  tags:
+    - maas
+    - hummingbird
+
 # NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
 #                  will be globally unified.
 - include: maas-restart.yml

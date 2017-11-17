@@ -1,0 +1,23 @@
+{% set label = "private_lb_api_check_hummingbird_healthcheck" %}
+{% set check_name = label+'--'+maas_lb_name %}
+type              : remote.http
+label             : "{{ check_name }}"
+period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
+timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
+disabled          : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+target_resolver   : "IPv4"
+target_hostname   : "{{ internal_vip_address }}"
+details           :
+    url           : "{{ maas_scheme }}://{{ internal_vip_address }}:8080/healthcheck"
+monitoring_zones_poll:
+  - "{{ maas_private_monitoring_zone }}"
+alarms            :
+    private_lb_api_alarm_hummingbird_healthcheck:
+        label               : private_lb_api_alarm_hummingbird_healthcheck
+        notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled            : {{ ('private_lb_api_alarm_hummingbird_healthcheck' | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria            : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric['code'] != '200') {
+                return new AlarmStatus(CRITICAL, 'API unavailable.');
+            }

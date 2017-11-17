@@ -129,9 +129,9 @@ def check_process_running(process_names, container_name=None):
             # a callable method.
             cmdline_check = getattr(proc, "cmdline", None)
             if callable(cmdline_check):
-                cmdlines.append(map(os.path.basename, proc.cmdline()))
+                cmdlines.append(' '.join(proc.cmdline()))
             else:
-                cmdlines.append(map(os.path.basename, proc.cmdline))
+                cmdlines.append(' '.join(proc.cmdline))
         except Exception:
             pass
 
