@@ -47,14 +47,6 @@
       with_together:
         - "{{ maas_network_checks_list }}"
 
-    - name: Install conntrack count checks
-      template:
-        src: "templates/rax-maas/conntrack_count.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/conntrack_count--{{ inventory_hostname }}.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-
   vars_files:
     - vars/main.yml
     - vars/maas-host.yml

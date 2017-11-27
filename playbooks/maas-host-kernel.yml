@@ -27,6 +27,12 @@
 - name: Install checks for hosts kernel
   hosts: hosts
   gather_facts: false
+  pre_tasks:
+    - name: Check nf_conntrack status
+      stat:
+        path: "/proc/sys/net/nf_conntrack_max"
+      register: nf_conntrack
+
   tasks:
     - name: Install local checks
       template:
@@ -35,6 +41,13 @@
         owner: "root"
         group: "root"
         mode: "0644"
+      when: nf_conntrack.stat.exists |bool
+
+    - name: Remove conntrack count checks if not needed
+      file:
+        path: "/etc/rackspace-monitoring-agent.conf.d/conntrack_count--{{ inventory_hostname }}.yaml"
+        state: "absent"
+      when: not nf_conntrack.stat.exists |bool
 
   vars_files:
     - vars/main.yml
