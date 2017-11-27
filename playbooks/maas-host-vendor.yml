@@ -35,13 +35,7 @@
         - maas_host_check | bool
         - ansible_system_vendor.split()[0] | lower == 'dell'
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
   tags:
     - maas-hosts-vendor
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

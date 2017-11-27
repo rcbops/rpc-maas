@@ -64,9 +64,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-        
+
     - name: Install ironic capacity checks
       template:
         src: "templates/rax-maas/ironic_capacity_check.yaml.j2"
@@ -75,8 +73,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install ironic api lb checks
       template:
@@ -89,8 +85,6 @@
       when:
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
-      notify:
-        - Restart rax-maas
 
     - name: Install ironic api private lb checks
       template:
@@ -103,17 +97,13 @@
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-ironic
-    
+
 - name: Install checks for openstack ironic-conductor
   hosts: ironic_conductor
   gather_facts: false
@@ -126,17 +116,13 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-ironic
-    
+
 - name: Install checks for openstack ironic-compute
   hosts: ironic_compute
   gather_facts: false
@@ -149,17 +135,9 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-  
-  handlers:
-    - include: handlers/main.yml
+
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-ironic
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

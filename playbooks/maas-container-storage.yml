@@ -88,18 +88,9 @@
       when:
         - ansible_distribution_version == '14.04'
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-
-  handlers:
-    - include: handlers/main.yml
 
   vars_files:
     - vars/main.yml
     - vars/maas-container.yml
   tags:
     - maas-container-storage
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

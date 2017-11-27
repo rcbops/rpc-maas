@@ -21,7 +21,6 @@
     - name: Set the current group
       set_fact:
         maas_current_group: rgws
-  
   tags:
     - maas-ceph-rgws
 
@@ -55,16 +54,8 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       with_items:
         - ceph_rgw_stats
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
   tags:
     - maas-ceph-rgws
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

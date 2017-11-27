@@ -90,8 +90,6 @@
         - swift_storage_bridge | skipped
         - swift_storage_bridge_fact | skipped
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -110,8 +108,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install swift account process checks
       template:
@@ -121,11 +117,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -144,8 +136,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install swift container process checks
       template:
@@ -155,11 +145,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -178,8 +164,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install swift container process checks
       template:
@@ -189,17 +173,13 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-swift
-    
+
 - name: Install swift-recon checks for openstack swift proxy
   hosts: swift_proxy
   gather_facts: false
@@ -209,7 +189,7 @@
         maas_swift_recon_nodes: "{{ (maas_swift_multi_region_proxy_nodes | length > 0) | ternary(maas_swift_multi_region_proxy_nodes, groups['swift_proxy'][0:2]) }}"
       when:
         - maas_swift_recon_nodes is undefined
-    
+
     - name: Install swift account replications checks
       template:
         src: "templates/rax-maas/swift_account_replication_check.yaml.j2"
@@ -218,8 +198,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install swift container async checks
       template:
@@ -229,8 +207,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install swift container replication checks
       template:
@@ -240,8 +216,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install swift md5 checks
       template:
@@ -251,8 +225,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install swift object replication checks
       template:
@@ -262,9 +234,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-   
+
     - name: Install swift quarantine checks
       template:
         src: "templates/rax-maas/swift_quarantine_check.yaml.j2"
@@ -273,8 +243,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install swift time sync checks
       template:
@@ -284,11 +252,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
-   
-  handlers:
-    - include: handlers/main.yml
+
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -406,8 +370,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install swift lb health checks
       template:
@@ -420,8 +382,6 @@
       when:
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
-      notify:
-        - Restart rax-maas
 
     - name: Install swift lb access checks
       template:
@@ -435,8 +395,6 @@
         - maas_remote_check | bool
         - maas_swift_accesscheck_enabled | bool
         - not maas_private_monitoring_enabled
-      notify:
-        - Restart rax-maas
 
     - name: Install swift private lb health checks
       template:
@@ -449,8 +407,6 @@
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
-      notify:
-        - Restart rax-maas
 
     - name: Install swift private lb access checks
       template:
@@ -464,17 +420,9 @@
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
         - maas_swift_accesscheck_enabled | bool
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-swift
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

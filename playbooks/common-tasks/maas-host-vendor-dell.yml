@@ -20,8 +20,6 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  notify:
-    - Restart rax-maas
   tags:
     - maas-hosts-vendor-dell
 
@@ -32,8 +30,6 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  notify:
-    - Restart rax-maas
   tags:
     - maas-hosts-vendor-dell
 
@@ -44,7 +40,5 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  notify:
-    - Restart rax-maas
   tags:
     - maas-hosts-vendor-dell
