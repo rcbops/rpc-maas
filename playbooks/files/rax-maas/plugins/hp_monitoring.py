@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import os
 import subprocess
 
 import maas_common
@@ -44,40 +45,54 @@ def check_command(command, startswith, endswith):
     return status
 
 
-def get_hpasmcli_status(thing):
-    return check_command(('hpasmcli', '-s', 'show %s' % thing),
+def get_chassis_status(command, item):
+    return check_command((command, '-s', 'show %s' % item),
                          'Status', 'Ok')
 
 
-def get_drive_status():
-    return check_command(('hpssacli', 'ctrl', 'all', 'show', 'config'),
+def get_drive_status(command):
+    return check_command((command, 'ctrl', 'all', 'show', 'config'),
                          'logicaldrive', 'OK)')
 
 
-def get_controller_status():
-    return check_command(('hpssacli', 'ctrl', 'all', 'show', 'status'),
+def get_controller_status(command):
+    return check_command((command, 'ctrl', 'all', 'show', 'status'),
                          'Controller Status', 'OK')
 
 
-def get_controller_cache_status():
-    return check_command(('hpssacli', 'ctrl', 'all', 'show', 'status'),
+def get_controller_cache_status(command):
+    return check_command((command, 'ctrl', 'all', 'show', 'status'),
                          'Cache Status', ('OK', 'Not Configured'))
 
 
-def get_controller_battery_status():
-    return check_command(('hpssacli', 'ctrl', 'all', 'show', 'status'),
+def get_controller_battery_status(command):
+    return check_command((command, 'ctrl', 'all', 'show', 'status'),
                          'Battery/Capacitor Status', 'OK')
 
 
 def main():
+
+    try:
+        os.stat('/usr/sbin/ssacli')
+        ssacli_bin = 'ssacli'
+    except Exception:
+        try:
+            os.stat('/usr/sbin/hpssacli')
+            ssacli_bin = 'hpssacli'
+        except Exception:
+            maas_common.status_err('Neither ssacli or hpssacli could be found',
+                                   m_name='hp_monitoring')
+
     status = {}
-    status['hardware_processors_status'] = get_hpasmcli_status('server')
-    status['hardware_memory_status'] = get_hpasmcli_status('dimm')
-    status['hardware_disk_status'] = get_drive_status()
-    status['hardware_controller_status'] = get_controller_status()
-    status['hardware_controller_cache_status'] = get_controller_cache_status()
+    status['hardware_processors_status'] = \
+        get_chassis_status('hpasmcli', 'server')
+    status['hardware_memory_status'] = get_chassis_status('hpasmcli', 'dimm')
+    status['hardware_disk_status'] = get_drive_status(ssacli_bin)
+    status['hardware_controller_status'] = get_controller_status(ssacli_bin)
+    status['hardware_controller_cache_status'] = \
+        get_controller_cache_status(ssacli_bin)
     status['hardware_controller_battery_status'] = \
-        get_controller_battery_status()
+        get_controller_battery_status(ssacli_bin)
 
     maas_common.status_ok(m_name='maas_hwvendor')
     for name, value in status.viewitems():
