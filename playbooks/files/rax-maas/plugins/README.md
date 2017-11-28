@@ -272,6 +272,20 @@ Hostname or IP address of service to test
     ...
 
 ***
+#### neutron_ovs_agent_check.py
+
+##### Description:
+polls the neutron agent to ensure openvswtich agent is up and running
+
+##### Example Output:
+
+    metric agents_found uint32 1
+    metric container_success uint32 1
+    metric ovsdb-server_process_status uint32 1
+    metric ovs-vswitchd_process_status uint32 1
+    metric neutron-openvswitch-agent_process_status uint32 1
+
+***
 #### neutron_metadata_local_check.py
 
 ##### Description:

@@ -21,7 +21,6 @@
     - name: Set the current group
       set_fact:
         maas_current_group: hosts
-
   tags:
     - maas-hosts-network
 
@@ -47,8 +46,6 @@
         mode: "0644"
       with_together:
         - "{{ maas_network_checks_list }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install conntrack count checks
       template:
@@ -57,17 +54,9 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-host.yml
   tags:
     - maas-hosts-network
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

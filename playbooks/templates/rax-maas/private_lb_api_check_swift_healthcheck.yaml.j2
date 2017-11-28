@@ -4,11 +4,11 @@ type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled          : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled          : "{{ (inventory_hostname != groups['swift_proxy'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_resolver   : "IPv4"
-target_hostname   : "{{ internal_vip_address }}"
+target_hostname   : "{{ maas_external_ip_address }}"
 details           :
-    url           : "{{ maas_scheme }}://{{ internal_vip_address }}:8080/healthcheck"
+    url           : "{{ maas_swift_proxy_scheme | default(maas_scheme) }}://{{ maas_external_hostname }}:8080/healthcheck"
 monitoring_zones_poll:
   - "{{ maas_private_monitoring_zone }}"
 alarms            :

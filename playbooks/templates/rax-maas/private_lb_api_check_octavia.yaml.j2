@@ -1,23 +1,23 @@
-{% set label = "private_lb_api_check_swift_access" %}
+{% set label = "private_lb_api_check_octavia" %}
 {% set check_name = label+'--'+maas_lb_name %}
 type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled          : "{{ (inventory_hostname != groups['swift_proxy'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled          : "{{ (inventory_hostname != groups['octavia-api'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
-    url           : "{{ maas_swift_proxy_scheme | default(maas_scheme)}}://{{ maas_external_hostname }}:8080/v1/{{ hostvars[groups['swift_proxy'][0]]['maas_swift_access_url_key'] }}/{{ maas_swift_accesscheck_container }}/index.html"
+    url           : "{{ maas_octavia_scheme | default(maas_scheme) }}://{{ maas_external_hostname }}:9876/"
 monitoring_zones_poll:
   - "{{ maas_private_monitoring_zone }}"
 alarms            :
-    private_lb_api_alarm_swift_access:
-        label               : private_lb_api_alarm_swift_access
+    private_lb_api_alarm_octavia    :
+        label               : private_lb_api_alarm_octavia
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ ('private_lb_api_alarm_swift_access' | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled            : {{ ('private_lb_api_alarm_octavia' | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria            : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric['code'] != '200') {
-                return new AlarmStatus(CRITICAL, 'Data unavailable.');
+                return new AlarmStatus(CRITICAL, 'API unavailable.');
             }

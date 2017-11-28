@@ -80,12 +80,6 @@ def get_mon_statistics(client=None, keyring=None, host=None,
            if m['name'] == host]
     mon_in = mon[0]['rank'] in ceph_status['quorum']
     maas_common.metric_bool('mon_in_quorum', mon_in)
-    health_status = 0
-    for each in ceph_status['health']['health']['health_services'][0]['mons']:
-        if each['name'] == host:
-            health_status = STATUSES[each['health']]
-            break
-    maas_common.metric('mon_health', 'uint32', health_status)
 
 
 def get_rgw_checkup(client, keyring=None, rgw_protocol=None, rgw_port=None,

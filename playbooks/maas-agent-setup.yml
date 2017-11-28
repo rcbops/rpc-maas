@@ -53,8 +53,6 @@
         times: yes
         rsync_opts:
           - "--no-motd"
-      notify:
-        - Restart rax-maas
 
     - name: Drop in wrapper script to run maas plugins in venv
       template:
@@ -103,8 +101,6 @@
         mode: 0600
         owner: root
         group: root
-      notify:
-        - Restart rax-maas
       when:
         - maas_use_api | bool
 
@@ -116,15 +112,9 @@
       when:
         - maas_use_api | bool
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-auth.yml
     - vars/maas-agent.yml
   tags:
     - maas-agent-setup
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

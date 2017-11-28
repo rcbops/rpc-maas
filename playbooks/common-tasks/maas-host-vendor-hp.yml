@@ -20,8 +20,6 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  notify:
-    - Restart rax-maas
   tags:
     - maas-hosts-vendor-hp
 
@@ -33,7 +31,5 @@
     - "hp-memory"
     - "hp-processors"
     - "hp-vdisk"
-  notify:
-    - Restart rax-maas
   tags:
     - maas-hosts-vendor-hp

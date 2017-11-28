@@ -121,8 +121,6 @@
         state: started
         enabled: yes
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-poller.yml

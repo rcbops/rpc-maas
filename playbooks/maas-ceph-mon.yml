@@ -21,7 +21,6 @@
     - name: Set the current group
       set_fact:
         maas_current_group: mons
-
   tags:
     - maas-ceph-mons
 
@@ -56,16 +55,8 @@
       with_items:
         - ceph_mon_stats
         - ceph_cluster_stats
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
   tags:
     - maas-ceph-mons
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

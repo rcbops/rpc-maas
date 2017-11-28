@@ -6,9 +6,9 @@ period            : "{{ maas_check_period_override[label] | default(maas_check_p
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
 disabled          : "{{ (inventory_hostname != groups['ironic_api'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_resolver   : "IPv4"
-target_hostname   : "{{ internal_vip_address }}"
+target_hostname   : "{{ maas_external_ip_address }}"
 details           :
-    url           : "{{ maas_scheme }}://{{ internal_vip_address }}:6385"
+    url           : "{{ maas_ironic_api_scheme | default(maas_scheme) }}://{{ maas_external_hostname }}:6385"
 monitoring_zones_poll:
   - "{{ maas_private_monitoring_zone }}"
 alarms            :

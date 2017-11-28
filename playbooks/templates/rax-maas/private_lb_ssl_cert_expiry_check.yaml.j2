@@ -1,4 +1,4 @@
-{% set label = "private_lb_api_check_horizon" %}
+{% set label = "private_lb_ssl_cert_expiry_check" %}
 {% set check_name = label+'--'+maas_lb_name %}
 type              : remote.http
 label             : "{{ check_name }}"
@@ -8,16 +8,19 @@ disabled          : "{{ (inventory_hostname != groups['horizon'][0] or check_nam
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
-    url           : "{{ maas_horizon_scheme | default(maas_scheme) }}://{{ maas_external_hostname }}:443/auth/login/"
+    url           : "https://{{ maas_external_hostname }}:443/auth/login/"
 monitoring_zones_poll:
   - "{{ maas_private_monitoring_zone }}"
 alarms            :
-    private_lb_api_alarm_horizon     :
-        label               : private_lb_api_alarm_horizon
+    private_lb_ssl_alarm_cert_expiry:
+        label               : private_lb_ssl_alarm_cert_expiry
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ ('private_lb_api_alarm_horizon' | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled            : {{ ('private_lb_ssl_alarm_cert_expiry' | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria            : |
-            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric['code'] != '200') {
-                return new AlarmStatus(CRITICAL, 'API unavailable.');
+            if (metric['cert_end_in'] < 604800) {
+                return new AlarmStatus(CRITICAL, 'Cert expiring in less than 7 days.');
             }
+            if (metric['cert_end_in'] < 2628288) {
+                return new AlarmStatus(WARNING, 'Cert expiring in less than 30 days.');
+            }
+            return new AlarmStatus(OK, 'HTTP certificate does not expire soon.');

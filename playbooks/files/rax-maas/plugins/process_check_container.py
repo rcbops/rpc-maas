@@ -15,6 +15,7 @@
 # limitations under the License.
 import argparse
 import os
+import re
 
 from maas_common import metric_bool
 from maas_common import print_output
@@ -137,9 +138,12 @@ def check_process_running(process_names, container_name=None):
 
     # Loop through the process names provided on the command line to see if
     # they exist on the system or in a container.
+    # suppress some character which throw MaaS off
+    pattern = re.compile('[^-\w]+')
     for process_name in process_names:
         matches = [x for x in cmdlines if process_name in x]
-        metric_bool('%s_process_status' % process_name, len(matches) > 0)
+        metric_bool('%s_process_status' % pattern.sub('', process_name),
+                    len(matches) > 0)
 
 
 def main(args):
