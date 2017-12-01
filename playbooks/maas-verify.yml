@@ -75,6 +75,7 @@
       command: "{{ maas_venv_bin }}/python /opt/rpc-maas-tools/rpc-maas-tool.py --logfile {{ workspace_logs }}/rpc-maas-logs.txt verify-local"
       become: true
       register: maas_verify
+      changed_when: false
       until: maas_verify | success
       retries: 6
       delay: 5

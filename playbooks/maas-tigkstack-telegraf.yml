@@ -122,7 +122,7 @@
     - name: Install telegraf
       apt:
         pkg: "{{ item }}"
-        state: "latest"
+        state: "present"
       with_items: "{{ maas_telegraf_distro_packages }}"
 
     - name: Create telegraf plugin dir(s)
