@@ -64,8 +64,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install neutron lb checks
       template:
@@ -78,8 +76,6 @@
       when:
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
-      notify:
-        - Restart rax-maas
 
     - name: Install neutron private lb checks
       template:
@@ -92,11 +88,7 @@
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -115,11 +107,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -138,11 +126,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -161,11 +145,28 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
+      when: neutron_plugin_type is not defined or (neutron_plugin_type | search("linuxbridge"))
 
-  handlers:
-    - include: handlers/main.yml
+  vars_files:
+    - vars/main.yml
+    - vars/maas-openstack.yml
+  tags:
+    - maas-openstack-neutron
+
+- name: Install checks for openstack neutron OVS agent
+  hosts: neutron_openvswitch_agent
+  gather_facts: false
+  tasks:
+    - name: Install neutron OVS agent checks
+      template:
+        src: "templates/rax-maas/neutron_ovs_agent_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_ovs_agent_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: neutron_plugin_type | search("ovs")
+
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -184,18 +185,14 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron
 
-- name: Install checks for openstack neutron metadata agent
+- name: Install checks for openstack neutron metering agent
   hosts: neutron_metering_agent
   gather_facts: false
   tasks:
@@ -207,17 +204,9 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
-  handlers:
-    - include: handlers/main.yml
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron
-
-# NOTE(cloudnull): When we get to ONLY using Ansible 2.2+ this playbook can be removed as the handler
-#                  will be globally unified.
-- include: maas-restart.yml

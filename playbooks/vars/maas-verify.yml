@@ -18,3 +18,7 @@
 #
 maas_verify_pip_packages:
   - futures
+  - pyyaml
+  - rackspace-monitoring-cli
+  - requests
+  - waxeye

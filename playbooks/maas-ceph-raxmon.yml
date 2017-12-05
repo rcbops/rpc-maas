@@ -18,8 +18,12 @@
   gather_facts: false
   pre_tasks:
     - name: Create ceph monitoring client
-      command: ceph auth get-or-create client.raxmon mon 'allow r'
+      command: ceph auth get-or-create client.raxmon
       register: _ceph_raxmon_client
+      tags:
+        - skip_ansible_lint
+    - name: Add mgr auth for client.raxmon
+      command: ceph auth caps client.raxmon mon 'allow r' mgr 'allow *'
       tags:
         - skip_ansible_lint
     - name: Set the raxmon_client facts

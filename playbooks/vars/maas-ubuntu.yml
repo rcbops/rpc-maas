@@ -30,6 +30,8 @@ maas_distro_packages:
   - libxslt-dev
   - sysstat
   - rackspace-monitoring-agent
+  - python-dev
+  - gcc
 
 maas_galera_distro_packages:
   - mariadb-client

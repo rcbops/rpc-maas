@@ -17,22 +17,12 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : {{ ceph_args }}
 alarms      :
-    mon_health_err :
-        label                   : mon_health_err--{{ inventory_hostname }}
+    mon_in_err :
+        label                   : mon_in_err--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('mon_health_err--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('mon_in_err--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["mon_health"] == 0) {
+            if (metric["mon_in_quorum"] == 0) {
                 return new AlarmStatus(CRITICAL, "Ceph mon error.");
-            }
-
-    mon_health_warn :
-        label                   : mon_health_warn--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('mon_health_err--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
-        criteria                : |
-            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["mon_health"] == 1) {
-                return new AlarmStatus(CRITICAL, "Ceph mon warning.");
             }
