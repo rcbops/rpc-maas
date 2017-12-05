@@ -92,7 +92,15 @@ maas_verify_registration: false
 #
 maas_verify_wait: true
 
+#
+# maas_verify_retries: How many times to retry maas verification tasks
+#
+maas_verify_retries: 6
 
+#
+# maas_verify_delay: How long to wait before retrying verification tasks
+#
+maas_verify_delay: 20
 
 #
 # maas_notification_plan: The Cloud Monitoring notification plan, which defines who will be
