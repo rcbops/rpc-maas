@@ -60,7 +60,7 @@
     - name: Ensure https repos function
       apt:
         pkg: "apt-transport-https"
-        state: "latest"
+        state: "present"
 
     - name: Add grafana apt-keys
       apt_key:
@@ -80,7 +80,7 @@
     - name: Install grafana
       apt:
         pkg: "grafana"
-        state: "latest"
+        state: "present"
 
     - name: Drop grafana config file
       template:

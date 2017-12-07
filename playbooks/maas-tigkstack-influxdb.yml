@@ -66,7 +66,7 @@
     - name: Install packages
       apt:
         pkg: "{{ item }}"
-        state: "latest"
+        state: "present"
       with_items: "{{ maas_influxdb_distro_packages }}"
 
     - name: Drop influxdb config file
@@ -87,10 +87,11 @@
         delay: 1
 
     - name: Create metrics DB
-      shell: >
+      command: >
         influx -username {{ influxdb_db_root_name }}
         -password {{ influxdb_db_root_password }}
         -execute "{{ item }}"
+      changed_when: false
       no_log: True
       with_items:
         - "CREATE DATABASE {{ influxdb_db_name }}"
