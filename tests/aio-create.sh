@@ -199,8 +199,6 @@ pushd /opt/openstack-ansible
 
   # Pin python-ldap so it stops breaking everything
   echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
-  echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/requirements.txt
-
 
   # Disable the sec role
   disable_security_role
