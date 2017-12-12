@@ -51,8 +51,9 @@ if [ "${IRR_CONTEXT}" = "ceph" ]; then
   export ANSIBLE_BINARY="ansible-playbook"
   export ANSIBLE_INVENTORY="/opt/rpc-ceph/tests/inventory"
   export ANSIBLE_OVERRIDES="/opt/rpc-ceph/tests/test-vars.yml"
-fi
-if [ "${FUNCTIONAL_TEST}" = true ]; then
+  bash -c "tests/aio-create.sh"
+  bash -c "tests/test-ansible-functional.sh"
+elif [ "${FUNCTIONAL_TEST}" = true ]; then
   tox -e bindep
   # Run maas functional tests
   tox -e functional
