@@ -95,7 +95,7 @@
       no_log: True
       with_items:
         - "CREATE DATABASE {{ influxdb_db_name }}"
-        - "CREATE RETENTION POLICY {{ influxdb_db_retention_policy }} ON {{ influxdb_db_name }} DURATION {{ influxdb_db_retention }} REPLICATION {{ influxdb_db_replication }}"
+        - "CREATE RETENTION POLICY {{ influxdb_db_retention_policy }} ON {{ influxdb_db_name }} DURATION {{ influxdb_db_retention }} REPLICATION {{ influxdb_db_replication }} DEFAULT"
         - "CREATE USER {{ influxdb_db_metric_user }} WITH PASSWORD '{{ influxdb_db_metric_password }}'"
         - "GRANT ALL ON {{ influxdb_db_name }} TO {{ influxdb_db_metric_user }}"
 
