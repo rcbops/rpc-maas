@@ -21,4 +21,3 @@
 
 # Run the tigk stack playbooks
 - include: "../playbooks/maas-tigkstack-all.yml"
-  when: setup_maas_tigkstack is defined and setup_maas_tigkstack
