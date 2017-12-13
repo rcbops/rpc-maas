@@ -293,7 +293,9 @@ else:
                 endpoint = '%s/v3' % endpoint
         else:
             k_client = k2_client
-        keystone = k_client.Client(auth_ref=auth_ref, endpoint=endpoint)
+        keystone = k_client.Client(auth_ref=auth_ref,
+                                   endpoint=endpoint,
+                                   insecure=AUTH_DETAILS['OS_API_INSECURE'])
 
         try:
             # This should be a rather light-weight call that validates we're
@@ -615,10 +617,9 @@ def get_auth_details(openrc_file=OPENRC):
 
 
 def get_url_for_type(endpoint, url_type, auth_version):
-    if auth_version == 'v3':
-        return endpoint['url'] if (endpoint['interface'] == url_type and
-                                   'v3' in endpoint['url']) else None
-    else:
+    try:
+        return endpoint['url']
+    except ValueError:
         return endpoint[url_type + 'URL']
 
 

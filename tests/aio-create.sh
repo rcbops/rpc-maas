@@ -197,6 +197,9 @@ pushd /opt/openstack-ansible
   # Disable tempest on older releases
   sed -i '/.*run-tempest.sh.*/d' scripts/gate-check-commit.sh  # Disable the tempest run
 
+  # Pin python-ldap so it stops breaking everything
+  echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+
   # Disable the sec role
   disable_security_role
 
