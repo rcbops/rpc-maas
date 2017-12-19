@@ -1,0 +1,21 @@
+{% set label = "managed_k8_api_local_check" %}
+{% set cluster_name = item.clusters[0].name %}
+{% set check_name = label+'--'+cluster_name %}
+type        : agent.plugin
+label       : "{{ check_name }}"
+period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
+timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
+disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+details     :
+    file    : run_plugin_in_venv.sh
+    args    : ["{{ maas_plugin_dir }}/managed_k8_api_local_check.py", "{{ maas_managed_k8_kube_config_dir }}/kube-config-{{ cluster_name }}.yaml"]
+alarms      :
+    managed_k8_api_local_status :
+        label                   : managed_k8_api_local_status--{{ cluster_name }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (('managed_k8_api_local_status--'+cluster_name) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric["managed_k8_api_local_status"] != 1) {
+                return new AlarmStatus(CRITICAL, "API unavailable");
+            }

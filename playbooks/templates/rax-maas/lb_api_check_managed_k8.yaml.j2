@@ -1,0 +1,25 @@
+{% set label = "lb_api_check_managed_k8" %}
+{% set check_name = label+'--'+item.clusters[0].name %}
+type              : remote.http
+label             : "{{ check_name }}"
+period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
+timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
+disabled          : "{{ ( check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+target_resolver   : "IPv4"
+target_hostname   : "{{ item.clusters[0].cluster.server| regex_replace('http[s]://','') | regex_replace(':.*|/.*','') }}" {# replace with url filter beginnging ansible 2.4 #}
+details           :
+    url           : "{{ item.clusters[0].cluster.server }}"
+monitoring_zones_poll:
+{% for zone in maas_monitoring_zones %}
+  - {{ zone }}
+{% endfor %}
+alarms            :
+    lb_api_alarm_keystone   :
+        label               : lb_api_alarm_managed_k8
+        notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled            : {{ ('lb_api_alarm_managed_k8' | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria            : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric['code'] != '200') {
+                return new AlarmStatus(CRITICAL, 'API unavailable.');
+            }

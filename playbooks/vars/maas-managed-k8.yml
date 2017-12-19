@@ -13,40 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-agent-all.yml
-  tags:
-    - maas
+maas_managed_k8_kube_config_dir: /root/.k8
 
-- include: maas-poller-all.yml
-  tags:
-    - maas
+maas_managed_k8_kubectl_release: v1.9.1
 
-- include: maas-ceph-all.yml
-  tags:
-    - maas
+maas_managed_k8_auth_url: "{{ external_vip_address }}:8090"
 
-- include: maas-host-all.yml
-  tags:
-    - maas
-
-- include: maas-infra-all.yml
-  tags:
-    - maas
-
-- include: maas-container-all.yml
-  tags:
-    - maas
-
-- include: maas-openstack-all.yml
-  tags:
-    - maas
-
-- include: maas-hummingbird.yml
-  tags:
-    - maas
-    - hummingbird
-- include: maas-managed-k8.yml
-  tags:
-    - maas
-
-- include: maas-restart.yml
