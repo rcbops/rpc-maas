@@ -116,7 +116,10 @@ def check_process_running(process_names):
     # Loop through the process names provided on the command line to see if
     # they exist on the system.
     for process_name in process_names:
-        matches = [x for x in cmdlines if process_name in x]
+        # skip the process check process itself as telegraf will invoke
+        # it.
+        matches = [x for x in cmdlines if process_name in x and
+                   os.path.basename(__file__) not in x]
         metric_bool('%s_process_status' % process_name, len(matches) > 0,
                     m_name='maas_host')
 
