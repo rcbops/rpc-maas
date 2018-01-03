@@ -1,0 +1,36 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in witing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Check all passwords are defined
+  hosts: localhost
+  connection: local
+  gather_facts: "true"
+  tasks:
+    - name: Check password is defined
+      fail:
+        msg: >-
+          The password "{{ item.key }}" is undefined. Set this password in an
+          appropriate secrets file before continuing.
+      when:
+        - maas_pre_flight_check_enabled | default(false) | bool
+        - groups['osds'] | default([]) | length > 0
+        - groups['mons'] | default([]) | length > 0
+        - ansible_version.full | version_compare('2.1.0.0', '>=')
+        - hostvars[inventory_hostname][item.key] is undefined
+      with_dict: "{{ maas_pw_check }}"
+  vars:
+    maas_pw_check: "{{ lookup('file', playbook_dir + '/../tests/user_rpcm_secrets.yml') | from_yaml }}"
+  tags:
+    - maas-pre-flight
