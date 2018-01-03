@@ -218,6 +218,9 @@
         {% endfor %} \
         {{ item.value.project | default('rally_' + item.key) }}
       with_dict: "{{ maas_rally_checks }}"
+      # The quota is osc can be flaky, even though the command succeeds. For now
+      #  we skip failing at this point.
+      failed_when: false
       when:
         - item.value.enabled
 

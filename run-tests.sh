@@ -50,7 +50,7 @@ fi
 if [ "${RE_JOB_SCENARIO}" = "ceph" ]; then
   export ANSIBLE_BINARY="ansible-playbook"
   export ANSIBLE_INVENTORY="/opt/rpc-ceph/tests/inventory"
-  export ANSIBLE_OVERRIDES="/opt/rpc-ceph/tests/test-vars.yml"
+  export ANSIBLE_OVERRIDES="/opt/rpc-ceph/tests/test-vars.yml -e @/opt/rpc-ceph/tests/user_rpcm_secrets.yml"
 fi
 if [ "${FUNCTIONAL_TEST}" = true ]; then
   tox -e bindep
