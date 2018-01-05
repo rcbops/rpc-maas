@@ -61,8 +61,8 @@
         virtualenv: "{{ maas_venv }}"
       register: install_pip_packages
       until: install_pip_packages|success
-      retries: 5
-      delay: 2
+      retries: "{{ maas_verify_retries }}"
+      delay: "{{ maas_verify_delay }}"
 
     - name: "Allow MAAS time to run checks before verifying they're created"
       pause:
@@ -77,8 +77,8 @@
       register: maas_verify
       changed_when: false
       until: maas_verify | success
-      retries: 6
-      delay: 5
+      retries: "{{ maas_verify_retries }}"
+      delay: "{{ maas_verify_delay }}"
 
     - name: "Verify Checks & Alarms are registered"
       command: >
@@ -89,8 +89,8 @@
       register: verify_maas
       changed_when: false
       until: verify_maas.rc == 0
-      retries: 6
-      delay: 20
+      retries: "{{ maas_verify_retries }}"
+      delay: "{{ maas_verify_delay }}"
       when:
         - maas_use_api | bool
         - maas_verify_registration | bool
@@ -103,8 +103,8 @@
       register: verify_status
       changed_when: false
       until: verify_status.rc == 0
-      retries: 6
-      delay: 20
+      retries: "{{ maas_verify_retries }}"
+      delay: "{{ maas_verify_delay }}"
       when:
         - maas_use_api | bool
         - maas_verify_status | bool
