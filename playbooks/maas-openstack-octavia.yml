@@ -55,8 +55,19 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+    - name: Install octavia lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_octavia.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_octavia.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
 
-    - name: Install neutron private lb checks
+    - name: Install octavia private lb checks
       template:
         src: "templates/rax-maas/private_lb_api_check_octavia.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_octavia.yaml"
