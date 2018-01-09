@@ -169,9 +169,14 @@
       when:
         - pid1_name == "systemd"
 
+      # Skip lint because daemon-reload only is not supported by the systemd
+      # module until ansible 2.4, and this role needs to support older
+      # versions.
     - name: Reload systemd daemon
       command: "systemctl daemon-reload"
       changed_when: false
+      tags:
+        - skip_ansible_lint
       when:
         - pid1_name == "systemd"
 
