@@ -145,10 +145,11 @@ Tags
 ----
 
 This role supports several high level tags: ``maas``, ``maas-agent``,
-``maas-ceph``, ``maas-container``, ``maas-host``, ``maas-infra``, ``maas-hummingbird``,
-``maas-openstack``. Within each group a tag exists for a specific playbook.
-This gives the deployer the ability to control orchestration even when
-running the general ``site.yml`` playbook.
+``maas-ceph``, ``maas-container``, ``maas-host``, ``maas-infra``,
+``maas-hummingbird``, ``maas-openstack``. Within each group a tag
+exists for a specific playbook. This gives the deployer the ability
+to control orchestration even when running the general ``site.yml``
+playbook.
 
 
 Playbook Specific Notes
@@ -214,9 +215,10 @@ maas-hummingbird.yml
 
 The ``maas-hummingbird.yml`` playbook will create a user within keystone
 for the purposes of monitoring and then upload an index.html object to a
-configurable container within hummingbird. For this to happen a password must be set
-in a secrets file somewhere and referenced during the playbook run. The
-variable required to be set is ``maas_hummingbird_accesscheck_password``.
+configurable container within hummingbird. For this to happen a password
+must be set in a secrets file somewhere and referenced during the
+playbook run. The variable required to be set is
+``maas_hummingbird_accesscheck_password``.
 
 .. code-block:: bash
 

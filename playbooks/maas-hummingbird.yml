@@ -163,7 +163,7 @@
     - vars/maas-hummingbird.yml
   tags:
     - maas-hummingbird
-    
+
 - name: Install accesscheck for hummingbird proxy
   hosts: hummingbird
   gather_facts: false

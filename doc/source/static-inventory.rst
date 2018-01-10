@@ -453,8 +453,8 @@ section.
 hummingbird_all
 ~~~~~~~~~~~~~~~
 
-If you have node(s) running ``hummingbird``, add the node(s) into the "hummingbird"
-section.
+If you have node(s) running ``hummingbird``, add the node(s) into the
+"hummingbird" section.
 
 .. code-block:: ini
 

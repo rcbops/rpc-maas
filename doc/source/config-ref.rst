@@ -50,7 +50,7 @@ OpenStack playbook variables
    :start-after: under the License.
 
 Hummingbird playbook variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. literalinclude:: ../../playbooks/vars/maas-hummingbird.yml
    :language: yaml
