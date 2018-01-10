@@ -27,12 +27,22 @@ import psutil
 def venv_wrapper_check():
     """Check if we are running inside the virtualenv wrapper script."""
     # Are we running inside the virtualenv wrapper script?
-    parent_process = psutil.Process(os.getpid()).parent
+    # latest psutils parent is a callable, so call it instead of
+    # accessing it directly
+    my_process = psutil.Process(os.getpid())
+    if callable(my_process.parent):
+        parent_process = my_process.parent()
+    else:
+        parent_process = my_process.parent
 
     # psutil 1.2.1 has a cmdline() method for the parent process object
     # but the latest psutil does not. We need to handle this carefully.
-    if getattr(parent_process, "cmdline", None) is not None:
-        parent_cmdline = ' '.join(parent_process.cmdline)
+    parent_process_cmdline_attr = getattr(parent_process, "cmdline", None)
+    if parent_process_cmdline_attr is not None:
+        if callable(parent_process_cmdline_attr):
+            parent_cmdline = ' '.join(parent_process_cmdline_attr())
+        else:
+            parent_cmdline = ' '.join(parent_process_cmdline_attr)
     else:
         parent_cmdline = ' '.join(parent_process.im_self.cmdline())
 
@@ -106,7 +116,10 @@ def check_process_running(process_names):
     # Loop through the process names provided on the command line to see if
     # they exist on the system.
     for process_name in process_names:
-        matches = [x for x in cmdlines if process_name in x]
+        # skip the process check process itself as telegraf will invoke
+        # it.
+        matches = [x for x in cmdlines if process_name in x and
+                   os.path.basename(__file__) not in x]
         metric_bool('%s_process_status' % process_name, len(matches) > 0,
                     m_name='maas_host')
 
