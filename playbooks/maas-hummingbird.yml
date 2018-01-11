@@ -74,8 +74,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install hummingbird account process checks
       template:
@@ -85,8 +83,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
   handlers:
     - include: handlers/main.yml
@@ -108,8 +104,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install hummingbird container process checks
       template:
@@ -119,8 +113,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
   handlers:
     - include: handlers/main.yml
@@ -142,8 +134,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install hummingbird container process checks
       template:
@@ -153,8 +143,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
   handlers:
     - include: handlers/main.yml
@@ -275,8 +263,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      notify:
-        - Restart rax-maas
 
     - name: Install hummingbird lb health checks
       template:
@@ -289,8 +275,6 @@
       when:
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
-      notify:
-        - Restart rax-maas
 
     - name: Install hummingbird lb access checks
       template:
@@ -304,8 +288,6 @@
         - maas_remote_check | bool
         - maas_hummingbird_accesscheck_enabled | bool
         - not maas_private_monitoring_enabled
-      notify:
-        - Restart rax-maas
 
     - name: Install hummingbird private lb health checks
       template:
@@ -318,8 +300,6 @@
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
-      notify:
-        - Restart rax-maas
 
     - name: Install hummingbird private lb access checks
       template:
@@ -333,8 +313,6 @@
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
         - maas_hummingbird_accesscheck_enabled | bool
-      notify:
-        - Restart rax-maas
 
   handlers:
     - include: handlers/main.yml
