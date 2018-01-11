@@ -1,0 +1,24 @@
+{% set flavor_name = flavor_name or "rally" %}
+{% set image_name = image_name or "^rally_cirros$" %}
+{% set volume_type = volume_type or "" %}
+{% set times = times or 1 %}
+{% set concurrency = concurrency or 1 %}
+{% set net_id = net_id %}
+
+NovaServers.boot_server_from_volume_and_delete:
+  -
+    args:
+      flavor:
+          name: "{{ flavor_name }}"
+      image:
+          name: "{{ image_name }}"
+      volume_size: 10
+      volume_type: "{{ volume_type }}"
+      force_delete: false
+      nics:
+        - net-id: "{{ net_id }}"
+    runner:
+      type: "constant"
+      times: {{ times }}
+      concurrency: {{ concurrency }}
+    context: {}

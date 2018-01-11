@@ -48,7 +48,18 @@ export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
 # Ansible Inventory will be set to OSA
 export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
 
-export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
+# The maas_rally performance monitoring requires a modern (>1.9) version of
+# ansible that is not available in liberty and mitaka.  There is no reason
+# to run it in a ceph context either.
+case $IRR_CONTEXT in
+  liberty|mitaka|ceph)
+    export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
+    ;;
+  *)
+    export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test_with_maas_rally.yml}"
+    ;;
+esac
+
 export TEST_SETUP_PLAYBOOK="${TEST_SETUP_PLAYBOOK:-$WORKING_DIR/tests/test-setup.yml}"
 export TEST_CHECK_MODE="${TEST_CHECK_MODE:-false}"
 export TEST_IDEMPOTENCE="${TEST_IDEMPOTENCE:-false}"

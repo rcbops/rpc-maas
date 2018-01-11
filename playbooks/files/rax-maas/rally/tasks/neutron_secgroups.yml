@@ -1,0 +1,14 @@
+{% set times = times or 1 %}
+{% set concurrency = concurrency or 1 %}
+
+
+  NeutronSecurityGroup.create_update_and_delete_security_groups:
+    -
+      args:
+        security_group_create_args: {}
+        security_group_update_args: {}
+      runner:
+        type: "constant"
+        times: {{ times }}
+        concurrency: {{ concurrency }}
+      context: {}
