@@ -1,0 +1,15 @@
+{% set times = times or 1 %}
+{% set concurrency = concurrency or 1 %}
+
+
+NeutronNetworks.create_and_delete_ports:
+  -
+    args:
+      network_create_args: {}
+      port_create_args: {}
+      ports_per_network: 1
+    runner:
+      type: "constant"
+      times: {{ times }}
+      concurrency: {{ concurrency }}
+    context: {}

@@ -192,6 +192,40 @@ run. The variable required to be set is ``maas_rabbitmq_password``.
     ansible-playbook -e @/etc/openstack_deploy/user_secrets.yml /opt/rpc-maas/playbooks/maas-openstack-keystone.yml -i inventory
 
 
+maas-openstack-rally.yml
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``maas-openstack-rally.yml`` playbook deploys rally-based performance
+monitoring and requires the following variables:
+
+- ``maas_rally_enabled`` - must be set to ``true`` to enable performance
+  monitoring.
+
+- ``maas_rally_check_overrides`` - must be configured with appropriate values
+  for the environment's size and usage.  Full documentation and examples are
+  maintained in ``playbooks/vars/maas_rally.yml``.
+
+The following secrets are also required:
+
+- ``maas_rally_galera_password`` - A database user (``maas_rally`` by default)
+  will be created for accessing Rally data.  This value will be used for the
+  database user's password.
+
+- ``maas_rally_users_password`` - Each performance scenario will have a
+  keystone user created to isolate resources.  This value will be used for the
+  users' passwords. See ``playbooks/vars/maas_rally.yml`` for guidance on using
+  different passwords for each scenario's user.
+
+.. code-block:: bash
+
+    # Variable file set
+    echo 'maas_rally_galera_password: secrete' | tee -a /etc/openstack_deploy/user_secrets.yml
+    echo 'maas_rally_users_password: secrete' | tee -a /etc/openstack_deploy/user_secrets.yml
+
+    # Example playbook run with variable file.
+    ansible-playbook -e @/etc/openstack_deploy/user_secrets.yml /opt/rpc-maas/playbooks/maas-openstack-rally.yml -i inventory
+
+
 maas-openstack-swift.yml
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

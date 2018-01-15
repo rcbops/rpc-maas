@@ -1,0 +1,16 @@
+{% set image_location = image_location or "/usr/lib/rackspace-monitoring-agent/plugins/rally/cirros-0.3.5-x86_64-disk.img" %}
+{% set times = times or 1 %}
+{% set concurrency = concurrency or 1 %}
+
+
+GlanceImages.create_and_delete_image:
+  -
+    args:
+      image_location: "{{ image_location }}"
+      container_format: "bare"
+      disk_format: "qcow2"
+    runner:
+      type: "constant"
+      times: {{ times }}
+      concurrency: {{ concurrency }}
+    context: {}

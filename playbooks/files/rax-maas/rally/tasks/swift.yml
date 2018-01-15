@@ -1,0 +1,13 @@
+{% set times = times or 1 %}
+{% set concurrency = concurrency or 1 %}
+
+
+  SwiftObjects.create_c_and_o_then_download_and_delete_all:
+    -
+      args:
+        object_size: 1024
+      runner:
+        type: "constant"
+        times: {{ times }}
+        concurrency: {{ concurrency }}
+      context: {}

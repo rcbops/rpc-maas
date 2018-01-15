@@ -1,0 +1,489 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in witing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Perform pre-flight and configuration checks
+  hosts: "{{ maas_rally_target_group }}[0]"
+  gather_facts: false
+  pre_tasks:
+    - name: Safety check - ensure maas_rally is enabled
+      fail:
+        msg: "Rally performance tests are disabled.  If you really want them please read the documentation and set maas_rally_enabled to true."
+      when: not maas_rally_enabled
+
+    - name: Generate check template dictionary
+      set_fact:
+        check_template: "{{ check_template|default({})|combine({item: maas_rally_check_default_template}) }}"
+      with_items:
+        - "{{ maas_rally_checks.keys() | list }}"
+
+    - name: Combine check template dictionary and checks variables
+      set_fact:
+        maas_rally_checks: "{{ check_template|combine(maas_rally_checks, recursive=True) }}"
+
+    - name: Generate a list of enabled checks
+      set_fact:
+        enabled_checks: "{{ enabled_checks|default([])|union([item.key]) }}"
+      with_dict: "{{ maas_rally_checks }}"
+
+    - name: Config validation - ensure concurrency <= times
+      fail:
+        msg: "Config error for {{ item }}: concurrency ({{ maas_rally_checks[item]['concurrency'] }}) must be less than or equal to times ({{ maas_rally_checks[item]['times'] }})."
+      with_items: "{{ enabled_checks }}"
+      when:
+        - not maas_rally_skip_config_validation
+        - maas_rally_checks[item]['concurrency'] > maas_rally_checks[item]['times']
+
+    - name: Config validation - ensure ( times / concurrency ) * crit_threshold < poll_interval
+      fail:
+        msg: "Config error for {{ item }}: poll_interval too short to reach crit_threshold based on times and concurrency"
+      with_items: "{{ enabled_checks }}"
+      when:
+        - not maas_rally_skip_config_validation
+        - (maas_rally_checks[item]['times']/maas_rally_checks[item]['concurrency'])*maas_rally_checks[item]['crit_threshold'] >= maas_rally_checks[item]['poll_interval']
+
+    - name: Config validation - ensure warning threshold < critical threshold
+      fail:
+        msg: "Config error for {{ item }}: warning threshold must be less than critical threshold"
+      with_items: "{{ enabled_checks }}"
+      when:
+        - not maas_rally_skip_config_validation
+        - maas_rally_checks[item]['warn_threshold'] >= maas_rally_checks[item]['crit_threshold']
+
+    - name: Config validation - ensure (1 <= duration threshold <= 100)
+      fail:
+        msg: "Config error for {{ item }}: duration threshold should be >= 1 and <= 100"
+      with_items: "{{ enabled_checks }}"
+      when:
+        - not maas_rally_skip_config_validation
+        - maas_rally_checks[item]['duration_threshold'] < 1 or maas_rally_checks[item]['duration_threshold'] > 100
+
+  vars_files:
+    - vars/maas-rally.yml
+
+
+- name: Configure maas_rally virtual environments
+  hosts: "{{ maas_rally_target_group }}"
+  gather_facts: true
+  pre_tasks:
+    - name: Install maas and maas_rally pip packages to venv
+      pip:
+        name: "{{ maas_pip_packages | union(maas_rally_pip_packages) | join(' ') }}"
+        state: "{{ maas_rally_pip_package_state }}"
+        extra_args: >-
+          --isolated
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+        virtualenv: "{{ maas_rally_venv }}"
+      register: install_pip_packages
+      until: install_pip_packages|success
+      retries: 5
+      delay: 2
+
+    - name: Create rally config directory
+      file:
+        name: /etc/rally
+        state: directory
+        owner: "root"
+        group: "root"
+        mode: "0750"
+
+    - name: Write rally configuration file
+      template:
+        src: "templates/rax-maas/rally.conf.j2"
+        dest: "/etc/rally/rally.conf"
+        owner: "root"
+        group: "root"
+        mode: "0600"
+
+    # Shade is required for the os_* ansible modules
+    - name: Ensure target has shade module installed
+      pip:
+        name: shade
+        state: present
+        virtualenv: /tmp/maas_rally_shade_venv
+        extra_args: >-
+          --isolated
+          {{ pip_install_options | default('') }}
+
+    - name: Ensure OpenStack client configuration directory
+      file:
+        dest: "{{ openrc_openstack_client_config_dir_dest }}"
+        owner: "{{ openrc_openstack_client_config_dir_owner }}"
+        group: "{{ openrc_openstack_client_config_dir_group }}"
+        mode: "{{ openrc_openstack_client_config_dir_mode }}"
+        state: directory
+
+    - name: Create clouds.yaml file
+      template:
+        src: templates/rax-maas/clouds.yaml.j2
+        dest: "{{ openrc_clouds_yml_file_dest }}"
+        owner: "{{ openrc_clouds_yml_file_owner }}"
+        group: "{{ openrc_clouds_yml_file_group }}"
+        mode: "{{ openrc_clouds_yml_file_mode }}"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-agent.yml
+    - vars/maas-rally.yml
+
+
+- name: Prepare OpenStack and DB for performance monitoring
+  hosts: "{{ maas_rally_target_group }}[0]"
+  gather_facts: false
+  pre_tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Create maas_rally database
+      include: common-tasks/mysql-db-user.yml
+      static: no
+      vars:
+        user_name: "{{ maas_rally_galera_user }}"
+        password: "{{ maas_rally_galera_password }}"
+        login_host: "{{ maas_rally_galera_address }}"
+        db_name: "{{ maas_rally_galera_database }}"
+
+    - name: Generate check template dictionary
+      set_fact:
+        check_template: "{{ check_template|default({})|combine({item: maas_rally_check_default_template}) }}"
+      with_items:
+        - "{{ maas_rally_checks.keys() | list }}"
+
+    - name: Combine check template dictionary and checks variables
+      set_fact:
+        maas_rally_checks: "{{ check_template|combine(maas_rally_checks, recursive=True) }}"
+
+    - name: Add check's name to maas_rally_checks dictionary
+      set_fact:
+        maas_rally_checks: "{{ maas_rally_checks|combine({item: {'check_name': item}}, recursive=True) }}"
+      with_items:
+        - "{{ maas_rally_checks.keys() | list }}"
+
+    - name: Create maas_rally projects
+      os_project:
+        name: "{{ item.value.project | default('rally_' + item.key) }}"
+        state: present
+        cloud: default
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+        domain_id: "Default"
+      with_dict: "{{ maas_rally_checks }}"
+      when:
+        - item.value.enabled
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+      register: rally_projects
+
+# NOTE(cfarquhar): The os_quota module is new in ansible 2.3.  Use it instead
+#                  of the shell module below when we reach ansible >=2.3.
+
+#    - name: Ensure quotas for rally projects
+#      os_quota:
+#        state: present
+#        cloud: default
+#        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+#        name: "{{ item.value.project | default('rally_' + item.key) }}"
+#        instances: "{{ item.value.quotas.instances }}"
+#        cores: "{{ item.value.quotas.cores }}"
+#        ram: "{{ item.value.quotas.ram }}"
+#        fixed_ips: "{{ item.value.quotas.fixed-ips }}"
+#        floatingip: "{{ item.value.quotas.floating-ips }}"
+#        port: "{{ item.value.quotas.ports }}"
+#        snapshots: "{{ item.value.quotas.snapshots }}"
+#        volumes: "{{ item.value.quotas.volumes }}"
+#        per_volume_gigabytes: "{{ item.value.quotas.gigabytes }}"
+#      with_dict: "{{ maas_rally_checks }}"
+#      when:
+#        - item.value.quotas is defined
+
+    - name: Set quotas for maas_rally projects
+      shell: |
+        . /root/openrc
+        {{ maas_rally_venv_bin }}/openstack \
+        {% if keystone_service_adminuri_insecure %} --insecure \ {% endif %}
+        quota set \
+        {% for quota in item.value.per_iter_quotas %} \
+            --{{ quota }} \
+            {{ item.value.per_iter_quotas[quota]*item.value.concurrency }} \
+        {% endfor %} \
+        {{ item.value.project | default('rally_' + item.key) }}
+      with_dict: "{{ maas_rally_checks }}"
+      when:
+        - item.value.enabled
+
+    - name: Create maas_rally users in keystone
+      os_user:
+        name: "{{ item.value.user_name | default('rally_' + item.key) }}"
+        password: "{{ item.value.user_password }}"
+        default_project: "{{ item.value.project | default('rally_' + item.key) }}"
+        state: present
+        cloud: default
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+        domain: "Default"
+      with_dict: "{{ maas_rally_checks }}"
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+      when:
+        - item.value.enabled
+
+    - name: Grant _member_ role for rally users
+      os_user_role:
+        user: "{{ item.value.user_name | default('rally_' + item.key) }}"
+        project: "{{ item.value.project | default('rally_' + item.key) }}"
+        role: "_member_"
+        state: present
+        cloud: default
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+      with_dict: "{{ maas_rally_checks }}"
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+      when:
+        - item.value.enabled
+
+    - name: Grant extra roles for rally users
+      os_user_role:
+        user: "{{ item.0.user_name | default('rally_' + item.0.check_name) }}"
+        project: "{{ item.0.project | default('rally_' + item.0.check_name) }}"
+        role: "{{ item.1 }}"
+        state: present
+        cloud: default
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+      with_subelements:
+        - "{{ maas_rally_checks }}"
+        - extra_user_roles
+        - skip_missing: yes
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+      when:
+        - item.0.enabled
+
+    - name: Download cirros image for rally_cirros
+      get_url:
+        url: http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
+        dest: /tmp/cirros-0.3.5-x86_64-disk.img"
+
+    - name: Create rally_cirros image in glance
+      os_image:
+        cloud: default
+        state: present
+        name: rally_cirros
+        filename: /tmp/cirros-0.3.5-x86_64-disk.img"
+        is_public: yes
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+
+    - name: Create rally nova flavor
+      os_nova_flavor:
+        cloud: default
+        state: present
+        name: rally
+        ram: 256
+        disk: 1
+        vcpus: 1
+        is_public: true
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+
+# NOTE(cfarquhar): Unfortunately rally's validation step doesn't account for
+#                  predefined contexts (i.e. project and user) and non-public
+#                  flavors.  Once that is fixed then is_public above should
+#                  be set to false and the next two tasks should be enabled.
+
+#   - name: Check flavor access for rally users
+#     shell: |
+#       . "{{ maas_rally_venv_bin }}"/activate
+#       . /root/openrc
+#       nova flavor-access-list --flavor rally | grep rally_ | awk '{print $4}'
+#     register: flavor_access
+#     changed_when: False
+
+#    - name: Grant flavor access to maas_rally users
+#      shell: |
+#        . "{{ maas_rally_venv_bin }}"/activate
+#        . /root/openrc
+#        nova flavor-access-add rally "{{ item.value.project | default('rally_' + item.key) }}"
+#      with_dict: "{{ maas_rally_checks }}"
+#      when:
+#        - item.value.enabled
+
+    - name: Create rally networks
+      os_network:
+        cloud: default
+        state: present
+        name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
+        shared: no
+        project: "{{ item.value.project | default('rally_' + item.key) }}"
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+        wait: yes
+      with_dict: "{{ maas_rally_checks }}"
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+      when:
+        - item.value.enabled
+        - item.value.creates_instances
+
+    - name: Create rally subnets
+      os_subnet:
+        cloud: default
+        state: present
+        name: "{{ item.value.subnet_name | default('rally_subnet_' + item.key) }}"
+        network_name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
+        cidr: "{{ item.value.subnet_cidr | default('192.168.0.0/24') }}"
+        project: "{{ item.value.project | default('rally_' + item.key) }}"
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+        wait: yes
+      with_dict: "{{ maas_rally_checks }}"
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+      when:
+        - item.value.enabled
+        - item.value.creates_instances
+
+    - name: Check for existing maas_rally database initialization
+      command: "{{ maas_rally_venv_bin }}/rally-manage db revision"
+      register: rally_db_revision
+      changed_when: False
+
+    - name: Initialize maas_rally database
+      command: "{{ maas_rally_venv_bin }}/rally-manage db create"
+      when:
+        - "'None' in rally_db_revision.stdout"
+
+    - name: Check for existing rally deployments
+      shell: |
+        {{ maas_rally_venv_bin }}/rally deployment list | \
+        tail -n+4 | \
+        head -n-1 | \
+        awk -F'|' '{print $4}' | \
+        sed 's/ //g'
+      register: rally_deployments
+      changed_when: False
+
+    - name: Generate rally deployment definition files
+      template:
+        src: "templates/rax-maas/rally_deployment.yaml.j2"
+        dest: "/tmp/rally_{{ item.key }}_deployment.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0600"
+      with_dict: "{{ maas_rally_checks }}"
+      when:
+        - item.value.enabled
+        - item.key not in rally_deployments.stdout_lines
+
+    - name: Create rally deployments
+      command: |
+        {{ maas_rally_venv_bin }}/rally deployment create --name
+        {{ item.key }} --filename /tmp/rally_{{ item.key }}_deployment.yaml
+        --no-use
+      with_dict: "{{ maas_rally_checks }}"
+      when:
+        - item.value.enabled
+        - item.key not in rally_deployments.stdout_lines
+
+    - name: Clean up rally deployment definition files
+      file:
+        dest: "/tmp/rally_{{ item.key }}_deployment.yaml"
+        state: absent
+      with_dict: "{{ maas_rally_checks }}"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-agent.yml
+    - vars/maas-rally.yml
+
+
+- name: Configure performance checks
+  hosts: "{{ maas_rally_target_group }}"
+  gather_facts: false
+  pre_tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Install maas_rally venv wrapper script
+      template:
+        src: "templates/rax-maas/run_plugin_in_rally_venv.sh.j2"
+        dest: "{{ maas_plugin_dir }}/run_plugin_in_rally_venv.sh"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
+    - name: Install rally_performance plugin
+      copy:
+        src: "files/rax-maas/plugins/rally_performance.py"
+        dest: "{{ maas_plugin_dir }}/"
+
+    - name: Install custom rally plugins and tasks
+      copy:
+        src: "files/rax-maas/rally"
+        dest: "{{ maas_plugin_dir }}/"
+
+    - name: Generate check template dictionary
+      set_fact:
+        check_template: "{{ check_template|default({})|combine({item: maas_rally_check_default_template}) }}"
+      with_items:
+        - "{{ maas_rally_checks.keys() | list }}"
+
+    - name: Combine check template dictionary and checks variables
+      set_fact:
+        maas_rally_checks: "{{ check_template|combine(maas_rally_checks, recursive=True) }}"
+
+    - name: Retrieve network UUIDs
+      os_networks_facts:
+        cloud: default
+        wait: yes
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+
+    - name: Store network UUIDs in dictionary
+      set_fact:
+        network_uuids: "{{ network_uuids|default({})|combine({item.name: item.id}) }}"
+      with_items: "{{ openstack_networks }}"
+
+    - name: Add network UUIDs to checks' extra_vars
+      set_fact:
+        maas_rally_checks: "{{ maas_rally_checks|combine({item.key: {'extra_vars': {'net_id': network_uuids[item.value.net_name | default('rally_net_' + item.key)]}}}, recursive=True) }}"
+      with_dict: "{{ maas_rally_checks }}"
+      when:
+        - item.value.enabled
+        - item.value.creates_instances
+        - network_uuids["{{ item.value.net_name | default('rally_net_' + item.key) }}"] is defined
+
+    - name: Download cirros image for maas_rally
+      get_url:
+        url: http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
+        dest: "{{ maas_plugin_dir }}/rally/cirros-0.3.5-x86_64-disk.img"
+
+    - name: Remove disabled rally performance checks
+      file:
+        dest: "/etc/rackspace-monitoring-agent.conf.d/rally_{{ item.key }}_check--{{ inventory_hostname }}.yaml"
+        state: absent
+      with_dict: "{{ maas_rally_checks }}"
+      when: not item.value.enabled
+
+    - name: Install enabled rally performance checks
+      template:
+        src: "templates/rax-maas/rally_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/rally_{{ item.key }}_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_dict: "{{ maas_rally_checks }}"
+      when: item.value.enabled
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-agent.yml
+    - vars/maas-rally.yml
