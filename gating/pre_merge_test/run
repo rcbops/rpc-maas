@@ -1,0 +1,6 @@
+#!/bin/bash
+
+mkdir -p "${RE_HOOK_RESULT_DIR}"
+mkdir -p "${RE_HOOK_ARTIFACT_DIR}"
+
+bash "$(readlink -f $(dirname ${0}))/../../run_tests.sh"
