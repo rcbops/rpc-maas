@@ -26,7 +26,7 @@ echo "+-------------------- AIO ENV VARS --------------------+"
 
 ## Vars ----------------------------------------------------------------------
 
-export IRR_CONTEXT="${IRR_CONTEXT:-master}"
+export RE_JOB_SCENARIO="${RE_JOB_SCENARIO:-master}"
 export TESTING_HOME="${TESTING_HOME:-$HOME}"
 export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-aio.log"
@@ -107,7 +107,7 @@ neutron_provider_networks:
 
 echo "Gate test starting
 with:
-  IRR_CONTEXT: ${IRR_CONTEXT}
+  RE_JOB_SCENARIO: ${RE_JOB_SCENARIO}
   TESTING_HOME: ${TESTING_HOME}
   ANSIBLE_LOG_PATH: ${ANSIBLE_LOG_PATH}
 "
@@ -122,7 +122,7 @@ fi
 
 mkdir -p "${ANSIBLE_LOG_DIR}"
 
-if [ "${IRR_CONTEXT}" == "ceph" ]; then
+if [ "${RE_JOB_SCENARIO}" == "ceph" ]; then
 
   if [ -d "/opt/rpc-ceph" ]; then
     rm -rf /opt/rpc-ceph
@@ -145,7 +145,7 @@ else
 fi
 
 pushd /opt/openstack-ansible
-  if [ "${IRR_CONTEXT}" == "kilo" ]; then
+  if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
     git checkout "97e3425871659881201106d3e7fd406dc5bd8ff3"  # Last commit of Kilo
     pin_jinja
     pin_galera "5.5"
@@ -157,27 +157,27 @@ pushd /opt/openstack-ansible
       git clone https://github.com/willshersystems/ansible-sshd /etc/ansible/roles/sshd
     fi
 
-  elif [ "${IRR_CONTEXT}" == "liberty" ]; then
+  elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
     git checkout "06d0fd344b5b06456a418745fe9937a3fbedf9b2"  # Last commit of Liberty
     pin_jinja
     pin_galera "10.0"
     # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
     sed -i 's/\(_container\: \).*/\11/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
 
-  elif [ "${IRR_CONTEXT}" == "mitaka" ]; then
+  elif [ "${RE_JOB_SCENARIO}" == "mitaka" ]; then
     git checkout "fbafe397808ef3ee3447fe8fefa6ac7e5c6ff144"  # Last commit of Mitaka
     pin_jinja
     pin_galera "10.0"
 
-  elif [ "${IRR_CONTEXT}" == "newton" ]; then
+  elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     git checkout "stable/newton"  # Branch checkout of Newton (Current Stable)
     enable_ironic
 
-  elif [ "${IRR_CONTEXT}" == "ocata" ]; then
+  elif [ "${RE_JOB_SCENARIO}" == "ocata" ]; then
     git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
     enable_ironic
 
-  elif [ "${IRR_CONTEXT}" == "pike" ]; then
+  elif [ "${RE_JOB_SCENARIO}" == "pike" ]; then
     git checkout "stable/pike"  # Branch checkout of Pike (Current Stable)
     enable_ironic
 
