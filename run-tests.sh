@@ -21,7 +21,7 @@ env
 echo "+-------------------- START ENV VARS --------------------+"
 
 export FUNCTIONAL_TEST=${FUNCTIONAL_TEST:-true}
-export RE_JOB_SCENARIO=${RE_JOB_SCENARIO:-"undefined"}
+export RE_JOB_SCENARIO=${RE_JOB_SCENARIO:-$IRR_CONTEXT}
 
 # Install python2 for Ubuntu 16.04 and CentOS 7
 if which apt-get; then
