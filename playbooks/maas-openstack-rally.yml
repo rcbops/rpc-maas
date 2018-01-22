@@ -177,6 +177,7 @@
         cloud: default
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
         domain_id: "Default"
+        wait: yes
       with_dict: "{{ maas_rally_checks }}"
       when:
         - item.value.enabled
