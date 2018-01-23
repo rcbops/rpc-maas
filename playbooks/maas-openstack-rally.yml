@@ -17,6 +17,9 @@
   hosts: "{{ maas_rally_target_group }}[0]"
   gather_facts: false
   pre_tasks:
+    - name: Pause for gate troubleshooting
+      pause:
+
     - name: Safety check - ensure maas_rally is enabled
       fail:
         msg: "Rally performance tests are disabled.  If you really want them please read the documentation and set maas_rally_enabled to true."
