@@ -19,6 +19,7 @@
   pre_tasks:
     - name: Pause for gate troubleshooting
       pause:
+        minutes: 240
 
     - name: Safety check - ensure maas_rally is enabled
       fail:
