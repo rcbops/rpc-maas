@@ -210,7 +210,7 @@
     - name: Set quotas for maas_rally projects
       shell: |
         . /root/openrc
-        {{ maas_rally_venv_bin }}/openstack \
+        {{ maas_rally_venv_bin }}/openstack --debug \
         {% if keystone_service_adminuri_insecure %} --insecure \ {% endif %}
         quota set \
         {% for quota in item.value.per_iter_quotas %} \
