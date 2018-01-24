@@ -16,7 +16,7 @@ alarms      :
         disabled                : "{{ ((process+'_process_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}"
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["{{ process }}_process_status"] != 1 ) {
+            if (metric["{{ process | replace(" ", "") }}_process_status"] != 1 ) {
                 return new AlarmStatus(CRITICAL, "Hummingbird process {{ process }} not running on {{ inventory_hostname }}");
             }
 {% endfor %}

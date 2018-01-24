@@ -23,6 +23,7 @@ maas_openstack_swift_pip_packages:
   - python-openstackclient
   - python-swiftclient
 
+maas_hummingbird_lbhealthcheck_enabled: false
 #
 # Hummingbird object access check
 #
@@ -34,13 +35,13 @@ maas_hummingbird_service_project_name: "service"
 
 #
 maas_hummingbird_object_process_names:
-  - "hummingbird object"
-  - "hummingbird object-replicator"
+  - "hummingbird systemd start object"
+  - "hummingbird systemd start object-replicator"
 
 maas_hummingbird_account_process_names:
-  - "hummingbird account"
-  - "hummingbird account-replicator"
+  - "hummingbird systemd start account"
+  - "hummingbird systemd start account-replicator"
 
 maas_hummingbird_container_process_names:
-  - "hummingbird container"
-  - "hummingbird container-replicator"
+  - "hummingbird systemd start container"
+  - "hummingbird systemd start container-replicator"

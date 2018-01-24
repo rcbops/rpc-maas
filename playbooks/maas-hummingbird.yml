@@ -268,6 +268,7 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
+        - maas_hummingbird_lbhealthcheck_enabled | bool
         - not maas_private_monitoring_enabled
 
     - name: Install hummingbird lb access checks
