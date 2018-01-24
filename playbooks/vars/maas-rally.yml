@@ -222,7 +222,7 @@ maas_rally_default_poll_interval: 1800
 maas_rally_default_duration_threshold: 75
 maas_rally_default_warn_threshold: 300
 maas_rally_default_crit_threshold: 600
-maas_rally_default_alarm_consecutive_count: 2
+maas_rally_default_alarm_consecutive_count: 3
 
 #
 #  This dictionary is a template containing default values for all checks. In
