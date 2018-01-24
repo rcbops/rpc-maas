@@ -35,7 +35,7 @@ echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
 
 ## Vars ----------------------------------------------------------------------
 
-export IRR_CONTEXT="${IRR_CONTEXT:-master}"
+export RE_JOB_SCENARIO="${RE_JOB_SCENARIO:-master}"
 export TESTING_HOME="${TESTING_HOME:-$HOME}"
 export WORKING_DIR="${WORKING_DIR:-$(pwd)}"
 export ROLE_NAME="${ROLE_NAME:-''}"
@@ -51,7 +51,7 @@ export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/
 # The maas_rally performance monitoring requires a modern (>1.9) version of
 # ansible that is not available in liberty and mitaka.  There is no reason
 # to run it in a ceph context either.
-case $IRR_CONTEXT in
+case $RE_JOB_SCENARIO in
   liberty|mitaka|ceph)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
@@ -196,10 +196,10 @@ fi
 influx_pin_environment
 
 # Export additional ansible environment variables if running Kilo or Liberty
-if [ "${IRR_CONTEXT}" == "kilo" ]; then
+if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
   pin_environment
 
-elif [ "${IRR_CONTEXT}" == "liberty" ]; then
+elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
   pin_environment
 fi
 
