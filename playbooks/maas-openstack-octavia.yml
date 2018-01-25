@@ -37,6 +37,26 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
+    - name: Get project id
+      shell: ". /root/openrc && openstack project list --user octavia -c ID -f value"
+      register: octavia_project_return
+      delegate_to: "{{ groups['utility_all'][0] }}"
+      tags:
+        - skip_ansible_lint
+
+    - name: Set project id
+      set_fact:
+        octavia_project_id: "{{ octavia_project_return.stdout }}"
+
+    - name: Install octavia quota check
+      template:
+        src: "templates/rax-maas/octavia_quota_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/octavia_quota_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
@@ -55,6 +75,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+
     - name: Install octavia lb checks
       template:
         src: "templates/rax-maas/lb_api_check_octavia.yaml.j2"
