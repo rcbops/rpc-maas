@@ -175,6 +175,7 @@
         name: "{{ item.value.project | default('rally_' + item.key) }}"
         state: present
         cloud: default
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
         domain_id: "Default"
       with_dict: "{{ maas_rally_checks }}"
