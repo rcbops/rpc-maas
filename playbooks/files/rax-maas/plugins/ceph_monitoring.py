@@ -197,8 +197,12 @@ def get_args():
     parser_rgw = subparsers.add_parser('rgw')
     parser_rgw.add_argument('--rgw_port', required=True, help='RGW port')
     parser_rgw.add_argument('--rgw_host', required=True, help='RGW host')
-    parser_rgw.add_argument('--rgw_protocol', type=str, default='http',
-                            help='Protocol to use for radosgw requests')
+    parser_rgw.add_argument('--http',
+                            action='store_true',
+                            help='Use http for checks')
+    parser_rgw.add_argument('--https',
+                            action='store_true',
+                            help='Use https for checks')
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,
@@ -218,7 +222,7 @@ def main(args):
     if args.subparser_name == 'mon':
         kwargs['host'] = args.host
     if args.subparser_name == 'rgw':
-        kwargs['rgw_protocol'] = args.rgw_protocol
+        kwargs['rgw_protocol'] = 'https' if args.https else 'http'
         kwargs['rgw_port'] = args.rgw_port
         kwargs['rgw_host'] = args.rgw_host
 
