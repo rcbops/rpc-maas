@@ -1,0 +1,149 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Gather facts
+  hosts: hosts
+  gather_facts: "{{ gather_facts | default(true) }}"
+  pre_tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: k8_all
+
+    - name: Check for mk8s secrets
+      local_action: stat path=/etc/openstack_deploy/mk8s_user_secrets.yml
+      register: maas_k8_secrets
+
+    - name: Include mk8s secrets
+      include_vars: /etc/openstack_deploy/mk8s_user_secrets.yml
+      when: maas_k8_secrets.stat.exists
+
+  tasks:
+    - name: Get clusters from auth service
+      uri:
+        url: "{{ maas_managed_k8_auth_url }}/clusters"
+        headers:
+          x-auth-token: "{{ mk8s_auth_admin_token }}"
+      register:  k8_servers
+      run_once: true
+      when:
+        - mk8s_auth_admin_token is defined
+
+    - name: set fact
+      set_fact: k8_item="{{ item.kubeconfig | from_yaml }}"
+      with_items:
+        - "{{ k8_servers.json | default([]) }}"
+      register: k8_result
+      when:
+         - mk8s_auth_admin_token is defined
+
+    - name: make a list
+      set_fact: k8_config="{{ k8_result.results | map(attribute='ansible_facts.k8_item') | list }}"
+      when:
+         - mk8s_auth_admin_token is defined
+
+  post_tasks:
+    - name: Install kubectl
+      get_url:
+        url: "https://storage.googleapis.com/kubernetes-release/release/{{ maas_managed_k8_kubectl_release }}/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin
+        mode: 0775
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - mk8s_auth_admin_token is defined
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-managed-k8.yml
+  tags:
+    - maas-managed-k8
+
+- name: Install checks for k8 api
+  hosts: hosts
+  gather_facts: false
+  tasks:
+    - name: Install k8 lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_managed_k8.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_managed_k8-{{ item.clusters[0].name }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - "{{ k8_config }}"
+      when:
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+        - k8_config is defined
+
+    - name: Install k8 private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_managed_k8.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_managed_k8-{{ item.clusters[0].name }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - "{{ k8_config }}"
+      when:
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+        - k8_config is defined
+
+    - name: Create k8 directory
+      file:
+        path: "{{ maas_managed_k8_kube_config_dir }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0700"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - k8_config is defined
+
+    - name: Install k8 cluster config
+      copy:
+        content: "{{ item }}"
+        dest: "{{ maas_managed_k8_kube_config_dir }}/kube-config-{{ item.clusters[0].name }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0600"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - "{{ k8_config }}"
+      when:
+        - k8_config is defined
+
+    - name: Install local checks
+      template:
+        src: "templates/rax-maas/managed_k8_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/managed_k8_api_local_check-{{ item.clusters[0].name }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - "{{ k8_config }}"
+      when:
+        - k8_config is defined
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-managed-k8.yml
+  tags:
+    - maas-managed-k8
