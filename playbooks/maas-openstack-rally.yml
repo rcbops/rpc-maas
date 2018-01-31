@@ -175,6 +175,7 @@
         name: "{{ item.value.project | default('rally_' + item.key) }}"
         state: present
         cloud: default
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
         domain_id: "Default"
       with_dict: "{{ maas_rally_checks }}"
@@ -231,6 +232,7 @@
         default_project: "{{ item.value.project | default('rally_' + item.key) }}"
         state: present
         cloud: default
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
         domain: "Default"
       with_dict: "{{ maas_rally_checks }}"
@@ -246,6 +248,7 @@
         role: "_member_"
         state: present
         cloud: default
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
       with_dict: "{{ maas_rally_checks }}"
       vars:
@@ -260,6 +263,7 @@
         role: "{{ item.1 }}"
         state: present
         cloud: default
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
       with_subelements:
         - "{{ maas_rally_checks }}"
@@ -282,6 +286,7 @@
         name: rally_cirros
         filename: /tmp/cirros-0.3.5-x86_64-disk.img"
         is_public: yes
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
       vars:
         - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
@@ -295,6 +300,7 @@
         disk: 1
         vcpus: 1
         is_public: true
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
       vars:
         - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
@@ -328,6 +334,7 @@
         name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
         shared: no
         project: "{{ item.value.project | default('rally_' + item.key) }}"
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
         wait: yes
       with_dict: "{{ maas_rally_checks }}"
@@ -345,6 +352,7 @@
         network_name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
         cidr: "{{ item.value.subnet_cidr | default('192.168.0.0/24') }}"
         project: "{{ item.value.project | default('rally_' + item.key) }}"
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
         wait: yes
       with_dict: "{{ maas_rally_checks }}"
@@ -446,6 +454,7 @@
       os_networks_facts:
         cloud: default
         wait: yes
+        endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
       vars:
         - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
