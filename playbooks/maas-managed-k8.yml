@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: hosts
+  hosts: os-infra_hosts
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
@@ -72,7 +72,7 @@
     - maas-managed-k8
 
 - name: Install checks for k8 api
-  hosts: hosts
+  hosts:  os-infra_hosts
   gather_facts: false
   tasks:
     - name: Install k8 lb checks
