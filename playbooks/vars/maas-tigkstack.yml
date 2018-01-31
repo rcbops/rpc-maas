@@ -628,3 +628,5 @@ grafana_panel_skel:
 
 maas_telegraf_format_pip_packages:
   - "PyYAML"
+
+maas_telegraf_regex_pat: ".*"
