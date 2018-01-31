@@ -17,6 +17,10 @@
   hosts: "{{ maas_rally_target_group }}[0]"
   gather_facts: false
   pre_tasks:
+    - name: Pause for gate troubleshooting
+      pause:
+        minutes: 240
+
     - name: Safety check - ensure maas_rally is enabled
       fail:
         msg: "Rally performance tests are disabled.  If you really want them please read the documentation and set maas_rally_enabled to true."
@@ -177,6 +181,7 @@
         cloud: default
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
         domain_id: "Default"
+        wait: yes
       with_dict: "{{ maas_rally_checks }}"
       when:
         - item.value.enabled
@@ -209,7 +214,7 @@
     - name: Set quotas for maas_rally projects
       shell: |
         . /root/openrc
-        {{ maas_rally_venv_bin }}/openstack \
+        {{ maas_rally_venv_bin }}/openstack --debug \
         {% if keystone_service_adminuri_insecure %} --insecure \ {% endif %}
         quota set \
         {% for quota in item.value.per_iter_quotas %} \
