@@ -20,6 +20,7 @@ import datetime
 import ipaddr
 from maas_common import get_auth_ref
 from maas_common import get_endpoint_url_for_service
+from maas_common import get_keystone_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -29,9 +30,15 @@ import requests
 
 
 def check(auth_ref, args):
-    OCTAVIA_ENDPOINT = 'http://{ip}:9876/v1'.format(ip=args.ip,)
+    OCTAVIA_ENDPOINT = 'http://{ip}:9876'.format(ip=args.ip,)
 
     try:
+        keystone = get_keystone_client(auth_ref)
+        auth_token = keystone.auth_token
+        s = requests.Session()
+        s.headers.update(
+            {'Content-type': 'application/json',
+                'x-auth-token': auth_token})
         if args.ip:
             endpoint = OCTAVIA_ENDPOINT
         else:
@@ -39,7 +46,7 @@ def check(auth_ref, args):
                 'load-balancer', auth_ref, 'internal')
         # time something arbitrary
         start = datetime.datetime.now()
-        r = requests.get(endpoint + "/v1/loadbalancers?limit=1")
+        r = s.get(endpoint + "/v2.0/lbaas/loadbalancers?limit=1")
         end = datetime.datetime.now()
         api_is_up = (r.status_code == 200)
     except (requests.HTTPError, requests.Timeout, requests.ConnectionError):
