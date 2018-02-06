@@ -203,6 +203,7 @@ maas_rally_pip_package_state: present
 #
 maas_rally_pip_packages:
   - "git+{{ maas_rally_git_repo }}@{{ maas_rally_git_version }}#egg=rally"
+  - influxdb
   - numpy
   - pymysql
 
@@ -310,6 +311,33 @@ maas_rally_checks: "{{ maas_rally_check_defaults | combine(maas_rally_check_over
 #
 maas_rally_skip_config_validation: false
 
+
+#
+# InfluxDB configuration
+#
+# This section allows you to send the results of each poll to an arbitrary
+# influxdb deployment.  This playbook does not handle the deployment of
+# influxdb.
+#
+maas_rally_influxdb_enabled: false
+
+# How to connect to the database
+maas_rally_influxdb_host: localhost
+maas_rally_influxdb_port: 8086
+maas_rally_influxdb_user: maas_rally
+maas_rally_influxdb_password: ''
+maas_rally_influxdb_database: maas_rally
+
+# This value is configured in the 'environment' tag for each data point to
+# support report filtering multiple deployments using the same influxdb backend.
+maas_rally_influxdb_environment_name: OpenStack
+
+# The influxdb measurement name
+maas_rally_influxdb_measurement_name: performance
+
+# If you override this, be sure to include the environment tag
+maas_rally_influxdb_tags:
+  environment: "{{ maas_rally_influxdb_environment_name }}"
 
 #
 # Varibles required to populate clouds.yaml

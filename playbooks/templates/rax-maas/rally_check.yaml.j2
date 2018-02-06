@@ -10,6 +10,7 @@
 {% set alarm_consecutive_count = item.value.alarm_consecutive_count %}
 {% set duration_threshold_percent = item.value.duration_threshold %}
 {% set duration_threshold_seconds = (period*item.value.duration_threshold/100.0)|float %}
+{% set influxdb = maas_rally_influxdb_enabled %}
 
 type        : agent.plugin
 label       : "{{ check_name }}"
@@ -18,7 +19,7 @@ timeout     : "{{ timeout }}"
 disabled    : "{{ (inventory_hostname not in maas_rally_primary_node or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_rally_venv.sh
-    args    : ["{{ maas_plugin_dir }}/rally_performance.py", "{{ name }}", "-t {{ times }}", "-c {{ concurrency }}" {% for k,v in item.value.extra_vars.iteritems() | list %}, "-e {{k}}={{v}}" {% endfor %}]
+    args    : ["{{ maas_plugin_dir }}/rally_performance.py", "{{ name }}", "-t {{ times }}", "-c {{ concurrency }}" {% if influxdb %}, "--influxdb" {% endif %} {% for k,v in item.value.extra_vars.iteritems() | list %}, "-e {{k}}={{v}}" {% endfor %}]
     timeout : {{ timeout * 1000 | int}}
 alarms      :
     rally_{{ name }}_total_95pctl :

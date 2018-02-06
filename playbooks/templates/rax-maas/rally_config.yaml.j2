@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+---
+{% if maas_rally_influxdb_enabled %}
+influxdb:
+  host: {{ maas_rally_influxdb_host }}
+  port: {{ maas_rally_influxdb_port }}
+  user: {{ maas_rally_influxdb_user }}
+  password: {{ maas_rally_influxdb_user }}
+  database: {{ maas_rally_influxdb_database }}
+  measurement_name: {{ maas_rally_influxdb_measurement_name }}
+  tags:
+{% for k,v in maas_rally_influxdb_tags.iteritems() %}
+    {{ k }}: {{ v }}
+{% endfor %}
+{% endif %}

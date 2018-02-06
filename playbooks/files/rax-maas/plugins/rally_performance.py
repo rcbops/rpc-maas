@@ -26,6 +26,9 @@ from maas_common import status_err, status_ok, metric
 import rally
 from rally.api import API
 
+from influxdb import InfluxDBClient
+
+PLUGIN_CONF = '/usr/lib/rackspace-monitoring-agent/plugins/rally/config.yaml'
 PLUGIN_PATH = '/usr/lib/rackspace-monitoring-agent/plugins/rally/plugins/'
 TASKS_PATH = '/usr/lib/rackspace-monitoring-agent/plugins/rally/tasks/'
 LOCKS_PATH = '/var/lock/maas_rally'
@@ -37,6 +40,37 @@ class ParseError(maas_common.MaaSException):
 
 class CommandNotRecognized(maas_common.MaaSException):
     pass
+
+
+def send_metrics_to_influxdb():
+    with open(PLUGIN_CONF, 'r') as stream:
+        try:
+            plugin_config = yaml.safe_load(stream)
+            influx_config = plugin_config['influxdb']
+            influx_host = influx_config['host']
+            influx_port = influx_config['port']
+            influx_database = influx_config['database']
+            influx_user = influx_config['user']
+            influx_password = influx_config['password']
+            tags = influx_config['tags']
+        except:
+            status_err('Error reading influxdb config for rally plugin.',
+                       m_name='maas_rally')
+
+    client = InfluxDBClient(influx_host,
+                            influx_port,
+                            influx_user,
+                            influx_password,
+                            influx_database)
+
+    influx_data = {}
+    influx_data['measurement'] = args.task
+    influx_data['tags'] = tags
+    influx_data['fields'] = dict((k, float(v)) for k, v in
+                                 maas_common.TELEGRAF_METRICS['variables']
+                                 .iteritems())
+
+    client.write_points([influx_data])
 
 
 def make_parser():
@@ -63,6 +97,10 @@ def make_parser():
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--influxdb',
+                        action='store_true',
+                        default=False,
+                        help='Send output to influxdb')
     return parser
 
 
@@ -199,6 +237,9 @@ def main():
 
     end = time.time()
     metric('maas_check_duration', 'double', "{:.2f}".format((end - start) * 1))
+
+    if args.influxdb:
+        send_metrics_to_influxdb()
 
     return
 
