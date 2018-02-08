@@ -52,7 +52,7 @@ export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/
 # ansible that is not available in liberty and mitaka.  There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
-  liberty|mitaka|ceph)
+  liberty|mitaka|ceph|hummingbird)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
