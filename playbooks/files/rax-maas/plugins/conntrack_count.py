@@ -16,7 +16,13 @@
 
 import argparse
 import errno
-import lxc
+try:
+    import lxc
+    lxc_module_active = True
+except ImportError:
+    lxc_module_active = False
+    pass
+
 import maas_common
 import tempfile
 
@@ -106,6 +112,10 @@ def main():
         if not args.container:
             metrics = get_metrics()
         else:
+            if not lxc_module_active:
+                raise maas_common.MaaSException('Container monitoring '
+                                                'requested but lxc-python '
+                                                'pip module not installed.')
             metrics = get_metrics_lxc_container(args.container)
 
     except maas_common.MaaSException as e:
