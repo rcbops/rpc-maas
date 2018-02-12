@@ -64,6 +64,14 @@
         group: "root"
         mode: "0755"
 
+    - name: Drop MaaS telegraf output format config file
+      template:
+        src: "templates/tigkstack/maas_telegraf_format.yml.j2"
+        dest: /etc/maas_telegraf_format.yml
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
   vars_files:
     - vars/main.yml
     - vars/maas-tigkstack.yml

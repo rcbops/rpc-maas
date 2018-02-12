@@ -16,12 +16,14 @@
 
 import multiprocessing
 import os
+import re
 
 import yaml
 
 
 BASE_PATH = '/etc/rackspace-monitoring-agent.conf.d'
 RUN_VENV = '/usr/lib/rackspace-monitoring-agent/plugins/run_plugin_in_venv.sh'
+CFG_FILE = '/etc/maas_telegraf_format.yml'
 
 RETURN_QUEUE = multiprocessing.Queue()
 
@@ -68,14 +70,24 @@ def str2bool(boolean):
 
 def load_yaml(check_file):
     with open(check_file) as f:
-        return yaml.load(f.read())
+        return yaml.safe_load(f.read())
 
 
 def main():
+    pattern = load_yaml(CFG_FILE)['include_pattern']
     r = Runner()
     try:
         for _, _, items in os.walk(BASE_PATH):
             for item in items:
+                # we take an allow everything except
+                # approach here. By default
+                # allow .*
+                # dont want to allow file names that being with
+                # rally? try this:
+                # ^(?!rally).*
+                match = re.match(pattern=pattern, string=item)
+                if match is None:
+                    continue
                 check_load = load_yaml(os.path.join(BASE_PATH, item))
                 if not str2bool(boolean=check_load.get('disabled')):
                     details = check_load.get('details')
