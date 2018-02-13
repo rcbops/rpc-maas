@@ -28,6 +28,7 @@ maas_horizon_scheme: https
 # maas_ironic_api_scheme: https
 # maas_maas_swift_proxy_scheme: https
 # maas_octavia_scheme: https
+# maas_designate_scheme: https
 
 #
 # pip installable packages for given services used within maas
@@ -36,6 +37,11 @@ maas_openstack_cinder_pip_packages:
   - python-cinderclient
   - python-keystoneclient
 
+maas_openstack_designate_pip_packages:
+  - python-designateclient
+  - python-keystoneclient
+  - dnspython
+  
 maas_openstack_glance_pip_packages:
   - python-glanceclient
   - python-keystoneclient
@@ -190,3 +196,11 @@ octavia_quota_names:
   - octavia_server_group_quota_usage
   - octavia_volume_gb_quota_usage
   - octavia_num_volume_quota_usage
+
+designate_process_names:
+  - designate-sink
+  - designate-worker
+  - designate-central
+  - designate-producer
+  - designate-api
+  - designate-mdns
