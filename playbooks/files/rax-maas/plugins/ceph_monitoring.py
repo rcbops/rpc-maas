@@ -39,11 +39,9 @@ def check_command(command, container_name=None):
     return json.loads(lines[-1])
 
 
-def get_ceph_rgw_hostcheck(rgw_protocol, rgw_host, rgw_port,
-                           container_name=None):
-    host_url = "%s://%s:%s" % (rgw_protocol, rgw_host, rgw_port)
+def get_ceph_rgw_hostcheck(rgw_address, container_name=None):
     try:
-        sc = requests.get(host_url, verify=False).status_code
+        sc = requests.get(rgw_address, verify=False).status_code
         if (sc >= 200) and (sc < 300):
             status_code = 2
         else:
@@ -82,9 +80,9 @@ def get_mon_statistics(client=None, keyring=None, host=None,
     maas_common.metric_bool('mon_in_quorum', mon_in)
 
 
-def get_rgw_checkup(client, keyring=None, rgw_protocol=None, rgw_port=None,
-                    rgw_host=None, container_name=None):
-    rgw_status = get_ceph_rgw_hostcheck(rgw_protocol, rgw_host, rgw_port,
+def get_rgw_checkup(client, keyring=None, rgw_address=None,
+                    container_name=None):
+    rgw_status = get_ceph_rgw_hostcheck(rgw_address,
                                         container_name=container_name)
     maas_common.metric('rgw_up', 'uint32', rgw_status)
 
@@ -200,10 +198,8 @@ def get_args():
     parser_osd.add_argument('--osd_ids', required=True,
                             help='Space separated list of OSD IDs')
     parser_rgw = subparsers.add_parser('rgw')
-    parser_rgw.add_argument('--rgw_port', required=True, help='RGW port')
-    parser_rgw.add_argument('--rgw_host', required=True, help='RGW host')
-    parser_rgw.add_argument('--rgw_protocol', type=str, default='http',
-                            help='Protocol to use for radosgw requests')
+    parser_rgw.add_argument('--rgw_address', required=True,
+                            help='RGW address in form proto://ip_addr:port/')
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,
@@ -223,9 +219,7 @@ def main(args):
     if args.subparser_name == 'mon':
         kwargs['host'] = args.host
     if args.subparser_name == 'rgw':
-        kwargs['rgw_protocol'] = args.rgw_protocol
-        kwargs['rgw_port'] = args.rgw_port
-        kwargs['rgw_host'] = args.rgw_host
+        kwargs['rgw_address'] = args.rgw_address
 
     kwargs['container_name'] = args.container_name
 
