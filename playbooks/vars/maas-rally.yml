@@ -218,6 +218,7 @@ maas_rally_pip_packages:
 #  about each variable.
 #
 maas_rally_default_times: 1
+maas_rally_default_alarm_stat: mean
 maas_rally_default_concurrency: 1
 maas_rally_default_poll_interval: 1800
 maas_rally_default_duration_threshold: 75
@@ -237,6 +238,7 @@ maas_rally_check_default_template:
   enabled: false
   times: "{{ maas_rally_default_times }}"
   concurrency: "{{ maas_rally_default_concurrency }}"
+  alarm_stat: "{{ maas_rally_default_alarm_stat }}"
   warn_threshold: "{{ maas_rally_default_warn_threshold }}"
   crit_threshold: "{{ maas_rally_default_crit_threshold }}"
   poll_interval: "{{ maas_rally_default_poll_interval }}"
