@@ -32,6 +32,7 @@ takes to get metrics, worst case scenario.
   quiet = true
   hostname = "{{ inventory_hostname }}"
   omit_hostname = false
+  logfile = "/var/log/telegraf/telegraf.log"
 
 {%   set influx_targets = [] %}
 {%   for item in groups['influx_hosts'] | default([]) %}
@@ -46,6 +47,8 @@ takes to get metrics, worst case scenario.
   precision = "s"
   write_consistency = "any"
   timeout = "30s"
+  username = "{{ influxdb_db_metric_user }}"
+  password = "{{ influxdb_db_metric_password }}"
 
 {% if telegraf_outputs_prometheus_client | bool %}
 [[outputs.prometheus_client]]

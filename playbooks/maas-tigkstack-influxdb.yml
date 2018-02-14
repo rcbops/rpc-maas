@@ -86,6 +86,16 @@
         port: "{{ influxdb_port }}"
         delay: 1
 
+    - name: Create influxdb admin user
+      command: >
+        influx -username {{ influxdb_db_root_name }}
+        -password {{ influxdb_db_root_password }}
+        -execute "{{ item }}"
+      changed_when: false
+      no_log: True
+      with_items:
+        - "CREATE USER {{ influxdb_db_root_name }} WITH PASSWORD '{{ influxdb_db_root_password }}' WITH ALL PRIVILEGES"
+
     - name: Create metrics DB
       command: >
         influx -username {{ influxdb_db_root_name }}
@@ -98,6 +108,18 @@
         - "CREATE RETENTION POLICY {{ influxdb_db_retention_policy }} ON {{ influxdb_db_name }} DURATION {{ influxdb_db_retention }} REPLICATION {{ influxdb_db_replication }} DEFAULT"
         - "CREATE USER {{ influxdb_db_metric_user }} WITH PASSWORD '{{ influxdb_db_metric_password }}'"
         - "GRANT ALL ON {{ influxdb_db_name }} TO {{ influxdb_db_metric_user }}"
+
+    - name: Enable influxdb http authentication
+      replace:
+        dest: /etc/influxdb/influxdb.conf
+        regexp: '^  auth-enabled = false'
+        replace: '  auth-enabled = true'
+
+    - name: Restart influxdb to enable authentication
+      service:
+        name: "influxdb"
+        enabled: true
+        state: restarted
 
     - name: Install GOLang
       script: files/tigkstack/deploy_go.sh
