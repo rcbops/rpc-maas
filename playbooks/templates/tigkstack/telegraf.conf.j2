@@ -18,7 +18,7 @@ takes to get metrics, worst case scenario.
 #}
 {% set c_jitter = collection_jitter | default(8) %}
 {% set input_timeout = input_command_timeout | default(5) %}
-{% set f_interval = (interval + (c_jitter + input_timeout)) | int | round + 2 %}
+{% set f_interval = (interval + (c_jitter + input_timeout | int)) | int | round + 2 %}
 
 [agent]
   interval = "{{ interval | round }}s"
