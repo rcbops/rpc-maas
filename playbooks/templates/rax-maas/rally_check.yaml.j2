@@ -23,15 +23,21 @@ details     :
     args    : ["{{ maas_plugin_dir }}/rally_performance.py", "{{ name }}", "-t {{ times }}", "-c {{ concurrency }}" {% if influxdb %}, "--influxdb" {% endif %} {% for k,v in item.value.extra_vars.iteritems() | list %}, "-e {{k}}={{v}}" {% endfor %}]
     timeout : {{ timeout * 1000 | int}}
 alarms      :
-    rally_{{ name }}_total_{{ stat }} :
-        label                   : rally_{{ name }}_total_{{ stat }}--{{ inventory_hostname }}
+    rally_{{ name }}_total_{{ stat }}_warn :
+        label                   : rally_{{ name }}_total_{{ stat }}_warn--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (("rally_{{ name }}_total_{{ stat }}--{{ inventory_hostname }}") | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (("rally_{{ name }}_total_{{ stat }}_warn--{{ inventory_hostname }}") | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ alarm_consecutive_count }}
             if (metric['{{ name }}_total_{{ stat }}'] > {{ warn_threshold }}) {
                 return new AlarmStatus(CRITICAL, "{{ name }} performance metric exceeds warning threshold of {{ warn_threshold }} seconds");
             }
+    rally_{{ name }}_total_{{ stat }}_crit :
+        label                   : rally_{{ name }}_total_{{ stat }}_crit--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (("rally_{{ name }}_total_{{ stat }}_crit--{{ inventory_hostname }}") | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ alarm_consecutive_count }}
             if (metric['{{ name }}_total_{{ stat }}'] > {{ crit_threshold }}) {
                 return new AlarmStatus(CRITICAL, "{{ name }} performance metric exceeds BREACH threshold of {{ crit_threshold }} seconds");
             }
