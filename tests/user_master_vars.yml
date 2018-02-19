@@ -25,7 +25,7 @@ maas_rally_enabled: true
 
 # NOTE(cfarquhar): The scenarios that create instances are disabled for now
 # since public cloud AIOs are unreliable in terms of performance.
- 
+
 maas_rally_check_overrides:
   cinder:
     enabled: false
@@ -45,3 +45,5 @@ maas_rally_check_overrides:
     enabled: true
     extra_user_roles:
       - "swiftoperator"
+
+maas_pre_flight_check_enabled: true

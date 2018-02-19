@@ -48,3 +48,5 @@ maas_rally_check_overrides:
     enabled: true
     extra_user_roles:
       - "swiftoperator"
+
+maas_pre_flight_check_enabled: true

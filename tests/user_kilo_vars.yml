@@ -30,6 +30,8 @@ maas_excluded_alarms:
 maas_excluded_checks:
   - 'swift_time_sync_check'
 
+maas_pre_flight_check_enabled: true
+
 # Ansible 1.9 compatibility
 ansible_host: "{{ ansible_ssh_host }}"
 
