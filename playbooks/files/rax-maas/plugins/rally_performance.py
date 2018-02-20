@@ -28,7 +28,7 @@ from rally.api import API
 
 from influxdb import InfluxDBClient
 
-PLUGIN_CONF = '/usr/lib/rackspace-monitoring-agent/plugins/rally/config.yaml'
+PLUGIN_CONF = '/etc/rally/maas_rally.yaml'
 PLUGIN_PATH = '/usr/lib/rackspace-monitoring-agent/plugins/rally/plugins/'
 TASKS_PATH = '/usr/lib/rackspace-monitoring-agent/plugins/rally/tasks/'
 LOCKS_PATH = '/var/lock/maas_rally'

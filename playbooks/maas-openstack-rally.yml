@@ -497,8 +497,8 @@
 
     - name: Install maas_rally plugin configuration file
       template:
-        src: "templates/rax-maas/rally_config.yaml.j2"
-        dest: "{{ maas_plugin_dir }}/rally/config.yaml"
+        src: "templates/rax-maas/maas_rally.yaml.j2"
+        dest: "/etc/rally/maas_rally.yaml"
         owner: "root"
         group: "root"
         mode: "0600"
