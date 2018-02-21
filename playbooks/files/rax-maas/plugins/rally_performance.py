@@ -207,12 +207,12 @@ def main():
             task_args.update({k: v})
 
     with open(task_file) as f:
-            input_task = f.read()
-            task_dir = os.path.expanduser(
-                os.path.dirname(task_file)) or "./"
-            rendered_task = rapi.task.render_template(input_task,
-                                                      task_dir,
-                                                      **task_args)
+        input_task = f.read()
+        task_dir = os.path.expanduser(
+            os.path.dirname(task_file)) or "./"
+        rendered_task = rapi.task.render_template(input_task,
+                                                  task_dir,
+                                                  **task_args)
 
     parsed_task = yaml.safe_load(rendered_task)
 
