@@ -67,6 +67,12 @@
   hosts: octavia-api
   gather_facts: false
   tasks:
+    - name: Add load-balancer member role
+      shell: ". /root/openrc && openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer"
+      delegate_to: "{{ groups['utility_all'][0] }}"
+      tags:
+        - skip_ansible_lint
+
     - name: Install octavia api checks
       template:
         src: "templates/rax-maas/octavia_api_local_check.yaml.j2"
