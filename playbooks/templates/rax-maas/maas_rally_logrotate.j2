@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+{{ maas_rally_plugin_log_file }} {
+    daily
+    rotate 7
+    missingok
+    copytruncate
+    compress
+    create 640 root adm
+}

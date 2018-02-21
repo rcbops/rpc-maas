@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import logging
 import numpy as np
 import os
 import time
@@ -67,7 +68,7 @@ class PluginConfig(object):
                                 .format(e))
 
 
-def send_metrics_to_influxdb(plugin_config):
+def send_metrics_to_influxdb(plugin_config, logger):
     influx_config = plugin_config['influxdb']
     influx_host = influx_config['host']
     influx_port = influx_config['port']
@@ -89,8 +90,15 @@ def send_metrics_to_influxdb(plugin_config):
                                  maas_common.TELEGRAF_METRICS['variables']
                                  .iteritems())
 
+    logger.debug("{} - writing metrics to influxdb database '{}' at {}".format(args.task, influx_database, influx_host + ':' + str(influx_port)))
     client.write_points([influx_data])
+    logger.debug("{} - sent influx_data: {}".format(args.task, influx_data))
 
+
+def setup_logging(plugin_config):
+    logging.config.dictConfig(plugin_config['logging'])
+    logger = logging.getLogger("maas_rally")
+    return logger
 
 def make_parser():
     parser = argparse.ArgumentParser(
@@ -123,7 +131,7 @@ def make_parser():
     return parser
 
 
-def parse_task_results(task_result):
+def parse_task_results(task_uuid, task_result, logger):
     # This expects the format returned by `rally task results <UUID>`
     action_data = {}
     action_data[args.task + '_total'] = list()
@@ -139,6 +147,7 @@ def parse_task_results(task_result):
 
     # Quota exceeded would be a typical error here
     if task_result['result'][0]['error']:
+        logger.critical("{} - rally task {} encountered an error: {}".format(args.task, task_uuid, task_result['result'][0]['error']))
         status_err(' '.join(task_result['result'][0]['error']),
                    m_name='maas_rally')
 
@@ -173,14 +182,23 @@ def parse_task_results(task_result):
 def main():
     start = time.time()
     plugin_config = PluginConfig(PLUGIN_CONF)
+    logger = setup_logging(plugin_config)
+
+    if logger.getEffectiveLevel() == logging.DEBUG:
+        logger.debug("{} - maas_rally plugin started with args {}".format(args.task, args))
+    else:
+        logger.info("{} - maas_rally plugin started".format(args.task))
 
     # Ensure we can find the task definition
     tasks_path = os.path.realpath(TASKS_PATH)
     task_file = tasks_path + '/' + args.task + '.yml'
     if not os.path.isfile(task_file):
+        logger.critical("{} - unable to locate task definition file {}".format(args.task, task_file))
         status_err('Unable to locate task definition '
                    'for {} in {}'.format(args.task, tasks_path),
                    m_name='maas_rally')
+    else:
+        logger.debug("{} - using task definition file {}".format(args.task, task_file))
 
     if not os.path.exists(LOCKS_PATH):
         os.makedirs(LOCKS_PATH)
@@ -189,19 +207,27 @@ def main():
 
     task_obj = rapi.task.create(args.task, [args.task])
     task_uuid = task_obj['uuid']
+    logger.info("{} - allocated rally task ID {}".format(args.task, task_uuid))
 
+    logger.debug("{} - checking for locks".format(args.task))
     LOCK_PATH = LOCKS_PATH + '/' + args.task + '/'
     if os.path.exists(LOCK_PATH):
         lock_uuid = os.listdir(LOCK_PATH)[0]
         lock_mtime = os.stat(LOCK_PATH + lock_uuid)[8]
         lock_duration = time.time() - lock_mtime
+        logger.warning("{} - found existing lock for rally task {} from {} seconds ago".format(args.task, lock_uuid, lock_duration))
         try:
+            logger.debug("{} - checking status for locking task {})".format(args.task, lock_uuid))
             task_status = rapi.task.get(lock_uuid)['status']
+            logger.debug("{} - status for locking task {}: {})".format(args.task, lock_uuid, task_status))
             if task_status == 'finished':
                 os.rmdir(LOCK_PATH + '/' + lock_uuid)
+                logger.warning("{} - task {} was finished - removed lock".format(args.task, lock_uuid))
             elif task_status == 'init' and lock_duration > 30:
+                logger.warning("{} - task {} was in init state for > 30 seconds - removed lock".format(args.task, lock_uuid))
                 os.rmdir(LOCK_PATH + '/' + lock_uuid)
             else:
+                logger.critical("{} - unable to remove lock by task ID {}".format(args.task, lock_uuid))
                 lock_mtime_str = time.strftime('%H:%M:%S %Y-%m-%d %Z',
                                                time.localtime(lock_mtime))
                 status_err("Unable to get lock for {} - locked by "
@@ -211,10 +237,13 @@ def main():
                            m_name='maas_rally')
         except rally.exceptions.TaskNotFound:
             os.rmdir(LOCK_PATH + '/' + lock_uuid)
+            logger.warning("{} - task {} not found in rally db - removed lock".format(args.task, lock_uuid))
     else:
+        logger.debug("{} - no lock found".format(args.task))
         os.mkdir(LOCK_PATH)
 
     os.mkdir(LOCK_PATH + '/' + task_uuid)
+    logger.debug("{} - acquired lock for task {}".format(args.task, task_uuid))
 
     task_args = {}
     if args.times is not None:
@@ -236,8 +265,11 @@ def main():
 
     parsed_task = yaml.safe_load(rendered_task)
 
+    logger.debug("{} - discovering rally plugins in {}".format(args.task, PLUGIN_PATH))
     rally.common.plugin.discover.load_plugins(PLUGIN_PATH)
+    logger.debug("{} - loading rally plugins from {}".format(args.task, PLUGIN_PATH))
     rally.plugins.load()
+    logger.info("{} - starting rally task {}".format(args.task, task_uuid))
     rapi.task.start(args.task, parsed_task, task_obj)
 
     # This is the format returned by `rally task results <UUID>`
@@ -250,16 +282,22 @@ def main():
                     "%Y-%d-%mT%H:%M:%S")}
                for x in task_obj.get_results()][0]
 
-    parse_task_results(results)
+    if logger.getEffectiveLevel() == logging.DEBUG:
+        logger.debug("{} - rally task {} completed with results: {}".format(args.task, task_uuid, results))
+    else:
+        logger.info("{} - rally task {} completed".format(args.task, task_uuid))
+
+    parse_task_results(task_uuid, results, logger)
 
     os.rmdir(LOCK_PATH + '/' + task_uuid)
     os.rmdir(LOCK_PATH)
+    logger.debug("{} - removed lock for rally task {}".format(args.task, task_uuid))
 
     end = time.time()
     metric('maas_check_duration', 'double', "{:.2f}".format((end - start) * 1))
 
     if args.influxdb:
-        send_metrics_to_influxdb(plugin_config)
+        send_metrics_to_influxdb(plugin_config, logger)
 
     return
 

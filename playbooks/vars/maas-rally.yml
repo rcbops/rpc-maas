@@ -313,6 +313,11 @@ maas_rally_checks: "{{ maas_rally_check_defaults | combine(maas_rally_check_over
 #
 maas_rally_skip_config_validation: false
 
+#
+# Plugin logging configuration
+#
+maas_rally_plugin_log_file: /var/log/maas_rally.log
+maas_rally_plugin_log_level: INFO
 
 #
 # InfluxDB configuration

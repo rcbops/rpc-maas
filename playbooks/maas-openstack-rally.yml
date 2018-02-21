@@ -503,6 +503,14 @@
         group: "root"
         mode: "0600"
 
+    - name: Install logrotate config for maas_rally plugin
+      template:
+        src: "templates/rax-maas/maas_rally_logrotate.j2"
+        dest: "/etc/logrotate.d/maas_rally"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
   vars_files:
     - vars/main.yml
     - vars/maas-agent.yml
