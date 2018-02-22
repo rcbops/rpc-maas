@@ -41,8 +41,6 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_API_INSECURE': True,
                 'OS_REGION_NAME': 'RegionOne'}
 
-# OS_API_INSECURE is currently hard coded to false until OSA fix
-# LP #1537117 is implemented
 
 # IMPORTANT:
 # v2 keystone auth is still necessary until RPCR switches over to v3 auth
@@ -68,8 +66,6 @@ else:
         # right now, cinderclient does not accept a previously derived token
         # or endpoint url. So we have to pass it creds and let it do it's own
         # auth each time it's called.
-        # NOTE: (mancdaz) update when https://review.openstack.org/#/c/74602/
-        # lands
 
         auth_details = get_auth_details()
         cinder = c_client.Client('2',
