@@ -21,13 +21,13 @@
     - name: Set the current group
       set_fact:
         maas_current_group: hosts
-   
+
     - name: Copy over pip constraints
       copy:
         src: "files/pip-constraints.txt"
         dest: "/tmp/pip-constraints.txt"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-   
+
   post_tasks:
     - name: Install network pip packages to venv
       pip:
@@ -42,7 +42,10 @@
       until: install_pip_packages|success
       retries: 5
       delay: 2
-   
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-host.yml
   tags:
     - maas-hosts-network
 
@@ -74,7 +77,8 @@
     - vars/maas-host.yml
   tags:
     - maas-hosts-network
-    
+
+
 - name: Install checks for bonding interfaces
   hosts: hosts
   gather_facts: false
