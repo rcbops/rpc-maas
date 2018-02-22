@@ -26,11 +26,3 @@ def get_all_netifaces():
 def is_interface_up(interface):
     addr = netifaces.ifaddresses(interface)
     return netifaces.AF_INET in addr
-
-def main():
-    for interface in get_all_netifaces():
-        print "%s: %s" % (interface, is_interface_up(interface))
-        
-
-if __name__ == "__main__":
-    main()
