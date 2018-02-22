@@ -1,6 +1,12 @@
 ---
 # {{ ansible_managed }}
 
+scenarios:
+{% for key, value in maas_rally_checks.iteritems() %}
+    {{ key }}:
+        {{ value | to_nice_yaml | indent(8, false) }}
+{% endfor %}
+
 # See python's logging.config module for details
 logging:
     version: 1
