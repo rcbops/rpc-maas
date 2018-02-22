@@ -42,20 +42,39 @@ class CommandNotRecognized(maas_common.MaaSException):
     pass
 
 
-def send_metrics_to_influxdb():
-    with open(PLUGIN_CONF, 'r') as stream:
-        try:
-            plugin_config = yaml.safe_load(stream)
-            influx_config = plugin_config['influxdb']
-            influx_host = influx_config['host']
-            influx_port = influx_config['port']
-            influx_database = influx_config['database']
-            influx_user = influx_config['user']
-            influx_password = influx_config['password']
-            tags = influx_config['tags']
-        except:
-            status_err('Error reading influxdb config for rally plugin.',
-                       m_name='maas_rally')
+class PluginConfig(object):
+    def __init__(self, config_file):
+        self.config_file = config_file
+        self.config = {}
+
+        self._load_config(config_file)
+
+    def __getitem__(self, name):
+        return self.config[name]
+
+    def __getattr__(self, name):
+        return self.config[name]
+
+    def __str__(self):
+        return str(self.config)
+
+    def _load_config(self, config_file):
+        with open(config_file, 'r') as stream:
+            try:
+                self.config = yaml.safe_load(stream)
+            except Exception as e:
+                raise Exception("Error while reading configuration file: {}"
+                                .format(e))
+
+
+def send_metrics_to_influxdb(plugin_config):
+    influx_config = plugin_config['influxdb']
+    influx_host = influx_config['host']
+    influx_port = influx_config['port']
+    influx_database = influx_config['database']
+    influx_user = influx_config['user']
+    influx_password = influx_config['password']
+    tags = influx_config['tags']
 
     client = InfluxDBClient(influx_host,
                             influx_port,
@@ -153,6 +172,7 @@ def parse_task_results(task_result):
 
 def main():
     start = time.time()
+    plugin_config = PluginConfig(PLUGIN_CONF)
 
     # Ensure we can find the task definition
     tasks_path = os.path.realpath(TASKS_PATH)
@@ -239,7 +259,7 @@ def main():
     metric('maas_check_duration', 'double', "{:.2f}".format((end - start) * 1))
 
     if args.influxdb:
-        send_metrics_to_influxdb()
+        send_metrics_to_influxdb(plugin_config)
 
     return
 
