@@ -1,0 +1,23 @@
+{% set label = "private_lb_api_check_designate" %}
+{% set check_name = label+'--'+maas_lb_name %}
+type              : remote.http
+label             : "{{ check_name }}"
+period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
+timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
+disabled          : "{{ (inventory_hostname != groups['designate_all'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+target_resolver   : "IPv4"
+target_hostname   : "{{ maas_external_ip_address }}"
+details           :
+    url           : "{{ maas_designate_scheme | default(maas_scheme) }}://{{ maas_external_hostname }}:9001"
+monitoring_zones_poll:
+  - "{{ maas_private_monitoring_zone }}"
+alarms            :
+    private_lb_api_alarm_designate     :
+        label               : private_lb_api_alarm_designate
+        notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled            : {{ ('private_lb_api_alarm_designate' | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria            : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric['code'] != '200') {
+                return new AlarmStatus(CRITICAL, 'API unavailable.');
+            }
