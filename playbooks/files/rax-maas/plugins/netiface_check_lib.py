@@ -14,14 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
-
 import netifaces
 
 
 def get_all_netifaces():
     interfaces = netifaces.interfaces()
     return interfaces
+
 
 def is_interface_up(interface):
     addr = netifaces.ifaddresses(interface)

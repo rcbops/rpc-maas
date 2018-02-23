@@ -84,3 +84,6 @@ maas_network_checks_list:
     rx_pct_crit: 80
     tx_pct_warn: 60
     tx_pct_crit: 80
+
+maas_network_check_pip_packages:
+  - "netifaces"

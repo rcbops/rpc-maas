@@ -17,6 +17,9 @@
 import argparse
 import os
 
+from maas_common import metric_bool
+from maas_common import print_output
+
 import netiface_check_lib
 
 
@@ -24,14 +27,17 @@ def bonding_ifaces_check():
     bonding_ifaces = os.lisdir("/proc/net/bonding")
     for bonding_iface in bonding_ifaces:
         if not netiface_check_lib.is_interface_up(bonding_iface):
-            metric_bool('host_bonding_iface_status', False, 
+            metric_bool('host_bonding_iface_status', False,
                         m_name='maas_host_bonding_iface')
+
 
 def main(args):
     bonding_ifaces_check()
-    
+
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Check statuses of local bonding interfaces')
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,
