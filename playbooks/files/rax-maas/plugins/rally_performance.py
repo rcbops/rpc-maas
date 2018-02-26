@@ -226,6 +226,9 @@ def main():
             elif task_status == 'init' and lock_duration > 30:
                 logger.warning("{} - task {} was in init state for > 30 seconds - removed lock".format(args.task, lock_uuid))
                 os.rmdir(LOCK_PATH + '/' + lock_uuid)
+            elif lock_duration > plugin_config['scenarios'][args.task]['poll_interval'] * .95:
+                logger.warning("{} - task {} has been locked for more than 95% of poll interval - removed lock".format(args.task, lock_uuid))
+                os.rmdir(LOCK_PATH + '/' + lock_uuid)
             else:
                 logger.critical("{} - unable to remove lock by task ID {}".format(args.task, lock_uuid))
                 lock_mtime_str = time.strftime('%H:%M:%S %Y-%m-%d %Z',
