@@ -65,6 +65,16 @@ maas_disk_util_devices: "{{ _maas_disk_util_devices | from_yaml }}"
 maas_disk_utilisation_warning_threshold: 90
 maas_disk_utilisation_critical_threshold: 99
 
+mass_bonding_iface_regex: "bond*"
+_maas_bonding_interfaces: |
+  ---
+  {% for interface in ansible_interfaces.keys() %}
+  {%   if (interface not in maas_excluded_bonding_interfaces | default([])) and (interface | match(mass_bonding_iface_regex)) %}
+  - "{{ interface }}"
+  {%   endif %}
+  {% endfor %}
+maas_bonding_interfaces: "{{ _maas_bonding_interfaces | from_yaml }}"
+
 maas_memory_used_percentage_warning_threshold: 90.0
 maas_memory_used_percentage_critical_threshold: 99.0
 

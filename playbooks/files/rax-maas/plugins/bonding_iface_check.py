@@ -27,7 +27,8 @@ def bonding_ifaces_check():
     bonding_ifaces = os.lisdir("/proc/net/bonding")
     for bonding_iface in bonding_ifaces:
         if not netiface_check_lib.is_interface_up(bonding_iface):
-            metric_bool('host_bonding_iface_status', False,
+            metric_bool('host_bonding_iface_%s_status' % bonding_iface,
+                        False,
                         m_name='maas_host_bonding_iface')
 
 

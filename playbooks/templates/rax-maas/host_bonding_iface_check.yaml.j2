@@ -9,12 +9,14 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/bonding_iface_check.py"]
 alarms      :
-    host_bonding_iface_status :
-        label                   : host_bonding_iface_status--{{ inventory_hostname }}
+{% for interface in maas_bonding_interfaces %}
+    host_bonding_iface_{{ interface }}_status :
+        label                   : host_bonding_iface_{{ interface }}_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('host_bonding_iface_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('host_bonding_iface_{{ interface }}_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["host_bonding_iface_status"] != 1) {
-                return new AlarmStatus(CRITICAL, "A bonding interface is down");
+            if (metric["host_bonding_iface_{{ interface }}_status"] != 1) {
+                return new AlarmStatus(CRITICAL, "The bonding interface {{ interface }} is down");
             }
+{% endfor %}
