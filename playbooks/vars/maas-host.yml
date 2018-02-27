@@ -68,7 +68,7 @@ maas_disk_utilisation_critical_threshold: 99
 mass_bonding_iface_regex: "bond*"
 _maas_bonding_interfaces: |
   ---
-  {% for interface in ansible_interfaces.keys() %}
+  {% for interface in ansible_interfaces %}
   {%   if (interface not in maas_excluded_bonding_interfaces | default([])) and (interface | match(mass_bonding_iface_regex)) %}
   - "{{ interface }}"
   {%   endif %}

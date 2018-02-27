@@ -30,6 +30,10 @@ def bonding_ifaces_check():
             metric_bool('host_bonding_iface_%s_status' % bonding_iface,
                         False,
                         m_name='maas_host_bonding_iface')
+        else:
+            metric_bool('host_bonding_iface_%s_status' % bonding_iface,
+                        True,
+                        m_name='maas_host_bonding_iface')
 
 
 def main(args):
