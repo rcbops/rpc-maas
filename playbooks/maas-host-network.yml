@@ -83,7 +83,7 @@
   hosts: hosts
   gather_facts: false
   tasks:
-    - name: Install network throughput checks
+    - name: Install checks for bonding interfaces
       template:
         src: "templates/rax-maas/host_bonding_iface_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/host_bonding_iface_check.yaml"
