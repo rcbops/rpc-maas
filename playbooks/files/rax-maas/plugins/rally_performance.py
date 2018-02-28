@@ -17,7 +17,9 @@
 import argparse
 import logging
 import numpy as np
+import openstack
 import os
+import re
 import time
 import yaml
 
@@ -67,6 +69,58 @@ class PluginConfig(object):
                 raise Exception("Error while reading configuration file: {}"
                                 .format(e))
 
+
+def cleanup_task_resources(task_uuid, scenario, scenario_config, logger):
+    logger.warn("{} - preparing stale resource cleanup for task {}".format(args.task, task_uuid))
+
+    auth_details = maas_common.get_auth_details()
+    auth_ref = maas_common.get_auth_ref()
+    endpoint_type = maas_common.get_endpoint_type(auth_details)
+
+    auth = { 'project_name': scenario_config['project'],
+             'username': scenario_config['user_name'],
+             'password': scenario_config['user_password'] }
+
+    conn = openstack.connect(cloud='default', auth=auth)
+
+    # this extracts the first part of the task UUID - e.g. AAA from AAA-BBB-CCC-DDD
+    resource_tag = 's_rally_' + re.search('(.*?)-.*', task_uuid).group(1)
+
+    if 'volume' in scenario_config['primary_resources']:
+        for volume in conn.block_storage.volumes():
+            if resource_tag in volume.name:
+                if volume.status == 'available':
+                    logger.warn("{} - deleting task {}'s volume {}".format(args.task, task_uuid, volume.name))
+                    conn.block_storage.delete_volume(volume.id, ignore_missing=False)
+                else:
+                    logger.warn("{} - found stale volume {} for task {}, but it's in '{}' status so we won't try to delete it directly".format(args.task, volume.name, task_uuid, volume.status))
+
+    if 'compute' in scenario_config['primary_resources']:
+        for server in conn.compute.servers():
+            if resource_tag in server.name:
+                logger.warn("{} - deleting task {}'s server {}".format(args.task, task_uuid, server.name))
+                target = conn.compute.find_server(server.name, ignore_missing=False)
+                conn.compute.delete_server(target)
+
+    if 'image' in scenario_config['primary_resources']:
+        for image in conn.image.images():
+            if resource_tag in image.name:
+                logger.warn("{} - deleting task {}'s image {} ({}). it was in '{}' state.".format(args.task, task_uuid, image.name, image.id, image.status))
+                conn.image.delete_image(image.id, ignore_missing=False)
+
+    if 'port' in scenario_config['primary_resources']:
+        for port in conn.network.ports():
+            if resource_tag in port.name:
+                logger.warn("{} - deleting task {}'s port {} ({}).".format(args.task, task_uuid, port.name, port.id))
+                conn.network.delete_port(port.id, ignore_missing=False)
+
+    if 'secgroup' in scenario_config['primary_resources']:
+        for secgroup in conn.network.security_groups():
+            if resource_tag in secgroup.name:
+                logger.warn("{} - deleting task {}'s secgroup {} ({}).".format(args.task, task_uuid, secgroup.name, secgroup.id))
+                conn.network.delete_security_group(secgroup.id, ignore_missing=False)
+
+    logger.warn("{} - finished stale resource cleanup for task {}".format(args.task, task_uuid))
 
 def send_metrics_to_influxdb(plugin_config, logger):
     influx_config = plugin_config['influxdb']
@@ -228,6 +282,7 @@ def main():
                 os.rmdir(LOCK_PATH + '/' + lock_uuid)
             elif lock_duration > plugin_config['scenarios'][args.task]['poll_interval'] * .95:
                 logger.warning("{} - task {} has been locked for more than 95% of poll interval - removed lock".format(args.task, lock_uuid))
+                cleanup_task_resources(lock_uuid, args.task, plugin_config['scenarios'][args.task], logger)
                 os.rmdir(LOCK_PATH + '/' + lock_uuid)
             else:
                 logger.critical("{} - unable to remove lock by task ID {}".format(args.task, lock_uuid))
