@@ -32,17 +32,17 @@ from requests import exceptions as exc
 
 VOLUME_STATUSES = ['available', 'in-use', 'error']
 
-# NOTE(mancdaz): until https://review.openstack.org/#/c/111051/
-# lands, there is no way to pass a custom (local) endpoint to
-# cinderclient. Only way to test local is direct http. :sadface:
-
 
 def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     auth_token = keystone.auth_token
 
-    VOLUME_ENDPOINT = ('http://{ip}:8776/v1/{tenant}'.format
-                       (ip=args.ip, tenant=keystone.tenant_id))
+    volume_endpoint = ('{protocol}://{ip}:{port}/v1/{tenant}'.format(
+        ip=args.ip,
+        tenant=keystone.tenant_id,
+        protocol=args.protocol,
+        port=args.port
+    ))
 
     s = requests.Session()
 
@@ -51,11 +51,11 @@ def check(auth_ref, args):
          'x-auth-token': auth_token})
 
     try:
-        vol = s.get('%s/volumes/detail' % VOLUME_ENDPOINT,
+        vol = s.get('%s/volumes/detail' % volume_endpoint,
                     verify=False,
                     timeout=5)
         milliseconds = vol.elapsed.total_seconds() * 1000
-        snap = s.get('%s/snapshots/detail' % VOLUME_ENDPOINT,
+        snap = s.get('%s/snapshots/detail' % volume_endpoint,
                      verify=False,
                      timeout=5)
         is_up = vol.ok and snap.ok
@@ -112,6 +112,12 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--protocol',
+                        default="http",
+                        help="Protocol to use for cinder end point.")
+    parser.add_argument('--port',
+                        default="8776",
+                        help="Port the cinder service is running on.")
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
