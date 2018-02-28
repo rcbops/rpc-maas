@@ -90,6 +90,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
+      when: maas_bonding_interfaces is defined and (maas_bonding_interfaces | length) > 0
 
   vars_files:
     - vars/main.yml
