@@ -323,3 +323,13 @@ cinder_client_protocol: 'http'
 #                        are "http" or "https".
 #
 ceph_radosgw_protocol: 'http'
+
+#
+# cinder_local_api_protocol: Protocol to use for cinder local API checks
+#
+cinder_local_api_protocol: 'http'
+
+#
+# cinder_local_api_port: Port number for the local cinder api service.
+#
+cinder_local_api_port: '8776'
