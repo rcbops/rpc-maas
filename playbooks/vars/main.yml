@@ -353,3 +353,13 @@ glance_local_reg_api_port: '9191'
 # glance_local_reg_api_protocol: Protocol for the local glance registry API checks
 #
 glance_local_reg_api_protocol: 'http'
+
+#
+# heat_local_api_port: Port number for the local heat api service
+#
+heat_local_api_port: '8004'
+
+#
+# heat_local_api_protocol: Protocol for the local heat API checks
+#
+heat_local_api_protocol: 'http'
