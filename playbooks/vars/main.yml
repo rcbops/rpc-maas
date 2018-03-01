@@ -344,3 +344,12 @@ glance_local_api_port: '9292'
 #
 glance_local_api_protocol: 'http'
 
+#
+# glance_local_reg_api_port: Port number for the local glance registry api service
+#
+glance_local_reg_api_port: '9191'
+
+#
+# glance_local_reg_api_protocol: Protocol for the local glance registry API checks
+#
+glance_local_reg_api_protocol: 'http'
