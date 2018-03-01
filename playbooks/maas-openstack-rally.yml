@@ -172,7 +172,7 @@
 
     - name: Create maas_rally projects
       os_project:
-        name: "{{ item.value.project | default('rally_' + item.key) }}"
+        name: "{{ item.value.project }}"
         state: present
         cloud: default
         endpoint_type: "admin"
@@ -217,7 +217,7 @@
             --{{ quota }} \
             {{ item.value.per_iter_quotas[quota]*item.value.concurrency }} \
         {% endfor %} \
-        {{ item.value.project | default('rally_' + item.key) }}
+        {{ item.value.project }}
       with_dict: "{{ maas_rally_checks }}"
       # The quota is osc can be flaky, even though the command succeeds. For now
       # we skip failing at this point.
@@ -227,9 +227,9 @@
 
     - name: Create maas_rally users in keystone
       os_user:
-        name: "{{ item.value.user_name | default('rally_' + item.key) }}"
+        name: "{{ item.value.user_name }}"
         password: "{{ item.value.user_password }}"
-        default_project: "{{ item.value.project | default('rally_' + item.key) }}"
+        default_project: "{{ item.value.project }}"
         state: present
         cloud: default
         endpoint_type: "admin"
@@ -243,8 +243,8 @@
 
     - name: Grant _member_ role for rally users
       os_user_role:
-        user: "{{ item.value.user_name | default('rally_' + item.key) }}"
-        project: "{{ item.value.project | default('rally_' + item.key) }}"
+        user: "{{ item.value.user_name }}"
+        project: "{{ item.value.project }}"
         role: "_member_"
         state: present
         cloud: default
@@ -258,8 +258,8 @@
 
     - name: Grant extra roles for rally users
       os_user_role:
-        user: "{{ item.0.user_name | default('rally_' + item.0.check_name) }}"
-        project: "{{ item.0.project | default('rally_' + item.0.check_name) }}"
+        user: "{{ item.0.user_name }}"
+        project: "{{ item.0.project }}"
         role: "{{ item.1 }}"
         state: present
         cloud: default
@@ -333,7 +333,7 @@
         state: present
         name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
         shared: no
-        project: "{{ item.value.project | default('rally_' + item.key) }}"
+        project: "{{ item.value.project }}"
         endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
         wait: yes
@@ -351,7 +351,7 @@
         name: "{{ item.value.subnet_name | default('rally_subnet_' + item.key) }}"
         network_name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
         cidr: "{{ item.value.subnet_cidr | default('192.168.0.0/24') }}"
-        project: "{{ item.value.project | default('rally_' + item.key) }}"
+        project: "{{ item.value.project }}"
         endpoint_type: "admin"
         validate_certs: "{{ not keystone_service_adminuri_insecure }}"
         wait: yes

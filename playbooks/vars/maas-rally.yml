@@ -268,14 +268,24 @@ maas_rally_check_default_template:
 #
 maas_rally_check_defaults:
   neutron_secgroups:
+    user_name: rally_neutron_secgroups
+    project: rally_neutron_secgroups
     primary_resources:
       - secgroup
   glance:
+    user_name: rally_glance
+    project: rally_glance
     primary_resources:
       - image
-  keystone: {}
-  swift: {}
+  keystone:
+    user_name: rally_keystone
+    project: rally_keystone
+  swift:
+    user_name: rally_swift
+    project: rally_swift
   cinder:
+    user_name: rally_cinder
+    project: rally_cinder
     per_iter_quotas:
       instances: 1
       cores: 1
@@ -288,11 +298,15 @@ maas_rally_check_defaults:
       - compute
       - volume
   neutron_ports:
+    user_name: rally_neutron_ports
+    project: rally_neutron_ports
     per_iter_quotas:
       ports: 1
     primary_resources:
       - port
   nova_cinder:
+    user_name: rally_nova_cinder
+    project: rally_nova_cinder
     per_iter_quotas:
       instances: 1
       cores: 1
@@ -305,6 +319,8 @@ maas_rally_check_defaults:
       - compute
       - volume
   nova:
+    user_name: rally_nova
+    project: rally_nova
     per_iter_quotas:
       instances: 1
       cores: 1
