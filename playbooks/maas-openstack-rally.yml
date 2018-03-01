@@ -215,7 +215,7 @@
         quota set \
         {% for quota in item.value.per_iter_quotas %} \
             --{{ quota }} \
-            {{ item.value.per_iter_quotas[quota]*item.value.concurrency }} \
+            {{ item.value.per_iter_quotas[quota]*item.value.concurrency*item.value.quota_factor }} \
         {% endfor %} \
         {{ item.value.project }}
       with_dict: "{{ maas_rally_checks }}"
