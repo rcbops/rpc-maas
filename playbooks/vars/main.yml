@@ -333,3 +333,14 @@ cinder_local_api_protocol: 'http'
 # cinder_local_api_port: Port number for the local cinder api service.
 #
 cinder_local_api_port: '8776'
+
+#
+# glance_local_api_port: Port number for the local glance api service
+#
+glance_local_api_port: '9292'
+
+#
+# glance_local_api_protocol: Protocol for the local glance API checks
+#
+glance_local_api_protocol: 'http'
+
