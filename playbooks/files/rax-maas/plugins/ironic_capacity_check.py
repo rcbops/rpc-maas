@@ -29,11 +29,15 @@ from maas_common import status_ok
 
 def check(auth_ref, args):
 
-    IRONIC_ENDPOINT = ('http://{ip}:6385/v1'.format(ip=args.ip))
+    ironic_endpoint = ('{protocol}://{ip}:{port}/v1'.format(
+        ip=args.ip,
+        protocol=args.protocol,
+        port=args.port
+    ))
 
     try:
         if args.ip:
-            ironic = get_ironic_client(endpoint=IRONIC_ENDPOINT)
+            ironic = get_ironic_client(endpoint=ironic_endpoint)
         else:
             ironic = get_ironic_client()
 
@@ -76,6 +80,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help='Protocol used to connect to ironic API')
+    parser.add_argument('--port',
+                        action='store',
+                        default='6385',
+                        help='Port for ironic API')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
