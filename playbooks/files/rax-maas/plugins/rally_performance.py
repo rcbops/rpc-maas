@@ -300,14 +300,17 @@ def main():
 
         if  wait_for_lock:
             metric('delayed_by_lock', 'uint32', 1)
+            metric('resource_cleanup', 'uint32', 0)
         else:
             metric('delayed_by_lock', 'uint32', 0)
+            metric('resource_cleanup', 'uint32', 1)
             cleanup_task_resources(lock_uuid, args.task, plugin_config['scenarios'][args.task], logger)
             os.rmdir(LOCK_PATH + '/' + lock_uuid)
             os.rmdir(LOCK_PATH)
             logger.warning("{} - stale lock for {} removed".format(args.task, lock_uuid))
     else:
         logger.debug("{} - no lock found".format(args.task))
+        metric('resource_cleanup', 'uint32', 0)
         metric('delayed_by_lock', 'uint32', 0)
 
     if not wait_for_lock:

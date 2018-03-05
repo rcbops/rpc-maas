@@ -100,6 +100,10 @@ maas_rally_primary_node: "{{ groups[maas_rally_target_group][0] }}"
 #      acquired.
 #      Default: {{ maas_rally_default_delayed_by_lock_alarm_threshold }}
 #
+#    - resource_cleanup_alarm_threshold: An alarm iwll be generated after this
+#      many consecutive polls were required to clean up scenario resources.
+#      Default: {{ maas_rally_default_resource_cleanup_alarm_threshold }}
+#
 #
 #  Example:
 #
@@ -240,6 +244,7 @@ maas_rally_default_crit_threshold: 600
 maas_rally_default_alarm_consecutive_count: 3
 maas_rally_default_quota_factor: 3
 maas_rally_default_delayed_by_lock_alarm_threshold: 3
+maas_rally_default_resource_cleanup_alarm_threshold: 3
 
 #
 #  This dictionary is a template containing default values for all checks. In
@@ -261,6 +266,7 @@ maas_rally_check_default_template:
   user_password: "{{ maas_rally_users_password }}"
   alarm_consecutive_count: "{{ maas_rally_default_alarm_consecutive_count }}"
   delayed_by_lock_alarm_threshold: "{{ maas_rally_default_delayed_by_lock_alarm_threshold }}"
+  resource_cleanup_alarm_threshold: "{{ maas_rally_default_resource_cleanup_alarm_threshold }}"
   extra_user_roles: []
   extra_vars: {}
   primary_resources: []
