@@ -247,7 +247,8 @@ maas_rally_check_default_template:
   alarm_consecutive_count: "{{ maas_rally_default_alarm_consecutive_count }}"
   extra_user_roles: []
   extra_vars: {}
-  creates_instances: false
+  primary_resources: []
+  quota_factor: "{{ maas_rally_default_quota_factor }}"
   per_iter_quotas:    # Resources required per iteration of the scenario. These
     instances: 0      # values are multipled by the scenario's concurrency.
     cores: 0
@@ -266,8 +267,12 @@ maas_rally_check_default_template:
 #  maas_rally_check_overrides rather than here.
 #
 maas_rally_check_defaults:
-  neutron_secgroups: {}
-  glance: {}
+  neutron_secgroups:
+    primary_resources:
+      - secgroup
+  glance:
+    primary_resources:
+      - image
   keystone: {}
   swift: {}
   cinder:
@@ -279,10 +284,14 @@ maas_rally_check_defaults:
       ports: 4
       volumes: 2       # Double because rally doesn't seem to wait for cinder
       gigabytes: 2     # volumes to be scrubbed.
-    creates_instances: true
+    primary_resources:
+      - compute
+      - volume
   neutron_ports:
     per_iter_quotas:
       ports: 1
+    primary_resources:
+      - port
   nova_cinder:
     per_iter_quotas:
       instances: 1
@@ -292,7 +301,9 @@ maas_rally_check_defaults:
       ports: 4
       volumes: 2       # Double because rally doesn't seem to wait for cinder
       gigabytes: 20    # volumes to be scrubbed.
-    creates_instances: true
+    primary_resources:
+      - compute
+      - volume
   nova:
     per_iter_quotas:
       instances: 1
@@ -300,7 +311,8 @@ maas_rally_check_defaults:
       ram: 256
       fixed-ips: 1
       ports: 4
-    creates_instances: true
+    primary_resources:
+      - compute
 
 #
 #  Combine check defaults and overrides.  These are applied on top of the

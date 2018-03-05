@@ -342,7 +342,7 @@
         - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
       when:
         - item.value.enabled
-        - item.value.creates_instances
+        - "{{ 'compute' in item.value.primary_resources }}"
 
     - name: Create rally subnets
       os_subnet:
@@ -360,7 +360,7 @@
         - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
       when:
         - item.value.enabled
-        - item.value.creates_instances
+        - "{{ 'compute' in item.value.primary_resources }}"
 
     - name: Check for existing maas_rally database initialization
       command: "{{ maas_rally_venv_bin }}/rally-manage db revision"
@@ -470,7 +470,7 @@
       with_dict: "{{ maas_rally_checks }}"
       when:
         - item.value.enabled
-        - item.value.creates_instances
+        - "{{ 'compute' in item.value.primary_resources }}"
         - network_uuids["{{ item.value.net_name | default('rally_net_' + item.key) }}"] is defined
 
     - name: Download cirros image for maas_rally
