@@ -7,7 +7,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/magnum_api_local_check.py", "{{ ansible_host }}"]
+    args    : ["{{ maas_plugin_dir }}/magnum_api_local_check.py", "{{ ansible_host }}", "--port", "{{ magnum_local_api_port }}", "--protocol", "{{ magnum_local_api_protocol }}"]
 alarms      :
     magnum_api_local_status :
         label                   : magnum_api_local_status--{{ inventory_hostname }}
