@@ -323,3 +323,14 @@ cinder_client_protocol: 'http'
 #                        are "http" or "https".
 #
 ceph_radosgw_protocol: 'http'
+
+#
+# keystone_local_api_port: Port number for the local keystone API service
+#
+keystone_local_api_port: '35357'
+
+#
+# keystone_local_api_protocol: Protocol for the local keystone API
+#
+keystone_local_api_protocol: 'http'
+
