@@ -298,6 +298,10 @@ maas_holland_venv_enabled: false
 nova_service_check_protocol: 'http'
 
 #
+# nova_service_check_port: Port used for nova service
+nova_service_check_port: '8774'
+
+#
 # rabbitmq_http_protocol: Protocol to use when authenticating for rabbitmq
 #                         service checks. Valid values are "http" or
 #                         "https".
