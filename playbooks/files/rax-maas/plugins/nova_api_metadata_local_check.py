@@ -27,7 +27,11 @@ from requests import exceptions as exc
 
 
 def check(args):
-    metadata_endpoint = ('http://{ip}:8775'.format(ip=args.ip))
+    metadata_endpoint = ('{protocol}://{ip}:{port}'.format(
+        ip=args.ip,
+        protocol=args.protocol,
+        port=args.port
+    ))
     is_up = True
 
     s = requests.Session()
@@ -73,6 +77,12 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--port',
+                        default='8775',
+                        help='Port for the nova metadata service')
+    parser.add_argument('--protocol',
+                        default='http',
+                        help='Protocol for the nova metadata service')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)

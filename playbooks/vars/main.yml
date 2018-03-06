@@ -302,6 +302,16 @@ nova_service_check_protocol: 'http'
 nova_service_check_port: '8774'
 
 #
+# nova_metadata_api_port: Port for the nova metadata service
+#
+nova_metadata_api_port: '8775'
+
+#
+# nova_metadata_api_protocol: Protocol for nova metadata service
+#
+nova_metadata_api_protocol: 'http'
+
+#
 # rabbitmq_http_protocol: Protocol to use when authenticating for rabbitmq
 #                         service checks. Valid values are "http" or
 #                         "https".
