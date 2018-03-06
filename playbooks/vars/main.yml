@@ -412,3 +412,13 @@ magnum_local_api_port: '9511'
 # magnum_local_api_protocol: Protocol for magnum local API service
 #
 magnum_local_api_protocol: 'http'
+
+#
+# octavia_api_port: Port number for the octavia service
+#
+octavia_api_port: '9876'
+
+#
+# octavia_api_protocol: Protocol used to contact the octavia API service
+#
+octavia_api_protocol: 'http'

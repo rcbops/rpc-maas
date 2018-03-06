@@ -30,7 +30,11 @@ import requests
 
 
 def check(auth_ref, args):
-    OCTAVIA_ENDPOINT = 'http://{ip}:9876'.format(ip=args.ip,)
+    octavia_endpoint = '{protocol}://{ip}:{port}'.format(
+        ip=args.ip,
+        protocol=args.protocol,
+        port=args.port
+    )
 
     try:
         keystone = get_keystone_client(auth_ref)
@@ -40,7 +44,7 @@ def check(auth_ref, args):
             {'Content-type': 'application/json',
                 'x-auth-token': auth_token})
         if args.ip:
-            endpoint = OCTAVIA_ENDPOINT
+            endpoint = octavia_endpoint
         else:
             endpoint = get_endpoint_url_for_service(
                 'load-balancer', auth_ref, 'internal')
@@ -86,6 +90,12 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--port',
+                        default='9876',
+                        help='Port for the octavia service')
+    parser.add_argument('--protocol',
+                        default='http',
+                        help='Protocol used to contact the octavia service')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
