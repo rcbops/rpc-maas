@@ -71,56 +71,85 @@ class PluginConfig(object):
 
 
 def cleanup_task_resources(task_uuid, scenario, scenario_config, logger):
-    logger.warn("{} - preparing stale resource cleanup for task {}".format(args.task, task_uuid))
+    logger.warn("{} - preparing stale resource cleanup for "
+                "task {}".format(args.task, task_uuid))
 
-    auth_details = maas_common.get_auth_details()
-    auth_ref = maas_common.get_auth_ref()
-    endpoint_type = maas_common.get_endpoint_type(auth_details)
-
-    auth = { 'project_name': scenario_config['project'],
-             'username': scenario_config['user_name'],
-             'password': scenario_config['user_password'] }
+    auth = {'project_name': scenario_config['project'],
+            'username': scenario_config['user_name'],
+            'password': scenario_config['user_password']}
 
     conn = openstack.connect(cloud='default', auth=auth)
 
-    # this extracts the first part of the task UUID - e.g. AAA from AAA-BBB-CCC-DDD
+    # this extracts the first part of the task UUID - e.g. AAA from
+    # AAA-BBB-CCC-DDD
     resource_tag = 's_rally_' + re.search('(.*?)-.*', task_uuid).group(1)
 
     if 'volume' in scenario_config['primary_resources']:
         for volume in conn.block_storage.volumes():
             if resource_tag in volume.name:
                 if volume.status == 'available':
-                    logger.warn("{} - deleting task {}'s volume {}".format(args.task, task_uuid, volume.name))
-                    conn.block_storage.delete_volume(volume.id, ignore_missing=False)
+                    logger.warn("{} - deleting task {}'s volume "
+                                "{}".format(args.task,
+                                            task_uuid,
+                                            volume.name))
+                    conn.block_storage.delete_volume(volume.id,
+                                                     ignore_missing=False)
                 else:
-                    logger.warn("{} - found stale volume {} for task {}, but it's in '{}' status so we won't try to delete it directly".format(args.task, volume.name, task_uuid, volume.status))
+                    logger.warn("{} - found stale volume {} for task {}, but "
+                                "it's in '{}' status so we won't try to delete"
+                                " it directly".format(args.task,
+                                                      volume.name,
+                                                      task_uuid,
+                                                      volume.status))
 
     if 'compute' in scenario_config['primary_resources']:
         for server in conn.compute.servers():
             if resource_tag in server.name:
-                logger.warn("{} - deleting task {}'s server {}".format(args.task, task_uuid, server.name))
-                target = conn.compute.find_server(server.name, ignore_missing=False)
+                logger.warn("{} - deleting task {}'s server "
+                            "{}".format(args.task,
+                                        task_uuid,
+                                        server.name))
+                target = conn.compute.find_server(server.name,
+                                                  ignore_missing=False)
                 conn.compute.delete_server(target)
 
     if 'image' in scenario_config['primary_resources']:
         for image in conn.image.images():
             if resource_tag in image.name:
-                logger.warn("{} - deleting task {}'s image {} ({}). it was in '{}' state.".format(args.task, task_uuid, image.name, image.id, image.status))
-                conn.image.delete_image(image.id, ignore_missing=False)
+                logger.warn("{} - deleting task {}'s image {} ({}). it was in "
+                            "'{}' state.".format(args.task,
+                                                 task_uuid,
+                                                 image.name,
+                                                 image.id,
+                                                 image.status))
+                conn.image.delete_image(image.id,
+                                        ignore_missing=False)
 
     if 'port' in scenario_config['primary_resources']:
         for port in conn.network.ports():
             if resource_tag in port.name:
-                logger.warn("{} - deleting task {}'s port {} ({}).".format(args.task, task_uuid, port.name, port.id))
-                conn.network.delete_port(port.id, ignore_missing=False)
+                logger.warn("{} - deleting task {}'s port {} "
+                            "{}).".format(args.task,
+                                          task_uuid,
+                                          port.name,
+                                          port.id))
+                conn.network.delete_port(port.id,
+                                         ignore_missing=False)
 
     if 'secgroup' in scenario_config['primary_resources']:
         for secgroup in conn.network.security_groups():
             if resource_tag in secgroup.name:
-                logger.warn("{} - deleting task {}'s secgroup {} ({}).".format(args.task, task_uuid, secgroup.name, secgroup.id))
-                conn.network.delete_security_group(secgroup.id, ignore_missing=False)
+                logger.warn("{} - deleting task {}'s secgroup {} "
+                            "({}).".format(args.task,
+                                           task_uuid,
+                                           secgroup.name,
+                                           secgroup.id))
+                conn.network.delete_security_group(secgroup.id,
+                                                   ignore_missing=False)
 
-    logger.warn("{} - finished stale resource cleanup for task {}".format(args.task, task_uuid))
+    logger.warn("{} - finished stale resource cleanup for "
+                "task {}".format(args.task, task_uuid))
+
 
 def send_metrics_to_influxdb(plugin_config, logger):
     influx_config = plugin_config['influxdb']
@@ -144,7 +173,10 @@ def send_metrics_to_influxdb(plugin_config, logger):
                                  maas_common.TELEGRAF_METRICS['variables']
                                  .iteritems())
 
-    logger.debug("{} - writing metrics to influxdb database '{}' at {}".format(args.task, influx_database, influx_host + ':' + str(influx_port)))
+    logger.debug("{} - writing metrics to influxdb database "
+                 "'{}' at {}".format(args.task,
+                                     influx_database,
+                                     influx_host + ':' + str(influx_port)))
     client.write_points([influx_data])
     logger.debug("{} - sent influx_data: {}".format(args.task, influx_data))
 
@@ -153,6 +185,7 @@ def setup_logging(plugin_config):
     logging.config.dictConfig(plugin_config['logging'])
     logger = logging.getLogger("maas_rally")
     return logger
+
 
 def make_parser():
     parser = argparse.ArgumentParser(
@@ -202,7 +235,10 @@ def parse_task_results(task_uuid, task_result, logger):
 
         # Quota exceeded would be a typical error here
         if task_result['result'][0]['error']:
-            logger.critical("{} - rally task {} encountered an error: {}".format(args.task, task_uuid, task_result['result'][0]['error']))
+            logger.critical("{} - rally task {} encountered an error: "
+                            "{}".format(args.task,
+                                        task_uuid,
+                                        task_result['result'][0]['error']))
             status_err(' '.join(task_result['result'][0]['error']),
                        m_name='maas_rally')
         metric('rally_load_duration', 'double',
@@ -216,8 +252,8 @@ def parse_task_results(task_uuid, task_result, logger):
                '{}'.format(task_result['key']['kw']['runner']['concurrency']))
 
     except KeyError:
-        # The alarms need a value here.  Setting it to 0 allows us to handle plugin
-        # errors without forcing an alarm event.
+        # The alarms need a value here.  Setting it to 0 allows us to handle
+        # plugin errors without forcing an alarm event.
         if not action_data[args.task + '_total']:
             action_data[args.task + '_total'] = [0]
 
@@ -245,7 +281,8 @@ def main():
     logger = setup_logging(plugin_config)
 
     if logger.getEffectiveLevel() == logging.DEBUG:
-        logger.debug("{} - maas_rally plugin started with args {}".format(args.task, args))
+        logger.debug("{} - maas_rally plugin started with args "
+                     "{}".format(args.task, args))
     else:
         logger.info("{} - maas_rally plugin started".format(args.task))
 
@@ -253,12 +290,14 @@ def main():
     tasks_path = os.path.realpath(TASKS_PATH)
     task_file = tasks_path + '/' + args.task + '.yml'
     if not os.path.isfile(task_file):
-        logger.critical("{} - unable to locate task definition file {}".format(args.task, task_file))
+        logger.critical("{} - unable to locate task definition "
+                        "file {}".format(args.task, task_file))
         status_err('Unable to locate task definition '
                    'for {} in {}'.format(args.task, tasks_path),
                    m_name='maas_rally')
     else:
-        logger.debug("{} - using task definition file {}".format(args.task, task_file))
+        logger.debug("{} - using task definition file "
+                     "{}".format(args.task, task_file))
 
     if not os.path.exists(LOCKS_PATH):
         os.makedirs(LOCKS_PATH)
@@ -271,43 +310,67 @@ def main():
 
     logger.debug("{} - checking for locks".format(args.task))
     LOCK_PATH = LOCKS_PATH + '/' + args.task + '/'
-    results = {'result': {} }
+    results = {'result': {}}
     wait_for_lock = False
 
     if os.path.exists(LOCK_PATH):
         lock_uuid = os.listdir(LOCK_PATH)[0]
         lock_mtime = os.stat(LOCK_PATH + lock_uuid)[8]
         lock_duration = time.time() - lock_mtime
-        lock_removal_threshold = plugin_config['scenarios'][args.task]['poll_interval'] * .95
-        logger.warning("{} - found existing lock for rally task {} from {} seconds ago".format(args.task, lock_uuid, lock_duration))
+        interval = plugin_config['scenarios'][args.task]['poll_interval']
+        lock_removal_threshold = interval * .95
+        logger.warning("{} - found existing lock for rally task {} from {} "
+                       "seconds ago".format(args.task,
+                                            lock_uuid,
+                                            lock_duration))
         try:
-            logger.debug("{} - checking status for locking task {})".format(args.task, lock_uuid))
+            logger.debug("{} - checking status for locking task "
+                         "{}".format(args.task, lock_uuid))
             task_status = rapi.task.get(lock_uuid)['status']
-            logger.debug("{} - status for locking task {}: {})".format(args.task, lock_uuid, task_status))
+            logger.debug("{} - status for locking task {}: "
+                         "{}".format(args.task, lock_uuid, task_status))
 
             if task_status == 'finished':
-                logger.warning("{} - task {} was finished - removing lock".format(args.task, lock_uuid))
+                logger.warning("{} - task {} was finished - removing "
+                               "lock".format(args.task, lock_uuid))
             elif task_status == 'init' and lock_duration > 30:
-                logger.warning("{} - task {} was in init state for > 30 seconds - removing lock".format(args.task, lock_uuid))
+                logger.warning("{} - task {} was in init state for > 30 "
+                               "seconds - removing lock".format(args.task,
+                                                                lock_uuid))
             elif lock_duration > lock_removal_threshold:
-                logger.warning("{} - task {} has been locked for more than 95% of poll interval - removing lock".format(args.task, lock_uuid))
+                logger.warning("{} - task {} has been locked for more than 95%"
+                               " of poll interval - removing "
+                               "lock".format(args.task, lock_uuid))
             else:
-                logger.warning("{} - task {} has been locked for {} seconds, which is less than the removal threshold of {} seconds. try again after {} seconds".format(args.task, lock_uuid, lock_duration, lock_removal_threshold, lock_removal_threshold - lock_duration))
+                lock_remaining_time = lock_removal_threshold - lock_duration
+                logger.warning("{} - task {} has been locked for {} seconds, "
+                               "which is less than the removal threshold of "
+                               "{} seconds. try again after {} "
+                               "seconds".format(args.task,
+                                                lock_uuid,
+                                                lock_duration,
+                                                lock_removal_threshold,
+                                                lock_remaining_time))
                 wait_for_lock = True
 
         except rally.exceptions.TaskNotFound:
-            logger.warning("{} - task {} not found in rally db - removing lock".format(args.task, lock_uuid))
+            logger.warning("{} - task {} not found in rally db "
+                           "- removing lock".format(args.task, lock_uuid))
 
-        if  wait_for_lock:
+        if wait_for_lock:
             metric('delayed_by_lock', 'uint32', 1)
             metric('resource_cleanup', 'uint32', 0)
         else:
             metric('delayed_by_lock', 'uint32', 0)
             metric('resource_cleanup', 'uint32', 1)
-            cleanup_task_resources(lock_uuid, args.task, plugin_config['scenarios'][args.task], logger)
+            cleanup_task_resources(lock_uuid,
+                                   args.task,
+                                   plugin_config['scenarios'][args.task],
+                                   logger)
             os.rmdir(LOCK_PATH + '/' + lock_uuid)
             os.rmdir(LOCK_PATH)
-            logger.warning("{} - stale lock for {} removed".format(args.task, lock_uuid))
+            logger.warning("{} - stale lock for {} "
+                           "removed".format(args.task, lock_uuid))
     else:
         logger.debug("{} - no lock found".format(args.task))
         metric('resource_cleanup', 'uint32', 0)
@@ -316,7 +379,8 @@ def main():
     if not wait_for_lock:
         os.mkdir(LOCK_PATH)
         os.mkdir(LOCK_PATH + '/' + task_uuid)
-        logger.debug("{} - acquired lock for task {}".format(args.task, task_uuid))
+        logger.debug("{} - acquired lock for task "
+                     "{}".format(args.task, task_uuid))
 
         task_args = {}
         if args.times is not None:
@@ -338,9 +402,11 @@ def main():
 
         parsed_task = yaml.safe_load(rendered_task)
 
-        logger.debug("{} - discovering rally plugins in {}".format(args.task, PLUGIN_PATH))
+        logger.debug("{} - discovering rally plugins "
+                     "in {}".format(args.task, PLUGIN_PATH))
         rally.common.plugin.discover.load_plugins(PLUGIN_PATH)
-        logger.debug("{} - loading rally plugins from {}".format(args.task, PLUGIN_PATH))
+        logger.debug("{} - loading rally plugins from "
+                     "{}".format(args.task, PLUGIN_PATH))
         rally.plugins.load()
         logger.info("{} - starting rally task {}".format(args.task, task_uuid))
         rapi.task.start(args.task, parsed_task, task_obj)
@@ -356,13 +422,18 @@ def main():
                    for x in task_obj.get_results()][0]
 
         if logger.getEffectiveLevel() == logging.DEBUG:
-            logger.debug("{} - rally task {} completed with results: {}".format(args.task, task_uuid, results))
+            logger.debug("{} - rally task {} completed"
+                         " with results: {}".format(args.task,
+                                                    task_uuid,
+                                                    results))
         else:
-            logger.info("{} - rally task {} completed".format(args.task, task_uuid))
+            logger.info("{} - rally task {} "
+                        "completed".format(args.task, task_uuid))
 
         os.rmdir(LOCK_PATH + '/' + task_uuid)
         os.rmdir(LOCK_PATH)
-        logger.debug("{} - removed lock for rally task {}".format(args.task, task_uuid))
+        logger.debug("{} - removed lock for rally task "
+                     "{}".format(args.task, task_uuid))
 
     parse_task_results(task_uuid, results, logger)
 
