@@ -42,7 +42,11 @@ def check(args):
     else:
         metric_bool('agents_found', True, m_name='maas_neutron')
 
-    network_endpoint = 'http://{host}:9696'.format(host=args.neutron_host)
+    network_endpoint = '{protocol}://{host}:{port}'.format(
+        host=args.neutron_host,
+        protocol=args.protocol,
+        port=args.port
+    )
     try:
         neutron = get_neutron_client(endpoint_url=network_endpoint)
 
@@ -98,6 +102,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--port',
+                        action='store',
+                        default='9696',
+                        help='Port for neutron API service')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help='Protocol for the neutron API service')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
