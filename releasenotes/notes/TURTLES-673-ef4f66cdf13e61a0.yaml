@@ -1,0 +1,13 @@
+---
+features:
+  - Detailed logging was added to the maas_rally performance monitoring plugin.
+  - Automatic stale lock and resource cleanup was added to maas_rally.  This
+    makes the plugin more robust and resiliant to transitory environmental
+    problems.
+  - A configurable quota factor was added to the maas_rally plugin.  This
+    allows resource cleanup and performance polling to run asynchronously.
+  - The maas_rally plugin will now generate an alarm event when too many
+    consecutive intervals (default=3) required cleanup of stale resources.
+  - The maas_rally plugin will now generate an alarm event when too many
+    consecutive intervals (default=3) were aborted waiting for immature
+    locks.
