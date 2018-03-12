@@ -1,0 +1,6 @@
+---
+fixes:
+  - Fixed an exotic CalledProcessError premature exit of the swift quarantine 
+    check path. (See https://core.rackspace.com/ticket/180307-05355 for reference)
+  - Using the new status_err_no_exit function call to allow plugins to run its 
+    cause and report correct metrics

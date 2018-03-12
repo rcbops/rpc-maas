@@ -29,7 +29,7 @@ import shlex
 import subprocess
 
 import maas_common
-from maas_common import status_err
+from maas_common import status_err, status_err_no_exit
 
 
 class ParseError(maas_common.MaaSException):
@@ -81,7 +81,14 @@ def recon_output(for_ring, options=None, swift_recon_path=None):
     command_options = ' '.join(command)
     full_command = shlex.split('lxc-attach -n %s -- bash -c "%s"' % (
                                container, command_options))
-    out = subprocess.check_output(full_command)
+    try:
+        out = subprocess.check_output(full_command)
+    except subprocess.CalledProcessError as error:
+        # in case attach command fails we return no metrics rather than
+        # letting it fail to give out red herring alarms
+        status_err_no_exit("Attach container command failed: %s" % str(error),
+                           m_name='maas_swift')
+        return []
     return filter(lambda s: s and not s.startswith(('==', '-')),
                   out.split('\n'))
 
