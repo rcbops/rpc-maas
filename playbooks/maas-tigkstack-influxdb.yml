@@ -52,7 +52,17 @@
         repo: "{{ maas_influxdata_repo.url }}"
         filename: "{{ maas_influxdata_repo.filename | default(omit) }}"
         state: "present"
+        update_cache: no
+      register: _adding_apt_repo
+
+    - name: Update Apt cache
+      apt:
         update_cache: yes
+      when: _adding_apt_repo | changed
+      register: _update_apt_cache
+      until: _update_apt_cache | success
+      retries: 5
+      delay: 2
 
     - name: Update apt sources
       apt:
