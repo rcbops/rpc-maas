@@ -210,7 +210,7 @@ def _get_consumer_metrics(session, metrics, protocol, host, port):
         queue_response = _get_rabbit_json(session, CONSUMERS_QUEUES_URL %
                                           (protocol, host, port, URI_ENCODED))
         for queue in queue_response:
-            if queue['consumers'] == 0 and queue['messages'] > 0:
+            if queue.get('consumers', 0) == 0 and queue.get('messages', 0) > 0:
                 queues_without_consumers += 1
 
     metrics['queues_without_consumers'] = {
