@@ -1,5 +1,32 @@
-# {{ ansible_managed }}
 ---
+# {{ ansible_managed }}
+
+scenarios:
+{% for key, value in maas_rally_checks.iteritems() %}
+    {{ key }}:
+        {{ value | to_nice_yaml | indent(8, false) }}
+{% endfor %}
+
+# See python's logging.config module for details
+logging:
+    version: 1
+    disable_existing_loggers: False
+    root:
+        handlers: []
+    formatters:
+        default:
+            format: '%(asctime)s - %(levelname)s - %(process)d - %(message)s'
+    loggers:
+        maas_rally:
+            level: {{ maas_rally_plugin_log_level }}
+            handlers:
+                - file
+    handlers:
+        file:
+            class: logging.handlers.WatchedFileHandler
+            formatter: default
+            filename: {{ maas_rally_plugin_log_file }}
+
 {% if maas_rally_influxdb_enabled %}
 influxdb:
   host: {{ maas_rally_influxdb_host }}

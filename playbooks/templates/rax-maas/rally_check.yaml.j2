@@ -7,6 +7,8 @@
 {% set concurrency = item.value.concurrency %}
 {% set crit_threshold = item.value.crit_threshold %}
 {% set warn_threshold = item.value.warn_threshold %}
+{% set delayed_by_lock_threshold = item.value.delayed_by_lock_alarm_threshold %}
+{% set resource_cleanup_threshold = item.value.resource_cleanup_alarm_threshold %}
 {% set alarm_consecutive_count = item.value.alarm_consecutive_count %}
 {% set duration_threshold_percent = item.value.duration_threshold %}
 {% set duration_threshold_seconds = (period*item.value.duration_threshold/100.0)|float %}
@@ -49,4 +51,22 @@ alarms      :
             :set consecutiveCount={{ alarm_consecutive_count }}
             if (metric["maas_check_duration"] > {{ '%0.2f' | format(duration_threshold_seconds|float) }}) {
                 return new AlarmStatus(CRITICAL, "{{ name }} performance test duration exceeds {{ duration_threshold_percent }}% of {{ period }} second polling interval.");
+            }
+    rally_{{ name }}_delayed_by_lock :
+        label                   : rally_{{ name }}_delayed_by_lock--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (("rally_{{ name }}_delayed_by_lock--{{ inventory_hostname }}") | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ delayed_by_lock_threshold }}
+            if (metric["delayed_by_lock"] > 0) {
+                return new AlarmStatus(CRITICAL, "{{ name }} performance test has been waiting {{ delayed_by_lock_threshold }} or more intervals for a lock.");
+            }
+    rally_{{ name }}_resource_cleanup :
+        label                   : rally_{{ name }}_resource_cleanup--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (("rally_{{ name }}_resource_cleanup--{{ inventory_hostname }}") | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ resource_cleanup_threshold }}
+            if (metric["resource_cleanup"] > 0) {
+                return new AlarmStatus(CRITICAL, "{{ name }} performance test has required stale resource cleanup for {{ resource_cleanup_threshold }} or more intervals.");
             }

@@ -88,6 +88,23 @@ maas_rally_primary_node: "{{ groups[maas_rally_target_group][0] }}"
 #    - user_password: The password for the keystone user the scenario runs as.
 #      Default: {{ maas_rally_users_password }}
 #
+#    - quota_factor: The per_iter_quota values are multiplied by this value
+#      to determine how many concurrent instances of a scenario can run without
+#      exceeding quotas.  This is primarily to provide enough buffer in the
+#      quotas to run a new scenario while a failed scenario is being cleaned
+#      up.
+#      Default: {{ maas_rally_default_quota_factor }}
+#
+#    - delayed_by_lock_alarm_threshold: An alarm will be generated after this
+#      many consecutive polls were delayed because a scenario lock could not be
+#      acquired.
+#      Default: {{ maas_rally_default_delayed_by_lock_alarm_threshold }}
+#
+#    - resource_cleanup_alarm_threshold: An alarm iwll be generated after this
+#      many consecutive polls were required to clean up scenario resources.
+#      Default: {{ maas_rally_default_resource_cleanup_alarm_threshold }}
+#
+#
 #  Example:
 #
 #    maas_rally_check_overrides:
@@ -225,6 +242,9 @@ maas_rally_default_duration_threshold: 75
 maas_rally_default_warn_threshold: 300
 maas_rally_default_crit_threshold: 600
 maas_rally_default_alarm_consecutive_count: 3
+maas_rally_default_quota_factor: 3
+maas_rally_default_delayed_by_lock_alarm_threshold: 3
+maas_rally_default_resource_cleanup_alarm_threshold: 3
 
 #
 #  This dictionary is a template containing default values for all checks. In
@@ -245,9 +265,12 @@ maas_rally_check_default_template:
   duration_threshold: "{{ maas_rally_default_duration_threshold }}"
   user_password: "{{ maas_rally_users_password }}"
   alarm_consecutive_count: "{{ maas_rally_default_alarm_consecutive_count }}"
+  delayed_by_lock_alarm_threshold: "{{ maas_rally_default_delayed_by_lock_alarm_threshold }}"
+  resource_cleanup_alarm_threshold: "{{ maas_rally_default_resource_cleanup_alarm_threshold }}"
   extra_user_roles: []
   extra_vars: {}
-  creates_instances: false
+  primary_resources: []
+  quota_factor: "{{ maas_rally_default_quota_factor }}"
   per_iter_quotas:    # Resources required per iteration of the scenario. These
     instances: 0      # values are multipled by the scenario's concurrency.
     cores: 0
@@ -266,11 +289,25 @@ maas_rally_check_default_template:
 #  maas_rally_check_overrides rather than here.
 #
 maas_rally_check_defaults:
-  neutron_secgroups: {}
-  glance: {}
-  keystone: {}
-  swift: {}
+  neutron_secgroups:
+    user_name: rally_neutron_secgroups
+    project: rally_neutron_secgroups
+    primary_resources:
+      - secgroup
+  glance:
+    user_name: rally_glance
+    project: rally_glance
+    primary_resources:
+      - image
+  keystone:
+    user_name: rally_keystone
+    project: rally_keystone
+  swift:
+    user_name: rally_swift
+    project: rally_swift
   cinder:
+    user_name: rally_cinder
+    project: rally_cinder
     per_iter_quotas:
       instances: 1
       cores: 1
@@ -279,11 +316,19 @@ maas_rally_check_defaults:
       ports: 4
       volumes: 2       # Double because rally doesn't seem to wait for cinder
       gigabytes: 2     # volumes to be scrubbed.
-    creates_instances: true
+    primary_resources:
+      - compute
+      - volume
   neutron_ports:
+    user_name: rally_neutron_ports
+    project: rally_neutron_ports
     per_iter_quotas:
       ports: 1
+    primary_resources:
+      - port
   nova_cinder:
+    user_name: rally_nova_cinder
+    project: rally_nova_cinder
     per_iter_quotas:
       instances: 1
       cores: 1
@@ -292,15 +337,20 @@ maas_rally_check_defaults:
       ports: 4
       volumes: 2       # Double because rally doesn't seem to wait for cinder
       gigabytes: 20    # volumes to be scrubbed.
-    creates_instances: true
+    primary_resources:
+      - compute
+      - volume
   nova:
+    user_name: rally_nova
+    project: rally_nova
     per_iter_quotas:
       instances: 1
       cores: 1
       ram: 256
       fixed-ips: 1
       ports: 4
-    creates_instances: true
+    primary_resources:
+      - compute
 
 #
 #  Combine check defaults and overrides.  These are applied on top of the
@@ -313,6 +363,11 @@ maas_rally_checks: "{{ maas_rally_check_defaults | combine(maas_rally_check_over
 #
 maas_rally_skip_config_validation: false
 
+#
+# Plugin logging configuration
+#
+maas_rally_plugin_log_file: /var/log/maas_rally.log
+maas_rally_plugin_log_level: INFO
 
 #
 # InfluxDB configuration
