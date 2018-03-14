@@ -298,6 +298,20 @@ maas_holland_venv_enabled: false
 nova_service_check_protocol: 'http'
 
 #
+# nova_service_check_port: Port used for nova service
+nova_service_check_port: '8774'
+
+#
+# nova_metadata_api_port: Port for the nova metadata service
+#
+nova_metadata_api_port: '8775'
+
+#
+# nova_metadata_api_protocol: Protocol for nova metadata service
+#
+nova_metadata_api_protocol: 'http'
+
+#
 # rabbitmq_http_protocol: Protocol to use when authenticating for rabbitmq
 #                         service checks. Valid values are "http" or
 #                         "https".
@@ -312,6 +326,11 @@ rabbitmq_http_protocol: 'http'
 neutron_client_protocol: 'http'
 
 #
+# neutron_client_port: Port for the neutron API service
+#
+neutron_client_port: '9696'
+
+#
 # cinder_client_protocol: Protocol to use when authenticating for cinder
 #                         service checks. Valid values are "http" or
 #                         "https".
@@ -323,3 +342,83 @@ cinder_client_protocol: 'http'
 #                        are "http" or "https".
 #
 ceph_radosgw_protocol: 'http'
+
+#
+# cinder_local_api_protocol: Protocol to use for cinder local API checks
+#
+cinder_local_api_protocol: 'http'
+
+#
+# cinder_local_api_port: Port number for the local cinder api service.
+#
+cinder_local_api_port: '8776'
+
+#
+# glance_local_api_port: Port number for the local glance api service
+#
+glance_local_api_port: '9292'
+
+#
+# glance_local_api_protocol: Protocol for the local glance API checks
+#
+glance_local_api_protocol: 'http'
+
+#
+# glance_local_reg_api_port: Port number for the local glance registry api service
+#
+glance_local_reg_api_port: '9191'
+
+#
+# glance_local_reg_api_protocol: Protocol for the local glance registry API checks
+#
+glance_local_reg_api_protocol: 'http'
+
+#
+# heat_local_api_port: Port number for the local heat api service
+#
+heat_local_api_port: '8004'
+
+#
+# heat_local_api_protocol: Protocol for the local heat API checks
+#
+heat_local_api_protocol: 'http'
+
+#
+# ironic_local_api_port: Port number for the local ironic api service
+#
+ironic_local_api_port: '6385'
+
+#
+# ironic_local_api_protocol: Protocol for the local ironic API checks
+#
+ironic_local_api_protocol: 'http'
+
+#
+# keystone_local_api_port: Port number for the local keystone API service
+#
+keystone_local_api_port: '35357'
+
+#
+# keystone_local_api_protocol: Protocol for the local keystone API
+#
+keystone_local_api_protocol: 'http'
+
+#
+# magnum_local_api_port: Port number for the local magnum API service
+#
+magnum_local_api_port: '9511'
+
+#
+# magnum_local_api_protocol: Protocol for magnum local API service
+#
+magnum_local_api_protocol: 'http'
+
+#
+# octavia_api_port: Port number for the octavia service
+#
+octavia_api_port: '9876'
+
+#
+# octavia_api_protocol: Protocol used to contact the octavia API service
+#
+octavia_api_protocol: 'http'

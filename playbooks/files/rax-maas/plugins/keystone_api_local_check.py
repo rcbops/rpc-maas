@@ -29,15 +29,19 @@ from maas_common import status_ok
 
 
 def check(args, auth_details):
-
+    identity_endpoint = '{protocol}://{ip}:{port}35357/'.format(
+        protocol=args.protocol,
+        port=args.port,
+        ip=args.ip
+    )
     if auth_details['OS_AUTH_VERSION'] == '2':
-        IDENTITY_ENDPOINT = 'http://{ip}:35357/v2.0'.format(ip=args.ip)
+        identity_endpoint += 'v2.0'
     else:
-        IDENTITY_ENDPOINT = 'http://{ip}:35357/v3'.format(ip=args.ip)
+        identity_endpoint += 'v3'
 
     try:
         if args.ip:
-            keystone = get_keystone_client(endpoint=IDENTITY_ENDPOINT)
+            keystone = get_keystone_client(endpoint=identity_endpoint)
         else:
             keystone = get_keystone_client()
 
@@ -94,6 +98,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help='Protocol for keystone API')
+    parser.add_argument('--port',
+                        action='store',
+                        default='35357',
+                        help='Port for the keystone API service')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)

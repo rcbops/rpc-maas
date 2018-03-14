@@ -29,11 +29,15 @@ from magnumclient.common.apiclient import exceptions as exc
 
 
 def check(auth_ref, args):
-    MAGNUM_ENDPOINT = 'http://{ip}:9511/v1'.format(ip=args.ip,)
+    magnum_endpoint = '{protocol}://{ip}:{port}9511/v1'.format(
+        ip=args.ip,
+        protocol=args.protocol,
+        port=args.port
+    )
 
     try:
         if args.ip:
-            magnum = get_magnum_client(endpoint=MAGNUM_ENDPOINT)
+            magnum = get_magnum_client(endpoint=magnum_endpoint)
         else:
             magnum = get_magnum_client()
 
@@ -78,6 +82,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--port',
+                        action='store',
+                        default='9511',
+                        help='Port that the magnum API service is running on')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help='Protocol for magnum API service')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)

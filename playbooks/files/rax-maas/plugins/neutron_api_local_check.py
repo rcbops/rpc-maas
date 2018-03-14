@@ -29,12 +29,16 @@ from neutronclient.client import exceptions as exc
 
 def check(args):
 
-    NETWORK_ENDPOINT = 'http://{ip}:9696'.format(ip=args.ip)
+    network_endpoint = '{protocol}://{ip}:{port}'.format(
+        ip=args.ip,
+        protocol=args.protocol,
+        port=args.port
+    )
 
     is_up = False
     try:
         if args.ip:
-            neutron = get_neutron_client(endpoint_url=NETWORK_ENDPOINT)
+            neutron = get_neutron_client(endpoint_url=network_endpoint)
         else:
             neutron = get_neutron_client()
 
@@ -89,6 +93,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--port',
+                        action='store',
+                        default='9696',
+                        help='Port for neutron API service')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help='Protocol for the neutron API service')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
