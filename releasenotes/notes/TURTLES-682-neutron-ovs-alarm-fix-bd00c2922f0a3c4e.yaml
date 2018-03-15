@@ -1,0 +1,6 @@
+---
+fixes:
+  - Added more meaningful process info in neutron_ovs_agent alarm exception
+    message.
+  - Added a new status_err_no_exit function call to allow plugins like neutron_
+    ovs_agent_check.py to run its cause and report correct metrics

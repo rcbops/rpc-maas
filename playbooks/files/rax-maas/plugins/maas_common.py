@@ -699,6 +699,18 @@ def status_err(message=None, force_print=False, exception=None, m_name=None):
         sys.exit(1)
 
 
+def status_err_no_exit(message=None, force_print=False,
+                       exception=None, m_name=None):
+    _telegraf_metric_name(m_name=m_name)
+    if exception:
+        # a status message cannot exceed 256 characters
+        # 'error ' plus up to 250 from the end of the exception
+        message = message[-250:]
+    status('error', message, force_print=force_print)
+    if exception:
+        raise exception
+
+
 def status_ok(message=None, force_print=False, m_name=None):
     status('okay', message, force_print=force_print)
     _telegraf_metric_name(m_name=m_name)

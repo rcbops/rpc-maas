@@ -26,7 +26,7 @@ except ImportError:
 
 from maas_common import metric_bool
 from maas_common import print_output
-from maas_common import status_err
+from maas_common import status_err, status_err_no_exit
 from process_check_host import get_processes
 
 
@@ -53,17 +53,15 @@ def check_process_statuses(container_or_host_name, container=None):
             # 5.x, it's now a callable method.
             cmdline_check = getattr(proc, "cmdline", None)
             if callable(cmdline_check):
-                cmdlines.append(
-                    map(os.path.basename, proc.cmdline())
-                )
+                cmdline_check_value = proc.cmdline()
             else:
-                cmdlines.append(map(os.path.basename,
-                                    proc.cmdline))
+                cmdline_check_value = proc.cmdline
+            cmdlines.append(map(os.path.basename,
+                                cmdline_check_value))
         except Exception as e:
-            status_err('Error while retrieving process %s, ERROR: %s'
-                       % (proc.cmdline, str(e)),
-                       m_name='maas_neutron')
-            pass
+            status_err_no_exit('Error while retrieving process %s, ERROR: %s'
+                               % (cmdline_check_value, str(e)),
+                               m_name='maas_neutron')
 
     # Loop through the process names provided on the command line to
     # see if ovsdb-server,  ovs-vswitchd, and neutron-openvswitch
