@@ -21,7 +21,7 @@ from itertools import chain
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
-from maas_common import status_err
+from maas_common import status_err, status_err_no_exit
 from maas_common import status_ok
 import re
 import requests
@@ -162,17 +162,17 @@ def _get_node_metrics(session, metrics, protocol, host, port, name):
 
     if CLUSTERED:
         if len(response) < CLUSTER_SIZE:
-            status_err('cluster too small', m_name='maas_rabbitmq')
+            status_err_no_exit('cluster too small', m_name='maas_rabbitmq')
         if not is_cluster_member:
-            status_err('{0} not a member of the cluster'.format(name),
-                       m_name='maas_rabbitmq')
-        if sum([len(n['partitions']) for n in response]):
-            status_err('At least one partition found in the rabbit cluster',
-                       m_name='maas_rabbitmq')
-        if any([len(n['cluster_links']) != CLUSTER_SIZE - 1
+            status_err_no_exit('{0} not a member of the cluster'.format(name),
+                               m_name='maas_rabbitmq')
+        if sum([len(n.get('partitions', 0)) for n in response]):
+            status_err_no_exit('At least one partition found in the rabbit '
+                               'cluster', m_name='maas_rabbitmq')
+        if any([len(n.get('cluster_links', [])) != CLUSTER_SIZE - 1
                 for n in response]):
-            status_err('At least one rabbit node is missing a cluster link',
-                       m_name='maas_rabbitmq')
+            status_err_no_exit('At least one rabbit node is missing a cluster'
+                               ' link', m_name='maas_rabbitmq')
 
     for k, v in NODES_METRICS.items():
         metrics[k] = {'value': nodes_matching_name[0][k], 'unit': v}

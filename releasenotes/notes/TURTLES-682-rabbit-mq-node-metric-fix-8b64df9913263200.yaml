@@ -1,0 +1,7 @@
+---
+fixes:
+  - Fixed an exotic KeyError premature exit of the rabbitmq_status.py 
+    _get_node_metrics check path. 
+    (See https://core.rackspace.com/ticket/180307-12728 for reference)
+  - Using the new status_err_no_exit function call to allow plugins to run its 
+    cause and report correct metrics
