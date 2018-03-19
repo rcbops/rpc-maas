@@ -46,7 +46,7 @@
   tasks:
     - name: Discover Ceph facts
       ceph_osd_host_facts:
-      register: ceph_osd_facts
+        hostname: "{{ ansible_hostname }}"
       tags:
         - always
 
