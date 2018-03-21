@@ -31,7 +31,7 @@
   post_tasks:
     - name: Install network pip packages to venv
       pip:
-        name: "{{ maas_openstack_network_pip_packages | join(' ') }}"
+        name: "{{ maas_network_check_pip_packages | join(' ') }}"
         state: "{{ maas_pip_package_state }}"
         extra_args: >-
           --isolated
