@@ -36,14 +36,18 @@ def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     tenant_id = keystone.tenant_id
 
-    COMPUTE_ENDPOINT = (
-        'http://{ip}:8774/v2.1/{tenant_id}'
-        .format(ip=args.ip, tenant_id=tenant_id)
+    compute_endpoint = (
+        '{protocol}://{ip}:{port}/v2.1/{tenant_id}'.format(
+            ip=args.ip,
+            tenant_id=tenant_id,
+            protocol=args.protocol,
+            port=args.port
+        )
     )
 
     try:
         if args.ip:
-            nova = get_nova_client(bypass_url=COMPUTE_ENDPOINT)
+            nova = get_nova_client(bypass_url=compute_endpoint)
         else:
             nova = get_nova_client()
 
@@ -96,6 +100,12 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--port',
+                        default='8774',
+                        help='Port for the nova API service')
+    parser.add_argument('--protocol',
+                        default='http',
+                        help='Protocol used to contact the nova API service')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
