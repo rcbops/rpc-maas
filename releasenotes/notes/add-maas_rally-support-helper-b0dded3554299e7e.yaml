@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    A `rally_diag.sh` script is now deployed to all utility containers.  This
+    script helps support to quickly identify resources (instances, images,
+    etc) that were created by maas_rally.
+other:
+  - |
+    The user configured in `openrc_os_username` (`admin` by default) will be
+    granted the `admin` role on each project created for maas_rally scenarios.
+    This facilitates listing swift containers in the `rally_diag.sh` script.

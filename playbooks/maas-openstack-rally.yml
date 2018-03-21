@@ -225,6 +225,22 @@
       when:
         - item.value.enabled
 
+    - name: Grant admin role to admin user for maas_rally projects
+      os_user_role:
+        user: "{{ openrc_os_username }}"
+        project: "{{ item.value.project }}"
+        role: "admin"
+        state: present
+        cloud: default
+        endpoint_type: "admin"
+        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+      with_dict: "{{ maas_rally_checks }}"
+      vars:
+        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+      when:
+        - item.value.enabled
+
+
     - name: Create maas_rally users in keystone
       os_user:
         name: "{{ item.value.user_name }}"
@@ -515,3 +531,13 @@
     - vars/main.yml
     - vars/maas-agent.yml
     - vars/maas-rally.yml
+
+- name: Deploy support helper script to utility containers
+  hosts: utility_all
+  gather_facts: false
+  tasks:
+    - name: Copy maas_rally support helper script
+      copy:
+        src: files/rax-maas/tools/rally_diag.sh
+        dest: /root/rally_diag.sh
+        mode: 0770
