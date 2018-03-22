@@ -32,7 +32,7 @@ def bonding_ifaces_check(_):
         )
 
         bonding_iface_check_cmd_output_lines = (
-            bonding_iface_check_cmd_output.split('\n')[1]
+            bonding_iface_check_cmd_output.split('\n')
         )
 
         for idx, line in enumerate(bonding_iface_check_cmd_output_lines):
