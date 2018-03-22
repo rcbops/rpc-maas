@@ -32,7 +32,7 @@ def bonding_ifaces_check(_):
         )
 
         bonding_iface_check_cmd_output_lines = (
-            bonding_iface_check_cmd_output.split('\n')
+            bonding_iface_check_cmd_output.split('\n')[1]
         )
 
         for idx, line in enumerate(bonding_iface_check_cmd_output_lines):
@@ -47,6 +47,10 @@ def bonding_ifaces_check(_):
                     metric_bool('host_bonding_iface_%s_slave_down' %
                                 bonding_iface,
                                 True)
+                else:
+                    metric_bool('host_bonding_iface_%s_slave_down' %
+                                bonding_iface,
+                                False)
 
 
 def main(args):

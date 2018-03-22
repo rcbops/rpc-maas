@@ -16,7 +16,7 @@ alarms      :
         disabled                : {{ (('host_bonding_iface_{{ interface }}_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["host_bonding_iface_{{ interface }}_slave_down"] != 1) {
+            if (metric["host_bonding_iface_{{ interface }}_slave_down"] != 0) {
                 return new AlarmStatus(CRITICAL, "A bonding interface has slave(s) down");
             } 
 {% endfor %}
