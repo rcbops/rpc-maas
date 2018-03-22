@@ -35,6 +35,7 @@ def bonding_ifaces_check(_):
             bonding_iface_check_cmd_output.split('\n')
         )
 
+        has_slave_down = False
         for idx, line in enumerate(bonding_iface_check_cmd_output_lines):
             if line.startswith("Slave Interface"):
                 slave_inface_mii_status_line = (
@@ -44,13 +45,16 @@ def bonding_ifaces_check(_):
                     slave_inface_mii_status_line.split(":")[1]
                 )
                 if 'down' in slave_inface_mii_status:
+                    has_slave_down = True
+
+        if has_slave_down:
                     metric_bool('host_bonding_iface_%s_slave_down' %
                                 bonding_iface,
                                 True)
-                else:
-                    metric_bool('host_bonding_iface_%s_slave_down' %
-                                bonding_iface,
-                                False)
+        else:
+            metric_bool('host_bonding_iface_%s_slave_down' %
+                        bonding_iface,
+                        False)
 
 
 def main(args):
