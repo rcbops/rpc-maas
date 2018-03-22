@@ -68,7 +68,8 @@ maas_disk_utilisation_critical_threshold: 99
 _maas_bonding_interfaces: |
   ---
   {% for interface in ansible_interfaces %}
-  {%   if (hostvars[inventory_hostname]['ansible_%s' | format(interface)]['type'] == 'bonding' ) %}
+  {% set interface_detail = (hostvars[inventory_hostname]['ansible_%s' | format(interface)] | default({})) %}
+  {%   if (interface_detail and interface_detail['type'] == 'bonding' ) %}
   - "{{ interface }}"
   {%   endif %}
   {% endfor %}
