@@ -16,24 +16,29 @@
 
 import argparse
 import os
+import subprocess
 
-from maas_common import metric_bool
+from maas_common import metric
 from maas_common import print_output
 
 import netiface_check_lib
 
 
 def bonding_ifaces_check():
-    bonding_ifaces = os.lisdir("/proc/net/bonding")
+    bonding_ifaces = os.listdir("/proc/net/bonding")
     for bonding_iface in bonding_ifaces:
-        if not netiface_check_lib.is_interface_up(bonding_iface):
-            metric_bool('host_bonding_iface_%s_status' % bonding_iface,
-                        False,
-                        m_name='maas_host_bonding_iface')
-        else:
-            metric_bool('host_bonding_iface_%s_status' % bonding_iface,
-                        True,
-                        m_name='maas_host_bonding_iface')
+        bonding_iface_check_cmd = ['cat', '/proc/net/bonding/%s'
+                                   % bonding_iface]
+        bonding_iface_check_cmd_output = subprocess.check_output(
+            bonding_iface_check_cmd
+        )
+        current_active_slave = (
+            bonding_iface_check_cmd_output.split('\n')[4].split(':')[1]
+        )
+
+        # send out the metric of current active slave interface
+        metric('host_bonding_iface_%s_current_active_iface', 'string',
+               current_active_slave)
 
 
 def main(args):

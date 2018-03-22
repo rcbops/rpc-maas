@@ -15,8 +15,8 @@ alarms      :
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : {{ (('host_bonding_iface_{{ interface }}_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
-            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["host_bonding_iface_{{ interface }}_status"] != 1) {
-                return new AlarmStatus(CRITICAL, "The bonding interface {{ interface }} is down");
-            }
+            :set consecutiveCount=1
+            if (previous(metric['host_bonding_iface_{{ interface }}_current_active_iface']) != metric['host_bonding_iface_{{ interface }}_current_active_iface']) {
+				return new AlarmStatus(CRITICAL, 'Bonding  interface active slavery changed');
+			}
 {% endfor %}
