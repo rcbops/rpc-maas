@@ -41,7 +41,7 @@ def bonding_ifaces_check(_):
                     bonding_iface_check_cmd_output_lines[idx + 1]
                 )
                 slave_inface_mii_status = (
-                    slave_inface_mii_status_line.split(":")
+                    slave_inface_mii_status_line.split(":")[1]
                 )
                 if 'down' in slave_inface_mii_status:
                     metric_bool('host_bonding_iface_%s_slave_down' %
