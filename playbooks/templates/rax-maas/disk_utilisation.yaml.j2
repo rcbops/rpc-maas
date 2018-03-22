@@ -13,7 +13,7 @@ alarms      :
     percentage_disk_utilisation_{{ device }}:
         label                   : percentage_disk_utilisation_{{ device }}--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('percentage_disk_utilisation_'+device+'--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('percentage_disk_utilisation_'+device+'--'+inventory_hostname|quote) | match(maas_excluded_alarms_regex) or inventory_hostname in (groups['shared-infra_hosts']|default([]))) | ternary('false', 'true') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["disk_utilisation_{{ device }}"] > {{ maas_disk_utilisation_critical_threshold }}) {
