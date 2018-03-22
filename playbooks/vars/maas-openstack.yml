@@ -142,7 +142,7 @@ maas_swift_container_quarantine_failed_percentage_threshold: 5.0
 maas_swift_container_quarantine_average_threshold: 25.0
 maas_swift_container_replication_failure_percentage_threshold: 5.0
 maas_swift_container_replication_growth_rate_threshold: 10.0
-maas_swift_container_replication_avg_time_threshold: 50.0
+maas_swift_container_replication_avg_time_threshold: 300.0
 maas_swift_async_pending_failure_percentage_threshold: 5.0
 maas_swift_async_pending_average_threshold: 1000.0
 
