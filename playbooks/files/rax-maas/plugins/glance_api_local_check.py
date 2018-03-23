@@ -33,13 +33,17 @@ IMAGE_STATUSES = ['active', 'queued', 'killed']
 
 
 def check(auth_ref, args):
-    GLANCE_ENDPOINT = (
-        'http://{ip}:9292/v1'.format(ip=args.ip)
+    glance_endpoint = (
+        '{protocol}://{ip}:{port}/v1'.format(
+            ip=args.ip,
+            protocol=args.protocol,
+            port=args.port
+        )
     )
 
     try:
         if args.ip:
-            glance = get_glance_client(endpoint=GLANCE_ENDPOINT)
+            glance = get_glance_client(endpoint=glance_endpoint)
         else:
             glance = get_glance_client()
 
@@ -93,6 +97,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--port',
+                        action='store',
+                        default='9292',
+                        help='Port to use for glance API check')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help='Protocol to use for local glance API')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
