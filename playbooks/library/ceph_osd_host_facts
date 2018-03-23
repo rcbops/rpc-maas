@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import subprocess
+import json
 
 from ansible.module_utils.basic import *  # noqa: ignore=H303
 
@@ -39,35 +40,40 @@ class OSDHostFacts(object):
         self.state_change = False
         self.module = module
 
-    def gather_facts(self):
+    def gather_facts(self, hostname):
         """Get information about OSDs."""
-        cmd = ["find", "-L", "/var/lib/ceph/osd/", "-mindepth", "1",
-               "-maxdepth", "1", "-regextype", "posix-egrep", "-regex",
-               '.*/[A-Za-z0-9]+-[A-Za-z0-9._-]+', "-printf", '%P\n']
+        cmd = ["ceph", "osd", "tree", "--format", "json", "--name",
+               "client.raxmon"]
         try:
             # This command was taken from /etc/init/ceph-osd-all-starter.conf
             output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            json_output = json.loads(output.strip().split('\n')[-1])
         except subprocess.CalledProcessError as e:
             message = ('Ceph OSD host fact collection failed: "%s".' %
                        e.output.strip())
             self.module.fail_json(msg=message)
         else:
-            osd_dirs = output.strip().split('\n')
-            osd_ids = [int(d.split('-')[-1]) for d in osd_dirs]
-            facts = dict(osd_ids=osd_ids)
+            osd_ids = []
+            for _osd in json_output['nodes']:
+                if _osd['name'] == hostname:
+                    osd_ids = _osd['children']
+            facts = osd_ids
             self.module.exit_json(
                 changed=self.state_change,
-                ansible_facts={'ceph_osd_host': facts})
+                ansible_facts={'ceph_osd_list': facts})
 
 
 def main():
     module = AnsibleModule(
         argument_spec=dict(
+            hostname=dict(
+                required=True
+            )
         ),
         supports_check_mode=False
     )
     osd_host_facts = OSDHostFacts(module)
-    osd_host_facts.gather_facts()
+    osd_host_facts.gather_facts(hostname=module.params.get('hostname'))
 
 
 if __name__ == '__main__':

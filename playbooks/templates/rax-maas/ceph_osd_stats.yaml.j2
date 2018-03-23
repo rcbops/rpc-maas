@@ -5,7 +5,7 @@
 {%   set _ = ceph_args.extend(["--container-name", container_name]) %}
 {% endif %}
 {% set _ = ceph_args.extend(["osd", "--osd_ids"]) %}
-{% set _ = ceph_args.append(ceph_osd_host['osd_ids'] | default([]) | join(' ')) %}
+{% set _ = ceph_args.append(ceph_osd_list | default([]) | join(' ')) %}
 {% set _ceph_args = ceph_args | to_yaml(width=1000) %}
 {% set ceph_args = _ceph_args %}
 
@@ -18,7 +18,7 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : {{ ceph_args }}
 alarms      :
-{% for osd_id in ceph_osd_host['osd_ids'] %}
+{% for osd_id in ceph_osd_list %}
     ceph_warn_osd.{{ osd_id }} :
         label                   : ceph_warn_osd.{{ osd_id }}--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
