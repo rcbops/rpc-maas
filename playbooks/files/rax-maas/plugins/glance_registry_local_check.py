@@ -33,7 +33,11 @@ def check(auth_ref, args):
     # new token if previous one is bad.
     keystone = get_keystone_client(auth_ref)
     auth_token = keystone.auth_token
-    registry_endpoint = 'http://{ip}:9191'.format(ip=args.ip)
+    registry_endpoint = '{protocol}://{ip}:{port}'.format(
+        protocol=args.protocol,
+        ip=args.ip,
+        port=args.port
+    )
 
     s = requests.Session()
 
@@ -76,6 +80,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help='Protocol for the local glance registry API')
+    parser.add_argument('--port',
+                        action='store',
+                        default='9191',
+                        help='Port for local glance registry API')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
