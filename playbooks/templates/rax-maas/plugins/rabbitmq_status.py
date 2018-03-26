@@ -184,6 +184,8 @@ def _get_queue_metrics(session, metrics, protocol, host, port):
                                 if re.match('/^(versioned_)?notifications\.',
                                             q['name']) and
                                 q['consumers'] > 0])
+    msgs_without_consumers = sum([q['messages'] for q in response
+                                if q['consumers'] == 0])
 
     metrics['notification_messages'] = {
         'value': notification_messages,
@@ -191,6 +193,10 @@ def _get_queue_metrics(session, metrics, protocol, host, port):
     }
     metrics['msgs_excl_notifications'] = {
         'value': metrics['messages']['value'] - notification_messages,
+        'unit': 'messages'
+    }
+    metrics['msgs_without_consumers'] = {
+        'value': msgs_without_consumers,
         'unit': 'messages'
     }
 

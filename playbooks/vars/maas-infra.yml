@@ -40,9 +40,9 @@ maas_rabbitmq_max_channels_per_con_threshold: 10
 maas_rabbitmq_fd_used_threshold: 90
 maas_rabbitmq_proc_used_threshold: 90
 maas_rabbitmq_socket_used_threshold: 90
-maas_rabbitmq_queued_messages_excluding_notifications_threshold: 100
-maas_rabbitmq_queues_without_consumers_limit: 0
+maas_rabbitmq_queued_messages_excluding_notifications_threshold: 5000
 maas_rabbitmq_queue_growth_rate_threshold: 15
+maas_rabbitmq_messages_without_consumers_threshold: 20000
 
 rsyslogd_process_names:
   - rsyslogd
