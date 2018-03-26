@@ -70,7 +70,7 @@ alarms      :
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["rabbitmq_msgs_excl_notifications"] > {{ maas_rabbitmq_queued_messages_excluding_notifications_threshold }} ) {
-                return new AlarmStatus(CRITICAL, "RabbitMQ sum of queued messages excluding notifications queues is #{rabbitmq_msgs_excl_notifications}. Currently above {{ maas_rabbitmq_queued_messages_excluding_notifications_threshold }} threshold.");
+                return new AlarmStatus(CRITICAL, "RabbitMQ sum of queued messages excluding notifications queues is #{rabbitmq_msgs_excl_notifications}. Currently above {{ maas_rabbitmq_queued_messages_excluding_notifications_threshold }}.");
             }
     rabbitmq_qgrowth_excl_notifications :
         label                   : rabbitmq_qgrowth_excl_notifications--{{ inventory_hostname }}
@@ -79,7 +79,7 @@ alarms      :
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric["rabbitmq_msgs_excl_notifications"]) > {{ maas_rabbitmq_queue_growth_rate_threshold }}) {
-                return new AlarmStatus(CRITICAL, "RabbitMQ Queue growth rate is above configured threshold of {{ maas_rabbitmq_queue_growth_rate_threshold }}.");
+                return new AlarmStatus(CRITICAL, "RabbitMQ queue growth rate is above configured threshold of {{ maas_rabbitmq_queue_growth_rate_threshold }}.");
             }
     rabbitmq_msgs_without_consumers :
         label                   : rabbitmq_msgs_without_consumers--{{ inventory_hostname }}
@@ -88,5 +88,5 @@ alarms      :
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["rabbitmq_msgs_without_consumers"] > {{ maas_rabbitmq_messages_without_consumers_threshold }}) {
-                return new AlarmStatus(CRITICAL, "RabbitMQ currently has #{rabbitmq_queues_without_consumers} unconsumed queue(s) with a sum of #{rabbitmq_msgs_without_consumers} messages. Currently above {{ maas_rabbitmq_messages_without_consumers_threshold }} threshold. Please investigate and remove any unnecessary queues that are no longer being consumed.");
+                return new AlarmStatus(CRITICAL, "RabbitMQ currently has #{rabbitmq_queues_without_consumers} unconsumed queue(s) with a sum of #{rabbitmq_msgs_without_consumers} messages. Currently above {{ maas_rabbitmq_messages_without_consumers_threshold }}. Please investigate and remove any unnecessary queues that are no longer being consumed.");
             }
