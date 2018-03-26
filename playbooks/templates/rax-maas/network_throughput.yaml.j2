@@ -17,7 +17,7 @@ alarms:
     alarm-network-receive:
         label: Network receive rate on {{ item.0.name }}
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ (('Network receive rate on '+item.0.name) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled            : {{ (('Network receive rate on '+item.0.name) | match(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
         criteria: |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric['rx_bytes']) > {{ rx_crit }}) {
@@ -30,7 +30,7 @@ alarms:
     alarm-network-transmit:
         label: Network transmit rate on {{ item.0.name }}
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ (('Network transmit rate on '+item.0.name) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled            : {{ (('Network transmit rate on '+item.0.name) | match(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
         criteria: |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric['tx_bytes']) > {{ tx_crit }}) {

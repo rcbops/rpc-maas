@@ -4,7 +4,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname != groups['rabbitmq_all'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/rabbitmq_status.py", "-H", "{{ ansible_host }}", "-n", "{{ ansible_hostname.split('.')[0] }}", "-U", "{{ maas_rabbitmq_user }}", "-p", "{{ maas_rabbitmq_password }}", "--{{ rabbitmq_http_protocol }}"]
@@ -18,7 +18,6 @@ alarms      :
             if (metric["rabbitmq_disk_free_alarm_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "rabbitmq_disk_free_alarm_status triggered");
             }
-
     rabbitmq_mem_alarm_status :
         label                   : rabbitmq_mem_alarm_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
@@ -28,7 +27,6 @@ alarms      :
             if (metric["rabbitmq_mem_alarm_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "rabbitmq_mem_alarm_status triggered");
             }
-
     rabbitmq_max_channels_per_conn :
         label                   : rabbitmq_max_channels_per_conn--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
@@ -38,7 +36,6 @@ alarms      :
             if (metric["rabbitmq_max_channels_per_conn"] > {{ maas_rabbitmq_max_channels_per_con_threshold }}) {
                 return new AlarmStatus(CRITICAL, "Detected RabbitMQ connections with > {{ maas_rabbitmq_max_channels_per_con_threshold }} channels, check RabbitMQ and all Openstack consumers");
             }
-
     rabbitmq_fd_used_alarm_status :
         label                   : rabbitmq_fd_used_alarm_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
@@ -48,7 +45,6 @@ alarms      :
             if (percentage(metric["rabbitmq_fd_used"],metric["rabbitmq_fd_total"]) >= {{ maas_rabbitmq_fd_used_threshold }}) {
                 return new AlarmStatus(CRITICAL, "RabbitMQ file descriptors is reaching configured limit. Currently above {{ maas_rabbitmq_fd_used_threshold }} % used");
             }
-
     rabbitmq_proc_used_alarm_status :
         label                   : rabbitmq_proc_used_alarm_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
@@ -58,7 +54,6 @@ alarms      :
             if (percentage(metric["rabbitmq_proc_used"],metric["rabbitmq_proc_total"]) >= {{ maas_rabbitmq_proc_used_threshold }}) {
                 return new AlarmStatus(CRITICAL, "RabbitMQ processes is reaching configured limit. Currently above {{ maas_rabbitmq_proc_used_threshold }} % used");
             }
-
     rabbitmq_socket_used_alarm_status :
         label                   : rabbitmq_socket_used_alarm_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
@@ -75,7 +70,7 @@ alarms      :
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["rabbitmq_msgs_excl_notifications"] > {{ maas_rabbitmq_queued_messages_excluding_notifications_threshold }} ) {
-                return new AlarmStatus(CRITICAL, "RabbitMQ sum of queued messages excluding notifications queues is reaching configured limit. Currently above {{ maas_rabbitmq_queued_messages_excluding_notifications_threshold }}");
+                return new AlarmStatus(CRITICAL, "RabbitMQ sum of queued messages excluding notifications queues is #{rabbitmq_msgs_excl_notifications}. Currently above {{ maas_rabbitmq_queued_messages_excluding_notifications_threshold }}.");
             }
     rabbitmq_qgrowth_excl_notifications :
         label                   : rabbitmq_qgrowth_excl_notifications--{{ inventory_hostname }}
@@ -83,16 +78,15 @@ alarms      :
         disabled                : {{ (('rabbitmq_qgrowth_excl_notifications--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (rate(metric["rabbitmq_msgs_excl_notifications"]) > {{ maas_rabbitmq_queue_growth_rate_threshold / maas_check_period}}) {
-                return new AlarmStatus(CRITICAL, "RabbitMQ Queue growth rate is above configured threshold. Currently above {{ maas_rabbitmq_queue_growth_rate_threshold }}");
+            if (rate(metric["rabbitmq_msgs_excl_notifications"]) > {{ maas_rabbitmq_queue_growth_rate_threshold }}) {
+                return new AlarmStatus(CRITICAL, "RabbitMQ queue growth rate is above configured threshold of {{ maas_rabbitmq_queue_growth_rate_threshold }}.");
             }
-
-    rabbitmq_queues_without_consumers :
-        label                   : rabbitmq_queues_without_consumers--{{ inventory_hostname }}
+    rabbitmq_msgs_without_consumers :
+        label                   : rabbitmq_msgs_without_consumers--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('rabbitmq_queues_without_consumers--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('rabbitmq_msgs_without_consumers--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["rabbitmq_queues_without_consumers"] > {{ maas_rabbitmq_queues_without_consumers_limit }}) {
-                return new AlarmStatus(CRITICAL, "RabbitMQ Queues without consumers is above configured threshold. Currently more than {{ maas_rabbitmq_queues_without_consumers_limit }} queues without consumers");
+            if (metric["rabbitmq_msgs_without_consumers"] > {{ maas_rabbitmq_messages_without_consumers_threshold }}) {
+                return new AlarmStatus(CRITICAL, "RabbitMQ currently has #{rabbitmq_queues_without_consumers} unconsumed queue(s) with a sum of #{rabbitmq_msgs_without_consumers} messages. Currently above {{ maas_rabbitmq_messages_without_consumers_threshold }}. Please investigate and remove any unnecessary queues that are no longer being consumed.");
             }

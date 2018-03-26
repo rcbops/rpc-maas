@@ -4,7 +4,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname != groups['galera_all'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/galera_check.py", "-H", "{{ ansible_host }}"]
@@ -86,18 +86,6 @@ alarms      :
             }
             if (rate(metric["access_denied_errors"]) > {{ maas_mysql_access_denied_errors_rate_critical_threshold }}) {
                 return new AlarmStatus(CRITICAL, "Access denied errors rate is greater than {{ maas_mysql_access_denied_errors_rate_critical_threshold }} per {{ (maas_check_period_override[label] | default(maas_check_period)) }} seconds");
-            }
-    aborted_clients :
-        label                   : aborted_clients--{{ inventory_hostname }}
-        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('aborted_clients--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
-        criteria                : |
-            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (rate(metric["aborted_clients"]) > {{ maas_mysql_aborted_clients_rate_warning_threshold }}) {
-                return new AlarmStatus(WARNING, "Aborted clients rate is greater than {{ maas_mysql_aborted_clients_rate_warning_threshold }} per {{ (maas_check_period_override[label] | default(maas_check_period)) }} seconds");
-            }
-            if (rate(metric["aborted_clients"]) > {{ maas_mysql_aborted_clients_rate_critical_threshold }}) {
-                return new AlarmStatus(CRITICAL, "Aborted clients rate is greater than {{ maas_mysql_aborted_clients_rate_critical_threshold }} per {{ (maas_check_period_override[label] | default(maas_check_period)) }} seconds");
             }
     aborted_connects :
         label                   : aborted_connects--{{ inventory_hostname }}
