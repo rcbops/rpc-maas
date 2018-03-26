@@ -33,6 +33,7 @@
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
+        - not (ceph_standalone and inventory_hostname in groups['ceph_all'])
       template:
         src: "templates/rax-maas/{{ item.name }}.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item.name }}.yaml"
