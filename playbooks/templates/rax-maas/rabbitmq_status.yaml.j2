@@ -4,7 +4,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname != groups['rabbitmq_all'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/rabbitmq_status.py", "-H", "{{ ansible_host }}", "-n", "{{ ansible_hostname.split('.')[0] }}", "-U", "{{ maas_rabbitmq_user }}", "-p", "{{ maas_rabbitmq_password }}", "--{{ rabbitmq_http_protocol }}"]
