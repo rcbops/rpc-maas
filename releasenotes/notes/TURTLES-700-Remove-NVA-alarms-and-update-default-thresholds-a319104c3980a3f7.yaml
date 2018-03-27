@@ -1,0 +1,19 @@
+---
+fixes:
+  - |
+    * Disable capacitive related checks: cinder_vg_check, ironic_capacity_check, and nova_cloud_stats_check.
+    * Disable alarms for CDM checks on all hosts except groups['shared-infra_hosts']. This includes cpu_check, disk_utilisation, and memory_check.
+    * Disable alarms for network_throughput across all hosts.
+    * Changes to galera_check:
+    ** Limit enablement to groups['galera_all'][0].
+    ** Remove alarm for aborted_clients.
+    * Changes to rabbitmq_status:
+    ** Limit enablement to groups['rabbitmq_all'][0].
+    ** Modify metric msgs_excl_notifications to sum messages from consumed queues only.
+    ** Add metric msgs_without_consumers to sum messages from unconsumed queues only.
+    ** Fix bug in rabbitmq_qgrowth_excl_notifications alarm removing the division by check period. This is automatically handled by the rate() function.
+    ** Restructure rabbitmq_queues_without_consumers alarm with rabbitmq_msgs_without_consumers. This will alarm if unconsumed messages reaches the default threshold of 20000.
+    ** Remove default var for unused maas_rabbitmq_queues_without_consumers_limit.
+    ** Update maas_rabbitmq_queued_messages_excluding_notifications_threshold to 5000.
+    ** Add maas_rabbitmq_messages_without_consumers_threshold, defaulting to 20000.
+    * Update maas_swift_container_replication_avg_time_threshold from 50 to 300.

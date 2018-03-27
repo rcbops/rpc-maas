@@ -1,0 +1,3 @@
+---
+fixes:
+  - Limit ceph_cluster_stats and ceph_mons_stats checks to groups['mons'][0] and ceph_rgw_stats to groups['rgws'][0] to prevent duplicate alarms on ceph clusters.
