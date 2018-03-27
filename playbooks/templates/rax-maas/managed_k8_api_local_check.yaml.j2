@@ -9,6 +9,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/managed_k8_api_local_check.py", "--kubeconfig {{ maas_managed_k8_kube_config_dir }}/kube-config-{{ cluster_name }}.yaml"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     managed_k8_api_local_status :
         label                   : managed_k8_api_local_status--{{ cluster_name }}

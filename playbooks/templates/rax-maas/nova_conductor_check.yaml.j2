@@ -8,6 +8,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/nova_service_check.py", "--host", "{{ ansible_nodename }}", "--protocol", "{{ nova_service_check_protocol }}", "{{ internal_vip_address }}"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     nova_conductor_status :
         label                   : nova_conductor_status--{{ inventory_hostname }}

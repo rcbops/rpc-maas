@@ -8,6 +8,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/service_api_local_check.py", "hummingbird_object_server", "--path", "/healthcheck", "{{ service_ip }}", "6000"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     hummingbird_object_server_api_local_status :
         label                   : hummingbird_object_server_api_local_status--{{ inventory_hostname }}

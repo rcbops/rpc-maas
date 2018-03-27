@@ -8,6 +8,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/horizon_check.py", "{{ ansible_host }}", "{{ maas_horizon_site_name }}"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     horizon_local_status :
         label                   : "horizon_local_status--{{ inventory_hostname }}"

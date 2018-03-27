@@ -16,6 +16,7 @@ disabled    : "{{ (inventory_hostname != groups['mons'][0] or check_name | match
 details     :
     file    : run_plugin_in_venv.sh
     args    : {{ ceph_args }}
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     mon_in_err :
         label                   : mon_in_err--{{ inventory_hostname }}

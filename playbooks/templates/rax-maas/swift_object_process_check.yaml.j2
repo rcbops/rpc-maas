@@ -8,6 +8,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/process_check_{% if inventory_hostname in groups['all_containers'] | default([]) %}container.py", "-c", "{{ inventory_hostname }}", "{% else %}host.py", "{% endif %}{{ maas_swift_object_process_names|join("\", \"") }}"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
 {% for process in maas_swift_object_process_names %}
     {{ process }}_process_status:
