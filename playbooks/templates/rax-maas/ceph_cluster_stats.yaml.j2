@@ -12,7 +12,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname != groups['mons'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : {{ ceph_args }}
@@ -26,7 +26,6 @@ alarms      :
             if (metric["cluster_health"] == 0) {
                 return new AlarmStatus(CRITICAL, "Ceph cluster error.");
             }
-
     ceph_health_warn :
         label                   : ceph_health_warn--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
