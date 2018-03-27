@@ -33,12 +33,16 @@ def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     tenant_id = keystone.tenant_id
 
-    HEAT_ENDPOINT = ('http://{ip}:8004/v1/{tenant}'.format
-                     (ip=args.ip, tenant=tenant_id))
+    heat_endpoint = ('{protocol}://{ip}:{port}/v1/{tenant}'.format(
+        ip=args.ip,
+        tenant=tenant_id,
+        protocol=args.protocol,
+        port=args.port
+    ))
 
     try:
         if args.ip:
-            heat = get_heat_client(endpoint=HEAT_ENDPOINT)
+            heat = get_heat_client(endpoint=heat_endpoint)
         else:
             heat = get_heat_client()
 
@@ -83,6 +87,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--port',
+                        action='store',
+                        default='8004',
+                        help='Port to use for the local heat API')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help='Protocol for the local heat API')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
