@@ -434,7 +434,7 @@ def make_parser():
                         help='The path for the swift-recon directory.')
     parser.add_argument('-t',
                         default='30',
-                        help='Set the swift-recon timeout.')
+                        help='Set a timeout value in seconds for swift-recon.')
     return parser
 
 
