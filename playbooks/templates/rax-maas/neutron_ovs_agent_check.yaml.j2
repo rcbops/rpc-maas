@@ -8,6 +8,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/neutron_ovs_agent_check.py"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     neutron_ovs_agent_status :
         label                   : neutron_ovs_agent_status--{{ inventory_hostname }}
@@ -17,7 +18,7 @@ alarms      :
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["neutron-openvswitch-agent_process_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "neutron-ovs-agent down");
-            }    
+            }
     ovsdb_server_process_status :
         label                   : ovsdb_server_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
@@ -26,7 +27,7 @@ alarms      :
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["ovsdb-server_process_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "ovsdb-server down");
-            }   
+            }
     ovs_vswitchd_process_status :
         label                   : ovs_vswitchd_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"

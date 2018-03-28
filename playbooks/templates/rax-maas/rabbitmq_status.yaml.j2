@@ -8,6 +8,7 @@ disabled    : "{{ (inventory_hostname != groups['rabbitmq_all'][0] or check_name
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/rabbitmq_status.py", "-H", "{{ ansible_host }}", "-n", "{{ ansible_hostname.split('.')[0] }}", "-U", "{{ maas_rabbitmq_user }}", "-p", "{{ maas_rabbitmq_password }}", "--{{ rabbitmq_http_protocol }}"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     rabbitmq_disk_free_alarm_status :
         label                   : rabbitmq_disk_free_alarm_status--{{ inventory_hostname }}

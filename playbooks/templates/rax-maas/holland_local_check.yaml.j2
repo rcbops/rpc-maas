@@ -9,6 +9,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/holland_local_check.py", "{{ container_name }}", "{{ holland_venv_bin + '/holland' }}"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
      holland_backup_status:
         label                   : holland_backup_status--{{ inventory_hostname }}

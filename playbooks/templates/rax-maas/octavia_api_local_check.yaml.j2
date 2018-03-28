@@ -8,6 +8,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/octavia_api_local_check.py", "{{ ansible_host }}", "--port", "{{ octavia_api_port }}", "--protocol", "{{ octavia_api_protocol }}"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     octavia_api_local_status :
         label                   : octavia_api_local_status--{{ inventory_hostname }}

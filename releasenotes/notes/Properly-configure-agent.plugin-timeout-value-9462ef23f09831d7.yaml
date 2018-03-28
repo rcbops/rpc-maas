@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    * Properly configure agent.plugin timeout value in plugin arguments.
+    * Add override to swift-recon checks and include a parser for timeout in swift-recon.py.

@@ -7,7 +7,8 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (inventory_hostname not in maas_swift_recon_nodes or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/swift-recon.py", "--swift-recon-path", "{{ swift_recon_path }}", "--ring-type", "container", "replication"]
+    args    : ["{{ maas_plugin_dir }}/swift-recon.py", "-t", "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}", "--swift-recon-path", "{{ swift_recon_path }}", "--ring-type", "container", "replication"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     swift_container_replication_failure_check :
         label                   : swift_container_replication_failure_check--{{ inventory_hostname }}

@@ -17,6 +17,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : {{ ceph_args }}
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
 {% for osd_id in ceph_osd_list %}
     ceph_warn_osd.{{ osd_id }} :

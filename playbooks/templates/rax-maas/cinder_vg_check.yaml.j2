@@ -8,6 +8,7 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/vg_check.py", "{{ cinder_backends[item.key]['volume_group'] }}"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     cinder_vg_space_status :
         label                   : cinder_vg_space_status--{{ inventory_hostname }}

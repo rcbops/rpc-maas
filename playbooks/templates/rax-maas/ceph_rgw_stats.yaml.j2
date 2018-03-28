@@ -13,6 +13,7 @@ disabled    : "{{ (inventory_hostname != groups['rgws'][0] or check_name | match
 details     :
     file    : run_plugin_in_venv.sh
     args    : {{ ceph_args }}
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 alarms      :
     ceph_rgw_status :
         label                   : ceph_rgw_status.{{ inventory_hostname }}
