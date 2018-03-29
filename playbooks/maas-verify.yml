@@ -66,7 +66,7 @@
 
     - name: "Allow MAAS time to run checks before verifying they're created"
       pause:
-        minutes: 5
+        minutes: "{{ verify_maas_pause }}"
       when:
         - maas_use_api | bool
         - maas_verify_wait | bool

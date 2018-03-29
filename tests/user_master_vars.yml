@@ -38,7 +38,7 @@ maas_rally_check_overrides:
   neutron_secgroups:
     enabled: true
   nova:
-    enabled: false
+    enabled: true
   nova_cinder:
     enabled: false
   swift:
