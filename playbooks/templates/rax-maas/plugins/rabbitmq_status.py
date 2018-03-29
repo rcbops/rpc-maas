@@ -180,7 +180,9 @@ def _get_node_metrics(session, metrics, protocol, host, port, name):
 
 def _get_queue_metrics(session, metrics, protocol, host, port):
     response = _get_rabbit_json(session, QUEUES_URL % (protocol, host, port))
-    msgs_excl_notifications = notification_messages = msgs_without_consumers = 0
+    msgs_excl_notifications = 0
+    notification_messages = 0
+    msgs_without_consumers = 0
     for queue in response:
         messages = queue.get('messages')
         consumers = queue.get('consumers')
