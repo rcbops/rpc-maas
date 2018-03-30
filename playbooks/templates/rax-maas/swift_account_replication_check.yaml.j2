@@ -25,7 +25,7 @@ alarms      :
         disabled                : {{ (('swift_account_replication_rate_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (rate(metric["time_avg"]) > {{ maas_swift_account_replication_growth_rate_threshold / maas_check_period}}) {
+            if (rate(metric["time_avg"]) > {{ maas_swift_account_replication_growth_rate_threshold }}) {
                 return new AlarmStatus(CRITICAL, "Swift Account Replication time growth rate is above configured threshold. Currently above {{ maas_swift_account_replication_growth_rate_threshold }}");
             }
     swift_account_replication_avg_time_check :

@@ -1,0 +1,3 @@
+---
+fixes:
+  - Fix rate functions for swift_account_replication_check, swift_container_replication_check, and swift_object_replication_check.
