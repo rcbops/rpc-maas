@@ -9,7 +9,7 @@ alarms            :
     idle_percent_average        :
         label                   : idle_percent_average--{{ inventory_hostname|quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('idle_percent_average--'+inventory_hostname|quote) | match(maas_excluded_alarms_regex) or inventory_hostname in (groups['shared-infra_hosts']|default([])) | ternary('false', 'true')) }}
+        disabled                : {{ (inventory_hostname in (groups['shared-infra_hosts']|default([])) | ternary('false', 'true')) }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["idle_percent_average"] <= {{ maas_cpu_idle_percent_avg_critical_threshold }}) {
