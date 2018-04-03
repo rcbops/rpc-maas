@@ -180,21 +180,30 @@ def _get_node_metrics(session, metrics, protocol, host, port, name):
 
 def _get_queue_metrics(session, metrics, protocol, host, port):
     response = _get_rabbit_json(session, QUEUES_URL % (protocol, host, port))
-    msgs_excl_notifications = sum([q['messages'] for q in response
-                                  if q['consumers'] > 0])
-    notification_messages = sum([q['messages'] for q in response
-                                if re.match('/^(versioned_)?notifications\.',
-                                            q['name']) and
-                                q['consumers'] > 0])
-    msgs_without_consumers = sum([q['messages'] for q in response
-                                 if q['consumers'] == 0])
+    msgs_excl_notifications = 0
+    notification_messages = 0
+    msgs_without_consumers = 0
+    for queue in response:
+        messages = queue.get('messages')
+        consumers = queue.get('consumers')
+        name = queue.get('name')
+        # RabbitMQ sometimes responds w/o messages or consumers (TURTLES-715)
+        if messages is None or consumers is None or name is None:
+            continue
+        if consumers > 0:
+            if re.match(r'/^(versioned_)?notifications\.', name):
+                notification_messages += messages
+            else:
+                msgs_excl_notifications += messages
+        elif consumers == 0:
+            msgs_without_consumers += messages
 
     metrics['notification_messages'] = {
         'value': notification_messages,
         'unit': 'messages'
     }
     metrics['msgs_excl_notifications'] = {
-        'value': msgs_excl_notifications - notification_messages,
+        'value': msgs_excl_notifications,
         'unit': 'messages'
     }
     metrics['msgs_without_consumers'] = {
