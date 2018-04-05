@@ -613,10 +613,13 @@ def get_auth_details(openrc_file=OPENRC):
 
 
 def get_url_for_type(endpoint, url_type, auth_version):
-    try:
-        return endpoint['url']
-    except ValueError:
-        return endpoint[url_type + 'URL']
+    # TURTLES-694: in kilo environments, we need to avoid v2.0 URLs, otherwise
+    # MaaS will 404 when it tries to check openstack services. in only this
+    # circumstance, we suggest a different URL; otherwise, for backward
+    # compatibility, we give two different endpoint keys a try
+    if auth_version == 'v3' and 'v2.0' in endpoint.get('url', ''):
+        return None
+    return endpoint.get('url', endpoint.get(url_type + 'URL'))
 
 
 def get_endpoint_url_for_service(service_type, auth_ref,
