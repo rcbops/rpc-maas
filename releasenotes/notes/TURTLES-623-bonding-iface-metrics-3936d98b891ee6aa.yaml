@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    * Added new bonding interface metric `host_bonding_iface_<iface>_slave_down`
+

@@ -48,9 +48,9 @@ def bonding_ifaces_check(_):
                     has_slave_down = True
 
         if has_slave_down:
-                    metric_bool('host_bonding_iface_%s_slave_down' %
-                                bonding_iface,
-                                True)
+            metric_bool('host_bonding_iface_%s_slave_down' %
+                        bonding_iface,
+                        True)
         else:
             metric_bool('host_bonding_iface_%s_slave_down' %
                         bonding_iface,
