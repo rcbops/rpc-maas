@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    * Fixes endpoint handling to better support deployment in Kilo environments

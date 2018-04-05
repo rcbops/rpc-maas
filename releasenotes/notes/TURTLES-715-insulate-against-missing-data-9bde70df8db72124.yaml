@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    * Adjusts rabbitmq_status check to better handle missing RabbitMQ API data
