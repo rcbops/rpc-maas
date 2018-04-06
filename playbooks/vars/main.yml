@@ -174,7 +174,12 @@ maas_check_period: 60
 #   WARNING: Changing this variable affects a customer's SLA, DO NOT change unless you are sure you
 #            are sure you know what you're doing!
 #
-maas_check_timeout: 30
+# TURTLES-745: Now that timeouts are properly applied to agent.plugin checks,
+# the maas_check_timeout value should be raised from 30s to 59s (1s short of the
+# period). If not, I suspect that we're going to see a higher percentage of
+# plugin timeouts as the default value is currently half that of what we have
+# been using all this time (60s default in rackspace monitoring).
+maas_check_timeout: 59
 
 #
 # Customizing MaaS check period and timeout.

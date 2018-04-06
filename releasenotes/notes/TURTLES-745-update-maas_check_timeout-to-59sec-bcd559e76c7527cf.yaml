@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    * Raises MaaS check timeout to 59 seconds, canonizing a de facto default
