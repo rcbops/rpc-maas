@@ -55,3 +55,10 @@ Hummingbird playbook variables
 .. literalinclude:: ../../playbooks/vars/maas-hummingbird.yml
    :language: yaml
    :start-after: under the License.
+
+Ceph playbook variables
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. literalinclude:: ../../playbooks/vars/maas-ceph.yml
+   :language: yaml
+   :start-after: under the License.

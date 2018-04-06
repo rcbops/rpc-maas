@@ -57,5 +57,6 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas-ceph.yml
   tags:
     - maas-ceph-rgws

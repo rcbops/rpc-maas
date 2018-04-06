@@ -1,0 +1,8 @@
+---
+features:
+  - Add ability to set the port used by the Ceph rados Gateway
+    service.
+    Use the ``radosgw_civetweb_port`` variable to set the port.
+    This defaults to ``8080`` to match the ``ceph-ansible``
+    default, but the ``radosgw_civetweb_port`` variable must
+    be set to the same value in your Ceph and MaaS configurations.
