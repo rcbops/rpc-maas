@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Octavia will place Load Balancers in provisoning status ERROR
+    if one or more OpenSrack services it relies on failed. This
+    will monitor and warn if a Load Balancer is placed into ERROR
+    for further investigation by support.
