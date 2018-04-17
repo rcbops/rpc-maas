@@ -19,10 +19,3 @@ Documentation
 Documentation for the project can be found under: docs/source/index.rst
 
 To build the documentation simply execute ``tox -e docs``.
-
-
-Submitting Bugs
----------------
-
-Please submit all bugs to the rpc-maas repository:
-https://github.com/rcbops/rpc-maas/issues
