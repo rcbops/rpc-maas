@@ -39,11 +39,11 @@
 
     - name: Config validation - ensure concurrency <= times
       fail:
-        msg: "Config error for {{ item }}: concurrency ({{ maas_rally_checks[item]['concurrency'] }}) must be less than or equal to times ({{ maas_rally_checks[item]['times'] }})."
+        msg: "Config error for {{ item }}: concurrency ({{ maas_rally_checks[item]['task_args']['concurrency'] }}) must be less than or equal to times ({{ maas_rally_checks[item]['task_args']['times'] }})."
       with_items: "{{ enabled_checks }}"
       when:
         - not maas_rally_skip_config_validation
-        - maas_rally_checks[item]['concurrency'] > maas_rally_checks[item]['times']
+        - maas_rally_checks[item]['task_args']['concurrency'] > maas_rally_checks[item]['task_args']['times']
 
     - name: Config validation - ensure ( times / concurrency ) * crit_threshold < poll_interval
       fail:
@@ -51,7 +51,7 @@
       with_items: "{{ enabled_checks }}"
       when:
         - not maas_rally_skip_config_validation
-        - (maas_rally_checks[item]['times']/maas_rally_checks[item]['concurrency'])*maas_rally_checks[item]['crit_threshold'] >= maas_rally_checks[item]['poll_interval']
+        - (maas_rally_checks[item]['task_args']['times']/maas_rally_checks[item]['task_args']['concurrency'])*maas_rally_checks[item]['crit_threshold'] >= maas_rally_checks[item]['poll_interval']
 
     - name: Config validation - ensure warning threshold < critical threshold
       fail:
@@ -215,7 +215,7 @@
         quota set \
         {% for quota in item.value.per_iter_quotas %} \
             --{{ quota }} \
-            {{ item.value.per_iter_quotas[quota]*item.value.concurrency*item.value.quota_factor }} \
+            {{ item.value.per_iter_quotas[quota]*item.value.task_args.concurrency*item.value.quota_factor }} \
         {% endfor %} \
         {{ item.value.project }}
       with_dict: "{{ maas_rally_checks }}"
@@ -480,9 +480,9 @@
         network_uuids: "{{ network_uuids|default({})|combine({item.name: item.id}) }}"
       with_items: "{{ openstack_networks }}"
 
-    - name: Add network UUIDs to checks' extra_vars
+    - name: Add network UUIDs to checks' task_args
       set_fact:
-        maas_rally_checks: "{{ maas_rally_checks|combine({item.key: {'extra_vars': {'net_id': network_uuids[item.value.net_name | default('rally_net_' + item.key)]}}}, recursive=True) }}"
+        maas_rally_checks: "{{ maas_rally_checks|combine({item.key: {'task_args': {'net_id': network_uuids[item.value.net_name | default('rally_net_' + item.key)]}}}, recursive=True) }}"
       with_dict: "{{ maas_rally_checks }}"
       when:
         - item.value.enabled

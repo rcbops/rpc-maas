@@ -382,15 +382,7 @@ def main():
         logger.debug("{} - acquired lock for task "
                      "{}".format(args.task, task_uuid))
 
-        task_args = {}
-        if args.times is not None:
-            task_args['times'] = args.times
-        if args.concurrency is not None:
-            task_args['concurrency'] = args.concurrency
-        if args.extra_vars is not None:
-            for extra_var in args.extra_vars:
-                k, v = extra_var.lstrip().split('=')
-                task_args.update({k: v})
+        task_args = plugin_config['scenarios'][args.task]['task_args']
 
         with open(task_file) as f:
             input_task = f.read()

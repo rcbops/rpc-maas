@@ -1,0 +1,17 @@
+---
+features:
+  - The maas_rally task arguments are now read from the
+    plugin's configuration file (/etc/rally/maas_rally.yml
+    by default).  This eliminates the need to look up things
+    such as network uuids when running a performance scenario
+    manually for troubleshooting purposes.
+upgrade:
+  - Any custom scenarios or overrides setting non-default
+    `times` and/or `concurrency` values will need to move
+    these settings to the `task_args` dictionary.
+  - Any configuration overrides of the `extra_vars`
+    dictionary will need to rename the dictionary to
+    `task_args`.
+  - After running the `maas-openstack-rally.yml` playbook
+    the `rally_*` checks in MaaS will fail until the agent
+    is restarted and check definitions are updated.

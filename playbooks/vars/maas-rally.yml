@@ -256,8 +256,6 @@ maas_rally_default_resource_cleanup_alarm_threshold: 3
 #
 maas_rally_check_default_template:
   enabled: false
-  times: "{{ maas_rally_default_times }}"
-  concurrency: "{{ maas_rally_default_concurrency }}"
   alarm_stat: "{{ maas_rally_default_alarm_stat }}"
   warn_threshold: "{{ maas_rally_default_warn_threshold }}"
   crit_threshold: "{{ maas_rally_default_crit_threshold }}"
@@ -268,7 +266,9 @@ maas_rally_check_default_template:
   delayed_by_lock_alarm_threshold: "{{ maas_rally_default_delayed_by_lock_alarm_threshold }}"
   resource_cleanup_alarm_threshold: "{{ maas_rally_default_resource_cleanup_alarm_threshold }}"
   extra_user_roles: []
-  extra_vars: {}
+  task_args:
+    times: "{{ maas_rally_default_times }}"
+    concurrency: "{{ maas_rally_default_concurrency }}"
   primary_resources: []
   quota_factor: "{{ maas_rally_default_quota_factor }}"
   per_iter_quotas:    # Resources required per iteration of the scenario. These
