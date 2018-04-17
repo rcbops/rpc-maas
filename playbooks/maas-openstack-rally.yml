@@ -77,6 +77,11 @@
   hosts: "{{ maas_rally_target_group }}"
   gather_facts: true
   pre_tasks:
+    - name: Copy over pip constraints
+      copy:
+        src: "files/pip-constraints.txt"
+        dest: "/tmp/pip-constraints.txt"
+
     - name: Install maas and maas_rally pip packages to venv
       pip:
         name: "{{ maas_pip_packages | union(maas_rally_pip_packages) | join(' ') }}"
@@ -437,6 +442,30 @@
   gather_facts: false
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Ensure maas plugin directory exists
+      file:
+        path: "{{ maas_plugin_dir }}"
+        state: directory
+        owner: "root"
+        group: "root"
+        mode: "0755"
+
+    - name: Ensure rackspace-monitoring-agent config directory exists
+      file:
+        name: /etc/rackspace-monitoring-agent.conf.d
+        state: directory
+        group: root
+        owner: root
+
+    - name: Ensure MaaS plugins are installed
+      synchronize:
+        src: "files/rax-maas/plugins/"
+        dest: "{{ maas_plugin_dir }}"
+        recursive: yes
+        times: yes
+        rsync_opts:
+          - "--no-motd"
 
     - name: Install maas_rally venv wrapper script
       template:
