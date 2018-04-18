@@ -28,6 +28,20 @@ maas_pip_packages:
   - psutil
   - rackspace-monitoring-cli
   - requests
+  - python-memcached
+  - PyYAML
+  - waxeye
+  - httplib2
+  - python-cinderclient
+  - python-glanceclient
+  - python-heatclient
+  - python-ironicclient
+  - python-keystoneclient
+  - python-magnumclient
+  - python-neutronclient
+  - python-novaclient
+  - python-openstackclient
+
 
 ## PIP for maas
 # Path to pip download/installation script.
