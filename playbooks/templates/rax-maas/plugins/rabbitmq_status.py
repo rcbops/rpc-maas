@@ -181,7 +181,7 @@ def _get_node_metrics(session, metrics, protocol, host, port, name):
 def _get_queue_metrics(session, metrics, protocol, host, port):
     response = _get_rabbit_json(session, QUEUES_URL % (protocol, host, port))
     notification_messages = sum([q['messages'] for q in response
-                                if re.match('/^(versioned_)?notifications\.',
+                                if re.match('^/?(versioned_)?notifications\.',
                                             q['name']) and
                                 q['consumers'] > 0])
 
