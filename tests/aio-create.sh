@@ -131,6 +131,7 @@ if [ "${RE_JOB_SCENARIO}" == "ceph" ]; then
   git clone https://github.com/rcbops/rpc-ceph /opt/rpc-ceph
   export RPC_MAAS_DIR="$(pwd)"
   pushd /opt/rpc-ceph
+    pip install -U -r /opt/rpc-ceph/global-requirement-pins.txt
     RE_JOB_SCENARIO="functional" TEST_RPC_MAAS="False" bash /opt/rpc-ceph/gating/post_merge_test/run
   popd
   exit
@@ -153,9 +154,6 @@ pushd /opt/openstack-ansible
     #                  requirements file. This patch gets the role from master and puts
     #                  into place which satisfies the role requirement.
     mkdir -p /etc/ansible/roles
-    if [[ ! -d "/etc/ansible/roles/sshd" ]]; then
-      git clone https://github.com/willshersystems/ansible-sshd /etc/ansible/roles/sshd
-    fi
 
   elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
     git checkout "06d0fd344b5b06456a418745fe9937a3fbedf9b2"  # Last commit of Liberty
@@ -168,6 +166,8 @@ pushd /opt/openstack-ansible
     git checkout "fbafe397808ef3ee3447fe8fefa6ac7e5c6ff144"  # Last commit of Mitaka
     pin_jinja
     pin_galera "10.0"
+    export OA_DIR="/opt/openstack-ansible"
+    export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c $OA_DIR/global-requirement-pins.txt'"}
 
   elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     git checkout "stable/newton"  # Branch checkout of Newton (Current Stable)
@@ -196,6 +196,9 @@ pushd /opt/openstack-ansible
 
   # Disable tempest on older releases
   sed -i '/.*run-tempest.sh.*/d' scripts/gate-check-commit.sh  # Disable the tempest run
+
+  # NOTE(tonytan4ever): pin pip to the last working version before pip 10
+  pip install -U -r /opt/openstack-ansible/global-requirement-pins.txt
 
   # Pin python-ldap so it stops breaking everything
   echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt

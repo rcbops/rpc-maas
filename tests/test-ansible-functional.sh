@@ -156,7 +156,8 @@ function enable_maas_api {
   virtualenv --python="${PYTHON_BIN}" /opt/test-maas
   /opt/test-maas/bin/pip install "jinja2" --isolated --upgrade --force-reinstall
   /opt/test-maas/bin/pip install -r test-requirements.txt --isolated --upgrade --force-reinstall
-  /opt/test-maas/bin/pip install "pyrax" --isolated --upgrade --force-reinstall
+  /opt/test-maas/bin/pip install "SecretStorage < 3" --isolated
+  /opt/test-maas/bin/pip install "pyrax" --isolated
 
   # Collect a maas auth token for API tests
   /opt/test-maas/bin/python $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \

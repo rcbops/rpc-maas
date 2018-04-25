@@ -24,6 +24,7 @@
         login_host: "127.0.0.1"
         name: "{{ grafana_db_name }}"
         state: "present"
+      no_log: True
 
     - name: Grant access to the DB for the service
       mysql_user:
@@ -38,6 +39,7 @@
       with_items:
         - "localhost"
         - "%"
+      no_log: True
 
     - name: Set galera_address
       set_fact:
@@ -178,6 +180,7 @@
       until: rpc_maas_influx|success
       retries: 5
       delay: 5
+      no_log: True
 
     - name: Create RPC-MaaS InfluxDB connection
       _uri:
@@ -193,6 +196,7 @@
       until: rpc_maas_influx_conn|success
       retries: 5
       delay: 5
+      no_log: True
       when:
         - rpc_maas_influx.status != 200
 
@@ -210,6 +214,7 @@
       until: rpc_maas_influx_grafana_dash|success
       retries: 5
       delay: 5
+      no_log: True
       with_items:
         - network.json
         - system.json
@@ -232,6 +237,7 @@
       retries: 5
       delay: 5
       with_dict: "{{ grafana_panels }}"
+      no_log: True
       tags:
         - grafana-dynamic-panel-upload
 
