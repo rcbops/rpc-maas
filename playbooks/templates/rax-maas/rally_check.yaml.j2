@@ -3,8 +3,6 @@
 {% set check_name = label+'--'+inventory_hostname %}
 {% set period = item.value.poll_interval %}
 {% set timeout = period - 1 %}
-{% set times = item.value.times %}
-{% set concurrency = item.value.concurrency %}
 {% set crit_threshold = item.value.crit_threshold %}
 {% set warn_threshold = item.value.warn_threshold %}
 {% set delayed_by_lock_threshold = item.value.delayed_by_lock_alarm_threshold %}
@@ -22,7 +20,7 @@ timeout     : "{{ timeout }}"
 disabled    : "{{ (inventory_hostname not in maas_rally_primary_node or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_rally_venv.sh
-    args    : ["{{ maas_plugin_dir }}/rally_performance.py", "{{ name }}", "-t {{ times }}", "-c {{ concurrency }}" {% if influxdb %}, "--influxdb" {% endif %} {% for k,v in item.value.extra_vars.iteritems() | list %}, "-e {{k}}={{v}}" {% endfor %}]
+    args    : ["{{ maas_plugin_dir }}/rally_performance.py", "{{ name }}" {% if influxdb %}, "--influxdb" {% endif %}]
     timeout : {{ timeout * 1000 | int}}
 alarms      :
     rally_{{ name }}_total_{{ stat }}_warn :
