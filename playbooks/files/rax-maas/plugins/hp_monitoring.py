@@ -52,7 +52,7 @@ def get_chassis_status(command, item):
 
 def get_drive_status(command):
     return check_command((command, 'ctrl', 'all', 'show', 'config'),
-                         'logicaldrive', 'OK)')
+                         'logicaldrive', ('OK)', 'OK, Encrypted)'))
 
 
 def get_controller_status(command):

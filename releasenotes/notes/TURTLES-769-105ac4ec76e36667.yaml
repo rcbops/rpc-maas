@@ -1,0 +1,3 @@
+---
+fixes:
+  - Properly validate logical volume status if HP volume is encrypted
