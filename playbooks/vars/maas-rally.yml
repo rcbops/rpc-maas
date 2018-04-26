@@ -222,6 +222,7 @@ maas_rally_pip_packages:
   - "git+{{ maas_rally_git_repo }}@{{ maas_rally_git_version }}#egg=rally"
   - influxdb
   - numpy
+  - "openstacksdk<0.12.0"
   - pymysql
 
 #
