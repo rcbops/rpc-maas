@@ -29,4 +29,16 @@ alarms      :
             if (metric["osd.{{ osd_id }}_up"] == 0) {
                 return new AlarmStatus(CRITICAL, "Ceph osd error.");
             }
+    osd_percent_used.{{ osd_id }} :
+        label                   : osd_percent_used.{{ osd_id }}--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (('osd_percent_used.'+osd_id|string+'--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric["osd.{{ osd_id }}_percent_used"] >= 85) {
+                return new AlarmStatus(CRITICAL, "Ceph osd is >= 85% full.");
+            }
+            if (metric["osd.{{ osd_id }}_percent_used"] >= 75) {
+                return new AlarmStatus(WARNING, "Ceph osd is >= 75% full.");
+            }
 {% endfor %}

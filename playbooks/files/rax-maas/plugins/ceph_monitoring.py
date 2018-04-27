@@ -69,6 +69,12 @@ def get_ceph_osd_dump(client, keyring, fmt='json', container_name=None):
                          container_name=container_name)
 
 
+def get_ceph_osd_df(client, keyring, fmt='json', container_name=None):
+    return check_command(('ceph', '--format', fmt, '--name', client,
+                          '--keyring', keyring, 'osd', 'df'),
+                         container_name=container_name)
+
+
 def get_mon_statistics(client=None, keyring=None, host=None,
                        container_name=None):
     ceph_status = get_ceph_status(client=client,
@@ -113,6 +119,12 @@ def get_osd_statistics(client=None, keyring=None, osd_ids=None,
             if _osd['osd'] == osd_id:
                 osd = _osd
                 break
+
+        for _osd in osd_df['nodes']:
+            if _osd['id'] == osd_id:
+                maas_common.metric("%s_percent_used" % osd_ref,
+                        'uint32',
+                        int(_osd['utilization']))
 
 
 def get_cluster_statistics(client=None, keyring=None, container_name=None):
