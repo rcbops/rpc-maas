@@ -1,0 +1,7 @@
+---
+other:
+  - Improvements were made to maas_rally allow running the
+    maas-openstack-rally.yml playbook without installing
+    the MaaS agent.  This supports use cases where rally
+    performance scenarios need to be run without shipping
+    metrics to the MaaS API.
