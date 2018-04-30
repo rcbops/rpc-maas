@@ -1,0 +1,3 @@
+---
+fixes:
+  - Revert limiting enablement of rgw checks to first node of each group. This was an incorrect assumption.
