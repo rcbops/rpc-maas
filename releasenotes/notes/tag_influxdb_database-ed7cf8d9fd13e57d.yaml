@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    maas_rally now adds an 'influxdb_database' tag to influxdb
+    datapoints, which allows for granular routing to different
+    backend influxdb databases using telegraf.
