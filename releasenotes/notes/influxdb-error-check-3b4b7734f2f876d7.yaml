@@ -1,0 +1,7 @@
+---
+features:
+  - If maas_rally is configured to write to an influxdb endpoint, a new metric
+    (influxdb_success) and alarm will be created to generate alerts if writing
+    to influxdb fails.  A failure to write to influxdb is no longer fatal,
+    which allows performance metrics to still be reported via the MaaS API even
+    if the influxdb endpoint is unavailable.

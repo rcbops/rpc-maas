@@ -435,7 +435,12 @@ def main():
     metric('maas_check_duration', 'double', "{:.2f}".format((end - start) * 1))
 
     if args.influxdb:
-        send_metrics_to_influxdb(plugin_config, logger)
+        try:
+            send_metrics_to_influxdb(plugin_config, logger)
+        except:
+            metric('influxdb_success', 'uint32', 0)
+        else:
+            metric('influxdb_success', 'uint32', 1)
 
     return
 
