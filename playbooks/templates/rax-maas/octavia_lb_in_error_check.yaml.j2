@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "octavia_num_lb_in_error_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
@@ -9,6 +10,8 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/octavia_error_check.py", "{{ ansible_host }}", "--port", "{{ octavia_api_port }}", "--protocol", "{{ octavia_api_protocol }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
     octavia_api_local_status :
         label                   : octavia_num_lb_in_error_status--{{ inventory_hostname }}

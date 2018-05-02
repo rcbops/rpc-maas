@@ -34,3 +34,25 @@
     maas_pw_check: "{{ lookup('file', playbook_dir + '/../tests/user_rpcm_secrets.yml') | from_yaml }}"
   tags:
     - maas-pre-flight
+
+
+- name: Check metadata variables are defined
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Get rendered test metadata template string
+      set_fact:
+        rendered_maas_metata_test_tmpl: "{{ lookup('template', playbook_dir + '/templates/rax-maas/test_metadata.yaml.j2') }}"
+
+    - name: Check metadata variables are defined
+      fail:
+        msg: >-
+          There are missing metadata environment variable(s), as you can see 'unknown' from
+          this test template '{{ rendered_maas_metata_test_tmpl }}'. Please set proper env
+          variables, possible options are: maas_env_identifier, maas_rpco_dir, maas_osa_dir
+      when:
+        - maas_pre_flight_metadata_check_enabled | default(true) | bool
+        - rendered_maas_metata_test_tmpl | search('unknown')
+  tags:
+    - maas-pre-flight

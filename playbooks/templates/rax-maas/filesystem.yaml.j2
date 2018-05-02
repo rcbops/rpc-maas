@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "filesystem_"+item.filesystem %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.filesystem
@@ -7,6 +8,8 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     target  : "{{ item.filesystem }}"
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
     filesystem_{{ item.filesystem }}_check :
         label                   : "Disk space used on {{ item.filesystem }}--{{ inventory_hostname }}"

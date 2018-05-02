@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    Added common metadata section to all major maas check templates
+upgrade:
+  - |
+    Common maas check template metadata includes: product(string, defaults to rpco), rpc_env_identifier(string), 
+    product_version(string), osa_version(string), rpc_maas_version(string), rpc_maas_deploy_date(string), 
+    rpc_check_category(string).

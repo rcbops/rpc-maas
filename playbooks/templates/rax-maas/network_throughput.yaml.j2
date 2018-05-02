@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "network_throughput_"+item.0.name %}
 {% set check_name = label+'--'+inventory_hostname %}
 {% set max_speed = item.0.max_speed %}
@@ -13,6 +14,8 @@ timeout     : {{ maas_check_timeout| default(30) }}
 disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details:
   target: {{ item.0.name }}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms:
     alarm-network-receive:
         label: Network receive rate on {{ item.0.name }}

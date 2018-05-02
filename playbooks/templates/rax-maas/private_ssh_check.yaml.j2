@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "private_ssh_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type              : remote.tcp
@@ -11,7 +12,8 @@ details           :
   banner_match    : "SSH"
 monitoring_zones_poll:
   - "{{ maas_private_monitoring_zone }}"
-metadata          :
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
   event-type-override: "ssh"
 alarms            :
   Banner_Match              :

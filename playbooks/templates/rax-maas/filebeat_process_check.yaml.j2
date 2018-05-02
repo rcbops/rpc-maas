@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "filebeat_process_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
@@ -9,6 +10,8 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/process_check_{% if inventory_hostname in groups['all_containers'] | default([]) %}container.py", "-c", "{{ inventory_hostname }}", "{% else %}host.py", "{% endif %}{{ filebeat_process_names|join("\", \"") }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
 {% for process in filebeat_process_names %}
     {{ process }}_process_status:

@@ -1,0 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
+{% set label = "test_metric_check" %}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}

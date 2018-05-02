@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "holland_local_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 {% set holland_venv_bin = (maas_holland_venv_enabled | bool | ternary(maas_holland_venv_bin,'/usr/local/bin')) %}
@@ -10,6 +11,8 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/holland_local_check.py", "{{ container_name }}", "{{ holland_venv_bin + '/holland' }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
      holland_backup_status:
         label                   : holland_backup_status--{{ inventory_hostname }}
