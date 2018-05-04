@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Managed Kubernetes installs several lxc-conatiners for various
+    auhentication related functionality (etp, etg, auth, ui). This
+    will monitor if the respective processes are up and the API
+    endpoints are accessible. UI also includes checks for the LB
+    whereas the other services only have local checks.
