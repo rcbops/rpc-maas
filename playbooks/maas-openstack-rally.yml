@@ -77,18 +77,12 @@
   hosts: "{{ maas_rally_target_group }}"
   gather_facts: true
   pre_tasks:
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-
     - name: Install maas and maas_rally pip packages to venv
       pip:
-        name: "{{ maas_pip_packages | union(maas_rally_pip_packages) | join(' ') }}"
+        name: "{{ maas_rally_pip_packages | join(' ') }}"
         state: "{{ maas_rally_pip_package_state }}"
         extra_args: >-
           --isolated
-          --constraint /tmp/pip-constraints.txt
           {{ pip_install_options | default('') }}
         virtualenv: "{{ maas_rally_venv }}"
       register: install_pip_packages
