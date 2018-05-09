@@ -219,11 +219,12 @@ maas_rally_pip_package_state: present
 # pip packages required for plugin functionality
 #
 maas_rally_pip_packages:
-  - "git+{{ maas_rally_git_repo }}@{{ maas_rally_git_version }}#egg=rally"
   - influxdb
+  - "keystoneauth1>=3.0.0"
+  - "git+https://github.com/openstack/monitorstack@master#egg=monitorstack"
   - numpy
-  - "openstacksdk<0.12.0"
   - pymysql
+  - "git+{{ maas_rally_git_repo }}@{{ maas_rally_git_version }}#egg=rally"
 
 #
 #  Default values for performance checks.  They are intentionally conservative

@@ -103,6 +103,15 @@ neutron_provider_networks:
   fi
 }
 
+function add_lxc_overrides {
+  if [ ! -e /etc/openstack_deploy/user_resolvconf_fix.yml ] ; then
+    touch /etc/openstack_deploy/user_resolvconf_fix.yml
+  fi
+  echo '
+lxc_cache_prep_pre_commands: "rm -f /etc/resolv.conf || true"
+lxc_cache_prep_post_commands: "ln -s ../run/resolvconf/resolv.conf /etc/resolv.conf -f"' | tee -a /etc/openstack_deploy/user_resolvconf_fix.yml
+}
+
 ## Main ----------------------------------------------------------------------
 
 echo "Gate test starting
@@ -172,6 +181,9 @@ pushd /opt/openstack-ansible
   elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     git checkout "stable/newton"  # Branch checkout of Newton (Current Stable)
     enable_ironic
+    # NOTE(tonytan4ever): newton needs this to get around gating:
+    # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
+    add_lxc_overrides
 
   elif [ "${RE_JOB_SCENARIO}" == "ocata" ]; then
     git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
