@@ -17,7 +17,7 @@ alarms      :
         disabled                : {{ ((quota+'--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["{{ quota }}] >=90 ) {
+            if (metric["{{ quota }}"] >=90 ) {
                 return new AlarmStatus(CRITICAL, "Octavia quota {{ quota }} almost exceeded");
             }
 {% endfor %}

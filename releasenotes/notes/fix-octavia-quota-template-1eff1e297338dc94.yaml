@@ -1,0 +1,3 @@
+---
+fixes:
+  - Fix non-quoted metric in Octavia quota template.
