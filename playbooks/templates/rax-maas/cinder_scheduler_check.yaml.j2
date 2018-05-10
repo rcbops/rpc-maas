@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "cinder_scheduler_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
@@ -9,6 +10,8 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/cinder_service_check.py", "--host", "{{ ansible_nodename }}", "--protocol", "{{ cinder_client_protocol }}", "{{ internal_vip_address }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
     cinder_scheduler_status :
         label                   : cinder_scheduler_status--{{ inventory_hostname }}

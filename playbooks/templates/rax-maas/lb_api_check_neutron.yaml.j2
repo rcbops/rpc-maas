@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "lb_api_check_neutron" %}
 {% set check_name = label+'--'+maas_lb_name %}
 type              : remote.http
@@ -13,6 +14,8 @@ monitoring_zones_poll:
 {% for zone in maas_monitoring_zones %}
   - {{ zone }}
 {% endfor %}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms            :
     lb_api_alarm_neutron    :
         label               : lb_api_alarm_neutron

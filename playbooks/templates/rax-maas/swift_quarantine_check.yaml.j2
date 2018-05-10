@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "swift_quarantine_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
@@ -9,6 +10,8 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/swift-recon.py", "-t", "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}", "--swift-recon-path", "{{ swift_recon_path }}", "quarantine"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
     swift_quarantine_object_failed :
         label                   : swift_quarantine_object_failed--{{ inventory_hostname }}

@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "private_lb_api_check_heat_cloudwatch" %}
 {% set check_name = label+'--'+maas_lb_name %}
 type              : remote.http
@@ -11,6 +12,8 @@ details           :
     url           : "{{ maas_heat_cloudwatch_scheme | default(maas_scheme) }}://{{ maas_external_hostname }}:8003"
 monitoring_zones_poll:
   - "{{ maas_private_monitoring_zone }}"
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms            :
     private_lb_api_alarm_heat_cloudwatch :
         label               : private_lb_api_alarm_heat_cloudwatch

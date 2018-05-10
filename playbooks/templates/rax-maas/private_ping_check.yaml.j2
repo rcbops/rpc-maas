@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "private_ping_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type              : remote.ping
@@ -10,7 +11,8 @@ details           :
   count           : {{ private_ping_check_count }}
 monitoring_zones_poll:
   - "{{ maas_private_monitoring_zone }}"
-metadata          :
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
   event-type-override: "ping"
 alarms            :
   Packet_loss               :

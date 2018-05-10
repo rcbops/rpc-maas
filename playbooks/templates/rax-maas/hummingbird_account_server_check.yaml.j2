@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "hummingbird_account_server_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
@@ -9,6 +10,8 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/service_api_local_check.py", "hummingbird_account_server", "--path", "/healthcheck", "{{ service_ip }}", "6002"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
     hummingbird_account_server_api_local_status :
         label                   : hummingbird_account_server_api_local_status--{{ inventory_hostname }}

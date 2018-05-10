@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "nova_console_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 {% if nova_console_type == 'spice' %}
@@ -16,6 +17,8 @@ details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/service_api_local_check.py", "{{ console_service_name }}", "{{ ansible_host }}", "{{ nova_console_port }}", "--path", "{{ nova_console_base_url }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
     nova_{{ console_service_name }}_api_local_status :
         label                   : nova_{{ console_service_name}}_api_local_status--{{ inventory_hostname }}

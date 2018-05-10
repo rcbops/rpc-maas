@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set name = item.key %}
 {% set label = "rally_"+item.key %}
 {% set check_name = label+'--'+inventory_hostname %}
@@ -22,6 +23,8 @@ details     :
     file    : run_plugin_in_rally_venv.sh
     args    : ["{{ maas_plugin_dir }}/rally_performance.py", "{{ name }}" {% if influxdb %}, "--influxdb" {% endif %}]
     timeout : {{ timeout * 1000 | int}}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
     rally_{{ name }}_total_{{ stat }}_warn :
         label                   : rally_{{ name }}_total_{{ stat }}_warn--{{ inventory_hostname }}
