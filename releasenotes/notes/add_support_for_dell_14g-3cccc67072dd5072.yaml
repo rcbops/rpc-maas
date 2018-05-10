@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Adds support for Dell Open Manage 9.1.0 in the openmanage plugin.  9.1.0
+    provides support for Dell 14th generation servers.
