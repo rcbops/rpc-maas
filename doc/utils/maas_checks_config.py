@@ -1,3 +1,6 @@
+# This has to use Python 2.7 (in 2018!)
+from __future__ import print_function
+
 import collections
 import itertools
 try:
@@ -13,17 +16,36 @@ import jinja2.meta
 import yaml
 
 
-TEMPLATES_DIR = "playbooks/templates/rax-maas"
-VARS_DIR = "playbooks/vars"
+PLAYBOOKS_DIR = "playbooks/"
+TEMPLATES_DIR = "{root}/templates/rax-maas".format(root=PLAYBOOKS_DIR)
+VARS_DIR = "{root}/vars".format(root=PLAYBOOKS_DIR)
 
 # NOTE: This regex includes the outer parenthesis. This is at least
 # consistent in that we can always strip the first and last charaters
 # off, but consider improving this to save a string manipulation step.
 CRITERIA = re.compile("\\(([^()]*|\\([^()]*\\))*\\)")
 
+# The following template files are not processed by this script.
+IGNORED_TEMPLATES = (
+    "checks_base.yaml.j2", # base template, nothing in there to use.
+    "maas_rally.yaml.j2", # not check related
+    "rally_deployment.yaml.j2", # not check related
+    "clouds.yaml.j2", # not check related
+    )
+
 
 class SilentUndefined(jinja2.Undefined):
 
+    # For Python 2
+    def __unicode__(self):
+        """If this gets unicode'ed, return the undefined version back.
+
+        We need this to remain undefined when searching for the
+        undefined criteria.
+        """
+        return u"{{ %s }}" % self._undefined_name
+
+    # For Python 3
     def __str__(self):
         """If this gets str'ed, return the undefined version back.
 
@@ -37,7 +59,7 @@ class SilentUndefined(jinja2.Undefined):
         return str(self._undefined_name)
 
     # For any access, return the string.
-    __getitem__ = __getattr__ =_return_name
+    __getitem__ = __getattr__ = _return_name
 
     # rabbitmq_status.yaml.j2 divides a threshold by a time
     # so we need to handle that. I'm not aware of how we can *actually*
@@ -124,7 +146,7 @@ def _get_globals(config_variables):
                     "maas_lb_name")
 
     # For most names, just set the value to itself. It's mostly a placeholder.
-    new_globals = {k:k for k in global_names}
+    new_globals = {k: "<%s>" % k for k in global_names}
 
     # These regexes get created as a part of a task when the maas playbooks
     # are run.
@@ -145,17 +167,38 @@ def _get_globals(config_variables):
     # NOTE: Don't copy config_variables into new_globals wholesale as we
     # want things such as alarm criteria to remain as actual template values.
     for name in ("elasticsearch_process_names",
+                 "ceph_radosgw_protocol",
                  "filebeat_process_names",
                  "rsyslogd_process_names",
                  "maas_swift_account_process_names",
                  "maas_swift_container_process_names",
-                 "maas_swift_object_process_names"):
+                 "maas_swift_object_process_names",
+                 "maas_managed_k8s_auth_process_name",
+                 "maas_managed_k8s_etp_process_name",
+                 "maas_managed_k8s_etg_process_name",
+                 "maas_managed_k8s_ui_process_name"):
         new_globals[name] = config_variables[name]
 
     # There are a few labels that use `item` from with_items
     # or with_together, so fake them out.
     new_globals["item"] = {"label": "label", "key": "key",
-                           "filesystem": "<filesystem>"}
+                           "filesystem": "<filesystem>",
+                           "clusters": {"name": "<cluster-name>"}}
+
+    # rally_check.yaml.j2 and maas-rally.yml are much more involved than
+    # most other checks, in that there's a set of defaults and then
+    # each service gets its own application of that template with some
+    # service specific values.
+    # TODO(briancurtin): consider just not including this in the default
+    # and processing rally_check with its own environment separate from
+    # everything else. This could end up adversely affecting other checks
+    # if they do some mass iteration thing like this does.
+    new_globals["item"]["value"] = {}
+    prefix = "maas_rally_default_"
+    pos = len(prefix)
+    rally_keys = (k for k in config_variables if k.startswith(prefix))
+    for key in rally_keys:
+        new_globals["item"]["value"][key[pos:]] = config_variables[key]
 
     return new_globals
 
@@ -288,12 +331,25 @@ def _get_criteria(criteria):
                 condition = content
 
 
+def _lookup(*args, **kwargs):
+    """
+    Rather than write an actual ansible lookup plugin, just give the
+    config name back if we can.
+    """
+    if args:
+        if args[0] == "pipe":
+            return "ignore"
+        if args[0] == "env":
+            return args[1]
+    return "ignore"
+
+
 def check_details(root, templates_dir=TEMPLATES_DIR):
     """Yield check names and a generator of their details.
 
-    This yields a tuple, where the first value is the check label
-    and the second is a dictionary of details about the alarms
-    within that check.
+    This yields a tuple, where the first value is the check label,
+    the second is the category, and the third is a dictionary of
+    details about the alarms within that check.
 
     The keys of the dictionary are alarm names plus the special key
     "_check_variables" which are not specific to any one alarm.
@@ -309,6 +365,7 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
     Example return value:
 
     ("private_ping_check--inventory_hostname",
+     "host",
      {'_check_variables': {'private_ping_check_count': 6},
       'Packet_loss': {
         '_criteria': [{'condition': "metric['available'] > 80",
@@ -319,24 +376,29 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
     """
     config_variables = _get_defaults(root)
 
-    path = pathlib.Path(pathlib.PurePath(root, templates_dir))
+    rax_maas_path = pathlib.Path(pathlib.PurePath(root, templates_dir))
+    # Some templates inside rax_maas_path refer to
+    # "templates/common/macros.jinja", so we need to make one level above
+    # that available to the FileSystemLoader. That's `playbooks/`
+    playbooks_root = pathlib.Path(pathlib.PurePath(root, PLAYBOOKS_DIR))
 
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(path)),
-                             undefined=SilentUndefined)
+    # The things we care about and are going to iterate over later on
+    # come from rax_maas_path, so make playbooks_root the fallback.
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader([str(rax_maas_path),
+                                        str(playbooks_root)]),
+        undefined=SilentUndefined)
     env.globals = _get_globals(config_variables)
+    env.globals.update(lookup=_lookup)
 
     # Since we're looking specifically at Ansible templates, we need to bring
     # a few things into the standard Jinja2 filters that we end up using.
     env.filters.update(ansible_filters.FilterModule().filters())
     env.filters.update(ansible_tests.TestModule().tests())
 
-    for template_file in path.glob("*.yaml.j2"):
-        # Skip the base template, nothing in there to use.
-        if template_file.name == "checks_base.yaml.j2":
-            continue
-
-        # temporarily skip as this kills the build
-        if template_file.name == "ceph_rgw_stats.yaml.j2":
+    for template_file in rax_maas_path.glob("*.yaml.j2"):
+        # Skip some templates we're not meant to expose
+        if template_file.name in IGNORED_TEMPLATES:
             continue
 
         template = env.get_template(str(template_file.name))
@@ -344,7 +406,19 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
         # Render the check template but don't pass it any variables.
         # It'll be partially rendered as it's going to have some globals
         # filled in.
+        # TODO(briancurtin): When new checks are added and we don't properly
+        # handle any new variables they've added, this is where it blows up.
+        # For example, all of the variables we fake out in _get_globals
+        # are there because they cause an issue at this point. It would be
+        # ideal for us to be able to output at this point that something
+        # is blocking the render here and allow us to continue with the
+        # rest of the checks, but we are currently unable to catch an
+        # exception here because it is apparently raised from within
+        # the jinja2.Environment. Ideally we're able to capture that
+        # exception and probably pass it to some type of handler that the
+        # caller gives so that documentation isn't entirely killed.
         partially_rendered_template = template.render()
+
         # Load this with the RemappingLoader so we can catch things like
         # {{ private_ssh_port }}, which isn't wrapped in quotes,
         # and is thus unhashable as a mapping key within pyyaml.
@@ -357,25 +431,82 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
         details = _get_check_details(rendered_yaml, config_variables, env)
 
         try:
+            category = rendered_yaml["metadata"]["rpc_check_category"]
+        except KeyError:
+            # This will only fall through if the get_metadata macro
+            # wasn't included on the check template.
+            # If included like it's supposed to be, that macro
+            # will always return some category.
+            category = "uncategorized"
+
+        try:
             label = template.module.label
         except AttributeError:
             label = rendered_yaml.get("label")
 
-        yield (label, details)
+        yield (label, category, details)
+
+
+def categorized_check_details(root, templates_dir=TEMPLATES_DIR):
+    """Return categories and their corresponding checks
+
+    This returns a dict where the keys are categories and the values
+    are themselves a dictionary of checks in that category.
+
+    The checks dictionary has keys representing a check's name, and then
+    the values are a dictionary of details about the alarms within
+    that check.
+
+    The keys of the alarms dictionary are alarm names plus the special
+    key "_check_variables" which are not specific to any one alarm.
+    The _check_variables value is a dictionary of configurable
+    names and their default values.
+
+    The values for any of the alarm names include any of the
+    configurable values used by the alarm along with their defaults,
+    as well as a special key "_criteria", which is a list of
+    dictionaries representing status/condition/message for situations
+    which trigger the alarm.
+
+    Example return value:
+
+    {'host': {
+        "private_ping_check--<inventory_hostname>": {
+            '_check_variables': {'private_ping_check_count': 6},
+            'Packet_loss': {
+                '_criteria': [
+                    {'condition': "metric['available'] > 80",
+                     'status': "OK", 'message': 'Ping responds as expected'},
+                    {'condition': 'default',
+                     'status': 'CRITICAL',
+                     'message': 'Packet loss has occurred'}]
+            }
+        }
+    }
+    """
+    categorized = collections.defaultdict(dict)
+    for check, category, details in check_details(root):
+        categorized[category][check] = details
+
+    return categorized
 
 
 def _main():
-    for check, details in check_details("../.."):
-        print("Check: {}".format(check))
-        for alarm, variables in details.items():
-            print("\tAlarm: {}".format(alarm))
-            for key, value in variables.items():
-                if key == "_criteria":
-                    for criteria in value:
-                        for typ, parameter in criteria.items():
-                            print("\t\t{}: {}".format(typ, parameter))
-                else:
-                    print("\t\tVariable: {} = {}".format(key, value))
+    for category, checks in categorized_check_details("../..").items():
+
+        print("Category: {}".format(category))
+        for check, details in checks.items():
+            print("\tCheck: {}".format(check))
+            for alarm, variables in details.items():
+                print("\t\tAlarm: {}".format(alarm))
+                for key, value in variables.items():
+                    if key == "_criteria":
+                        for criteria in value:
+                            for typ, parameter in criteria.items():
+                                print("\t\t\t{}: {}".format(typ, parameter))
+                    else:
+                        print("\t\t\tVariable: {} = {}".format(key, value))
+
 
 
 if __name__ == "__main__":
