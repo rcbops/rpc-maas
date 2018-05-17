@@ -131,6 +131,11 @@ fi
 
 mkdir -p "${ANSIBLE_LOG_DIR}"
 
+# NOTE(odyssey4me):
+# The test execution nodes do not have these packages installed, so
+# we need to do that for the OSA build to work.
+apt-get install -y iptables util-linux
+
 if [ "${RE_JOB_SCENARIO}" == "ceph" ]; then
 
   if [ -d "/opt/rpc-ceph" ]; then
