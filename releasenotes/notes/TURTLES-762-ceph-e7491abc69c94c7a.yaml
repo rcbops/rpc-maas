@@ -1,0 +1,9 @@
+---
+
+fixes:
+  - |
+    Add an extra maas_env_product, defaults to 'rpco'. In ceph environment
+    it should be set to 'ceph'. Also maas_rpco_dir has been renamed to 
+    maas_product_dir,  and osa version will be left out in the case of ceph
+    environment
+

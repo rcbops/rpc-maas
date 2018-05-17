@@ -50,7 +50,7 @@
         msg: >-
           There are missing metadata environment variable(s), as you can see 'unknown' from
           this test template '{{ rendered_maas_metata_test_tmpl }}'. Please set proper env
-          variables, possible options are: maas_env_identifier, maas_rpco_dir, maas_osa_dir
+          variables, possible options are: maas_env_identifier, maas_product_dir, maas_product_osa_dir
       when:
         - maas_pre_flight_metadata_check_enabled | default(true) | bool
         - rendered_maas_metata_test_tmpl | search('unknown')
