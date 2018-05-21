@@ -134,7 +134,7 @@ mkdir -p "${ANSIBLE_LOG_DIR}"
 # NOTE(odyssey4me):
 # The test execution nodes do not have these packages installed, so
 # we need to do that for the OSA build to work.
-apt-get install -y iptables util-linux
+apt-get install -y iptables util-linux apt-transport-https
 
 if [ "${RE_JOB_SCENARIO}" == "ceph" ]; then
 
@@ -182,6 +182,7 @@ pushd /opt/openstack-ansible
     pin_galera "10.0"
     export OA_DIR="/opt/openstack-ansible"
     export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c $OA_DIR/global-requirement-pins.txt'"}
+    export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
 
   elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     git checkout "stable/newton"  # Branch checkout of Newton (Current Stable)
@@ -189,6 +190,9 @@ pushd /opt/openstack-ansible
     # NOTE(tonytan4ever): newton needs this to get around gating:
     # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
     add_lxc_overrides
+    if [ "${RE_JOB_IMAGE}" == "trusty" ]; then
+      export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
+    fi
 
   elif [ "${RE_JOB_SCENARIO}" == "ocata" ]; then
     git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
@@ -219,10 +223,21 @@ pushd /opt/openstack-ansible
 
   # Pin python-ldap so it stops breaking everything
   echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+  # Fixing missing netbase packages
+  sudo apt-get -o Dpkg::Options::="--force-confmiss" install --reinstall netbase
 
   # Disable the sec role
   disable_security_role
 
   # Setup an AIO
   sudo -H --preserve-env ./scripts/gate-check-commit.sh
+
+  # # NOTE(tonytan4ever): Help debugging the apt issue.
+  # Implement debug output for apt so that we can see more information
+  # about whether the 'Acquire-by-hash' feature is being used, and what
+  # might be causing it to fall back to the old style.
+  # This config file should be copied into containers by the lxc_hosts
+  # role.
+  # ansible hosts -m lineinfile -a 'create=yes dest=/etc/apt/apt.conf.d/99debug line="Debug::Acquire::http \"true\";"'
+
 popd

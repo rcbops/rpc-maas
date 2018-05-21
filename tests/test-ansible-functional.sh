@@ -154,7 +154,9 @@ function enable_maas_api {
   #                  different virtualenv which are done in three tasks. These three tasks are being
   #                  run in this particular order to ensure "pyrax" installs correctly.
   PYTHON_BIN="$(which python)"
-  virtualenv --python="${PYTHON_BIN}" /opt/test-maas
+  virtualenv --python="${PYTHON_BIN}" --no-pip /opt/test-maas
+  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  /opt/test-maas/bin/python get-pip.py
   /opt/test-maas/bin/pip install "jinja2" --isolated --upgrade --force-reinstall
   /opt/test-maas/bin/pip install -r test-requirements.txt --isolated --upgrade --force-reinstall
   /opt/test-maas/bin/pip install "SecretStorage < 3" --isolated
