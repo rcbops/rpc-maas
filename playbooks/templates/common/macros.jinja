@@ -1,5 +1,5 @@
 {% macro get_check_category(check_label) %}
-{% if check_label.startswith('lb_api') or check_label.startswith('private_lb_api') %}
+{% if check_label.startswith('lb_') or check_label.startswith('private_lb_') %}
 api
 {% elif check_label.startswith('managed_k8') %}
 kubernetes
