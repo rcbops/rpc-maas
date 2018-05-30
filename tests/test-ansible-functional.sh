@@ -136,6 +136,32 @@ function influx_pin_environment {
   cp -v "${WORKING_DIR}/tests/rpcm_influx_hosts.yml.env" "/etc/openstack_deploy/env.d/rpcm_influx_hosts.yml"
 }
 
+function get_pip {
+
+  # Use pip opts to add options to the pip install command.
+  # This can be used to tell it which index to use, etc.
+  PIP_OPTS=${PIP_OPTS:-""}
+
+  # The python executable to use when executing get-pip is passed
+  # as a parameter to this function.
+  GETPIP_PYTHON_EXEC_PATH="${1:-$(which python)}"
+
+  # Download the get-pip script using the primary or secondary URL
+  GETPIP_CMD="curl --silent --show-error --retry 5"
+  GETPIP_FILE="/opt/get-pip.py"
+  # If GET_PIP_URL is set, then just use it
+  if [ -n "${GET_PIP_URL:-}" ]; then
+    ${GETPIP_CMD} ${GET_PIP_URL} > ${GETPIP_FILE}
+  else
+    # Otherwise, try the two standard URL's
+    ${GETPIP_CMD} https://bootstrap.pypa.io/get-pip.py > ${GETPIP_FILE}\
+      || ${GETPIP_CMD} https://raw.githubusercontent.com/pypa/get-pip/master/get-pip.py > ${GETPIP_FILE}
+  fi
+
+  ${GETPIP_PYTHON_EXEC_PATH} ${GETPIP_FILE} ${PIP_OPTS} \
+     pip --upgrade
+}
+
 function enable_maas_api {
   # NOTE(cloudnull): Enable the maas api by setting the "maas_use_api" option to true.
   #                  This will also pull a token from RAX MaaS and set it as an env var.
@@ -155,8 +181,7 @@ function enable_maas_api {
   #                  run in this particular order to ensure "pyrax" installs correctly.
   PYTHON_BIN="$(which python)"
   virtualenv --python="${PYTHON_BIN}" --no-pip /opt/test-maas
-  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  /opt/test-maas/bin/python get-pip.py
+  get_pip /opt/test-maas/bin/python
   /opt/test-maas/bin/pip install "jinja2" --isolated --upgrade --force-reinstall
   /opt/test-maas/bin/pip install -r test-requirements.txt --isolated --upgrade --force-reinstall
   /opt/test-maas/bin/pip install "SecretStorage < 3" --isolated

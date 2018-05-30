@@ -134,7 +134,9 @@ mkdir -p "${ANSIBLE_LOG_DIR}"
 # NOTE(odyssey4me):
 # The test execution nodes do not have these packages installed, so
 # we need to do that for the OSA build to work.
-apt-get install -y iptables util-linux apt-transport-https
+apt-get install -y iptables util-linux apt-transport-https netbase
+
+echo 'Debug::Acquire::http "true";' > /etc/apt/apt.conf.d/99debug
 
 if [ "${RE_JOB_SCENARIO}" == "ceph" ]; then
 
@@ -223,21 +225,11 @@ pushd /opt/openstack-ansible
 
   # Pin python-ldap so it stops breaking everything
   echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
-  # Fixing missing netbase packages
-  sudo apt-get -o Dpkg::Options::="--force-confmiss" install --reinstall netbase
 
   # Disable the sec role
   disable_security_role
 
   # Setup an AIO
   sudo -H --preserve-env ./scripts/gate-check-commit.sh
-
-  # # NOTE(tonytan4ever): Help debugging the apt issue.
-  # Implement debug output for apt so that we can see more information
-  # about whether the 'Acquire-by-hash' feature is being used, and what
-  # might be causing it to fall back to the old style.
-  # This config file should be copied into containers by the lxc_hosts
-  # role.
-  # ansible hosts -m lineinfile -a 'create=yes dest=/etc/apt/apt.conf.d/99debug line="Debug::Acquire::http \"true\";"'
 
 popd
