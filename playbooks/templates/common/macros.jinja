@@ -23,7 +23,9 @@ host {# we can change to hardware here if we want #}
 metadata          :
   product: "{{ maas_env_product | default('rpco') }}"
   rpc_env_identifier: "{{ maas_env_identifier | default('unknown')}}"
+{% if not(maas_env_product is defined and maas_env_product == 'osa') %}
   product_version: "{{ lookup('pipe', get_product_version_cmd )}}"
+{% endif %}
 {% if not(maas_env_product is defined and 'ceph' in maas_env_product) %}
   osa_version: "{{ lookup('pipe', get_product_osa_version_cmd )}}"
 {% endif %}
