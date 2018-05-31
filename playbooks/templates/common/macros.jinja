@@ -18,13 +18,17 @@ host {# we can change to hardware here if we want #}
 
 
 {% macro get_metadata(label) %}
-{% set get_rpco_version_cmd="(cd "+maas_rpco_dir|default('/opt/rpc-openstack')+"&& git describe --tags --abbrev=0) || echo 'unknown\'" %}
-{% set get_osa_version_cmd="(cd "+maas_osa_dir|default('/opt/rpc-openstack/openstack-ansible')+"&& git describe --tags --abbrev=0) || "+"(cd "+ maas_2nd_osa_dir|default('/opt/openstack-ansible')+ "&& git describe --tags --abbrev=0) || echo 'unknown\'" %}
+{% set get_product_version_cmd="(cd "+maas_product_dir|default('/opt/rpc-openstack')+"&& git describe --tags --abbrev=0) || echo 'unknown\'" %}
+{% set get_product_osa_version_cmd="(cd "+maas_product_osa_dir|default('/opt/rpc-openstack/openstack-ansible')+"&& git describe --tags --abbrev=0) || "+"(cd "+ maas_2nd_product_osa_dir|default('/opt/openstack-ansible')+ "&& git describe --tags --abbrev=0) || echo 'unknown\'" %}
 metadata          :
-  product: "rpco"
+  product: "{{ maas_env_product | default('rpco') }}"
   rpc_env_identifier: "{{ maas_env_identifier | default('unknown')}}"
-  product_version: "{{ lookup('pipe', get_rpco_version_cmd )}}"
-  osa_version: "{{ lookup('pipe', get_osa_version_cmd )}}"
+{% if not(maas_env_product is defined and maas_env_product == 'osa') %}
+  product_version: "{{ lookup('pipe', get_product_version_cmd )}}"
+{% endif %}
+{% if not(maas_env_product is defined and 'ceph' in maas_env_product) %}
+  osa_version: "{{ lookup('pipe', get_product_osa_version_cmd )}}"
+{% endif %}
   rpc_maas_version: "{{  lookup('pipe', 'cd .. && git describe --tags --abbrev=0') }}"
   rpc_maas_deploy_date: "{{ ansible_date_time.date }}"
   rpc_check_category: "{{ get_check_category(label).strip() }}"
