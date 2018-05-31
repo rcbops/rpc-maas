@@ -129,10 +129,10 @@
       when:
         - k8_config is defined
 
-    - name: Install local checks
+    - name: Install k8sapi local checks
       template:
         src: "templates/rax-maas/managed_k8_api_local_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/managed_k8_api_local_check-{{ item.clusters[0].name }}.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/managed_k8_api_local_check-{{ inventory_hostname }}-{{ item.clusters[0].name }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -141,9 +141,145 @@
         - "{{ k8_config }}"
       when:
         - k8_config is defined
-
   vars_files:
     - vars/main.yml
     - vars/maas-managed-k8.yml
   tags:
     - maas-managed-k8
+
+- name: Install checks for mk8s ui
+  hosts:  "{{ mk8s_ui_hosts | default('mk8s_ui_all') }}"
+  gather_facts: false
+  tasks:
+    - name: Install mk8s ui process check
+      template:
+        src: "templates/rax-maas/mk8s_ui_process_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/mk8s_ui_process_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Install mk8s ui local checks
+      template:
+        src: "templates/rax-maas/managed_k8s_ui_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/managed_k8s_ui_local_check-{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Install mk8s ui lb checks
+      template:
+        src: "templates/rax-maas/lb_ui_check_k8s.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_ui_check_k8s.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install mk8s ui private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_ui_check_mk8s.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_ui_check_mk8s.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+  vars_files:
+    - vars/main.yml
+    - vars/maas-managed-k8.yml
+  tags:
+    - maas-managed-k8
+
+- name: Install checks for mk8s etp
+  hosts:  "{{ mk8s_etp_hosts | default('mk8s_etp_all') }}"
+  gather_facts: false
+  tasks:
+    - name: Install mk8s etp process check
+      template:
+        src: "templates/rax-maas/mk8s_etp_process_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/mk8s_etp_process_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Install mk8s etp local checks
+      template:
+        src: "templates/rax-maas/managed_k8s_etp_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/managed_k8s_etp_local_check-{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+    # Ideally ETP should not be accessible from the outside so skip those checks
+  vars_files:
+    - vars/main.yml
+    - vars/maas-managed-k8.yml
+  tags:
+    - maas-managed-k8
+
+- name: Install checks for mk8s etg
+  hosts:  "mk8s_etg_all"
+  gather_facts: false
+  tasks:
+    - name: Install mk8s etg process check
+      template:
+        src: "templates/rax-maas/mk8s_etg_process_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/mk8s_etg_process_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Install mk8s etg local checks
+      template:
+        src: "templates/rax-maas/managed_k8s_etg_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/managed_k8s_etg_local_check-{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+    # Ideally etg should not be accessible from the outside so skip those checks
+  vars_files:
+    - vars/main.yml
+    - vars/maas-managed-k8.yml
+  tags:
+    - maas-managed-k8
+
+- name: Install checks for mk8s auth
+  hosts:  "{{ mk8s_auth_hosts | default('mk8s_auth_all') }}"
+  gather_facts: false
+  tasks:
+    - name: Install mk8s auth process check
+      template:
+        src: "templates/rax-maas/mk8s_auth_process_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/mk8s_auth_process_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Install mk8s auth local checks
+      template:
+        src: "templates/rax-maas/managed_k8s_auth_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/managed_k8s_auth_local_check-{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+    # Ideally auth should not be accessible from the outside so skip those checks
+  vars_files:
+    - vars/main.yml
+    - vars/maas-managed-k8.yml
+  tags:
+    - maas-managed-k8
+
+
