@@ -187,7 +187,7 @@ pushd /opt/openstack-ansible
     export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
 
   elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
-    git checkout "stable/newton"  # Branch checkout of Newton (Current Stable)
+    git checkout "newton-eol"  # Branch checkout of Newton (Current Stable)
     enable_ironic
     # NOTE(tonytan4ever): newton needs this to get around gating:
     # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
