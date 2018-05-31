@@ -134,7 +134,9 @@ mkdir -p "${ANSIBLE_LOG_DIR}"
 # NOTE(odyssey4me):
 # The test execution nodes do not have these packages installed, so
 # we need to do that for the OSA build to work.
-apt-get install -y iptables util-linux
+apt-get install -y iptables util-linux apt-transport-https netbase
+
+echo 'Debug::Acquire::http "true";' > /etc/apt/apt.conf.d/99debug
 
 if [ "${RE_JOB_SCENARIO}" == "ceph" ]; then
 
@@ -182,6 +184,7 @@ pushd /opt/openstack-ansible
     pin_galera "10.0"
     export OA_DIR="/opt/openstack-ansible"
     export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c $OA_DIR/global-requirement-pins.txt'"}
+    export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
 
   elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     git checkout "stable/newton"  # Branch checkout of Newton (Current Stable)
@@ -189,6 +192,9 @@ pushd /opt/openstack-ansible
     # NOTE(tonytan4ever): newton needs this to get around gating:
     # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
     add_lxc_overrides
+    if [ "${RE_JOB_IMAGE}" == "trusty" ]; then
+      export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
+    fi
 
   elif [ "${RE_JOB_SCENARIO}" == "ocata" ]; then
     git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
@@ -225,4 +231,5 @@ pushd /opt/openstack-ansible
 
   # Setup an AIO
   sudo -H --preserve-env ./scripts/gate-check-commit.sh
+
 popd
