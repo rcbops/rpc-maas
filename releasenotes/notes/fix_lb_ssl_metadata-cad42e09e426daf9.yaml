@@ -1,0 +1,3 @@
+---
+fixes:
+  - Update metadata macro to include lb_ssl_expiry_check and private_lb_ssl_expiry_check in the API category.
