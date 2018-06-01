@@ -170,12 +170,12 @@ swift_release: "{{ openstack_release }}"
 swift_recon_path: "/openstack/venvs/swift-{{ swift_release }}/bin"
 
 # Set the nova console type and port
-nova_console_type: novnc
-nova_console_ports:
+maas_nova_console_type: "{{ nova_console_type | default('novnc') }}"
+maas_nova_console_ports:
   novnc: 6080
   spice: 6082
 
-nova_console_port: "{{ nova_console_ports[nova_console_type] }}"
+maas_nova_console_port: "{{ maas_nova_console_ports[maas_nova_console_type] }}"
 
 octavia_process_names:
   - uwsgi
