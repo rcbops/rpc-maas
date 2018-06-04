@@ -42,6 +42,7 @@ influxdb_db_retention_policy: rpc_maas
 influxdb_db_replication: 1
 influxdb_db_root_name: root
 influxdb_db_metric_user: rpc_maas
+influxdb_max_row_limit: 10240
 
 # Access user name and password for the provided influx db name
 influxdb_db_user: ''

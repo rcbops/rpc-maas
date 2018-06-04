@@ -1,0 +1,3 @@
+---
+features:
+  - Added the ability to override max_row_limit in influxdb.conf
