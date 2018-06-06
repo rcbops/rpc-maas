@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixes the wrong auth servcie and the typo when calling the
+    managed_k8s_services_local_check.py script.
