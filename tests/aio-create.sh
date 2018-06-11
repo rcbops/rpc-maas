@@ -112,6 +112,13 @@ lxc_cache_prep_pre_commands: "rm -f /etc/resolv.conf || true"
 lxc_cache_prep_post_commands: "ln -s ../run/resolvconf/resolv.conf /etc/resolv.conf -f"' | tee -a /etc/openstack_deploy/user_resolvconf_fix.yml
 }
 
+function spice_repo_fix {
+  cat > /etc/openstack_deploy/user_osa_variables_spice.yml <<EOF
+---
+nova_spicehtml5_git_repo: https://gitlab.freedesktop.org/spice/spice-html5
+EOF
+}
+
 ## Main ----------------------------------------------------------------------
 
 echo "Gate test starting
@@ -177,6 +184,7 @@ pushd /opt/openstack-ansible
     pin_galera "10.0"
     # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
     sed -i 's/\(_container\: \).*/\11/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
+    spice_repo_fix
 
   elif [ "${RE_JOB_SCENARIO}" == "mitaka" ]; then
     git checkout "fbafe397808ef3ee3447fe8fefa6ac7e5c6ff144"  # Last commit of Mitaka
@@ -185,9 +193,12 @@ pushd /opt/openstack-ansible
     export OA_DIR="/opt/openstack-ansible"
     export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c $OA_DIR/global-requirement-pins.txt'"}
     export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
+    spice_repo_fix
 
   elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
-    git checkout "newton-eol"  # Branch checkout of Newton (Current Stable)
+    git remote add rcbops-fork https://github.com/rcbops/openstack-ansible.git
+    git fetch --all
+    git checkout -b newton-fix rcbops-fork/stable/newton
     enable_ironic
     # NOTE(tonytan4ever): newton needs this to get around gating:
     # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
