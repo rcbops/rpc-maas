@@ -155,7 +155,7 @@ if [ "${RE_JOB_SCENARIO}" == "ceph" ]; then
   export RPC_MAAS_DIR="$(pwd)"
   pushd /opt/rpc-ceph
     pip install -U -r /opt/rpc-ceph/global-requirement-pins.txt
-    RE_JOB_SCENARIO="functional" TEST_RPC_MAAS="False" bash /opt/rpc-ceph/gating/post_merge_test/run
+    RE_JOB_SCENARIO="functional" TEST_RPC_MAAS="False" bash /opt/rpc-ceph/gating/periodic/run
   popd
   exit
 fi
