@@ -1,0 +1,13 @@
+---
+features:
+  - Add the ability to specify the Ceph rados Gateway
+    listen address for MaaS monitoring. Using the existing
+    ``ceph-ansible`` vars which are, in order of precedence.
+    ``radosgw_address`` which is used to specify the address.
+    ``radosgw_address_block`` which can be used to specify
+    the address block in CIDR format/
+    ``radosgw_interface`` which can be used to specify the
+    interface on which RadosGW is listening, for example
+    ``br-storage``.
+    If none of these options are specified the ``ansible_host``
+    address will be used.
