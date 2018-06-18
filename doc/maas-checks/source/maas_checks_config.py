@@ -1,6 +1,3 @@
-# This has to use Python 2.7 (in 2018!)
-from __future__ import print_function
-
 import collections
 import itertools
 try:
@@ -303,6 +300,8 @@ def _get_criteria(criteria):
     # We match on status but look back for its condition.
     condition = None
 
+    all_criteria = []
+
     for line in lines:
         match = CRITERIA.search(line)
         if match:
@@ -324,11 +323,13 @@ def _get_criteria(criteria):
                 # Trim the outer strings
                 message = message[1:-1]
 
-                yield {"status": status, "message": message,
-                       "condition": condition}
+                all_criteria.append({"status": status, "message": message,
+                                     "condition": condition})
                 condition = None
             else:
                 condition = content
+
+    return all_criteria
 
 
 def _lookup(*args, **kwargs):
@@ -342,6 +343,11 @@ def _lookup(*args, **kwargs):
         if args[0] == "env":
             return args[1]
     return "ignore"
+
+
+def _ipaddr(*args, **kwargs):
+    """Fake ipaddr filter"""
+    return "ipaddr"
 
 
 def check_details(root, templates_dir=TEMPLATES_DIR):
@@ -395,6 +401,7 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
     # a few things into the standard Jinja2 filters that we end up using.
     env.filters.update(ansible_filters.FilterModule().filters())
     env.filters.update(ansible_tests.TestModule().tests())
+    env.filters.update(ipaddr=_ipaddr)
 
     for template_file in rax_maas_path.glob("*.yaml.j2"):
         # Skip some templates we're not meant to expose
@@ -485,15 +492,14 @@ def categorized_check_details(root, templates_dir=TEMPLATES_DIR):
     }
     """
     categorized = collections.defaultdict(dict)
-    for check, category, details in check_details(root):
+    for check, category, details in list(check_details(root)):
         categorized[category][check] = details
 
     return categorized
 
 
 def _main():
-    for category, checks in categorized_check_details("../..").items():
-
+    for category, checks in categorized_check_details("../../..").items():
         print("Category: {}".format(category))
         for check, details in checks.items():
             print("\tCheck: {}".format(check))
