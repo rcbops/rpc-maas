@@ -9,6 +9,8 @@ disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('tr
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/neutron_service_check.py", "--protocol", "{{ neutron_client_protocol }}", "--host", "{{ ansible_nodename }}", "--fqdn", "{{ ansible_fqdn }}", "{{ internal_vip_address }}"]
+    {# comment out for now,  might use a config variable to enable this #}
+    {#  args    : ["{{ maas_plugin_dir }}/neutron_agent_check_v2.py", "--agent_type", "neutron-linuxbridge-agent"] #}
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
