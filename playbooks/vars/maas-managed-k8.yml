@@ -20,7 +20,7 @@ maas_managed_k8_kube_config_dir: /root/.k8
 
 maas_managed_k8_kubectl_release: v1.9.1
 
-maas_managed_k8_auth_url: "http://{{ internal_vip_address }}:{{ mk8s_auth_port }}"
+maas_managed_k8_auth_url: "http://{{ internal_vip_address }}:{{ mk8s_auth_port_lb }}"
 
 # processes
 maas_managed_k8s_ui_process_name: controlpanel

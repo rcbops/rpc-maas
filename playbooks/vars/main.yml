@@ -406,9 +406,10 @@ heat_local_api_port: '8004'
 #
 heat_local_api_protocol: 'http'
 
+# mk8s_auth_port: Port number for the mk8s ui service (internal)
+mk8s_auth_port_lb: '8890'
 
 # mk8s_auth_port: Port number for the mk8s auth service (local)
-#
 mk8s_auth_port: '8080'
 
 #
@@ -423,7 +424,6 @@ mk8s_ui_port: '8080'
 # mk8s_ui_port: Port number for the mk8s ui service (global)
 #
 mk8s_ui_port_lb: '8891'
-
 
 #
 # mk8s_ui_protocol: Protocol used to contact the mk8s ui service

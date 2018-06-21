@@ -32,7 +32,7 @@ def check(auth_ref, args):
         path = '/{path}'.format(path=args.path)
     else:
         path = ''
-    endpoint = '{protocol}://{ip}:{port}/{path}'.format(
+    endpoint = '{protocol}://{ip}:{port}{path}'.format(
         ip=args.ip,
         protocol=args.protocol,
         port=args.port,
@@ -52,7 +52,7 @@ def check(auth_ref, args):
 
         # time something arbitrary
         start = datetime.datetime.now()
-        r = requests.head(endpoint, verify=verify)
+        r = requests.head(endpoint, verify=verify, allow_redirects=True)
         end = datetime.datetime.now()
         api_is_up = (r.status_code == 200)
     except (requests.HTTPError, requests.Timeout, requests.ConnectionError):
@@ -68,11 +68,11 @@ def check(auth_ref, args):
         milliseconds = (dt.microseconds + dt.seconds * 10 ** 6) / 10 ** 3
 
     status_ok(m_name=service_name)
-    metric_bool('mk8s_{service}_local_status'.format(service=args.service),
-                api_is_up, m_name=service_name)
+    metric_bool('managed_k8s_{service}_local_status'.format(
+        service=args.service), api_is_up, m_name=service_name)
     if api_is_up:
         # only want to send other metrics if api is up
-        metric('mk8s_{service}_local_response_time'.format(
+        metric('managed_k8s_{service}_local_response_time'.format(
             service=args.service),
             'double', '%.3f' % milliseconds, 'ms')
 

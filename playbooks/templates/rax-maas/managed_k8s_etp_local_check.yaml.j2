@@ -8,7 +8,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/managed_k8s_service_local_check.py", "{{ ansible_host }}", "--port", "{{ mk8s_etp_port }}", "--protocol", "{{ mk8s_etp_protocol }}", "--service etp", "--path healthcheck"]
+    args    : ["{{ maas_plugin_dir }}/managed_k8s_services_local_check.py", "{{ ansible_host }}", "--port", "{{ mk8s_etp_port }}", "--protocol", "{{ mk8s_etp_protocol }}", "--service", "etp", "--path", "healthcheck"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
