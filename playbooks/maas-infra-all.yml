@@ -17,10 +17,6 @@
   tags:
     - maas-infra
 
-- include: maas-infra-filebeat.yml
-  tags:
-    - maas-infra
-
 - include: maas-infra-galera.yml
   tags:
     - maas-infra

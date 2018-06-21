@@ -3,7 +3,7 @@
 api
 {% elif check_label.startswith('managed_k8') %}
 kubernetes
-{% elif check_label in ['elasticsearch_process_check', 'filebeat_process_check'] or check_label.startswith('rsyslogd_process_check') %}
+{% elif check_label in ['elasticsearch_process_check'] or check_label.startswith('rsyslogd_process_check') %}
 logging
 {% elif check_label in ['container_storage_check', 'holland_local_check', 'maas_poller_fd_count', 'memcached_status'] or check_label.startswith('galera') or check_label.startswith('rabbitmq') %}
 infrastructure
