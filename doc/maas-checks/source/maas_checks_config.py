@@ -165,7 +165,6 @@ def _get_globals(config_variables):
     # want things such as alarm criteria to remain as actual template values.
     for name in ("elasticsearch_process_names",
                  "ceph_radosgw_protocol",
-                 "filebeat_process_names",
                  "rsyslogd_process_names",
                  "maas_swift_account_process_names",
                  "maas_swift_container_process_names",
