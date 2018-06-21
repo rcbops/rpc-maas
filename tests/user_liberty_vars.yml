@@ -26,10 +26,6 @@ maas_excluded_alarms:
   - '^Network transmit rate.*'
   - '^percentage_disk_utilisation.*'
 
-# swift-recon does not have '--time' option in Liberty
-maas_excluded_checks:
-  - 'filebeat_process_check'
-
 maas_pre_flight_check_enabled: true
 
 # Ansible 1.9 compatibility
