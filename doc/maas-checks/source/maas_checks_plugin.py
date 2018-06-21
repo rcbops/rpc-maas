@@ -8,8 +8,7 @@ PREFIX = "MAAS_CHECKS_PLUGIN:"
 CHECKOUT_ROOT = "../../.."
 
 
-
-def _render_check_details(check_details):
+def render_all_details(check_details):
     # Alpha sort these so we don't generate randomly ordered pages.
     categories = sorted(check_details.keys())
 
@@ -115,10 +114,11 @@ def cleanup_path(app, path):
 
 
 def builder_inited(app):
-    # TODO: get the right directory in here
+    # NOTE: This is executed from the top-level of the checkout, so using
+    # the current working directory is already properly set.
     check_details = maas_checks_config.categorized_check_details(os.getcwd())
 
-    single_page = "".join(_render_check_details(check_details))
+    single_page = "".join(render_all_details(check_details))
     with open("{root}/all_checks.rst".format(root=app.srcdir), "w") as f:
         f.write(":orphan:\n\n")
         f.write("================================\n")
@@ -144,9 +144,6 @@ def builder_inited(app):
         page_path = "{root}/{category}.rst".format(root=cat_dir,
                                                    category=category)
         with open(page_path, "w") as f:
-            #f.write("\n{symbol}\n".format(symbol="="*len(category)))
-            #f.write(category)
-            #f.write("\n{symbol}\n\n".format(symbol="="*len(category)))
             f.write("".join(render_category(category, check_details)))
 
 
