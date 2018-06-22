@@ -19,6 +19,9 @@ alarms      :
         disabled                : {{ (('nova_consoleauth_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric["client_success"] != 1) {
+                return new AlarmStatus(WARNING, "Nova consoleauth service can't reach API");
+            }
             if (metric["nova-consoleauth_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "nova-consoleauth down");
             }
