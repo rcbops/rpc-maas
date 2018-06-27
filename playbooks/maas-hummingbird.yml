@@ -14,11 +14,10 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: hummingbird
+  hosts: hummingbird:hummingbird-admin
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
-    #    - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
       set_fact:
         maas_current_group: hummingbird
@@ -29,16 +28,6 @@
         src: "files/pip-constraints.txt"
         dest: "/tmp/pip-constraints.txt"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-    - name: Retrieve openrc file
-      fetch:
-        src: /root/openrc
-        dest: /root/openrc
-        flat: true
-      delegate_to: "{{ item }}"
-      with_items: "{{ groups['hosts'] }}"
-      when:
-        - "'hosts' in groups"
 
   post_tasks:
     - name: Install swift pip packages to venv
@@ -146,8 +135,26 @@
   tags:
     - maas-hummingbird
 
-- name: Install accesscheck for hummingbird proxy
+- name: Install checks for hummingbird proxy
   hosts: hummingbird
+  gather_facts: false
+  tasks:
+    - name: Install hummingbird proxy server checks
+      template:
+        src: "templates/rax-maas/hummingbird_proxy_server_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/hummingbird_proxy_server_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+  vars_files:
+    - vars/main.yml
+    - vars/maas-hummingbird.yml
+  tags:
+    - maas-hummingbird
+
+- name: Install accesscheck for hummingbird
+  hosts: hummingbird-admin
   gather_facts: false
   tasks:
     - name: Create keystone user for hummingbird filecheck
@@ -182,22 +189,20 @@
       failed_when:
         - mon_user.rc not in [0, 3]
       register: mon_user
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - (maas_private_monitoring_enabled | bool) or (maas_remote_check | bool)
         - maas_hummingbird_accesscheck_enabled | bool
-        - inventory_hostname in groups['hummingbird'][0]
+        - inventory_hostname in groups['hummingbird-admin'][0]
 
     # Copy test HTML file to the hummingbird proxy for uploading
     - name: Create index file
       copy:
         src: "files/rax-maas/index.html"
         dest: "/tmp/index.html"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - (maas_private_monitoring_enabled | bool) or (maas_remote_check | bool)
         - maas_hummingbird_accesscheck_enabled | bool
-        - inventory_hostname in groups['hummingbird'][0]
+        - inventory_hostname in groups['hummingbird-admin'][0]
 
     # Place an HTML file in a hummingbird container
     - name: Setup hummingbird container monitoring check
@@ -215,12 +220,12 @@
       args:
         executable: "/bin/bash"
       changed_when: false
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - (maas_private_monitoring_enabled | bool) or (maas_remote_check | bool)
         - maas_hummingbird_accesscheck_enabled | bool
-        - inventory_hostname in groups['hummingbird'][0]
+        - inventory_hostname in groups['hummingbird-admin'][0]
 
+  post_tasks:
     # Fetch the hummingbird account token to build the URL
     - name: Retrieve check file key
       shell: |
@@ -232,13 +237,11 @@
         executable: "/bin/bash"
       register: hummingbird_url_key
       changed_when: false
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - (maas_private_monitoring_enabled | bool) or (maas_remote_check | bool)
         - maas_hummingbird_accesscheck_enabled | bool
-        - inventory_hostname in groups['hummingbird'][0]
+        - inventory_hostname in groups['hummingbird-admin'][0]
 
-  post_tasks:
     # Set the full check URL as a fact
     - name: Set URL fact
       set_fact:
@@ -247,16 +250,6 @@
         - maas_hummingbird_access_url_key is undefined
         - (maas_private_monitoring_enabled | bool) or (maas_remote_check | bool)
         - maas_hummingbird_accesscheck_enabled | bool
-        - inventory_hostname in groups['hummingbird'][0]
-
-    - name: Install hummingbird proxy server checks
-      template:
-        src: "templates/rax-maas/hummingbird_proxy_server_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/hummingbird_proxy_server_check--{{ inventory_hostname }}.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Install hummingbird lb health checks
       template:
@@ -265,7 +258,6 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
         - maas_hummingbird_lbhealthcheck_enabled | bool
@@ -278,7 +270,6 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
         - maas_hummingbird_accesscheck_enabled | bool
@@ -291,7 +282,6 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
@@ -303,7 +293,6 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
