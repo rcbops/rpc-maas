@@ -1,0 +1,71 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+## This files contains the OSP (RPC-R) specific vars
+
+deploy_osp: True
+maas_product_dir: "/home/stack/rpc-maas"
+maas_env_product: "TripleO"
+
+maas_openrc: '/root/openrc-maas'
+
+maas_openstack_octavia_pip_packages:
+  - python-keystoneclient
+
+octavia_hosts_all: 'Controller'
+octavia_hosts_api: 'Controller'
+octavia_process_names:
+  - octavia-api
+  - octavia-worker
+  - octavia-health-manager
+  - octavia-housekeeping
+
+octavia_process_names_sanitized:
+  - octavia-api
+  - octavia-worker
+  - octavia-health-manager
+  - octavia-housekeeping
+
+octavia_quota_names:
+  - octavia_cores_quota_usage
+  - octavia_instances_quota_usage
+  - octavia_ram_quota_usage
+  - octavia_server_group_quota_usage
+  - octavia_volume_gb_quota_usage
+  - octavia_num_volume_quota_usage
+
+mk8s_osp_admin_token_file: "{{ lookup('env', 'HOME') }}/mk8s/mk8s_auth_admin_token"
+# maas_k8s_ui_scheme: https
+
+maas_managed_k8_kube_config_dir: /root/.k8
+
+maas_managed_k8_kubectl_release: v1.9.1
+
+maas_managed_k8_auth_url: "http://{{ internal_vip_address }}:{{ mk8s_auth_port_lb }}"
+
+# processes
+maas_managed_k8s_ui_process_name: kubernetes-control-panel
+maas_managed_k8s_etp_process_name: etp
+maas_managed_k8s_etg_process_name: etg
+maas_managed_k8s_auth_process_name: kubernetes-auth
+
+# hosts
+mk8s_infra_host: 'Controller'
+mk8s_ui_hosts: 'Controller'
+mk8s_etp_hosts: 'Controller'
+mk8s_etg_hosts: 'Controller'
+mk8s_auth_hosts: 'Controller'
+mk8s_ansible_user: 'heat-admin'
+mk8s_ansible_become: yes

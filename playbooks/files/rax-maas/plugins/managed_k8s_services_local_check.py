@@ -18,7 +18,6 @@ import argparse
 import datetime
 
 import ipaddr
-from maas_common import get_auth_ref
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -27,7 +26,7 @@ from maas_common import status_ok
 import requests
 
 
-def check(auth_ref, args):
+def check(args):
     if args.path:
         path = '/{path}'.format(path=args.path)
     else:
@@ -78,8 +77,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

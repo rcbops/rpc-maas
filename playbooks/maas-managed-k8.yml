@@ -14,7 +14,9 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: os-infra_hosts
+  hosts: "{{ mk8s_infra_host|default('os-infra_hosts') }}"
+  user: "{{ mk8s_ansible_user|default('root') }}"
+  become: "{{ mk8s_ansible_become|default('no') }}"
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
@@ -30,6 +32,23 @@
     - name: Include mk8s secrets
       include_vars: /etc/openstack_deploy/mk8s_user_secrets.yml
       when: maas_k8_secrets.stat.exists
+
+    - name: Check for OSP file admin token file
+      local_action: "stat path={{ mk8s_osp_admin_token_file }}"
+      register: maas_k8_admin_token
+      when: deploy_osp|default(false)
+
+    - name: Set admin token in an OSP env
+      set_fact:
+        mk8s_auth_admin_token: "{{ lookup('file', mk8s_osp_admin_token_file) }}"
+      when:
+        - deploy_osp|default(false)
+        - maas_k8_admin_token.stat.exists
+
+    - name: Set physical host
+      set_fact:
+        physical_host: "{{ ansible_host }}"
+      when: deploy_osp|default(false)
 
   tasks:
     - name: Get clusters from auth service
@@ -67,12 +86,14 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-managed-k8.yml
+    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
   tags:
     - maas-managed-k8
 
 - name: Install checks for k8 api
-  hosts:  os-infra_hosts
+  hosts: "{{ mk8s_infra_host|default('os-infra_hosts') }}"
+  user: "{{ mk8s_ansible_user|default('root') }}"
+  become: "{{ mk8s_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
     - name: Install k8 lb checks
@@ -143,12 +164,14 @@
         - k8_config is defined
   vars_files:
     - vars/main.yml
-    - vars/maas-managed-k8.yml
+    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
   tags:
     - maas-managed-k8
 
 - name: Install checks for mk8s ui
   hosts:  "{{ mk8s_ui_hosts | default('mk8s_ui_all') }}"
+  user: "{{ mk8s_ansible_user|default('root') }}"
+  become: "{{ mk8s_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
     - name: Install mk8s ui process check
@@ -194,12 +217,14 @@
         - maas_private_monitoring_zone is defined
   vars_files:
     - vars/main.yml
-    - vars/maas-managed-k8.yml
+    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
   tags:
     - maas-managed-k8
 
 - name: Install checks for mk8s etp
   hosts:  "{{ mk8s_etp_hosts | default('mk8s_etp_all') }}"
+  user: "{{ mk8s_ansible_user|default('root') }}"
+  become: "{{ mk8s_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
     - name: Install mk8s etp process check
@@ -222,12 +247,14 @@
     # Ideally ETP should not be accessible from the outside so skip those checks
   vars_files:
     - vars/main.yml
-    - vars/maas-managed-k8.yml
+    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
   tags:
     - maas-managed-k8
 
 - name: Install checks for mk8s etg
-  hosts:  "mk8s_etg_all"
+  hosts: "{{ mk8s_etg_hosts | default('mk8s_etg_all') }}"
+  user: "{{ mk8s_ansible_user|default('root') }}"
+  become: "{{ mk8s_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
     - name: Install mk8s etg process check
@@ -250,12 +277,14 @@
     # Ideally etg should not be accessible from the outside so skip those checks
   vars_files:
     - vars/main.yml
-    - vars/maas-managed-k8.yml
+    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
   tags:
     - maas-managed-k8
 
 - name: Install checks for mk8s auth
   hosts:  "{{ mk8s_auth_hosts | default('mk8s_auth_all') }}"
+  user: "{{ mk8s_ansible_user|default('root') }}"
+  become: "{{ mk8s_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
     - name: Install mk8s auth process check
@@ -278,7 +307,7 @@
     # Ideally auth should not be accessible from the outside so skip those checks
   vars_files:
     - vars/main.yml
-    - vars/maas-managed-k8.yml
+    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
   tags:
     - maas-managed-k8
 

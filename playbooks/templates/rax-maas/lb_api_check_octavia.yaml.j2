@@ -5,7 +5,7 @@ type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled          : "{{ (inventory_hostname != groups['octavia-api'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled          : "{{ (inventory_hostname != groups[octavia_hosts_api|default('octavia-api')][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
