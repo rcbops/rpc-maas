@@ -15,11 +15,13 @@
 # limitations under the License.
 
 import argparse
+import sys
 
 from maas_common import get_neutron_client
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
+from maas_common import status_err_no_exit
 from maas_common import status_ok
 
 
@@ -33,7 +35,8 @@ def check(args):
     # not gathering api status metric here so catch any exception
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_neutron')
-        status_err(str(e), m_name='maas_neutron')
+        status_err_no_exit(str(e), m_name='maas_neutron')
+        sys.exit(0)
     else:
         metric_bool('client_success', True, m_name='maas_neutron')
 
