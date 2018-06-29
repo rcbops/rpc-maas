@@ -19,6 +19,9 @@ alarms      :
         disabled                : {{ (('neutron_metering_agent_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric["client_success"] != 1) {
+                return new AlarmStatus(WARNING, "neutron metering agent can't reach API");
+            }
             if (metric["neutron-metering-agent_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "neutron-metering-agent down");
             }
