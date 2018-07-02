@@ -23,6 +23,10 @@ If any of the stub files are not found, a warning will be raised by the
 Sphinx build. If files are found but they are empty, an informational
 message will be logged to the build output.
 
+NOTE: Do not use =, -, or * as any potential section headers you create
+inside any of the stub files. Those are already in use for the structure
+of the rest of the document.
+
 maas_checks_config.py
 =====================
 
