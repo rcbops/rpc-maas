@@ -50,6 +50,22 @@ OPENRC = '/root/openrc'
 TOKEN_FILE = '/root/.auth_ref.json'
 
 
+NEUTRON_AGENT_TYPE_LIST = [
+    'neutron-linuxbridge-agent',
+    'neutron-dhcp-agent',
+    'neutron-l3-agent',
+    'neutron-metadata-agent',
+    'neutron-metering-agent'
+]
+NOVA_SERVICE_TYPE_LIST = [
+    'nova-cert',
+    'nova-compute',
+    'nova-conductor',
+    'nova-consoleauth',
+    'nova-scheduler'
+]
+
+
 try:
     from cinderclient import client as c_client
     from cinderclient import exceptions as c_exc

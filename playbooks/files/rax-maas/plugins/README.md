@@ -221,9 +221,9 @@ polls the nova api and gets a list of all nova services running in the environme
 Hostname or IP address of service to test
 ##### Example Output:
 
-    metric nova-scheduler_on_host_aio1_nova_scheduler_container-e7b92e0f uint32 1
-    metric nova-conductor_on_host_aio1_nova_conductor_container-dcddd54a uint32 1
-    metric nova-compute_on_host_aio1_nova_compute_container-19824c74 uint32 1
+    metric nova-scheduler_on_host_aio1_nova_scheduler_container-e7b92e0f string Yes
+    metric nova-conductor_on_host_aio1_nova_conductor_container-dcddd54a string No
+    metric nova-compute_on_host_aio1_nova_compute_container-19824c74 string Yes
     ...
 
 ***
@@ -265,10 +265,10 @@ polls the neutron api and gets a list of all neutron agents running in the envir
 Hostname or IP address of service to test
 ##### Example Output:
 
-    metric neutron-metadata-agent_status uint32 1
-    metric neutron-linuxbridge-agent_status uint32 1
-    metric neutron-dhcp-agent_status uint32 1
-    metric neutron-linuxbridge-agent_status uint32 1
+    metric neutron-metadata-agent_status string Yes
+    metric neutron-linuxbridge-agent_status string No
+    metric neutron-dhcp-agent_status string neutron-dhcp-agent cannot reach API
+    metric neutron-linuxbridge-agent_status string Yes
     ...
 
 ***

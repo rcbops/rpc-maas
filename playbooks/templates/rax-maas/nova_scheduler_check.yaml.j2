@@ -19,9 +19,9 @@ alarms      :
         disabled                : {{ (('nova_scheduler_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["client_success"] != 1) {
-                return new AlarmStatus(WARNING, "Nova scheduler service can't reach API");
+            if (metric["nova-scheduler_status"] regex ".*cannot reach API.*") {
+                return new AlarmStatus(WARNING, "nova scheduler service can't reach API");
             }
-            if (metric["nova-scheduler_status"] != 1) {
+            if (metric["nova-scheduler_status"] == 'No') {
                 return new AlarmStatus(CRITICAL, "nova-scheduler down");
             }
