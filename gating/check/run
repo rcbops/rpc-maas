@@ -51,8 +51,17 @@ if [ "${RE_JOB_SCENARIO}" = "ceph" ]; then
   export ANSIBLE_BINARY="ceph-ansible-playbook"
   export ANSIBLE_INVENTORY="/opt/rpc-ceph/tests/inventory"
   export ANSIBLE_OVERRIDES="/opt/rpc-ceph/tests/test-vars.yml"
-fi
-if [ "${RE_JOB_ACTION}" != "tox-test" ]; then
+  export RPC_MAAS_DIR="$(pwd)"
+  export COMMON_TESTS_PATH="/opt/rpc-ceph/tests/common"
+  if [ -d "/opt/rpc-ceph" ]; then
+    rm -rf /opt/rpc-ceph
+  fi
+
+  git clone https://github.com/rcbops/rpc-ceph /opt/rpc-ceph
+  pushd /opt/rpc-ceph
+    RE_JOB_SCENARIO="functional" bash /opt/rpc-ceph/gating/periodic/run
+  popd
+elif [ "${RE_JOB_ACTION}" != "tox-test" ]; then
   tox -e bindep
   # Run maas functional tests
   tox -e functional

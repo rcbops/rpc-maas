@@ -145,21 +145,6 @@ apt-get install -y iptables util-linux apt-transport-https netbase
 
 echo 'Debug::Acquire::http "true";' > /etc/apt/apt.conf.d/99debug
 
-if [ "${RE_JOB_SCENARIO}" == "ceph" ]; then
-
-  if [ -d "/opt/rpc-ceph" ]; then
-    rm -rf /opt/rpc-ceph
-  fi
-
-  git clone https://github.com/rcbops/rpc-ceph /opt/rpc-ceph
-  export RPC_MAAS_DIR="$(pwd)"
-  pushd /opt/rpc-ceph
-    pip install -U -r /opt/rpc-ceph/global-requirement-pins.txt
-    RE_JOB_SCENARIO="functional" TEST_RPC_MAAS="False" bash /opt/rpc-ceph/gating/periodic/run
-  popd
-  exit
-fi
-
 if [ ! -d "/opt/openstack-ansible" ]; then
   git clone https://github.com/openstack/openstack-ansible /opt/openstack-ansible
 else
