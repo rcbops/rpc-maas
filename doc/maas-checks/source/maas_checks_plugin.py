@@ -8,24 +8,68 @@ PREFIX = "MAAS_CHECKS_PLUGIN:"
 CHECKOUT_ROOT = "../../.."
 
 
-def render_all_details(check_details):
+def _get_details(file_name, app):
+    """Yield the details of this file name
+
+    When no content is found or the file does not exist, yield the
+    empty string so it results in no effect to the rendered output.
+    """
+    if os.path.exists(file_name):
+        content = open(file_name, "r").read()
+        if content:
+            yield content
+        else:
+            yield ""
+            # TODO(briancurtin): We may want to move this to be a warn instead
+            # if an info in the future, at least after the initial content
+            # is provided. If we do that, then 100% of things will require
+            # an explanation (which I think we should do).
+            app.info("{prefix} No content in {file_name}".format(
+                     prefix=PREFIX, file_name=file_name))
+    else:
+        yield ""
+        app.warn("{prefix} Did not find {file_name}".format(
+                 prefix=PREFIX, file_name=file_name))
+
+
+def get_category_details(category, app):
+    file_name = os.path.join(app.srcdir, "stubs", category, "title.rst")
+    yield from _get_details(file_name, app)
+
+
+def get_check_details(category, check, app):
+    file_name = os.path.join(app.srcdir, "stubs", category, check, "title.rst")
+    yield from _get_details(file_name, app)
+
+
+def get_alarm_details(category, check, alarm, app):
+    file_name = os.path.join(app.srcdir, "stubs", category, check,
+                             "{alarm}.rst".format(alarm=alarm))
+    yield from _get_details(file_name, app)
+
+
+def render_all_details(check_details, app):
     # Alpha sort these so we don't generate randomly ordered pages.
     categories = sorted(check_details.keys())
 
     for category in categories:
-        yield from render_category(category, check_details)
+        yield from render_category(category, check_details, app)
 
 
-def render_category(category, check_details):
+def render_category(category, check_details, app):
     category_label = "**{category}**".format(category=category)
     yield "\n{category_label}\n".format(category_label=category_label)
     yield "*" * len(category_label)
     yield "\n"
 
+    yield from get_category_details(category, app)
+
     for check, details in check_details[category].items():
         yield "\n{check}\n".format(check=check)
         yield "=" * len(check)
         yield "\n"
+
+        yield from get_check_details(category, check, app)
 
         check_variables = None
         if "_check_variables" in details:
@@ -44,6 +88,9 @@ def render_category(category, check_details):
                 alarm_name=alarm_name)
             yield "\n{alarm_title}\n".format(alarm_title=alarm_title)
             yield "-" * len(alarm_title)
+            yield "\n"
+
+            yield from get_alarm_details(category, check, alarm_name, app)
 
             if "_criteria" in alarm_details:
                 criteria = alarm_details.pop("_criteria")
@@ -118,7 +165,7 @@ def builder_inited(app):
     # the current working directory is already properly set.
     check_details = maas_checks_config.categorized_check_details(os.getcwd())
 
-    single_page = "".join(render_all_details(check_details))
+    single_page = "".join(render_all_details(check_details, app))
     with open("{root}/all_checks.rst".format(root=app.srcdir), "w") as f:
         f.write(":orphan:\n\n")
         f.write("================================\n")
@@ -144,7 +191,7 @@ def builder_inited(app):
         page_path = "{root}/{category}.rst".format(root=cat_dir,
                                                    category=category)
         with open(page_path, "w") as f:
-            f.write("".join(render_category(category, check_details)))
+            f.write("".join(render_category(category, check_details, app)))
 
 
 def build_finished(app, exception):
