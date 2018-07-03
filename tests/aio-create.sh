@@ -236,6 +236,9 @@ pushd /opt/openstack-ansible
 
   # Pin python-ldap so it stops breaking everything
   echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+  
+  # Pin flask so it stops breaking xenial and other versions
+  echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
 
   # Disable the sec role
   disable_security_role
