@@ -15,16 +15,17 @@
 # limitations under the License.
 
 import argparse
-import sys
 
 from maas_common import get_auth_ref
 from maas_common import get_keystone_client
 from maas_common import get_nova_client
+from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_err_no_exit
 from maas_common import status_ok
+from maas_common import NOVA_SERVICE_TYPE_LIST
 
 
 def check(auth_ref, args):
@@ -44,8 +45,13 @@ def check(auth_ref, args):
     # not gathering api status metric here so catch any exception
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_nova')
+        for nova_service_type in NOVA_SERVICE_TYPE_LIST:
+            metric('%s_status' % nova_service_type,
+                   'string',
+                   '%s cannot reach API' % nova_service_type,
+                   m_name='maas_nova')
         status_err_no_exit(str(e), m_name='maas_nova')
-        sys.exit(0)
+        return
     else:
         metric_bool('client_success', True, m_name='maas_nova')
 
@@ -61,17 +67,17 @@ def check(auth_ref, args):
     # return all the things
     status_ok(m_name='maas_nova')
     for service in services:
-        service_is_up = True
+        service_is_up = "Yes"
 
         if service.status == 'enabled' and service.state == 'down':
-            service_is_up = False
+            service_is_up = "No"
 
         if args.host:
             name = '%s_status' % service.binary
         else:
             name = '%s_on_host_%s_status' % (service.binary, service.host)
 
-        metric_bool(name, service_is_up, m_name='maas_nova')
+        metric(name, 'string', service_is_up, m_name='maas_nova')
 
 
 def main(args):

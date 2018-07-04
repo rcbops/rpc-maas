@@ -15,14 +15,15 @@
 # limitations under the License.
 
 import argparse
-import sys
 
 from maas_common import get_neutron_client
+from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_err_no_exit
 from maas_common import status_ok
+from maas_common import NEUTRON_AGENT_TYPE_LIST
 
 
 def check(args):
@@ -35,8 +36,13 @@ def check(args):
     # not gathering api status metric here so catch any exception
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_neutron')
+        for neutron_agent_type in NEUTRON_AGENT_TYPE_LIST:
+            metric('%s_status' % neutron_agent_type,
+                   'string',
+                   '%s cannot reach API' % neutron_agent_type,
+                   m_name='maas_neutron')
         status_err_no_exit(str(e), m_name='maas_neutron')
-        sys.exit(0)
+        return
     else:
         metric_bool('client_success', True, m_name='maas_neutron')
 
@@ -58,9 +64,9 @@ def check(args):
     # return all the things
     status_ok(m_name='maas_neutron')
     for agent in agents:
-        agent_is_up = True
+        agent_is_up = "Yes"
         if agent['admin_state_up'] and not agent['alive']:
-            agent_is_up = False
+            agent_is_up = "No"
 
         if args.host:
             name = '%s_status' % agent['binary']
@@ -71,7 +77,7 @@ def check(args):
                                          agent['id'],
                                          agent['host'])
 
-        metric_bool(name, agent_is_up, m_name='maas_neutron')
+        metric(name, 'string', agent_is_up, m_name='maas_neutron')
 
 
 def main(args):

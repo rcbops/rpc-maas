@@ -19,9 +19,9 @@ alarms      :
         disabled                : {{ (('neutron_l3_agent_status--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["client_success"] != 1) {
+            if (metric["neutron-l3-agent_status"] regex ".*cannot reach API.*") {
                 return new AlarmStatus(WARNING, "neutron l3 agent can't reach API");
             }
-            if (metric["neutron-l3-agent_status"] != 1) {
+            if (metric["neutron-l3-agent_status"] == 'No') {
                 return new AlarmStatus(CRITICAL, "neutron-l3-agent down");
             }
