@@ -160,8 +160,6 @@ def send_metrics_to_influxdb(plugin_config, logger):
     influx_password = influx_config['password']
     tags = influx_config['tags']
 
-    tags['influxdb_database'] = influx_database
-
     client = InfluxDBClient(influx_host,
                             influx_port,
                             influx_user,
