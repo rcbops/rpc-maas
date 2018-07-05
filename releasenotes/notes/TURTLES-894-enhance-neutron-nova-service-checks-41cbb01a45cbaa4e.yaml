@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    nova/neutron service check plugins now produces string metrics. When API 
+    is down and agents/service cannot reach it, monitoring agent will generate
+    a warning of message "cannot reach API" by emitting out a metric with a
+    string metric "<service/agent> cannot reach API".  And in other scenarios,
+    the plugin will emit "Yes"/"No" metric to indicate service/agent is up/down. 
+    
+
