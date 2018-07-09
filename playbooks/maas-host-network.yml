@@ -21,6 +21,31 @@
     - name: Set the current group
       set_fact:
         maas_current_group: hosts
+
+    - name: Copy over pip constraints
+      copy:
+        src: "files/pip-constraints.txt"
+        dest: "/tmp/pip-constraints.txt"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  post_tasks:
+    - name: Install network pip packages to venv
+      pip:
+        name: "{{ maas_network_check_pip_packages | join(' ') }}"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          --isolated
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+        virtualenv: "{{ maas_venv }}"
+      register: install_pip_packages
+      until: install_pip_packages|success
+      retries: 5
+      delay: 2
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-host.yml
   tags:
     - maas-hosts-network
 
@@ -46,6 +71,26 @@
         mode: "0644"
       with_together:
         - "{{ maas_network_checks_list }}"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-host.yml
+  tags:
+    - maas-hosts-network
+
+
+- name: Install checks for bonding interfaces
+  hosts: hosts
+  gather_facts: false
+  tasks:
+    - name: Install checks for bonding interfaces
+      template:
+        src: "templates/rax-maas/host_bonding_iface_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/host_bonding_iface_check.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: maas_bonding_interfaces is defined and (maas_bonding_interfaces | length) > 0
 
   vars_files:
     - vars/main.yml

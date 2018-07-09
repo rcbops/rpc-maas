@@ -65,6 +65,16 @@ maas_disk_util_devices: "{{ _maas_disk_util_devices | from_yaml }}"
 maas_disk_utilisation_warning_threshold: 90
 maas_disk_utilisation_critical_threshold: 99
 
+_maas_bonding_interfaces: |
+  ---
+  {% for interface in ansible_interfaces %}
+  {% set interface_detail = (hostvars[inventory_hostname]['ansible_%s' | format(interface)] | default({})) %}
+  {%   if (interface_detail and interface_detail['type'] == 'bonding' ) %}
+  - "{{ interface }}"
+  {%   endif %}
+  {% endfor %}
+maas_bonding_interfaces: "{{ _maas_bonding_interfaces | from_yaml }}"
+
 maas_memory_used_percentage_warning_threshold: 90.0
 maas_memory_used_percentage_critical_threshold: 99.0
 
@@ -84,3 +94,6 @@ maas_network_checks_list:
     rx_pct_crit: 80
     tx_pct_warn: 60
     tx_pct_crit: 80
+
+maas_network_check_pip_packages:
+  - "netifaces"
