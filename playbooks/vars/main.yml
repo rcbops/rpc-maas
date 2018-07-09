@@ -447,3 +447,12 @@ mk8s_etg_port: '8888'
 # mk8s_etg_protocol: Protocol used to contact the mk8s etg service
 #
 mk8s_etg_protocol: 'http'
+
+# magnum_local_api_port: Port number for the local magnum API service
+#
+magnum_local_api_port: '9511'
+
+#
+# magnum_local_api_protocol: Protocol for magnum local API service
+#
+magnum_local_api_protocol: 'http'
