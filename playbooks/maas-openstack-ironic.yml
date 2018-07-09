@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: ironic_all
+  hosts: ironic_all:ironic_compute
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
