@@ -197,7 +197,7 @@ pushd /opt/openstack-ansible
     enable_ironic
 
   elif [ "${RE_JOB_SCENARIO}" == "pike" ]; then
-    git checkout "stable/pike"  # Branch checkout of Pike (Current Stable)
+    git checkout "a8a809839484105d9cd27463defc19a8a617c64b"  # Branch checkout of Pike (Current Stable)
     # Pin flask so it stops breaking xenial and other versions
     echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
     enable_ironic
