@@ -30,13 +30,17 @@ def check(auth_ref, args):
     auth_token = keystone.auth_token
     tenant_id = keystone.tenant_id
 
-    COMPUTE_ENDPOINT = (
-        'http://{hostname}:8774/v2.1/{tenant_id}'
-        .format(hostname=args.hostname, tenant_id=tenant_id)
+    compute_endpoint = (
+        '{protocol}://{hostname}:{port}/v2.1/{tenant_id}'.format(
+            hostname=args.hostname,
+            tenant_id=tenant_id,
+            protocol=args.protocol,
+            port=args.port
+        )
     )
     try:
         nova = get_nova_client(auth_token=auth_token,
-                               bypass_url=COMPUTE_ENDPOINT)
+                               bypass_url=compute_endpoint)
 
     # not gathering api status metric here so catch any exception
     except Exception as e:
@@ -95,6 +99,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help='Protocol for the nova API')
+    parser.add_argument('--port',
+                        action='store',
+                        default='8774',
+                        help='Port the nova API service is running on.')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)

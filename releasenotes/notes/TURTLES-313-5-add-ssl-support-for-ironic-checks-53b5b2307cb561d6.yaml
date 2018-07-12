@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Added protocol and port option support for ironic checks, so it can
+    support ssl and/or different port.
+
