@@ -24,6 +24,8 @@ maas_openstack_swift_pip_packages:
   - python-swiftclient
 
 maas_hummingbird_lbhealthcheck_enabled: false
+
+maas_hummingbird_transactioncheck_enabled: false
 #
 # Hummingbird object access check
 #

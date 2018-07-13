@@ -298,6 +298,19 @@
         - maas_private_monitoring_zone is defined
         - maas_hummingbird_accesscheck_enabled | bool
 
+    - name: Install hummingbird transaction checks
+      template:
+        src: "templates/rax-maas/hummingbird_transaction.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/hummingbird_transaction--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+        - maas_hummingbird_transactioncheck_enabled | bool
+
   vars_files:
     - vars/main.yml
     - vars/maas-hummingbird.yml

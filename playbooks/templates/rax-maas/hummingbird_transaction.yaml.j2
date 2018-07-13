@@ -1,0 +1,33 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
+{% set label = "hummingbird_transaction_check" %}
+{% set check_name = label+'--'+inventory_hostname %}
+type        : agent.plugin
+label       : "{{ check_name }}"
+period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
+timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
+disabled    : "false"
+details     :
+    file    : run_plugin_in_venv.sh
+    args    : ["/usr/lib/rackspace-monitoring-agent/plugins/hummingbird_monitoring.py"]
+    timeout : 59000
+{{ get_metadata(label).strip() }}
+alarms      :
+    hummingbird_transaction_alarm:
+        label                   : hummingbird_transaction_alarm
+        notification_plan_id    : "npTechnicalContactsEmail"
+        disabled                : false
+        criteria                : |
+            :set consecutiveCount=3
+            if (metric["put_container"] != 200) {
+                return new AlarmStatus(CRITICAL, "PUT container failed");
+            }
+            if (metric["put_object"] != 200) {
+                return new AlarmStatus(CRITICAL, "PUT object failed");
+            }
+            if (metric["get_object"] != 200) {
+                return new AlarmStatus(CRITICAL, "GET object failed");
+            }
+            if (metric["delete_object"] != 200) {
+                return new AlarmStatus(CRITICAL, "DELETE object failed");
+            }
+
