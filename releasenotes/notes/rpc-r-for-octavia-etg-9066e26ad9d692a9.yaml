@@ -1,0 +1,12 @@
+---
+prelude: >
+    This is a barebones script to add RPC-R support for octavia and mk8s
+features:
+  - |
+    'site-osp.yml' will prepare and install octavia and mk8s maas checks
+    on an RPC-R environment. This feature is very limited.
+issues:
+  - |
+    After the script is run the maas agent needs to be restarted manually
+    for changes taking effect.
+

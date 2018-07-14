@@ -619,7 +619,8 @@ def get_auth_details(openrc_file=OPENRC):
             status_err(str(e), m_name='maas_keystone')
         # no openrc file, so we try the environment
         for key in auth_details.keys():
-            auth_details[key] = os.environ.get(key)
+            if key in os.environ:
+                auth_details[key] = os.environ.get(key)
 
     for key in auth_details.keys():
         if auth_details[key] is None:

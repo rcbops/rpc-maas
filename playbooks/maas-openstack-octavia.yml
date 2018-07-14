@@ -14,20 +14,52 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: octavia_all
+  hosts: "{{ octavia_hosts_all|default('octavia_all') }}"
+  user: "{{ octavia_ansible_user|default('root') }}"
+  become: "{{ octavia_ansible_become|default('no') }}"
   gather_facts: "{{ gather_facts | default(true) }}"
   tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
       set_fact:
-        maas_current_group: octavia_all
+        maas_current_group: "octavia_hosts_all"
+
+  post_tasks:
+    - name: Set physical host
+      set_fact:
+        physical_host: "{{ ansible_host }}"
+      when: deploy_osp|default(false)
+
+    - name: Install octavia pip packages to venv
+      pip:
+        name: "{{ maas_openstack_octavia_pip_packages | join(' ') }}"
+        state: "{{ maas_pip_package_state }}"
+        extra_args: >-
+          --isolated
+          --constraint /tmp/pip-constraints.txt
+          {{ pip_install_options | default('') }}
+        virtualenv: "{{ maas_venv }}"
+      register: install_pip_packages
+      until: install_pip_packages|success
+      retries: 5
+      delay: 2
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+  vars_files:
+    - vars/main.yml
+    - "{{ octavia_var_files|default('vars/maas-openstack.yml') }}"
   tags:
     -  maas-openstack-octavia
 
 - name: Install checks for octavia
-  hosts: octavia_all
+  hosts: "{{ octavia_hosts_all|default('octavia_all') }}"
+  user: "{{ octavia_ansible_user|default('root') }}"
+  become: "{{ octavia_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
+    - name: Set physical host
+      set_fact:
+        physical_host: "{{ ansible_host }}"
+      when: deploy_osp|default(false)
     - name: Install octavia process check
       template:
         src: "templates/rax-maas/octavia_process_check.yaml.j2"
@@ -37,10 +69,20 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
-    - name: Get project id
-      shell: ". /root/openrc && openstack project list --user octavia -c ID -f value"
+    - name: Get project id (RPC-O)
+      shell: ". {{ maas_openrc|default('/root/openrc') }} && openstack project list --user octavia -c ID -f value"
       register: octavia_project_return
       delegate_to: "{{ groups['utility_all'][0] }}"
+      when: not deploy_osp|default(false)
+      tags:
+        - skip_ansible_lint
+
+    - name: Get project id (RPC-R)
+      shell: ". {{ director_openrc }} && openstack project show service -c id -f value"
+      register: octavia_project_return
+      run_once: true
+      delegate_to: "localhost"
+      when: deploy_osp|default(false)
       tags:
         - skip_ansible_lint
 
@@ -59,17 +101,37 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-openstack.yml
+    - "{{ octavia_var_files|default('vars/maas-openstack.yml') }}"
   tags:
     - maas-openstack-octavia
 
 - name: Install checks for openstack octavia-api
-  hosts: octavia-api
+  hosts: "{{ octavia_hosts_api|default('octavia-api') }}"
+  user: "{{ octavia_ansible_user|default('root') }}"
+  become: "{{ octavia_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
-    - name: Add load-balancer member role
-      shell: ". /root/openrc && openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer"
+    - name: Set physical host
+      set_fact:
+        physical_host: "{{ ansible_host }}"
+      when: deploy_osp|default(false)
+
+    - name: Add load-balancer member role (RPC-O)
+      shell: ". {{ maas_openrc|default('/root/openrc') }} && openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer"
       delegate_to: "{{ groups['utility_all'][0] }}"
+      when: not deploy_osp|default(false)
+      tags:
+        - skip_ansible_lint
+
+    - name: Add load-balancer member role (RPC-R)
+      shell: |
+        . {{ director_openrc }} && \
+        openstack role assignment list --project $OS_PROJECT_NAME --user $OS_USERNAME | \
+        grep $(openstack role show load-balancer_observer -c id -f value) || \
+        openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer
+      delegate_to: "localhost"
+      run_once: true
+      when: deploy_osp|default(false)
       tags:
         - skip_ansible_lint
 
@@ -108,6 +170,6 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-openstack.yml
+    - "{{ octavia_var_files|default('vars/maas-openstack.yml') }}"
   tags:
     - maas-openstack-octavia

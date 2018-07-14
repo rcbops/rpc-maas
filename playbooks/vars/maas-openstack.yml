@@ -41,7 +41,7 @@ maas_openstack_designate_pip_packages:
   - python-designateclient
   - python-keystoneclient
   - dnspython
-  
+
 maas_openstack_glance_pip_packages:
   - python-glanceclient
   - python-keystoneclient
@@ -176,6 +176,9 @@ nova_console_ports:
   spice: 6082
 
 nova_console_port: "{{ nova_console_ports[nova_console_type] }}"
+
+maas_openstack_octavia_pip_packages:
+  - python-keystoneclient
 
 octavia_process_names:
   - uwsgi

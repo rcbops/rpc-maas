@@ -48,7 +48,7 @@ def check(auth_ref, args):
             'compute', auth_ref, 'internal')
 
         volume_endpoint = get_endpoint_url_for_service(
-            'volume', auth_ref, 'internal')
+            'volumev2', auth_ref, 'internal')
 
         r = s.get('%s/limits' % compute_endpoint, params=params,
                   verify=False,
