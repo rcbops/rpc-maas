@@ -18,6 +18,7 @@
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
+    - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
       set_fact:
         maas_current_group: hummingbird
