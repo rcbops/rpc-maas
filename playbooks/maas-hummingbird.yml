@@ -307,8 +307,6 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
-        - maas_private_monitoring_enabled
-        - maas_private_monitoring_zone is defined
         - maas_hummingbird_transactioncheck_enabled | bool
 
   vars_files:
