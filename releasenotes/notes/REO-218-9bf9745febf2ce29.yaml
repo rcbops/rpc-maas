@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    notification queue matching regex is not working properly. Some messages
+    may or may not start with '/' and may or may not have 'versioned_'. This
+    PR fixes it.
+

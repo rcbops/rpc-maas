@@ -191,7 +191,7 @@ def _get_queue_metrics(session, metrics, protocol, host, port):
         if messages is None or consumers is None or name is None:
             continue
         if consumers > 0:
-            if re.match(r'/^(versioned_)?notifications\.', name):
+            if re.match(r'^/?(versioned_)?notifications\.', name):
                 notification_messages += messages
             else:
                 msgs_excl_notifications += messages
