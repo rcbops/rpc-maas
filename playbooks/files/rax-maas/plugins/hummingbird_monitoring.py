@@ -14,13 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import maas_common
-import pprint
 import swiftclient
 
-from maas_common import get_auth_details
-from maas_common import get_keystone_client
 from maas_common import get_keystone_client
 from maas_common import get_auth_ref
 from maas_common import get_endpoint_url_for_service
@@ -50,7 +46,7 @@ def main():
         responses['put_container'] = e.http_status
 
     try:
-        etag = conn.put_object("hummingbird-maas", "test-object", contents)
+        conn.put_object("hummingbird-maas", "test-object", contents)
     except swiftclient.client.ClientException as e:
         responses['put_object'] = e.http_status
 
@@ -74,4 +70,3 @@ def main():
 if __name__ == '__main__':
     with maas_common.print_output():
         main()
-
