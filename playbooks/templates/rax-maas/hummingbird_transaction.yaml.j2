@@ -14,7 +14,7 @@ details     :
 alarms      :
     hummingbird_transaction_alarm:
         label                   : hummingbird_transaction_alarm
-        notification_plan_id    : "npTechnicalContactsEmail"
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
         disabled                : false
         criteria                : |
             :set consecutiveCount=3
