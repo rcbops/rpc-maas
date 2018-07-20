@@ -14,16 +14,24 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: designate_all
+  hosts: "{{ designate_hosts_all|default('designate_all') }}"
+  user: "{{ designate_ansible_user|default('root') }}"
+  become: "{{ designate_ansible_become|default('no') }}"
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
+      when: not deploy_osp|default(false)
     - name: Set the current group
       set_fact:
         maas_current_group: designate_all
 
   tasks:
+    - name: Set physical host
+      set_fact:
+        physical_host: "{{ ansible_host }}"
+      when: deploy_osp|default(false)
+
     - name: Copy over pip constraints
       copy:
         src: "files/pip-constraints.txt"
@@ -48,14 +56,27 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-openstack.yml
+    - "{{ designate_var_files|default('vars/maas-openstack.yml') }}"
   tags:
     - maas-openstack-designate
 
 - name: Install checks for openstack designate
-  hosts: designate_all
+  hosts: "{{ designate_hosts_all|default('designate_all') }}"
+  user: "{{ designate_ansible_user|default('root') }}"
+  become: "{{ designate_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
+    - name: Set physical host
+      set_fact:
+        physical_host: "{{ ansible_host }}"
+        internal_ips: "{{ ansible_all_ipv4_addresses|ipaddr(osp_internal_netmask)|difference([internal_vip_address]) }}"
+      when: deploy_osp|default(false)
+
+    - name: Set internal ip
+      set_fact:
+        internal_ip: "{{ internal_ips[0] }}"
+      when: deploy_osp|default(false)
+
     - name: Install designate api checks
       template:
         src: "templates/rax-maas/designate_api_local_check.yaml.j2"
@@ -99,6 +120,6 @@
         - maas_private_monitoring_zone is defined
   vars_files:
     - vars/main.yml
-    - vars/maas-openstack.yml
+    - "{{ designate_var_files|default('vars/maas-openstack.yml') }}"
   tags:
     - maas-openstack-designate
