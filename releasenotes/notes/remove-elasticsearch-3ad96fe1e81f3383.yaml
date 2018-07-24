@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    The elasticsearch maas check is not doing a whole lot and is more noise
+    than value. This is on top of the fact that the elasticsearch checks are
+    not made for a deployment where elasticsearch/logstash are deployed in a
+    high performance cluster. This change also removes the filebeat check.

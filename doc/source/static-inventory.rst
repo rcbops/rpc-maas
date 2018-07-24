@@ -135,21 +135,6 @@ section
     osds
 
 
-elasticsearch_all
-~~~~~~~~~~~~~~~~~
-
-If you have node(s) running ``elasticsearch``, add the node(s) into the
-"elasticsearch" section
-
-.. code-block:: ini
-
-    [elasticsearch]
-    infra1
-
-    [elasticsearch_all:children]
-    elasticsearch
-
-
 rsyslog_all
 ~~~~~~~~~~~
 

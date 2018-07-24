@@ -163,9 +163,7 @@ def _get_globals(config_variables):
     # configured list.
     # NOTE: Don't copy config_variables into new_globals wholesale as we
     # want things such as alarm criteria to remain as actual template values.
-    for name in ("elasticsearch_process_names",
-                 "ceph_radosgw_protocol",
-                 "filebeat_process_names",
+    for name in ("ceph_radosgw_protocol",
                  "rsyslogd_process_names",
                  "maas_swift_account_process_names",
                  "maas_swift_container_process_names",
