@@ -136,3 +136,9 @@
     - maas
   vars:
     mk8s_var_file: 'vars/maas-osp.yml'
+
+- include: maas-openstack-designate.yml
+  tags:
+    - maas
+  vars:
+    designate_var_files: 'vars/maas-osp.yml'

@@ -21,6 +21,8 @@ maas_env_product: "TripleO"
 
 maas_openrc: '/root/openrc-maas'
 
+osp_internal_netmask: "{{ internal_vip_address | ipsubnet(24) }}"
+
 maas_openstack_octavia_pip_packages:
   - python-keystoneclient
 
@@ -69,3 +71,14 @@ mk8s_etg_hosts: 'Controller'
 mk8s_auth_hosts: 'Controller'
 mk8s_ansible_user: 'heat-admin'
 mk8s_ansible_become: yes
+
+# designate
+designate_ansible_become: True
+designate_ansible_user: 'heat-admin'
+designate_hosts_all: 'Controller'
+
+maas_openstack_designate_pip_packages:
+  - python-designateclient
+  - python-keystoneclient
+  - dnspython
+

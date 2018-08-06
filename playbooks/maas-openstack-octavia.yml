@@ -60,6 +60,7 @@
       set_fact:
         physical_host: "{{ ansible_host }}"
       when: deploy_osp|default(false)
+
     - name: Install octavia process check
       template:
         src: "templates/rax-maas/octavia_process_check.yaml.j2"
@@ -114,7 +115,14 @@
     - name: Set physical host
       set_fact:
         physical_host: "{{ ansible_host }}"
+        internal_ips: "{{ ansible_all_ipv4_addresses|ipaddr(osp_internal_netmask)|difference([internal_vip_address]) }}"
       when: deploy_osp|default(false)
+
+    - name: Set internal ip
+      set_fact:
+        internal_ip: "{{ internal_ips[0] }}"
+      when: deploy_osp|default(false)
+
 
     - name: Add load-balancer member role (RPC-O)
       shell: ". {{ maas_openrc|default('/root/openrc') }} && openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer"
