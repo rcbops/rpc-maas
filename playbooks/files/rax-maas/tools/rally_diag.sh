@@ -8,17 +8,60 @@ echo -e '\n##################################################################\n'
 
 ###checks for instances by rally, whether in-progress or stuck
 echo '...Checking for INSTANCES spawned by Rally...'
-tput setaf 1; for PROJECT in `mysql keystone -BNe "select id from project where name like 'rally%'"`; do mysql nova -e "select uuid,display_name,vm_state,task_state,host,launched_at,project_id from instances where project_id='$PROJECT' and deleted=0" ; done; tput sgr0
+tput setaf 1
+mysql --table <<EOF
+SELECT uuid,
+       display_name,
+       vm_state,
+       task_state,
+       host,
+       launched_at,
+       project_id
+FROM   nova.instances
+WHERE  project_id IN (SELECT id
+                      FROM   keystone.project
+                      WHERE  NAME LIKE 'rally%')
+       AND deleted = 0;
+EOF
+tput sgr0
 echo -e '\n##################################################################\n'
 
 ###checks for images by rally, whether in-progress or stuck
 echo '...Checking for IMAGES created by Rally...'
-tput setaf 1; for PROJECT in `mysql keystone -BNe "select id from project where name like 'rally%'"`; do mysql glance -e "select id,name,status,created_at,owner from images where owner='$PROJECT' and deleted=0"; done; tput sgr0
+tput setaf 1
+mysql --table <<EOF
+SELECT id,
+       NAME,
+       status,
+       created_at,
+       owner
+FROM   glance.images
+WHERE  owner IN (SELECT id
+                 FROM   keystone.project
+                 WHERE  NAME LIKE 'rally%')
+       AND deleted = 0;
+EOF
+tput sgr0
 echo -e '\n##################################################################\n'
 
 ###checks for volumes created by rally
 echo '...Checking for VOLUMES created by Rally...'
-tput setaf 1; for PROJECT in `mysql keystone -BNe "select id from project where name like 'rally%'"`; do mysql cinder -e "select id,display_name,host,status,attach_status,created_at,project_id from volumes where project_id='$PROJECT' and deleted=0"; done; tput sgr0
+tput setaf 1
+mysql --table <<EOF
+SELECT id,
+       display_name,
+       host,
+       status,
+       attach_status,
+       created_at,
+       project_id
+FROM   cinder.volumes
+WHERE  project_id IN (SELECT id
+                      FROM   keystone.project
+                      WHERE  NAME LIKE 'rally%')
+       AND deleted = 0;
+EOF
+tput sgr0
 echo -e '\n##################################################################\n'
 
 ###checks for neutron ports
@@ -32,26 +75,41 @@ SELECT ports.id,
        standardattributes.created_at,
        standardattributes.updated_at,
        standardattributes.description
-     FROM neutron.ports
-LEFT JOIN neutron.standardattributes
-       ON ports.standard_attr_id = standardattributes.id
-WHERE ports.project_id IN (SELECT id
-                           FROM   keystone.project
-                           WHERE  name LIKE 'rally%')
-  AND ports.device_owner != 'network:dhcp'
-  AND standardattributes.updated_at < NOW() - interval 5 minute;
+FROM   neutron.ports
+       LEFT JOIN neutron.standardattributes
+              ON ports.standard_attr_id = standardattributes.id
+WHERE  ports.project_id IN (SELECT id
+                            FROM   keystone.project
+                            WHERE  name LIKE 'rally%')
+       AND ports.device_owner != 'network:dhcp'
+       AND standardattributes.updated_at < NOW() - interval 5 minute;
 EOF
 tput sgr0
 echo -e '\n##################################################################\n'
 
 ###checks for neutron secgroups
 echo '...Checking for SECURITY GROUPS created by Rally...'
-tput setaf 1; for PROJECT in `mysql keystone -BNe "select id from project where name like 'rally%'"`; do mysql neutron -e "select id,name,project_id from securitygroups where project_id='$PROJECT' and name like '%rally%'"; done; tput sgr0
+tput setaf 1
+mysql --table <<EOF
+SELECT id,
+       NAME,
+       project_id
+FROM   neutron.securitygroups
+WHERE  project_id IN (SELECT id
+                      FROM   keystone.project
+                      WHERE  NAME LIKE 'rally%')
+       AND NAME LIKE '%rally%';
+EOF
+tput sgr0
 echo -e '\n##################################################################\n'
 
 ###checks for swift containers
 echo '...Checking for SWIFT CONTAINERS created by Rally...'
-tput setaf 1; PROJECT=`mysql keystone -BNe "select id from project where name='rally_swift'"`; source openrc; swift list --lh --os-project-id $PROJECT; tput sgr0
+tput setaf 1
+PROJECT=`mysql keystone -BNe "select id from project where name='rally_swift'"`
+source openrc
+swift list --lh --os-project-id $PROJECT
+tput sgr0
 echo -e '\n################################################################################'
 
 ###echos an explanation
