@@ -106,9 +106,8 @@ echo -e '\n##################################################################\n'
 ###checks for swift containers
 echo '...Checking for SWIFT CONTAINERS created by Rally...'
 tput setaf 1
-PROJECT=`mysql keystone -BNe "select id from project where name='rally_swift'"`
 source openrc
-swift list --lh --os-project-id $PROJECT
+swift list --lh --os-project-id $(mysql keystone -BNe "select id from project where name='rally_swift' LIMIT 1")
 tput sgr0
 echo -e '\n################################################################################'
 
