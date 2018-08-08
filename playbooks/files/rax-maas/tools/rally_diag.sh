@@ -23,7 +23,25 @@ echo -e '\n##################################################################\n'
 
 ###checks for neutron ports
 echo '...Checking for PORTS created by Rally...'
-tput setaf 1; for PROJECT in `mysql keystone -BNe "select id from project where name like 'rally%'"`; do mysql neutron -e "select id,name,status,device_owner from ports where device_owner='$PROJECT'"; done; tput sgr0
+tput setaf 1
+mysql --table <<EOF
+SELECT ports.id,
+       ports.name,
+       ports.status,
+       ports.device_owner,
+       standardattributes.created_at,
+       standardattributes.updated_at,
+       standardattributes.description
+     FROM neutron.ports
+LEFT JOIN neutron.standardattributes
+       ON ports.standard_attr_id = standardattributes.id
+WHERE ports.project_id IN (SELECT id
+                           FROM   keystone.project
+                           WHERE  name LIKE 'rally%')
+  AND ports.device_owner != 'network:dhcp'
+  AND standardattributes.updated_at < NOW() - interval 5 minute;
+EOF
+tput sgr0
 echo -e '\n##################################################################\n'
 
 ###checks for neutron secgroups
