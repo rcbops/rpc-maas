@@ -14,10 +14,17 @@
 # limitations under the License.
 
 ## This files contains the OSP (RPC-R) specific vars
+redhat_maas_repos:
+  repo: "http://stable.packages.cloudmonitoring.rackspace.com/redhat-{{ ansible_distribution_major_version | lower }}-x86_64/"
+  state: "present"
+  enabled: "yes"
 
 deploy_osp: True
 maas_product_dir: "/home/stack/rpc-maas"
 maas_env_product: "TripleO"
+
+maas_pre_flight_check_enabled: False
+maas_pre_flight_metadata_check_enabled: False
 
 maas_openrc: '/root/openrc-maas'
 

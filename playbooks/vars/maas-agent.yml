@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+maas_keys:
+  url: "https://monitoring.api.rackspacecloud.com/pki/agent/linux.asc"
+  state: "present"
+
 maas_requires_pip_packages:
   - virtualenv
 

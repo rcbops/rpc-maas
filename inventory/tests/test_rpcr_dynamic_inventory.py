@@ -1,5 +1,5 @@
----
-# Copyright 2017, Rackspace US, Inc.
+#!/usr/bin/env python
+# Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,28 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-maas_repos:
-  repo: "deb http://stable.packages.cloudmonitoring.rackspace.com/ubuntu-{{ ansible_distribution_version | lower }}-x86_64 cloudmonitoring main"
-  state: "present"
 
-maas_distro_packages:
-  - git
-  - libffi-dev
-  - libjpeg8-dev
-  - libssl-dev
-  - libxml2-dev
-  - libxslt-dev
-  - sysstat
-  - rackspace-monitoring-agent
-  - python-dev
-  - gcc
+import os
+import sys
+import mock
+import unittest
 
-maas_galera_distro_packages:
-  - mariadb-client
+current_path = os.path.abspath(
+    os.path.dirname(os.path.realpath(__file__))
+)
+inventory_path = os.path.join(current_path, '..')
+sys.path.append(inventory_path)
 
-maas_influxdb_distro_packages:
-  - git
-  - influxdb
+import rpcr_dynamic_inventory
 
-maas_telegraf_distro_packages:
-  - telegraf
+
+class TestRpcrDynamicInventory(unittest.TestCase):
+
+    def setUp(self):
+        temp_rpcr_static_inv = open("current_path")

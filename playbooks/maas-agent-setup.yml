@@ -28,6 +28,7 @@
 - name: Setup MaaS Agent
   hosts: hosts
   gather_facts: false
+  become: yes
   pre_tasks:
     - name: Drop .raxrc file
       template:

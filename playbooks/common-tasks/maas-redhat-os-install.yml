@@ -1,0 +1,38 @@
+- name: Import Rackspace Monitoring repo key
+  rpm_key:
+    state: "{{ maas_keys.state }}"
+    key: "{{ maas_keys.url }}"
+  become: yes
+
+- name: Add Rackspace Monitoring repository
+  yum_repository:
+    name: rackspace-monitoring-agent
+    description: Rackspace Monitoring agent repository
+    file: "{{ redhat_maas_repos.filename | default(omit) }}"
+    state: "{{ redhat_maas_repos.state }}"
+    baseurl: "{{ redhat_maas_repos.repo }}"
+    enabled: yes
+  become: yes
+  register: add_repos
+  until: add_repos | success
+  retries: 5
+  delay: 2
+
+- name: Install Linux packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  with_items:
+   - git
+   - curl
+   - autoconf
+   - gcc
+   - gcc-c++
+   - nc
+   - python2
+   - python2-devel
+   - openssl-devel
+   - libffi-devel
+   - libselinux-python
+   - rackspace-monitoring-agent
