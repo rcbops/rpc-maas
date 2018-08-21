@@ -46,7 +46,7 @@ def bonding_ifaces_check(_):
                 slave_inface_mii_status = (
                     slave_inface_mii_status_line.split(":")[1]
                 )
-                if not 'up' in slave_inface_mii_status or slave_count < 2:
+                if 'up' not in slave_inface_mii_status or slave_count < 2:
                     has_slave_down = True
 
         if has_slave_down:
