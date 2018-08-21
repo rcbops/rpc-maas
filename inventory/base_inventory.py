@@ -15,13 +15,13 @@
 
 import argparse
 import json
-import os
 
 
 class MaasInventory(object):
 
     def __init__(self):
-        self.inventory = self.empty_inventory()
+        self.inventory = {
+        }
         self.read_cli_args()
 
         # main logic, generate inventory dynamically
@@ -29,41 +29,28 @@ class MaasInventory(object):
 
         # Called with `--list`.
         if self.args.list:
-            data = self.inventory
+            pass
         # Called with `--host [hostname]`.
         elif self.args.host:
-            # Not needed, since we return `_meta` with `--list`.
-            data = self.host_inventory(self.args.host)
+            # Not implemented, since we return _meta info `--list`.
+            self.inventory = self.host_inventory(self.args.host)
         # If no groups or vars are present, return an empty inventory.
         else:
-            data = self.empty_inventory()
+            self.inventory = self.empty_inventory()
 
-        data = json.dumps(data)
-
-        if self.args.outfile:
-            self._write_to_file(data, self.args.outfile)
-        else:
-            print(data)
-
-    def _write_to_file(self, data, path):
-        if os.access(path, os.W_OK):
-            with open(path, 'w') as outfile:
-                outfile.write(data)
-        else:
-            raise RuntimeError("FATAL: Unable to write to {path}".format(path=
-                                                                         path))
+        print(json.dumps(self.inventory))
 
     def generate_mandatory_groups(self, input_inventory):
-        raise NotImplementedError("This method must be overriden!")
+        pass
 
     def generate_optional_groups(self, input_inventory):
-        raise NotImplementedError("This method must be overriden!")
+        pass
 
     def generate_infrastracture_groups(self, input_inventory):
-        raise NotImplementedError("This method must be overriden!")
+        pass
 
     def generate_openstack_groups(self, input_inventory):
-        raise NotImplementedError("This method must be overriden!")
+        pass
 
     # Example inventory for testing.
     def generate_inventory(self):
@@ -86,5 +73,4 @@ class MaasInventory(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('--list', action='store_true')
         parser.add_argument('--host', action='store')
-        parser.add_argument('--outfile', dest='outfile', type=str, default=None)
         self.args = parser.parse_args()
