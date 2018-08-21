@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    Add slave_count to ensure the bond has redundancy and check explicitly for not "up"
+    This ensures a bond slave that is marked down (should only occur in a maintenance 
+    window) triggers an alert.
+
