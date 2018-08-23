@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Remove - vars/maas-{{ ansible_distribution | lower }}.yml include as 
+    it is redundant and problematic for RPC-R Maas work
