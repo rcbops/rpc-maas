@@ -20,8 +20,7 @@ import json
 class MaasInventory(object):
 
     def __init__(self):
-        self.inventory = {
-        }
+        self.inventory = self.empty_inventory()
         self.read_cli_args()
 
         # main logic, generate inventory dynamically
@@ -29,28 +28,28 @@ class MaasInventory(object):
 
         # Called with `--list`.
         if self.args.list:
-            pass
+            data = self.inventory
         # Called with `--host [hostname]`.
         elif self.args.host:
-            # Not implemented, since we return _meta info `--list`.
-            self.inventory = self.host_inventory(self.args.host)
+            # Not needed, since we return `_meta` with `--list`.
+            data = self.host_inventory(self.args.host)
         # If no groups or vars are present, return an empty inventory.
         else:
-            self.inventory = self.empty_inventory()
+            data = self.empty_inventory()
 
-        print(json.dumps(self.inventory))
+        print(json.dumps(data))
 
     def generate_mandatory_groups(self, input_inventory):
-        pass
+        raise NotImplementedError("This method must be overriden!")
 
     def generate_optional_groups(self, input_inventory):
-        pass
+        raise NotImplementedError("This method must be overriden!")
 
     def generate_infrastracture_groups(self, input_inventory):
-        pass
+        raise NotImplementedError("This method must be overriden!")
 
     def generate_openstack_groups(self, input_inventory):
-        pass
+        raise NotImplementedError("This method must be overriden!")
 
     # Example inventory for testing.
     def generate_inventory(self):
