@@ -15,6 +15,7 @@
 
 import argparse
 import json
+import os
 
 
 class MaasInventory(object):
@@ -37,7 +38,20 @@ class MaasInventory(object):
         else:
             data = self.empty_inventory()
 
-        print(json.dumps(data))
+        data = json.dumps(data)
+
+        if self.args.outfile:
+            self._write_to_file(data, self.args.outfile)
+        else:
+            print(data)
+
+    def _write_to_file(self, data, path):
+        if os.access(path, os.W_OK):
+            with open(path, 'w') as outfile:
+                outfile.write(data)
+        else:
+            raise RuntimeError("FATAL: Unable to write to {path}".format(path=
+                                                                         path))
 
     def generate_mandatory_groups(self, input_inventory):
         raise NotImplementedError("This method must be overriden!")
@@ -72,4 +86,5 @@ class MaasInventory(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('--list', action='store_true')
         parser.add_argument('--host', action='store')
+        parser.add_argument('--outfile', dest='outfile', type=str, default=None)
         self.args = parser.parse_args()
