@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import os
 
 from heatclient import client as heat_client
@@ -66,6 +65,13 @@ class RPCRMaasInventory(MaasInventory):
             # group ? if so, what is the ansible_host value there?
             self.inventory[group_name]['vars']['ansible_host'] = (
                     self.inventory[group_name]['hosts'][0])
+            if group_name == 'undercloud':
+                self.inventory[group_name]['hosts'] = ['director']
+            else:
+                self.inventory[group_name]['hosts'] = [group_name]
+                self.inventory[group_name]['vars']['ansible_user'] = (
+                    'heat-admin'
+                )
         else:
             self.inventory[group_name] = input_inventory[group_name]
             for child in input_inventory[group_name]['children']:
@@ -81,7 +87,9 @@ class RPCRMaasInventory(MaasInventory):
         pass
 
     def generate_infrastracture_groups(self, input_inventory):
-        pass
+        self.inventory["shared-infra_hosts"] = {
+            'children': ["Controller"]
+        }
 
     def generate_openstack_groups(self, input_inventory):
         pass
@@ -89,13 +97,6 @@ class RPCRMaasInventory(MaasInventory):
     # Empty inventory for testing.
     def empty_inventory(self):
         return {'_meta': {'hostvars': {}}}
-
-    # Read the command line args passed to the script.
-    def read_cli_args(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--list', action='store_true')
-        parser.add_argument('--host', action='store')
-        self.args = parser.parse_args()
 
 
 # Get the inventory.

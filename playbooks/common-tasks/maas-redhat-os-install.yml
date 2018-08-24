@@ -8,9 +8,9 @@
   yum_repository:
     name: rackspace-monitoring-agent
     description: Rackspace Monitoring agent repository
-    file: "{{ redhat_maas_repos.filename | default(omit) }}"
-    state: "{{ redhat_maas_repos.state }}"
-    baseurl: "{{ redhat_maas_repos.repo }}"
+    file: "{{ maas_repos.file | default(omit) }}"
+    state: "{{ maas_repos.state }}"
+    baseurl: "{{ maas_repos.redhat_repo }}"
     enabled: yes
   become: yes
   register: add_repos
