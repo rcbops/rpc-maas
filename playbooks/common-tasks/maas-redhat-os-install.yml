@@ -24,16 +24,19 @@
     state: present
   become: yes
   with_items:
-   - git
-   - curl
-   - autoconf
-   - gcc
-   - gcc-c++
-   - nc
-   - python2
-   - python2-devel
-   - openssl-devel
-   - libffi-devel
-   - libselinux-python
-   - rackspace-monitoring-agent
+    - git
+    - curl
+    - autoconf
+    - gcc
+    - gcc-c++
+    - nc
+    - python2
+    - python2-devel
+    - openssl-devel
+    - libffi-devel
+    - libselinux-python
+    - rackspace-monitoring-agent
+  retries: 5
+  delay: 2
+
 
