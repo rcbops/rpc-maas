@@ -59,26 +59,8 @@
         owner: root
         group: root
 
-    - name: Start poller 14.04
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
-        - ansible_distribution_version == "14.04"
-      include_tasks: common-tasks/maas_poller_start_1404.yml
-    
-    - name: Start poller 16.04
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
-        - ansible_distribution_version == "16.04"
-      include_tasks: common-tasks/maas_poller_start_1604.yml
-    
-    - name: Start poller 14.04
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
-        - ansible_distribution | lower == "redhat"
-      include_tasks: common-tasks/maas_poller_start_redhat.yml
+    - name: Start maas poller
+      include_tasks: common-tasks/maas_poller_start.yml
 
   vars_files:
     - vars/main.yml
