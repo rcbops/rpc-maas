@@ -106,21 +106,11 @@
       when:
         - maas_use_api | bool
 
-    - name: Enable rax-mon agent on 14.04
-      service:
-        name: rackspace-monitoring-agent
-        enabled: yes
-      when:
-        - maas_use_api | bool
-        - ansible_distribution | lower == 14.04
-    
-    - name: Enable rax-mon agent
+    - name: Enable rackspace-monitoring-agent
       service:
         name: rackspace-monitoring-agent
         enabled: yes
         use: service
-      when:
-        - maas_use_api | bool
 
   vars_files:
     - vars/main.yml
