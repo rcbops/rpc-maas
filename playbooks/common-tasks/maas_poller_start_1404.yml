@@ -1,0 +1,14 @@
+# NOTE: This step is currently handled directly in the systemd
+# service config file.
+- name: Increase MaaS poller file descriptor limit on 14.04
+  lineinfile:
+    name: /etc/init/rackspace-monitoring-poller.conf
+    regexp: "^limit nofile 16384 16384"
+    insertbefore: "^pre-start script"
+    line: "limit nofile 16384 16384"
+
+- name: Start MaaS poller (upstart)
+  service:
+    name: rackspace-monitoring-poller
+    state: started
+    enabled: yes

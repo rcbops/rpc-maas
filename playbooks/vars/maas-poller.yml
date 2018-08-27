@@ -13,6 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+maas_keys:
+  url: "https://monitoring.api.rackspacecloud.com/pki/agent/linux.asc"
+  state: "present"
+
+maas_poller_repos:
+  repo: "deb [arch=amd64] http://stable.poller.packages.cloudmonitoring.rackspace.com/debian cloudmonitoring main"
+  redhat_repo: "http://stable.poller.packages.cloudmonitoring.rackspace.com/redhat-{{ ansible_distribution_major_version | lower }}-x86_64/"
+  state: "present"
+
+maas_poller_distro_packages:
+  - rackspace-monitoring-poller
+
 #
 # private_ping_check_count: Number of times to try ping check in private
 #                           network monitoring case. Must be integer

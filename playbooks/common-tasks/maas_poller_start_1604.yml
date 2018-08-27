@@ -1,0 +1,27 @@
+- name: Add poller config in systemd unit file on 16.04
+  lineinfile:
+    name: /lib/systemd/system/rackspace-monitoring-poller.service
+    insertafter: '^\[Service\]'
+    line: "EnvironmentFile=/etc/default/rackspace-monitoring-poller"
+
+- name: Use poller config in systemd unit file on 16.04
+  lineinfile:
+    name: /lib/systemd/system/rackspace-monitoring-poller.service
+    regexp: "^ExecStart="
+    insertafter: "^[Service]"
+    line: "ExecStart=/usr/bin/rackspace-monitoring-poller serve --config $CONFIG_FILE $POLLER_SERVE_OPTS"
+
+# Skip lint because daemon-reload only is not supported by the systemd
+# module until ansible 2.4, and this role needs to support older
+# versions.
+- name: Reload systemd unit configurations on 16.04
+  command: "systemctl daemon-reload"
+  tags:
+    - skip_ansible_lint
+  changed_when: False
+
+- name: Start MaaS poller (systemd)
+  service:
+    name: rackspace-monitoring-poller.service
+    state: started
+    enabled: yes

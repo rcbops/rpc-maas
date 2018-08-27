@@ -59,72 +59,26 @@
         owner: root
         group: root
 
-    # NOTE: This step is currently handled directly in the systemd
-    # service config file.
-    - name: Increase MaaS poller file descriptor limit on 14.04
+    - name: Start poller 14.04
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
         - ansible_distribution_version == "14.04"
-      lineinfile:
-        name: /etc/init/rackspace-monitoring-poller.conf
-        regexp: "^limit nofile 16384 16384"
-        insertbefore: "^pre-start script"
-        line: "limit nofile 16384 16384"
-
-    - name: Add poller config in systemd unit file on 16.04
+      include: common-tasks/maas_poller_start_1404.yml
+    
+    - name: Start poller 16.04
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
         - ansible_distribution_version == "16.04"
-      lineinfile:
-        name: /lib/systemd/system/rackspace-monitoring-poller.service
-        insertafter: '^\[Service\]'
-        line: "EnvironmentFile=/etc/default/rackspace-monitoring-poller"
-
-    - name: Use poller config in systemd unit file on 16.04
+      include: common-tasks/maas_poller_start_1604.yml
+    
+    - name: Start poller 14.04
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
-        - ansible_distribution_version == "16.04"
-      lineinfile:
-        name: /lib/systemd/system/rackspace-monitoring-poller.service
-        regexp: "^ExecStart="
-        insertafter: "^[Service]"
-        line: "ExecStart=/usr/bin/rackspace-monitoring-poller serve --config $CONFIG_FILE $POLLER_SERVE_OPTS"
-
-      # Skip lint because daemon-reload only is not supported by the systemd
-      # module until ansible 2.4, and this role needs to support older
-      # versions.
-    - name: Reload systemd unit configurations on 16.04
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
-        - ansible_distribution_version == "16.04"
-      command: "systemctl daemon-reload"
-      tags:
-        - skip_ansible_lint
-      changed_when: False
-
-    - name: Start MaaS poller (systemd)
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
-        - ansible_distribution_version == "16.04"
-      service:
-        name: rackspace-monitoring-poller.service
-        state: started
-        enabled: yes
-
-    - name: Start MaaS poller (upstart)
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
-        - ansible_distribution_version == "14.04"
-      service:
-        name: rackspace-monitoring-poller
-        state: started
-        enabled: yes
+        - ansible_distribution | lower == "redhat"
+      include: common-tasks/maas_poller_start_redhat.yml
 
   vars_files:
     - vars/main.yml
