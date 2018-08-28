@@ -36,6 +36,7 @@
     - libffi-devel
     - libselinux-python
     - rackspace-monitoring-agent
+    - sysstat
   retries: 5
   delay: 2
 
