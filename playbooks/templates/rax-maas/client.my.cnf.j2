@@ -1,4 +1,4 @@
 [client]
-host={{ container_address }}
+host={{ container_address | default(ansible_host) }}
 user={{ galera_root_user | default('root') }}
 password={{ galera_root_password }}
