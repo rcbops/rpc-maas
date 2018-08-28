@@ -15,7 +15,6 @@
 
 - name: Gather facts
   hosts: hosts
-  user: "{{ ansible_user | default('root') }}"
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
   pre_tasks:
