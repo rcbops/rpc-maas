@@ -15,6 +15,7 @@
 
 maas_requires_pip_packages:
   - virtualenv
+  - docker
 
 maas_pip_container_packages:
   - lxc-python2
