@@ -1,4 +1,4 @@
 ---
 fixes:
   - |
-    Enable but not rax-mon service in maas-agent-setup  
+    Enable but not start rax-mon service in maas-agent-setup  

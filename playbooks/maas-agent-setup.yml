@@ -110,7 +110,6 @@
       service:
         name: rackspace-monitoring-agent
         enabled: yes
-        use: service
 
   vars_files:
     - vars/main.yml
