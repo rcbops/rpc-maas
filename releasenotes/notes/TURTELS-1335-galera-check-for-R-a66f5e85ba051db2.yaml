@@ -1,0 +1,4 @@
+---
+features:
+  - |
+    This allows RPC-R galera check read status from docker containers

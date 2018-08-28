@@ -15,8 +15,11 @@
 # limitations under the License.
 
 import argparse
+import os
 import shlex
 import subprocess
+
+import docker
 
 from maas_common import metric
 from maas_common import metric_bool
@@ -36,6 +39,15 @@ def galera_check(arg):
     return ret, out, err
 
 
+def get_galera_container_name():
+    client = docker.from_env()
+    for c in client.containers.list():
+        if 'galera' in c:
+            return c.name
+    else:
+        raise RuntimeError("Cannot find galera container")
+
+
 def generate_query(host, port, output_type='status'):
     if host:
         host = ' -h %s' % host
@@ -46,12 +58,18 @@ def generate_query(host, port, output_type='status'):
         port = ' -P %s' % port
     else:
         port = ''
+    cmd = ('/usr/bin/mysql --defaults-file=/root/.my.cnf '
+           '{host}{port} -e "SHOW GLOBAL {object}"')
+    if not os.path.exists('/root/.my.cnf'):
+        # on RPC-R we will need to read mysql status from docker container
+        cmd = '/bin/docker exec -i {container_name} bash -c \'{cmd}\''.format(
+            container_name=get_galera_container_name(),
+            cmd=cmd
+        )
     if output_type == 'status':
-        return ('/usr/bin/mysql --defaults-file=/root/.my.cnf '
-                '%s%s -e "SHOW GLOBAL STATUS"') % (host, port)
+        return cmd.format(host=host, port=port, object="STATUS")
     elif output_type == 'variables':
-        return ('/usr/bin/mysql --defaults-file=/root/.my.cnf '
-                '%s%s -e "SHOW GLOBAL VARIABLES"') % (host, port)
+        return cmd.format(host=host, port=port, object="VARIABLES")
 
 
 def parse_args():
