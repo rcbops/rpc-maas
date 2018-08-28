@@ -19,8 +19,7 @@ import os
 import shlex
 import subprocess
 
-import docker
-
+from maas_common import get_first_running_container_name
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -39,15 +38,6 @@ def galera_check(arg):
     return ret, out, err
 
 
-def get_galera_container_name():
-    client = docker.from_env()
-    for c in client.containers.list():
-        if 'galera' in c:
-            return c.name
-    else:
-        raise RuntimeError("Cannot find galera container")
-
-
 def generate_query(host, port, output_type='status'):
     if host:
         host = ' -h %s' % host
@@ -63,7 +53,7 @@ def generate_query(host, port, output_type='status'):
     if not os.path.exists('/root/.my.cnf'):
         # on RPC-R we will need to read mysql status from docker container
         cmd = '/bin/docker exec -i {container_name} bash -c \'{cmd}\''.format(
-            container_name=get_galera_container_name(),
+            container_name=get_first_running_container_name("galera"),
             cmd=cmd
         )
     if output_type == 'status':

@@ -25,6 +25,7 @@ import re
 import sys
 import traceback
 
+import docker
 from monitorstack.common import formatters
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -842,3 +843,14 @@ def print_output(print_telegraf=False):
                 print(STATUS)
             for metric in METRICS:
                 print(metric)
+
+
+def get_first_running_container_name(container_name_contains):
+    client = docker.from_env()
+    for c in client.containers.list():
+        if (container_name_contains in c.name and
+                c.attrs['State']['Status'] == 'running'):
+            return c.name
+    else:
+        raise RuntimeError("Cannot find container with %s in its name"
+                           % container_name_contains)
