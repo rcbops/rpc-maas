@@ -12,3 +12,32 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+- name: Import Rackspace Monitoring repo key
+  rpm_key:
+    state: "{{ maas_keys.state }}"
+    key: "{{ maas_keys.url }}"
+  become: yes
+
+- name: Add Rackspace Monitoring poller repository
+  yum_repository:
+    name: rackspace-monitoring-poller
+    description: Rackspace Monitoring poller repository
+    file: "{{ maas_poller_repos.file | default(omit) }}"
+    state: "{{ maas_poller_repos.state }}"
+    baseurl: "{{ maas_poller_repos.redhat_repo }}"
+    enabled: yes
+  become: yes
+  register: add_repos
+  until: add_repos | success
+  retries: 5
+  delay: 2
+
+- name: Install Linux poller packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  with_items: "{{ maas_poller_distro_packages }}"
+  retries: 5
+  delay: 2
