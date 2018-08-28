@@ -91,6 +91,18 @@ class RPCRMaasInventory(MaasInventory):
             'children': ["Controller"]
         }
 
+        self.inventory["galera_all"] = {
+            'children': ["Controller"]
+        }
+
+        self.inventory["memcached_all"] = {
+            'children': ["Controller"]
+        }
+
+        self.inventory["rsyslog_all"] = {
+            'children': ["Controller"]
+        }
+
     def generate_openstack_groups(self, input_inventory):
         pass
 
