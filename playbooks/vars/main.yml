@@ -19,6 +19,9 @@
 #
 maas_job_reference: "testing"
 
+maas_pip_packages: 
+  - docker
+
 #
 # Set the pip package state, defaults to latest.
 #
