@@ -92,7 +92,13 @@ class RPCRMaasInventory(MaasInventory):
         }
 
         self.inventory["galera_all"] = {
-            'children': ["Controller"]
+            'children': ["Controller"],
+            'vars': {
+                'galera_root_password': (
+                    input_inventory['Controller']['vars']
+                    ['role_data_merged_config_settings']
+                    ['mysql::server::root_password'])
+            }
         }
 
         self.inventory["memcached_all"] = {
