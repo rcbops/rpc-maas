@@ -106,6 +106,10 @@ class RPCRMaasInventory(MaasInventory):
              'vars': {}
         }
 
+        self.inventory["rabbitmq_all"] = {
+            'children': ["Controller"]
+        }
+
         self.inventory["memcached_all"] = {
             'children': ["Controller"]
         }

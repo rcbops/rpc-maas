@@ -27,6 +27,7 @@
 - name: Install checks for infra rsyslog
   hosts: rsyslog_all
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
   tasks:
     - name: Install rsyslog check
       template:
