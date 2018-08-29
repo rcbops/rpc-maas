@@ -101,6 +101,11 @@ class RPCRMaasInventory(MaasInventory):
             }
         }
 
+        self.inventory["galera"] = {
+             'children': ["Controller"],
+             'vars': {}
+        }
+
         self.inventory["memcached_all"] = {
             'children': ["Controller"]
         }
