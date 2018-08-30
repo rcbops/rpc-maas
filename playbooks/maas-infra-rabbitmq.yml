@@ -39,13 +39,15 @@
     - vars/maas-infra.yml
   tags:
     - maas-infra-rabbitmq
+    
 
-- name: Install checks for infra rabbitmq
+- name: Add admin user on rabbitmq
   hosts: rabbitmq_all
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
-    - name: Ensure MaaS rabbitmq user as administrator
+    - name: Ensure MaaS rabbitmq user as administrator with rabbitmqctl
       rabbitmq_user:
         user: "{{ maas_rabbitmq_user }}"
         password: "{{ maas_rabbitmq_password }}"
@@ -58,7 +60,31 @@
       no_log: True
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
+        - ansible_distribution | lower == 'ubuntu'
+    
+    - name: Ensure MaaS rabbitmq user as administrator with docker exec rabbitmqctl
+      raw: /bin/docker ps -a -f status=running | awk '/rabbitmq/ {print $NF}'
+      when:
+        - inventory_hostname in groups['rabbitmq_all'][0]
+        - ansible_distribution | lower == 'redhat'
+      register: rabbitmq_container_name
+    
+    - name: Find rabbitmq docker container
+      command: >
+        /bin/docker exec {{ rabbitmq_container_name.stdout | trim }} /bin/bash -c 
+        '/usr/sbin/rabbitmqctl add_user {{ maas_rabbitmq_user }} {{ maas_rabbitmq_password }};
+        /usr/sbin/rabbitmqctl set_user_tags {{ maas_rabbitmq_user }} administrator;
+        /usr/sbin/rabbitmqctl set_permissions -p / {{ maas_rabbitmq_user }} ".*" ".*" ".*"'
+      when:
+        - inventory_hostname in groups['rabbitmq_all'][0]
+        - ansible_distribution | lower == 'redhat'
 
+
+- name: Install checks for infra rabbitmq
+  hosts: rabbitmq_all
+  gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  tasks:
     - name: Get list of vhosts
       uri:
         url: "http://localhost:15672/api/vhosts"
@@ -71,17 +97,16 @@
         - inventory_hostname in groups['rabbitmq_all'][0]
 
     - name: Ensure MaaS rabbitmq user has access to all openstack vhosts
-      rabbitmq_user:
+      uri:
+        url: "http://localhost:15672/api/permissions/{{ item.name | urlencode | regex_replace('/','%2F') }}/{{ maas_rabbitmq_user | urlencode }}"
         user: "{{ maas_rabbitmq_user }}"
         password: "{{ maas_rabbitmq_password }}"
-        vhost: "{{ item.name }}"
-        configure_priv: ".*"
-        read_priv: ".*"
-        write_priv: ".*"
-        tags: "administrator"
-        state: "present"
+        method: PUT
+        return_content: yes
+        body: '{"configure":".*","write":".*","read":".*"}'
+        body_format: json
+        status_code: 200,201,204
       with_items: "{{ vhost_list.json | default([]) }}"
-      no_log: True
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
 
