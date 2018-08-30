@@ -15,7 +15,7 @@
 
 - name: Retrieve openrc file
   slurp:
-    src: /root/openrc
+    src: "{{ maas_stackrc | default('/root/openrc') }}"
   register: openrc_data
   delegate_to: "{{ groups['utility_all'][0] }}"
 

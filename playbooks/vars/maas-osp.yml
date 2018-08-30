@@ -17,6 +17,7 @@ deploy_osp: True
 maas_product_dir: "/home/stack/rpc-maas"
 maas_env_product: "TripleO"
 
+maas_stackrc: '/home/stack/stackrc'
 maas_openrc: '/root/openrc-maas'
 
 osp_internal_netmask: "{{ internal_vip_address | ipsubnet(24) }}"

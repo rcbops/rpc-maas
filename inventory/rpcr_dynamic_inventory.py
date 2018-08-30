@@ -72,6 +72,10 @@ class RPCRMaasInventory(MaasInventory):
                 self.inventory[group_name]['vars']['ansible_user'] = (
                     'heat-admin'
                 )
+                (self.inventory[group_name]['vars']
+                    ['ansible_ssh_private_key_file']) = (
+                        '/home/stack/.ssh/id_rsa'
+                    )
         else:
             self.inventory[group_name] = input_inventory[group_name]
             for child in input_inventory[group_name]['children']:
@@ -89,6 +93,10 @@ class RPCRMaasInventory(MaasInventory):
     def generate_infrastracture_groups(self, input_inventory):
         self.inventory["shared-infra_hosts"] = {
             'children': ["Controller"]
+        }
+
+        self.inventory["utility_all"] = {
+            'children': ["undercloud"]
         }
 
         self.inventory["galera_all"] = {
