@@ -60,13 +60,13 @@
       no_log: True
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
-        - ansible_distribution | lower == 'ubuntu'
+        - not (deploy_osp | default(False))
     
     - name: Ensure MaaS rabbitmq user as administrator with docker exec rabbitmqctl
       raw: /bin/docker ps -a -f status=running | awk '/rabbitmq/ {print $NF}'
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
-        - ansible_distribution | lower == 'redhat'
+        - deploy_osp | default(False)
       register: rabbitmq_container_name
     
     - name: Find rabbitmq docker container
@@ -77,7 +77,7 @@
         /usr/sbin/rabbitmqctl set_permissions -p / {{ maas_rabbitmq_user }} ".*" ".*" ".*"'
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
-        - ansible_distribution | lower == 'redhat'
+        - deploy_osp | default(False)
 
 
 - name: Install checks for infra rabbitmq

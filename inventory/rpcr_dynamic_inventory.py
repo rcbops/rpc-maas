@@ -119,7 +119,9 @@ class RPCRMaasInventory(MaasInventory):
         }
 
     def generate_openstack_groups(self, input_inventory):
-        pass
+        self.inventory["keystone_all"] = {
+            'children': ["Controller"]
+        }
 
     # Empty inventory for testing.
     def empty_inventory(self):
