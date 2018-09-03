@@ -20,7 +20,7 @@
   pre_tasks:
     - include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp    
+        - deploy_osp  | default(False)  
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
@@ -95,6 +95,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
+      become: yes
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Install keystone lb checks
@@ -105,6 +106,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      become: yes
       when:
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
@@ -117,6 +119,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      become: yes
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
