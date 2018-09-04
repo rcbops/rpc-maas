@@ -29,3 +29,4 @@
     content: "{{ openrc_fact | b64decode }}"
     mode: "0640"
   delegate_to: "{{ physical_host | default(ansible_host) }}"
+  become: yes
