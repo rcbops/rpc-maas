@@ -34,6 +34,7 @@ def check(args, auth_details):
         port=args.port,
         ip=args.ip
     )
+
     if auth_details.get('OS_AUTH_VERSION') == '2':
         identity_endpoint += 'v2.0'
     else:
