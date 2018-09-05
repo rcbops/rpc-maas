@@ -131,6 +131,40 @@ class RPCRMaasInventory(MaasInventory):
             'children': ["Controller"]
         }
 
+        self.generate_nova_groups(input_inventory)
+
+    def generate_nova_groups(self, input_inventory):
+        nova_all_groups = [
+            'nova_placement', 'nova_conductor', 'nova_metadata',
+            'nova_consoleauth', 'nova_api', 'nova_migration_target',
+            'nova_compute', 'nova_scheduler', 'nova_libvirt',
+            'nova_vnc_proxy'
+        ]
+        self.inventory["nova_all"] = {
+            'children': nova_all_groups
+        }
+        for nova_group in nova_all_groups:
+            self.app_all_group_hosts(nova_group, input_inventory)
+
+        self.inventory["nova_api_metadata"] = {
+            'children': ['nova_metadata']
+        }
+
+        self.inventory["nova_api_os_compute"] = {
+            'children': ['nova_api']
+        }
+
+        self.inventory["nova_compute"] = {
+            'children': ['nova_compute']
+        }
+
+        self.inventory["nova_console"] = {
+            'children': ['nova_consoleauth']
+        }
+
+        # skipping nova_conductor and nova_scheduler
+        # since they are overlapping with triple O inventory
+
     # Empty inventory for testing.
     def empty_inventory(self):
         return {'_meta': {'hostvars': {}}}
