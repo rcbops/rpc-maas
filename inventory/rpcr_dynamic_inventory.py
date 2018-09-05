@@ -155,7 +155,7 @@ class RPCRMaasInventory(MaasInventory):
         }
 
         self.inventory["nova_compute"] = {
-            'children': ['nova_compute']
+            'children': ['Compute']
         }
 
         self.inventory["nova_console"] = {
