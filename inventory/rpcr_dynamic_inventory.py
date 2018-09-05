@@ -76,6 +76,14 @@ class RPCRMaasInventory(MaasInventory):
                     ['ansible_ssh_private_key_file']) = (
                         '/home/stack/.ssh/id_rsa'
                     )
+                (self.inventory[group_name]['vars']
+                    ['internal_lb_vip_address']) = (
+                    input_inventory[group_name]['vars']['internal_api_ip']
+                )
+                (self.inventory[group_name]['vars']
+                    ['external_lb_vip_address']) = (
+                    input_inventory[group_name]['vars']['external_ip']
+                )
         else:
             self.inventory[group_name] = input_inventory[group_name]
             for child in input_inventory[group_name]['children']:
