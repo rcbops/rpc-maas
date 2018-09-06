@@ -34,17 +34,19 @@ def bonding_ifaces_check(_):
         bonding_iface_check_cmd_output_lines = (
             bonding_iface_check_cmd_output.split('\n')
         )
-
-        has_slave_down = False
         slave_count = 0
         for idx, line in enumerate(bonding_iface_check_cmd_output_lines):
             if line.startswith("Slave Interface"):
                 slave_count = slave_count + 1
+
+        has_slave_down = False
+        for idx, line in enumerate(bonding_iface_check_cmd_output_lines):
+            if line.startswith("Slave Interface"):
                 slave_inface_mii_status_line = (
                     bonding_iface_check_cmd_output_lines[idx + 1]
                 )
                 slave_inface_mii_status = (
-                    slave_inface_mii_status_line.split(":")[1]
+                    slave_inface_mii_status_line.split(":")[1].strip()
                 )
                 if 'up' not in slave_inface_mii_status or slave_count < 2:
                     has_slave_down = True

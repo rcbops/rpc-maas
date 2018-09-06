@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fix the bonding mii split logic to remove leading and trailing spaces and
+    calculate the slave_count outside the loop determining if a slave is down.
