@@ -180,7 +180,7 @@ maas_rally_galera_address: "{{ galera_address }}"
 #
 #  How rally deployments communicate with OpenStack endpoints.
 #
-maas_rally_auth_url: "{{ maas_scheme }}://{{ internal_vip_address }}:5000/v3/"
+maas_rally_auth_url: "{{ maas_rally_scheme }}://{{ internal_vip_address }}:5000/v3/"
 maas_rally_region_name: "{{ keystone_service_region | default('RegionOne') }}"
 maas_rally_endpoint_type: "internal"
 
