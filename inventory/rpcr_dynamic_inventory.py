@@ -64,7 +64,7 @@ class RPCRMaasInventory(MaasInventory):
             # questions: would we have more than one hosts per leaf
             # group ? if so, what is the ansible_host value there?
             self.inventory[group_name]['vars']['ansible_host'] = (
-                    self.inventory[group_name]['hosts'][0])
+                    input_inventory[group_name]['hosts'][0])
             if group_name == 'undercloud':
                 self.inventory[group_name]['hosts'] = ['director']
             else:
