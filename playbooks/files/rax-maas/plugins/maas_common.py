@@ -29,10 +29,6 @@ from monitorstack.common import formatters
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-# Disabling insecure requests warnings in case OS_API_INSECURE is set:
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-
 AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_PASSWORD': None,
                 'OS_AUTH_URL': None,
@@ -55,6 +51,10 @@ if 'Ubuntu' in platform.linux_distribution()[0]:
         'OS_REGION_NAME': 'RegionOne'
     })
 
+
+# Disabling insecure requests warnings in case OS_API_INSECURE is set:
+if AUTH_DETAILS.get('OS_API_INSECURE'):
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 OPENRC = '/root/openrc'
 TOKEN_FILE = '/root/.auth_ref.json'
@@ -293,7 +293,7 @@ else:
                         'admin'
                     ),
                     auth_url=auth_details['OS_AUTH_URL'],
-                    region_name=auth_details.get('OS_REGION_NAME', None)
+                    region_name=auth_details.get('OS_REGION_NAME')
                 )
             else:
                 keystone = k2_client.Client(
@@ -663,7 +663,11 @@ def get_auth_details(openrc_file=OPENRC):
     # NOTE(cloudnull): The password variable maybe double quoted, to
     #                  fix this we strip away any extra quotes in
     #                  the variable.
-    pw = auth_details['OS_PASSWORD'].strip('"').strip("'")
+    pw = auth_details['OS_PASSWORD']
+    if pw.startswith("'") and pw.endswith("'"):
+        pw = pw.strip("'")
+    elif pw.startswith('"') and pw.endswith('"'):
+        pw = pw.strip('"')
     auth_details['OS_PASSWORD'] = pw
 
     return auth_details

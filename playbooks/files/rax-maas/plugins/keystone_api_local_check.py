@@ -34,7 +34,7 @@ def check(args, auth_details):
         port=args.port,
         ip=args.ip
     )
-    if auth_details.get('OS_AUTH_VERSION', None) == '2':
+    if auth_details.get('OS_AUTH_VERSION') == '2':
         identity_endpoint += 'v2.0'
     else:
         identity_endpoint += 'v3'
@@ -62,7 +62,7 @@ def check(args, auth_details):
         milliseconds = (end - start) * 1000
 
         # gather some vaguely interesting metrics to return
-        if auth_details.get('OS_AUTH_VERSION', None) == '2':
+        if auth_details.get('OS_AUTH_VERSION') == '2':
             project_count = len(keystone.tenants.list())
             user_count = len(keystone.users.list())
         else:
