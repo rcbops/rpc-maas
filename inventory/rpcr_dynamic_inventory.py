@@ -76,9 +76,12 @@ class RPCRMaasInventory(MaasInventory):
                     'heat-admin'
                 )
                 (self.inventory[group_name]['vars']
-                    ['ansible_ssh_private_key_file']) = (
-                        '/home/stack/.ssh/id_rsa'
-                    )
+                    ['ansible_become']) = (
+                        'yes'
+                )
+                self.inventory[group_name]['vars']['ansible_become'] = (
+                    'heat-admin'
+                )
                 (self.inventory[group_name]['vars']
                     ['internal_lb_vip_address']) = (
                     input_inventory[group_name]['vars']['internal_api_ip']

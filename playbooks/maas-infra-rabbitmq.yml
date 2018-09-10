@@ -84,6 +84,7 @@
   hosts: rabbitmq_all
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Get list of vhosts
       uri:

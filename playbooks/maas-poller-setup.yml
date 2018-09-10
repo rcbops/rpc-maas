@@ -24,7 +24,7 @@
 - name: Setup MaaS Poller
   hosts: shared-infra_hosts
   gather_facts: false
-
+  become: yes
   tasks:
     - name: Generate MaaS poller config
       when:
