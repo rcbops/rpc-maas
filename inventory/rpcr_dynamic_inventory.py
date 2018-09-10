@@ -208,9 +208,9 @@ class RPCRMaasInventory(MaasInventory):
             'children': ['neutron_l3']
         }
 
-        # self.inventory["neutron_linuxbridge_agent"] = {
-        #    'children': ['neutron_l3']
-        # }
+        self.inventory["neutron_linuxbridge_agent"] = {
+           'children': ['neutron_ovs_agent']
+        }
 
         self.inventory["neutron_openvswitch_agent"] = {
             'children': ['neutron_ovs_agent']
@@ -219,6 +219,10 @@ class RPCRMaasInventory(MaasInventory):
         self.inventory["neutron_metadata_agent"] = {
             'children': ['neutron_metadata']
         }
+
+        # self.inventory["neutron_metering_agent"] = {
+        #    'children': ['neutron_metering']
+        # }
 
     # Empty inventory for testing.
     def empty_inventory(self):
