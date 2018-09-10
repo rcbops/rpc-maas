@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import os
 
 from heatclient import client as heat_client
@@ -60,7 +61,9 @@ class RPCRMaasInventory(MaasInventory):
         returns a list of hosts
         """
         if 'hosts' in input_inventory[group_name]:
-            self.inventory[group_name] = input_inventory[group_name]
+            self.inventory[group_name] = copy.deepcopy(
+                input_inventory[group_name]
+            )
             # questions: would we have more than one hosts per leaf
             # group ? if so, what is the ansible_host value there?
             self.inventory[group_name]['vars']['ansible_host'] = (
@@ -68,7 +71,7 @@ class RPCRMaasInventory(MaasInventory):
             if group_name == 'undercloud':
                 self.inventory[group_name]['hosts'] = ['director']
             else:
-                self.inventory[group_name]['vars']['inventory_hostname'] = group_name
+                self.inventory[group_name]['hosts'] = [group_name]
                 self.inventory[group_name]['vars']['ansible_user'] = (
                     'heat-admin'
                 )
@@ -85,7 +88,9 @@ class RPCRMaasInventory(MaasInventory):
                     input_inventory[group_name]['vars']['external_ip']
                 )
         else:
-            self.inventory[group_name] = input_inventory[group_name]
+            self.inventory[group_name] = copy.deepcopy(
+                input_inventory[group_name]
+            )
             for child in input_inventory[group_name]['children']:
                 self.app_all_group_hosts(child, input_inventory)
 
