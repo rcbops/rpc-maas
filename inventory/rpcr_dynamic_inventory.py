@@ -149,6 +149,7 @@ class RPCRMaasInventory(MaasInventory):
         }
 
         self.generate_nova_groups(input_inventory)
+        self.generate_neutron_groups(input_inventory)
 
     def generate_nova_groups(self, input_inventory):
         nova_all_groups = [
@@ -181,6 +182,43 @@ class RPCRMaasInventory(MaasInventory):
 
         # skipping nova_conductor and nova_scheduler
         # since they are overlapping with triple O inventory
+
+    def generate_neutron_groups(self, input_inventory):
+        neutron_all_groups = [
+            'neutron_metadata', 'neutron_dhcp',
+            'neutron_plugin_ml2', 'neutron_ovs_agent',
+            'neutron_api', 'neutron_l3'
+        ]
+
+        self.inventory["neutron_all"] = {
+            'children': neutron_all_groups
+        }
+        for neutron_group in neutron_all_groups:
+            self.app_all_group_hosts(neutron_group, input_inventory)
+
+        self.inventory["neutron_server"] = {
+            'children': ['neutron_api']
+        }
+
+        self.inventory["neutron_dhcp_agent"] = {
+            'children': ['neutron_dhcp']
+        }
+
+        self.inventory["neutron_l3_agent"] = {
+            'children': ['neutron_l3']
+        }
+
+        # self.inventory["neutron_linuxbridge_agent"] = {
+        #    'children': ['neutron_l3']
+        # }
+
+        self.inventory["neutron_openvswitch_agent"] = {
+            'children': ['neutron_ovs_agent']
+        }
+
+        self.inventory["neutron_metadata_agent"] = {
+            'children': ['neutron_metadata']
+        }
 
     # Empty inventory for testing.
     def empty_inventory(self):
