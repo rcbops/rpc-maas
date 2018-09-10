@@ -79,9 +79,6 @@ class RPCRMaasInventory(MaasInventory):
                     ['ansible_become']) = (
                         'yes'
                 )
-                self.inventory[group_name]['vars']['ansible_become'] = (
-                    'heat-admin'
-                )
                 (self.inventory[group_name]['vars']
                     ['internal_lb_vip_address']) = (
                     input_inventory[group_name]['vars']['internal_api_ip']
