@@ -150,6 +150,7 @@ class RPCRMaasInventory(MaasInventory):
 
         self.generate_nova_groups(input_inventory)
         self.generate_neutron_groups(input_inventory)
+        self.generate_glance_groups(input_inventory)
 
     def generate_nova_groups(self, input_inventory):
         nova_all_groups = [
@@ -223,6 +224,14 @@ class RPCRMaasInventory(MaasInventory):
         # self.inventory["neutron_metering_agent"] = {
         #    'children': ['neutron_metering']
         # }
+
+    def generate_glance_groups(self, input_inventory):
+        glance_all_groups = [
+            'glance_api', 'glance_registry_disabled'
+        ]
+
+        for glance_group in glance_all_groups:
+            self.app_all_group_hosts(glance_group, input_inventory)
 
     # Empty inventory for testing.
     def empty_inventory(self):
