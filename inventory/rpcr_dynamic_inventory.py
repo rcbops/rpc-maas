@@ -68,7 +68,7 @@ class RPCRMaasInventory(MaasInventory):
             if group_name == 'undercloud':
                 self.inventory[group_name]['hosts'] = ['director']
             else:
-                self.inventory[group_name]['inventory_hostname'] = group_name
+                self.inventory[group_name]['vars']['inventory_hostname'] = group_name
                 self.inventory[group_name]['vars']['ansible_user'] = (
                     'heat-admin'
                 )
