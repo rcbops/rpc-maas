@@ -230,6 +230,10 @@ class RPCRMaasInventory(MaasInventory):
             'glance_api', 'glance_registry_disabled'
         ]
 
+        self.inventory["glance_all"] = {
+            'children': glance_all_groups
+        }
+
         for glance_group in glance_all_groups:
             self.app_all_group_hosts(glance_group, input_inventory)
 
