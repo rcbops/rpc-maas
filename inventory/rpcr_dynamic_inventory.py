@@ -272,6 +272,9 @@ class RPCRMaasInventory(MaasInventory):
             'children': cinder_all_groups
         }
 
+        for cinder_group in cinder_all_groups:
+            self.app_all_group_hosts(cinder_group, input_inventory)
+
     # Empty inventory for testing.
     def empty_inventory(self):
         return {'_meta': {'hostvars': {}}}
