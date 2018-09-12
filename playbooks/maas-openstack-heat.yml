@@ -16,6 +16,8 @@
 - name: Gather facts
   hosts: heat_all
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
@@ -55,6 +57,8 @@
 - name: Install checks for openstack heat-api
   hosts: heat_api
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install heat api checks
       template:
@@ -98,6 +102,8 @@
 - name: Install checks for openstack heat-api-cfn
   hosts: heat_api_cfn
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install heat api cfn checks
       template:
@@ -141,6 +147,8 @@
 - name: Install checks for openstack heat-api-cloudwatch
   hosts: heat_api_cloudwatch
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install heat api cloudwatch checks
       template:

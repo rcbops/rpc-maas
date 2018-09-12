@@ -151,6 +151,7 @@ class RPCRMaasInventory(MaasInventory):
         self.generate_nova_groups(input_inventory)
         self.generate_neutron_groups(input_inventory)
         self.generate_glance_groups(input_inventory)
+        self.generate_heat_groups(input_inventory)
 
     def generate_nova_groups(self, input_inventory):
         nova_all_groups = [
@@ -236,6 +237,29 @@ class RPCRMaasInventory(MaasInventory):
 
         for glance_group in glance_all_groups:
             self.app_all_group_hosts(glance_group, input_inventory)
+
+    def generate_heat_groups(self, input_inventory):
+        heat_all_groups = [
+            'heat_api', 'heat_api_cloudwatch_disabled',
+            'heat_engine', 'heat_api_cfn'
+        ]
+
+        self.inventory["heat_all"] = {
+            'children': heat_all_groups
+        }
+
+        for heat_group in heat_all_groups:
+            self.app_all_group_hosts(heat_group, input_inventory)
+
+        # heat_api and heat_engine have been added,  heat_api_cloudwatch
+        # has been deprecated
+        # self.inventory["heat_api"] = {
+        #    'children': ['heat_api']
+        # }
+
+        # self.inventory["heat_engine"] = {
+        #    'children': ['heat_engine']
+        # }
 
     # Empty inventory for testing.
     def empty_inventory(self):
