@@ -16,7 +16,12 @@
 - name: Gather facts
   hosts: cinder_all
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
+    - include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp  | default(False) 
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
@@ -55,6 +60,8 @@
 - name: Install checks for openstack cinder-api
   hosts: cinder_api
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install cinder api checks
       template:
@@ -98,6 +105,8 @@
 - name: Install checks for openstack cinder-api
   hosts: cinder_scheduler
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install cinder api checks
       template:
@@ -117,6 +126,8 @@
 - name: Install checks for openstack cinder-volume
   hosts: cinder_backup
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install cinder backup checks
       template:
@@ -136,6 +147,8 @@
 - name: Install checks for openstack cinder-volume
   hosts: cinder_volume
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install cinder volume checks
       template:

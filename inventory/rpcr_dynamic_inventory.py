@@ -152,6 +152,7 @@ class RPCRMaasInventory(MaasInventory):
         self.generate_neutron_groups(input_inventory)
         self.generate_glance_groups(input_inventory)
         self.generate_heat_groups(input_inventory)
+        self.generate_cinder_groups(input_inventory)
 
     def generate_nova_groups(self, input_inventory):
         nova_all_groups = [
@@ -260,6 +261,16 @@ class RPCRMaasInventory(MaasInventory):
         # self.inventory["heat_engine"] = {
         #    'children': ['heat_engine']
         # }
+
+    def generate_cinder_groups(self, input_inventory):
+        cinder_all_groups = [
+            'cinder_api', 'cinder_volume',
+            'cinder_scheduler'
+        ]
+
+        self.inventory["cinder_all"] = {
+            'children': cinder_all_groups
+        }
 
     # Empty inventory for testing.
     def empty_inventory(self):
