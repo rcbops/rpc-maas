@@ -12,7 +12,7 @@
     - ansible_distribution_version == "16.04"
   include_tasks: common-tasks/maas_poller_start_1604.yml
     
-- name: Start poller 14.04
+- name: Start poller readhat
   when:
     - maas_private_monitoring_enabled | bool
     - maas_private_monitoring_zone is defined

@@ -29,7 +29,7 @@
       delay: 2
       when:
         - maas_private_monitoring_enabled | bool
-        - physical_host in groups['shared-infra_hosts']
+        - (physical_host | default(ansible_host)) in groups['shared-infra_hosts']
         - ansible_distribution_version == "16.04"
 
     - name: Restart rackspace-monitoring-poller (upstart)
@@ -43,7 +43,7 @@
       delay: 2
       when:
         - maas_private_monitoring_enabled | bool
-        - physical_host in groups['shared-infra_hosts']
+        - (physical_host | default(ansible_host)) in groups['shared-infra_hosts']
         - ansible_distribution_version == "14.04"
 
     - name: Restart rackspace-monitoring-agent
