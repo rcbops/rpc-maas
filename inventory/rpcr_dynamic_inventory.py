@@ -153,6 +153,7 @@ class RPCRMaasInventory(MaasInventory):
         self.generate_glance_groups(input_inventory)
         self.generate_heat_groups(input_inventory)
         self.generate_cinder_groups(input_inventory)
+        self.generate_horizon_groups(input_inventory)
 
     def generate_nova_groups(self, input_inventory):
         nova_all_groups = [
@@ -274,6 +275,14 @@ class RPCRMaasInventory(MaasInventory):
 
         for cinder_group in cinder_all_groups:
             self.app_all_group_hosts(cinder_group, input_inventory)
+
+    def generate_horizon_groups(self, input_inventory):
+        horizon_all_groups = [
+            'horizon'
+        ]
+
+        for horizon_all_group in horizon_all_groups:
+            self.app_all_group_hosts(horizon_all_group, input_inventory)
 
     # Empty inventory for testing.
     def empty_inventory(self):
