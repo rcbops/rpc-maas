@@ -72,24 +72,30 @@
 
     - name: Get project id (RPC-O)
       shell: ". {{ maas_openrc|default('/root/openrc') }} && openstack project list --user octavia -c ID -f value"
-      register: octavia_project_return
+      register: octavia_project_return_rpco
       delegate_to: "{{ groups['utility_all'][0] }}"
       when: not deploy_osp|default(false)
       tags:
         - skip_ansible_lint
 
+    - name: Set project id when rpc-o
+      set_fact:
+        octavia_project_id: "{{ octavia_project_return_rpco.stdout }}"
+      when: not deploy_osp|default(false)
+
     - name: Get project id (RPC-R)
       shell: ". {{ director_openrc }} && openstack project show service -c id -f value"
-      register: octavia_project_return
+      register: octavia_project_return_rpcr
       run_once: true
       delegate_to: "localhost"
       when: deploy_osp|default(false)
       tags:
         - skip_ansible_lint
 
-    - name: Set project id
+    - name: Set project id when rpc-r
       set_fact:
-        octavia_project_id: "{{ octavia_project_return.stdout }}"
+        octavia_project_id: "{{ octavia_project_return_rpcr.stdout }}"
+      when: deploy_osp|default(false)
 
     - name: Install octavia quota check
       template:
