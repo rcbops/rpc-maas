@@ -1,0 +1,6 @@
+---
+fixes:
+  - The rpc-r additions were unsetting a variable causing a set_fact task to fail on rpc-o environments.
+    This is to make sure both checks use a different registered variable and set the fact based on the
+    rpc-o vs rpc-r conditionals.
+
