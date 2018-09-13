@@ -16,7 +16,12 @@
 - name: Gather facts
   hosts: swift_all
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
+    - include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
@@ -99,6 +104,8 @@
 - name: Install checks for openstack swift account
   hosts: swift_acc
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install swift account server checks
       template:
@@ -127,6 +134,8 @@
 - name: Install checks for openstack swift container
   hosts: swift_cont
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install swift container server checks
       template:
@@ -155,6 +164,8 @@
 - name: Install checks for openstack swift object
   hosts: swift_obj
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install swift container server checks
       template:
@@ -183,6 +194,8 @@
 - name: Install swift-recon checks for openstack swift proxy
   hosts: swift_proxy
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Set recon nodes fact
       set_fact:
@@ -262,6 +275,8 @@
 - name: Install accesscheck for openstack swift proxy
   hosts: swift_proxy
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Create keystone user for swift filecheck
       shell: |
