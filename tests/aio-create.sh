@@ -202,6 +202,10 @@ pushd /opt/openstack-ansible
     echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
     enable_ironic
 
+  elif [ "${RE_JOB_SCENARIO}" == "queens" ]; then
+    git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
+    enable_ironic
+
   else
     enable_ironic
   fi
