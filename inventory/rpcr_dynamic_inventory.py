@@ -14,9 +14,16 @@
 # limitations under the License.
 
 import copy
+import json
 import os
+try:
+    from StringIO import StringIO  # Python2
+except ImportError:
+    from io import StringIO  # Python3
+import sys
 
 from heatclient import client as heat_client
+from openstackclient.shell import main
 from tripleo_common.inventory import TripleoInventory
 from tripleo_validations.utils import get_auth_session
 
@@ -47,8 +54,8 @@ class RPCRMaasInventory(MaasInventory):
         os_auth_token = os.environ.get('OS_AUTH_TOKEN')
         os_cacert = os.environ.get('OS_CACERT')
         ansible_ssh_user = os.environ.get('ANSIBLE_SSH_USER', 'heat-admin')
-        plan_name = (os.environ.get('TRIPLEO_PLAN_NAME') or
-                     os.environ.get('STACK_NAME_NAME') or "overcloud")
+        self.plan_name = (os.environ.get('TRIPLEO_PLAN_NAME') or
+                          os.environ.get('STACK_NAME_NAME') or "overcloud")
         session = get_auth_session(auth_url,
                                    os_username,
                                    os_project_name,
@@ -64,7 +71,7 @@ class RPCRMaasInventory(MaasInventory):
             project_name=os_project_name,
             username=os_username,
             ansible_ssh_user=ansible_ssh_user,
-            plan_name=plan_name)
+            plan_name=self.plan_name)
         return inventory.list()
 
     def app_all_group_hosts(self, group_name, input_inventory):
@@ -110,14 +117,28 @@ class RPCRMaasInventory(MaasInventory):
                     ['ansible_ssh_private_key_file']) = (
                         '/home/stack/.ssh/id_rsa'
                 )
-                # (self.inventory[group_name]['vars']
-                #    ['internal_lb_vip_address']) = (
-                #    input_inventory[group_name]['vars']['internal_api_ip']
-                # )
-                # (self.inventory[group_name]['vars']
-                #    ['external_lb_vip_address']) = (
-                #    input_inventory[group_name]['vars']['external_ip']
-                # )
+
+                old_stdout = sys.stdout
+                endpoint_map_result = StringIO()
+                sys.stdout = endpoint_map_result
+                main('stack resource show {plan} '
+                     'EndpointMap -c attributes -f json'.format(
+                         plan=self.plan_name
+                     ).split())
+                sys.stdout = old_stdout
+                endpoint_map_result_json = json.loads(
+                    endpoint_map_result.getvalue().strip().rstrip('0'))
+
+                (self.inventory[group_name]['vars']
+                    ['internal_lb_vip_address']) = (
+                       endpoint_map_result_json['attributes']['endpoint_map']
+                       ['KeystoneInternal']['host']
+                )
+                (self.inventory[group_name]['vars']
+                    ['external_lb_vip_address']) = (
+                      endpoint_map_result_json['attributes']['endpoint_map']
+                      ['KeystonePublic']['host']
+                )
         else:
             self.inventory[group_name] = copy.deepcopy(
                 input_inventory[group_name]
@@ -154,13 +175,21 @@ class RPCRMaasInventory(MaasInventory):
             'children': existing_utility_groups
         }
 
+        old_stdout = sys.stdout
+        password_result = StringIO()
+        sys.stdout = password_result
+        main('stack resource show {plan} '
+             'MysqlRootPassword -c attributes -f json'.format(
+                 plan=self.plan_name
+             ).split())
+        sys.stdout = old_stdout
+        password_result_json = json.loads(password_result.getvalue().
+                                          strip().rstrip('0'))
         self.inventory["galera_all"] = {
             'children': ["Controller"],
             'vars': {
                 'galera_root_password': (
-                    input_inventory['Controller']['vars']
-                    .get('role_data_merged_config_settings', {}).
-                    get('mysql::server::root_password', "password"))
+                   password_result_json['attributes']['value'])
             }
         }
 

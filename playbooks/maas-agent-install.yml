@@ -45,12 +45,12 @@
             - "vars/maas-{{ ansible_os_family | lower }}.yml"
           skip: true
 
-    - name: Include distro install tasks
+    - name: Include Ubuntu distro install tasks
       include: "common-tasks/maas-agent-ubuntu-install.yml"
       when:
         - ansible_distribution | lower == 'ubuntu'
    
-    - name: Include Redhad distro install tasks
+    - name: Include RedHat distro install tasks
       include: "common-tasks/maas-redhat-os-install.yml"
       when:
         - ansible_distribution | lower == 'redhat'
@@ -62,7 +62,7 @@
         - "'lxc_hosts' in groups"
         - inventory_hostname in groups['lxc_hosts']
 
-    - name: Ensure raspace-monitoring-agent config directory exists
+    - name: Ensure rackspace-monitoring-agent config directory exists
       file:
         name: /etc/rackspace-monitoring-agent.conf.d
         state: directory
