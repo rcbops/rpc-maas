@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Map nova_console_type and nova_console_port back to a maas_* variable. These are defaults in
+    OSA and aren't pulled in properly from the ansible role. This will allow overrides to be
+    configured in a less obtrusive way.
