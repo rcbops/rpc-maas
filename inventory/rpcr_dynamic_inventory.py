@@ -132,8 +132,8 @@ class RPCRMaasInventory(MaasInventory):
             'vars': {
                 'galera_root_password': (
                     input_inventory['Controller']['vars']
-                    ['role_data_merged_config_settings']
-                    ['mysql::server::root_password'])
+                    .get('role_data_merged_config_settings', {}).
+                    get('mysql::server::root_password', "password"))
             }
         }
 
