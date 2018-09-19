@@ -106,13 +106,13 @@ class RPCRMaasInventory(MaasInventory):
     def generate_mandatory_groups(self, input_inventory):
         mandatory_groups = ["undercloud", "overcloud",
                             "Undercloud", "Overcloud"]
-        existing_mandatory_group = [
+        existing_mandatory_groups = [
             mandatory_group for mandatory_group in mandatory_groups
             if mandatory_group in input_inventory
         ]
-        self.inventory["hosts"] = {'children': existing_mandatory_group}
+        self.inventory["hosts"] = {'children': existing_mandatory_groups}
         self.inventory["all"] = {'children': ['hosts']}
-        for key in existing_mandatory_group:
+        for key in existing_mandatory_groups:
             self.app_all_group_hosts(key, input_inventory)
 
     def generate_optional_groups(self, input_inventory):
@@ -123,8 +123,13 @@ class RPCRMaasInventory(MaasInventory):
             'children': ["Controller"]
         }
 
+        utility_groups = ["undercloud", "Undercloud"]
+        existing_utility_groups = [
+            utility_group for utility_group in utility_groups
+            if utility_group in input_inventory
+        ]
         self.inventory["utility_all"] = {
-            'children': ["undercloud"]
+            'children': existing_utility_groups
         }
 
         self.inventory["galera_all"] = {
@@ -302,11 +307,16 @@ class RPCRMaasInventory(MaasInventory):
             'swift_proxy',
         ]
 
+        existing_swift_groups = [
+            swift_group for swift_group in swift_all_groups
+            if swift_group in input_inventory
+        ]
+
         self.inventory["swift_all"] = {
-            'children': swift_all_groups
+            'children': existing_swift_groups
         }
 
-        for swift_group in swift_all_groups:
+        for swift_group in existing_swift_groups:
             self.app_all_group_hosts(swift_group, input_inventory)
 
     # Empty inventory for testing.
