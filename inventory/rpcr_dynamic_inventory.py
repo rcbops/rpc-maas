@@ -35,6 +35,7 @@ def validate_ip(s):
             return False
     return True
 
+
 class RPCRMaasInventory(MaasInventory):
 
     def read_input_inventory(self):
@@ -89,7 +90,10 @@ class RPCRMaasInventory(MaasInventory):
 
             # We want undercloud's name hostname to be director
             if group_name.lower() == 'undercloud':
-                self.inventory[group_name]['hosts'] = ['director']
+                self.inventory[group_name]['hosts'] = [os.getenv(
+                    'MAAS_DIRECTOR_NAME',
+                    'director'
+                )]
             else:
                 if len(self.inventory[group_name]['hosts']) == 1 and \
                         validate_ip(input_inventory[group_name]['hosts'][0]):
