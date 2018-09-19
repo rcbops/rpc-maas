@@ -66,9 +66,14 @@ class RPCRMaasInventory(MaasInventory):
             )
             # questions: would we have more than one hosts per leaf
             # group ? if so, what is the ansible_host value there?
-            self.inventory[group_name]['vars']['ansible_host'] = (
-                    input_inventory[group_name]['hosts'][0])
-            if group_name == 'undercloud':
+            # If ansible_host already exists in group vars or host vars
+            # do not assign it at host group level
+            if 'ansible_host' in input_inventory[group_name]['vars']:
+                pass
+            else:
+                self.inventory[group_name]['vars']['ansible_host'] = (
+                        input_inventory[group_name]['hosts'][0])
+            if group_name.lower() == 'undercloud':
                 self.inventory[group_name]['hosts'] = ['director']
             else:
                 self.inventory[group_name]['hosts'] = [group_name]
@@ -99,9 +104,15 @@ class RPCRMaasInventory(MaasInventory):
                 self.app_all_group_hosts(child, input_inventory)
 
     def generate_mandatory_groups(self, input_inventory):
-        self.inventory["hosts"] = {'children': ["undercloud", "overcloud"]}
+        mandatory_groups = ["undercloud", "overcloud",
+                            "Undercloud", "Overcloud"]
+        existing_mandatory_group = [
+            mandatory_group for mandatory_group in mandatory_groups
+            if mandatory_group in input_inventory
+        ]
+        self.inventory["hosts"] = {'children': existing_mandatory_group}
         self.inventory["all"] = {'children': ['hosts']}
-        for key in ["undercloud", "overcloud"]:
+        for key in existing_mandatory_group:
             self.app_all_group_hosts(key, input_inventory)
 
     def generate_optional_groups(self, input_inventory):
