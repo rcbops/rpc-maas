@@ -28,6 +28,7 @@ maas_pip_packages:
   - psutil
   - rackspace-monitoring-cli
   - requests
+  - docker
 
 ## PIP for maas
 # Path to pip download/installation script.

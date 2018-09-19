@@ -9,6 +9,7 @@ ipaddr==2.1.11
 lxml==3.6.4
 lxc-python2==0.1
 psutil==5.2.2
+docker==3.5.0
 
 ### TO BE REPLACED BY MONITORSTACK
 python-cinderclient==1.9.0

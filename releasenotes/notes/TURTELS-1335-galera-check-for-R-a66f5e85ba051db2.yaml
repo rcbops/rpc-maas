@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    This allows RPC-R galera check read status from docker containers in 
+    absence of /root/.my.conf file
