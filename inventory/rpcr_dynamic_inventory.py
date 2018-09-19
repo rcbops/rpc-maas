@@ -118,26 +118,15 @@ class RPCRMaasInventory(MaasInventory):
                         '/home/stack/.ssh/id_rsa'
                 )
 
-                old_stdout = sys.stdout
-                endpoint_map_result = StringIO()
-                sys.stdout = endpoint_map_result
-                main('stack resource show {plan} '
-                     'EndpointMap -c attributes -f json'.format(
-                         plan=self.plan_name
-                     ).split())
-                sys.stdout = old_stdout
-                endpoint_map_result_json = json.loads(
-                    endpoint_map_result.getvalue().strip().rstrip('0'))
-
                 (self.inventory[group_name]['vars']
                     ['internal_lb_vip_address']) = (
-                       endpoint_map_result_json['attributes']['endpoint_map']
-                       ['KeystoneInternal']['host']
+                       self.endpoint_map_result_json['attributes']
+                       ['endpoint_map']['KeystoneInternal']['host']
                 )
                 (self.inventory[group_name]['vars']
                     ['external_lb_vip_address']) = (
-                      endpoint_map_result_json['attributes']['endpoint_map']
-                      ['KeystonePublic']['host']
+                      self.endpoint_map_result_json['attributes']
+                      ['endpoint_map']['KeystonePublic']['host']
                 )
         else:
             self.inventory[group_name] = copy.deepcopy(
@@ -145,6 +134,31 @@ class RPCRMaasInventory(MaasInventory):
             )
             for child in input_inventory[group_name]['children']:
                 self.app_all_group_hosts(child, input_inventory)
+
+    def genrate_env_specific_variables(self):
+        old_stdout = sys.stdout
+
+        # get the endpoing mapping
+        endpoint_map_result = StringIO()
+        sys.stdout = endpoint_map_result
+        main('stack resource show {plan} '
+             'EndpointMap -c attributes -f json'.format(
+                 plan=self.plan_name
+             ).split())
+        sys.stdout = old_stdout
+        self.endpoint_map_result_json = json.loads(
+            endpoint_map_result.getvalue().strip().rstrip('0'))
+
+        # get MysqlRootPassword
+        password_result = StringIO()
+        sys.stdout = password_result
+        main('stack resource show {plan} '
+             'MysqlRootPassword -c attributes -f json'.format(
+                 plan=self.plan_name
+             ).split())
+        self.password_result_json = json.loads(password_result.getvalue().
+                                               strip().rstrip('0'))
+        sys.stdout = old_stdout
 
     def generate_mandatory_groups(self, input_inventory):
         mandatory_groups = ["undercloud", "overcloud",
@@ -175,21 +189,11 @@ class RPCRMaasInventory(MaasInventory):
             'children': existing_utility_groups
         }
 
-        old_stdout = sys.stdout
-        password_result = StringIO()
-        sys.stdout = password_result
-        main('stack resource show {plan} '
-             'MysqlRootPassword -c attributes -f json'.format(
-                 plan=self.plan_name
-             ).split())
-        sys.stdout = old_stdout
-        password_result_json = json.loads(password_result.getvalue().
-                                          strip().rstrip('0'))
         self.inventory["galera_all"] = {
             'children': ["Controller"],
             'vars': {
                 'galera_root_password': (
-                   password_result_json['attributes']['value'])
+                   self.password_result_json['attributes']['value'])
             }
         }
 

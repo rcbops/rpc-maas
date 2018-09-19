@@ -25,6 +25,9 @@ class MaasInventory(object):
         self.inventory = self.empty_inventory()
         self.read_cli_args()
 
+        # generate some product specific variables
+        self.genrate_env_specific_variables()
+
         # main logic, generate inventory dynamically
         self.generate_inventory()
 
@@ -53,6 +56,9 @@ class MaasInventory(object):
         else:
             raise RuntimeError("FATAL: Unable to write to {path}".format(
                 path=path))
+
+    def genrate_env_specific_variables(self):
+        pass
 
     def generate_mandatory_groups(self, input_inventory):
         raise NotImplementedError("This method must be overriden!")
