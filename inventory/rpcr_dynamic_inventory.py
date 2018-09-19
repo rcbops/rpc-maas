@@ -23,6 +23,18 @@ from tripleo_validations.utils import get_auth_session
 from base_inventory import MaasInventory
 
 
+def validate_ip(s):
+    a = s.split('.')
+    if len(a) != 4:
+        return False
+    for x in a:
+        if not x.isdigit():
+            return False
+        i = int(x)
+        if i < 0 or i > 255:
+            return False
+    return True
+
 class RPCRMaasInventory(MaasInventory):
 
     def read_input_inventory(self):
@@ -71,14 +83,20 @@ class RPCRMaasInventory(MaasInventory):
             if 'ansible_host' in input_inventory[group_name]['vars']:
                 pass
             else:
-                self.inventory[group_name]['vars']['ansible_host'] = (
-                        input_inventory[group_name]['hosts'][0])
+                if validate_ip(input_inventory[group_name]['hosts'][0]):
+                    self.inventory[group_name]['vars']['ansible_host'] = (
+                            input_inventory[group_name]['hosts'][0])
+
+            # We want undercloud's name hostname to be director
             if group_name.lower() == 'undercloud':
                 self.inventory[group_name]['hosts'] = ['director']
             else:
-                self.inventory[group_name]['hosts'] = [group_name]
+                if len(self.inventory[group_name]['hosts']) == 1 and \
+                        validate_ip(input_inventory[group_name]['hosts'][0]):
+                    self.inventory[group_name]['hosts'] = [group_name]
                 self.inventory[group_name]['vars']['ansible_user'] = (
-                    'heat-admin'
+                    self.inventory[group_name].get('ansible_ssh_user',
+                                                   'heat-admin')
                 )
                 (self.inventory[group_name]['vars']
                     ['ansible_become']) = (
