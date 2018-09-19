@@ -25,9 +25,6 @@ class MaasInventory(object):
         self.inventory = self.empty_inventory()
         self.read_cli_args()
 
-        # generate some product specific variables
-        self.genrate_env_specific_variables()
-
         # main logic, generate inventory dynamically
         self.generate_inventory()
 
@@ -75,6 +72,8 @@ class MaasInventory(object):
     # Example inventory for testing.
     def generate_inventory(self):
         input_inventory = self.read_input_inventory()
+        # generate some product specific variables
+        self.genrate_env_specific_variables()
         self.inventory['_meta'] = copy.deepcopy(input_inventory['_meta'])
         self.generate_mandatory_groups(input_inventory)
         self.generate_optional_groups(input_inventory)
