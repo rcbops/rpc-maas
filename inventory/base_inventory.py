@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import argparse
+import copy
 import json
 import os
 
@@ -68,13 +69,14 @@ class MaasInventory(object):
     # Example inventory for testing.
     def generate_inventory(self):
         input_inventory = self.read_input_inventory()
+        self.inventory['_meta'] = copy.deepcopy(input_inventory['_meta'])
         self.generate_mandatory_groups(input_inventory)
         self.generate_optional_groups(input_inventory)
         self.generate_infrastracture_groups(input_inventory)
         self.generate_openstack_groups(input_inventory)
 
     def host_inventory(self, hostname):
-        hostvars = self.inventory[hostname]['vars']
+        hostvars = copy.deepcopy(self.inventory[hostname]['vars'])
         return {'_meta': {'hostvars': hostvars}}
 
     # Empty inventory for testing.
