@@ -70,9 +70,19 @@ function enable_ironic {
   if [[ ! -d "/etc/openstack_deploy" ]]; then
     mkdir -p /etc/openstack_deploy
   fi
+
+  # Beginning with queens, the key must be 'aio_lxc'
+  if [ "${RE_JOB_SCENARIO}" == "kilo" || "${RE_JOB_SCENARIO}" == "liberty" || \
+       "${RE_JOB_SCENARIO}" == "mitaka" || "${RE_JOB_SCENARIO}" == "newton" || \
+       "${RE_JOB_SCENARIO}" == "ocata" || "${RE_JOB_SCENARIO}" == "pike" ]; then
+      key="aio"
+  else
+      key="aio_lxc"
+  fi
+
   echo "
   confd_overrides:
-    aio:
+    $key:
       - name: cinder.yml.aio
       - name: glance.yml.aio
       - name: heat.yml.aio
