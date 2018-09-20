@@ -73,6 +73,13 @@ def main():
         argument_spec=dict(
             hostname=dict(
                 required=True
+            ),
+            inventory_hostname=dict(
+                required=True
+            ),
+            deploy_osp=dict(
+                required=False,
+                default=False
             )
         ),
         supports_check_mode=False
