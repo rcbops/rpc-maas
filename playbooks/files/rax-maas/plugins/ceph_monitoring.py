@@ -195,11 +195,14 @@ def get_args():
     parser.add_argument('--name',
                         required=True,
                         help='Ceph client name')
-    parser.add_argument('--deploy_osp',
-                        required=False,
-                        type=bool,
-                        default=False,
-                        help='Whether in rpcr osp or not')
+    # add deploy_osp arg
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        '--' + 'deploy_osp', nargs='?', default=False, const=True,
+        type=bool)
+    group.add_argument('--no' + 'deploy_osp', dest='deploy_osp',
+                       action='store_false')
+
     parser.add_argument('--keyring',
                         required=True,
                         help='Ceph client keyring')
