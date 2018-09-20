@@ -40,10 +40,15 @@ class OSDHostFacts(object):
         self.state_change = False
         self.module = module
 
-    def gather_facts(self, hostname):
+    def gather_facts(self, hostname, inventory_hostname, deploy_osp=False):
         """Get information about OSDs."""
-        cmd = ["ceph", "osd", "tree", "--format", "json", "--name",
-               "client.raxmon"]
+        ceph_command_string = "ceph"
+        if deploy_osp:
+            ceph_command_string = (
+                "sudo docker exec ceph-mon-{{inventory_hostname}} ceph "
+                "--cluster ceph").format(inventory_hostname=inventory_hostname)
+        cmd = [ceph_command_string, "osd", "tree", "--format", "json",
+               "--name", "client.raxmon"]
         try:
             # This command was taken from /etc/init/ceph-osd-all-starter.conf
             output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)

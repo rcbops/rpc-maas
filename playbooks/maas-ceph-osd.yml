@@ -52,6 +52,8 @@
     - name: Discover Ceph facts
       ceph_osd_host_facts:
         hostname: "{{ ansible_hostname }}"
+        inventory_hostname: "{{ inventory_hostname }}"
+        deploy_osp: "{{ deploy_osp  | default(False) }}"
       tags:
         - always
 
