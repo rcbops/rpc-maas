@@ -17,6 +17,9 @@
   hosts: rgws
   gather_facts: "{{ gather_facts | default(true) }}"
   tasks:
+    - include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp  | default(False)  
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
       set_fact:
@@ -29,6 +32,8 @@
 - name: Install checks for ceph rgws
   hosts: rgws
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
     - name: Write Ceph monitoring client key to file
       copy:

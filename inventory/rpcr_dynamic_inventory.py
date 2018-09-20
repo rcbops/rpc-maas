@@ -176,7 +176,24 @@ class RPCRMaasInventory(MaasInventory):
         self.generate_ceph_groups(input_inventory)
 
     def generate_ceph_groups(self, input_inventory):
-        pass
+        ceph_all_groups = [
+            'ceph_osd', 'ceph_mon', 'ceph_rgw'
+        ]
+
+        for ceph_all_group in ceph_all_groups:
+            self.app_all_group_hosts(ceph_all_group, input_inventory)
+
+        self.inventory["mons"] = {
+            'children': ['ceph_mon']
+        }
+
+        self.inventory["osds"] = {
+            'children': ['ceph_osd']
+        }
+
+        self.inventory["rgws"] = {
+            'children': ['ceph_rgw']
+        }
 
     def generate_infrastracture_groups(self, input_inventory):
         self.inventory["shared-infra_hosts"] = {
