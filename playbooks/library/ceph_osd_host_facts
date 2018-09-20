@@ -47,10 +47,10 @@ class OSDHostFacts(object):
             ceph_command_string = (
                 "sudo docker exec {container_name} ceph "
                 "--cluster ceph").format(container_name=container_name)
-        cmd = [ceph_command_string.split(), "osd", "tree", "--format", "json",
+        cmd = ["osd", "tree", "--format", "json",
                "--name", "client.raxmon"]
         # flatten the cmd list
-        cmd = [item for sublist in cmd for item in sublist]
+        cmd = ceph_command_string.split() + cmd
         try:
             # This command was taken from /etc/init/ceph-osd-all-starter.conf
             output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
