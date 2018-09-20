@@ -173,6 +173,9 @@ class RPCRMaasInventory(MaasInventory):
             self.app_all_group_hosts(key, input_inventory)
 
     def generate_optional_groups(self, input_inventory):
+        self.generate_ceph_groups(input_inventory)
+
+    def generate_ceph_groups(self, input_inventory):
         pass
 
     def generate_infrastracture_groups(self, input_inventory):
