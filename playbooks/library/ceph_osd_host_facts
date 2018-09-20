@@ -85,7 +85,10 @@ def main():
         supports_check_mode=False
     )
     osd_host_facts = OSDHostFacts(module)
-    osd_host_facts.gather_facts(hostname=module.params.get('hostname'))
+    osd_host_facts.gather_facts(
+        hostname=module.params.get('hostname'),
+        inventory_hostname=module.params.get('hostname'),
+        deploy_osp=module.params.get('deploy_osp', False))
 
 
 if __name__ == '__main__':
