@@ -16,7 +16,7 @@
 - name: Install checks for ceph mons
   hosts: mons[0]
   gather_facts: false
-  pre_tasks:
+  tasks:
     - name: Create ceph monitoring client
       command: ceph auth get-or-create client.raxmon
       register: _ceph_raxmon_client
