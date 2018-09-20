@@ -89,7 +89,7 @@ def main():
     osd_host_facts = OSDHostFacts(module)
     osd_host_facts.gather_facts(
         hostname=module.params.get('hostname'),
-        inventory_hostname=module.params.get('hostname'),
+        container_name=module.params.get('container_name'),
         deploy_osp=module.params.get('deploy_osp', False))
 
 
