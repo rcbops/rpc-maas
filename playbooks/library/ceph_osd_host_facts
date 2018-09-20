@@ -76,7 +76,7 @@ def main():
             hostname=dict(
                 required=True
             ),
-            inventory_hostname=dict(
+            container_name=dict(
                 required=True
             ),
             deploy_osp=dict(
