@@ -32,9 +32,10 @@ def check_command(command, container_name=None, deploy_osp=False):
                        '--',
                        'bash',
                        '-c']
+        container_command.append("{}".format(' '.join(command)))
         if deploy_osp:
             container_command = ['sudo', 'docker', 'exec', container_name]
-        container_command.append("{}".format(' '.join(command)))
+            container_command.extend(command)
         command = [str(i) for i in container_command]
     output = subprocess.check_output(command, stderr=subprocess.STDOUT)
     lines = output.strip().split('\n')
