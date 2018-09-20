@@ -197,6 +197,7 @@ def get_args():
                         help='Ceph client name')
     parser.add_argument('--deploy_osp',
                         required=False,
+                        type=bool,
                         default=False,
                         help='Whether in rpcr osp or not')
     parser.add_argument('--keyring',
