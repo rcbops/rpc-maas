@@ -44,7 +44,7 @@
       when:
         - maas_private_monitoring_enabled | bool
         - (physical_host | default(inventory_hostname)) in groups['shared-infra_hosts']
-        - ansible_distribution_version == "14.04" or (ansible_distribution | lower == "redhat")
+        - ansible_distribution_version == "14.04"
 
     - name: Restart rackspace-monitoring-agent
       service:
