@@ -45,7 +45,7 @@ class OSDHostFacts(object):
         ceph_command_string = "ceph"
         if deploy_osp:
             ceph_command_string = (
-                "sudo docker exec ceph-mon-{inventory_hostname} ceph "
+                "sudo docker exec ceph-osd-{inventory_hostname} ceph "
                 "--cluster ceph").format(inventory_hostname=inventory_hostname)
         cmd = [ceph_command_string.split(), "osd", "tree", "--format", "json",
                "--name", "client.raxmon"]
