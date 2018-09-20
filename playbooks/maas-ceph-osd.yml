@@ -47,6 +47,18 @@
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       when:
         - maas_rpc_legacy_ceph | bool
+    
+    - name: Get the first osd container
+      raw: /bin/docker ps -a -f status=running | awk '/ceph-osd/ {print $NF}' | head -1
+      when:
+        - deploy_osp | default(False)
+      register: osd_container_name
+    
+    - name: Set container name  for osp template
+      set_fact:
+        container_name: "{{ osd_container_name.stdout | trim }}"
+      when:
+        - deploy_osp | default(False)
 
   tasks:
     - name: Get the first osd container
@@ -58,7 +70,7 @@
     - name: Discover Ceph facts
       ceph_osd_host_facts:
         hostname: "{{ ansible_hostname }}"
-        container_name: "{{ osd_container_name.stdout | default(inventory_hostname) | trim }}"
+        container_name: "{{ container_name | default(inventory_hostname) }}"
         deploy_osp: "{{ deploy_osp  | default(False) }}"
       tags:
         - always

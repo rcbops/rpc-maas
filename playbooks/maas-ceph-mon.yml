@@ -48,6 +48,18 @@
       when:
         - maas_rpc_legacy_ceph | bool
 
+    - name: Get the first mon container
+      raw: /bin/docker ps -a -f status=running | awk '/ceph-mon/ {print $NF}' | head -1
+      when:
+        - deploy_osp | default(False)
+      register: mon_container_name
+    
+    - name: Set container name  for osp template
+      set_fact:
+        container_name: "{{ mon_container_name.stdout | trim }}"
+      when:
+        - deploy_osp | default(False)
+
   post_tasks:
     - name: Install local mons checks
       template:
