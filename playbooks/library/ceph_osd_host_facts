@@ -56,8 +56,8 @@ class OSDHostFacts(object):
             output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
             json_output = json.loads(output.strip().split('\n')[-1])
         except subprocess.CalledProcessError as e:
-            message = ('Ceph OSD host fact collection failed: "%s".' %
-                       e.output.strip())
+            message = ('Ceph OSD host fact collection failed: "%s", '
+                       'command is: %s' % (e.output.strip(), cmd))
             self.module.fail_json(msg=message)
         else:
             osd_ids = []
