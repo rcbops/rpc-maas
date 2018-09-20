@@ -62,14 +62,14 @@
         - inventory_hostname in groups['rabbitmq_all'][0]
         - not (deploy_osp | default(False))
     
-    - name: Ensure MaaS rabbitmq user as administrator with docker exec rabbitmqctl
+    - name: Find rabbitmq docker container
       raw: /bin/docker ps -a -f status=running | awk '/rabbitmq/ {print $NF}'
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
         - deploy_osp | default(False)
       register: rabbitmq_container_name
     
-    - name: Find rabbitmq docker container
+    - name: Ensure MaaS rabbitmq user as administrator with docker exec rabbitmqctl
       command: >
         /bin/docker exec {{ rabbitmq_container_name.stdout | trim }} /bin/bash -c 
         '/usr/sbin/rabbitmqctl add_user {{ maas_rabbitmq_user }} {{ maas_rabbitmq_password }};

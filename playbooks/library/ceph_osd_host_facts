@@ -40,13 +40,13 @@ class OSDHostFacts(object):
         self.state_change = False
         self.module = module
 
-    def gather_facts(self, hostname, inventory_hostname, deploy_osp=False):
+    def gather_facts(self, hostname, container_name, deploy_osp=False):
         """Get information about OSDs."""
         ceph_command_string = "ceph"
         if deploy_osp:
             ceph_command_string = (
-                "sudo docker exec ceph-osd-{inventory_hostname} ceph "
-                "--cluster ceph").format(inventory_hostname=inventory_hostname)
+                "sudo docker exec {container_name} ceph "
+                "--cluster ceph").format(container_name=container_name)
         cmd = [ceph_command_string.split(), "osd", "tree", "--format", "json",
                "--name", "client.raxmon"]
         # flatten the cmd list
