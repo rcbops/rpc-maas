@@ -294,7 +294,8 @@ else:
                         'admin'
                     ),
                     auth_url=auth_details['OS_AUTH_URL'],
-                    region_name=auth_details.get('OS_REGION_NAME')
+                    region_name=auth_details.get('OS_REGION_NAME'),
+                    insecure=AUTH_DETAILS['OS_API_INSECURE']
                 )
             else:
                 keystone = k2_client.Client(
@@ -302,7 +303,8 @@ else:
                     password=auth_details['OS_PASSWORD'],
                     tenant_name=auth_details['OS_TENANT_NAME'],
                     auth_url=auth_details['OS_AUTH_URL'],
-                    region_name=auth_details['OS_REGION_NAME']
+                    region_name=auth_details['OS_REGION_NAME'],
+                    insecure=AUTH_DETAILS['OS_API_INSECURE']
                 )
         except Exception as e:
             metric_bool('client_success', False, m_name='maas_keystone')

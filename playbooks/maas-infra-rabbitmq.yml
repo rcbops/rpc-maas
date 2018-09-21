@@ -84,8 +84,6 @@
     - vars/maas-infra.yml
   tags:
     - maas-infra-rabbitmq
-  
-
 
 - name: Install checks for infra rabbitmq
   hosts: rabbitmq_all
