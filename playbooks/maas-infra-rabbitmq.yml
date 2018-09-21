@@ -33,6 +33,11 @@
       when:
         - deploy_osp | default(False)
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+    
+    - name: Enable rabbitmq management plugin
+      command: rabbitmq-plugins enable rabbitmq_management
+      when:
+        - deploy_osp | default(False)
 
     - name: Install rabbitmq pip packages
       pip:
