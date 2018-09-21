@@ -1,0 +1,31 @@
+- name: Gather facts
+  hosts: shared-infra_hosts
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tasks:
+    - include: "common-tasks/maas_excluded_regex.yml"
+    - name: Set the current group
+      set_fact:
+        maas_current_group: shared-infra_hosts
+  tags:
+    - maas-infra-pacemaker
+
+- name: Install checks for infra galera
+  hosts: shared-infra_hosts
+  gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
+  tasks:
+    - name: Install checks for infra pacemaker
+      template:
+        src: "templates/rax-maas/pacemaker_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/pacemaker_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-infra.yml
+  tags:
+    - maas-infra-pacemaker

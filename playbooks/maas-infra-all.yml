@@ -28,3 +28,9 @@
 - include: maas-infra-rsyslogd.yml
   tags:
     - maas-infra
+
+- include: maas-infra-pacemaker.yml
+  when:
+    - deploy_osp | default(False)
+  tags:
+    - maas-pacemaker
