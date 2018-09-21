@@ -14,6 +14,7 @@
 # limitations under the License.
 from __future__ import print_function
 
+from itertools import chain
 import contextlib
 import datetime
 import errno
@@ -37,7 +38,9 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_PROJECT_NAME': 'admin',
                 'OS_ENDPOINT_TYPE': 'PublicURL',
                 'OS_IDENTITY_API_VERSION': None,
-                'OS_API_INSECURE': False}
+                'OS_API_INSECURE': False,
+                'OS_VOLUME_API_VERSION': None,
+                'OS_IMAGE_API_VERSION': None, }
 
 if 'Ubuntu' in platform.linux_distribution()[0]:
     AUTH_DETAILS.update({
@@ -57,6 +60,7 @@ if AUTH_DETAILS.get('OS_API_INSECURE') is True:
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 OPENRC = '/root/openrc'
+MAASRC = '/root/maasrc'
 TOKEN_FILE = '/root/.auth_ref.json'
 
 
@@ -124,7 +128,12 @@ except ImportError:
         metric_bool('client_success', False, m_name='maas_glance')
         status_err('Cannot import glanceclient', m_name='maas_glance')
 else:
-    def get_glance_client(token=None, endpoint=None, previous_tries=0):
+    def get_glance_client(token=None,
+                          endpoint=None,
+                          previous_tries=0,
+                          glance_api_version=os.getenv('OS_IMAGE_API_VERSION',
+                                                       '1')
+                          ):
         if previous_tries > 3:
             return None
 
@@ -142,7 +151,9 @@ else:
                                                     get_endpoint_type(
                                                         auth_details))
 
-        glance = g_client.Client('1', endpoint=endpoint, token=token)
+        glance = g_client.Client(glance_api_version,
+                                 endpoint=endpoint,
+                                 token=token)
 
         try:
             # We don't want to be pulling massive lists of images every time we
@@ -634,15 +645,15 @@ def get_auth_from_file():
         status_err(str(e), m_name='maas_keystone')
 
 
-def get_auth_details(openrc_file=OPENRC):
+def get_auth_details(openrc_file=OPENRC, maasrc_file=MAASRC):
     auth_details = AUTH_DETAILS
     pattern = re.compile(
         '^(?:export\s)?(?P<key>\w+)(?:\s+)?=(?:\s+)?(?P<value>.*)$'
     )
 
     try:
-        with open(openrc_file) as openrc:
-            for line in openrc:
+        with open(openrc_file) as openrc, open(maasrc_file) as maasrc:
+            for line in chain(openrc, maasrc):
                 match = pattern.match(line)
                 if match is None:
                     continue
@@ -844,3 +855,21 @@ def print_output(print_telegraf=False):
                 print(STATUS)
             for metric in METRICS:
                 print(metric)
+
+
+def get_cinder_api_version():
+    auth_details = get_auth_details()
+    version = auth_details.get('OS_VOLUME_API_VERSION')
+    if not version:
+        version = os.getenv('OS_VOLUME_API_VERSION', '1')
+
+    return version
+
+
+def get_glance_api_version():
+    auth_details = get_auth_details()
+    version = auth_details.get('OS_IMAGE_API_VERSION')
+    if not version:
+        version = os.getenv('OS_IMAGE_API_VERSION', '1')
+
+    return version

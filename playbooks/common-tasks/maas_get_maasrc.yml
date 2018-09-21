@@ -1,0 +1,36 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# maasrc distribution
+# (This playbook could be removed when upstream decides to include
+# OS_IMAGE_API_VERSION and OS_VOLUME_API_VERSION in openrc
+#
+- name: Retrieve maasrc file
+  slurp:
+    src: /root/maasrc
+  register: maasrc_data
+  delegate_to: "{{ groups['utility_all'][0] }}"
+
+- name: Register a fact for the maasrc
+  set_fact:
+     maasrc_fact: "{{ maasrc_data.content }}"
+
+- name: Distribute maasrc
+  copy:
+    dest: "/root/maasrc"
+    content: "{{ maasrc_fact | b64decode }}"
+    mode: "0640"
+  delegate_to: "{{ physical_host | default(ansible_host) }}"

@@ -16,11 +16,11 @@
 
 import argparse
 import collections
-
 import ipaddr
 # Technically maas_common isn't third-party but our own thing but hacking
 # consideres it third-party
 from maas_common import get_auth_ref
+from maas_common import get_cinder_api_version
 from maas_common import get_keystone_client
 from maas_common import metric
 from maas_common import metric_bool
@@ -36,12 +36,13 @@ VOLUME_STATUSES = ['available', 'in-use', 'error']
 def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     auth_token = keystone.auth_token
-
-    volume_endpoint = ('{protocol}://{ip}:{port}/v1/{tenant}'.format(
+    cinder_api_version = get_cinder_api_version()
+    volume_endpoint = ('{protocol}://{ip}:{port}/v{version}/{tenant}'.format(
         ip=args.ip,
         tenant=keystone.tenant_id,
         protocol=args.protocol,
-        port=args.port
+        port=args.port,
+        version=cinder_api_version
     ))
 
     s = requests.Session()

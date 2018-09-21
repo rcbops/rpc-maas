@@ -21,6 +21,7 @@ import time
 
 from glanceclient import exc as exc
 from maas_common import get_auth_ref
+from maas_common import get_glance_api_version
 from maas_common import get_glance_client
 from maas_common import metric
 from maas_common import metric_bool
@@ -33,11 +34,13 @@ IMAGE_STATUSES = ['active', 'queued', 'killed']
 
 
 def check(auth_ref, args):
+    glance_api_version = get_glance_api_version()
     glance_endpoint = (
-        '{protocol}://{ip}:{port}/v1'.format(
+        '{protocol}://{ip}:{port}/v{version}'.format(
             ip=args.ip,
             protocol=args.protocol,
-            port=args.port
+            port=args.port,
+            version=glance_api_version
         )
     )
 
