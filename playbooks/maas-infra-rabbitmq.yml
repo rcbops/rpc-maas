@@ -23,6 +23,17 @@
         maas_current_group: rabbitmq_all
 
   tasks:
+    - name: Install rabbitmq checks
+      template:
+        src: "templates/rax-maas/enabled_plugins.j2"
+        dest: "/var/lib/config-data/puppet-generated/rabbitmq/etc/rabbitmq/enabled_plugins"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - deploy_osp | default(False)
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
     - name: Install rabbitmq pip packages
       pip:
         name: "{{ maas_rabbitmq_pip_packages | join(' ') }}"
