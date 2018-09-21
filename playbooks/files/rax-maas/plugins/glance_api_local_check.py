@@ -34,9 +34,9 @@ IMAGE_STATUSES = ['active', 'queued', 'killed']
 
 
 def check(auth_ref, args):
-    glance_api_version = os.getenv('OS_IMAGE_API_VERSION', '2')
+    glance_api_version = '2'
     glance_endpoint = (
-        '{protocol}://{ip}:{port}/{version}'.format(
+        '{protocol}://{ip}:{port}/v{version}'.format(
             ip=args.ip,
             protocol=args.protocol,
             port=args.port,

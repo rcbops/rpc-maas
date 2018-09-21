@@ -36,8 +36,8 @@ VOLUME_STATUSES = ['available', 'in-use', 'error']
 def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     auth_token = keystone.auth_token
-    cinder_api_version = os.getenv('OS_VOLUME_API_VERSION', '1')
-    volume_endpoint = ('{protocol}://{ip}:{port}/{version}/{tenant}'.format(
+    cinder_api_version = '3'
+    volume_endpoint = ('{protocol}://{ip}:{port}/v{version}/{tenant}'.format(
         ip=args.ip,
         tenant=keystone.tenant_id,
         protocol=args.protocol,

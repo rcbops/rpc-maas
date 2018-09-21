@@ -117,9 +117,7 @@ else:
     def get_glance_client(token=None,
                           endpoint=None,
                           previous_tries=0,
-                          glance_api_version=os.getenv('OS_IMAGE_API_VERSION',
-                                                       '2')
-                          ):
+                          glance_api_version='2'):
         if previous_tries > 3:
             return None
 
