@@ -38,7 +38,7 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_PROJECT_NAME': 'admin',
                 'OS_ENDPOINT_TYPE': 'PublicURL',
                 'OS_IDENTITY_API_VERSION': None,
-                'OS_API_INSECURE': False}
+                'OS_API_INSECURE': True}
 
 if 'Ubuntu' in platform.linux_distribution()[0]:
     AUTH_DETAILS.update({
