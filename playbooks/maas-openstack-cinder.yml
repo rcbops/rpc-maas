@@ -114,7 +114,7 @@
   tags:
     - maas-openstack-cinder
 
-- name: Install checks for openstack cinder-volume
+- name: Install checks for openstack cinder-backup
   hosts: cinder_backup
   gather_facts: false
   tasks:
