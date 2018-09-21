@@ -214,6 +214,7 @@ pushd /opt/openstack-ansible
 
   elif [ "${RE_JOB_SCENARIO}" == "queens" ]; then
     git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
+    export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
     enable_ironic
 
   else
