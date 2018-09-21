@@ -35,12 +35,14 @@ from requests import exceptions as exc
 def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     auth_token = keystone.auth_token
+    cinder_api_version = os.getenv('OS_VOLUME_API_VERSION', '1')
 
     VOLUME_ENDPOINT = (
-        '{protocol}://{hostname}:8776/v1/{tenant}'.format(
+        '{protocol}://{hostname}:8776/{version}/{tenant}'.format(
             protocol=args.protocol,
             hostname=args.hostname,
-            tenant=keystone.tenant_id)
+            tenant=keystone.tenant_id,
+            version=cinder_api_version)
     )
 
     s = requests.Session()

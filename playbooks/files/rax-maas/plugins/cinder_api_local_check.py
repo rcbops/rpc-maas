@@ -16,7 +16,7 @@
 
 import argparse
 import collections
-
+import os
 import ipaddr
 # Technically maas_common isn't third-party but our own thing but hacking
 # consideres it third-party
@@ -36,12 +36,13 @@ VOLUME_STATUSES = ['available', 'in-use', 'error']
 def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     auth_token = keystone.auth_token
-
-    volume_endpoint = ('{protocol}://{ip}:{port}/v1/{tenant}'.format(
+    cinder_api_version = os.getenv('OS_VOLUME_API_VERSION', '1')
+    volume_endpoint = ('{protocol}://{ip}:{port}/{version}/{tenant}'.format(
         ip=args.ip,
         tenant=keystone.tenant_id,
         protocol=args.protocol,
-        port=args.port
+        port=args.port,
+        version=cinder_api_version
     ))
 
     s = requests.Session()

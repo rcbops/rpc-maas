@@ -114,7 +114,12 @@ except ImportError:
         metric_bool('client_success', False, m_name='maas_glance')
         status_err('Cannot import glanceclient', m_name='maas_glance')
 else:
-    def get_glance_client(token=None, endpoint=None, previous_tries=0):
+    def get_glance_client(token=None,
+                          endpoint=None,
+                          previous_tries=0,
+                          glance_api_version=os.getenv('OS_IMAGE_API_VERSION',
+                                                       '2')
+                          ):
         if previous_tries > 3:
             return None
 
@@ -132,7 +137,9 @@ else:
                                                     get_endpoint_type(
                                                         auth_details))
 
-        glance = g_client.Client('1', endpoint=endpoint, token=token)
+        glance = g_client.Client(glance_api_version,
+                                 endpoint=endpoint,
+                                 token=token)
 
         try:
             # We don't want to be pulling massive lists of images every time we
