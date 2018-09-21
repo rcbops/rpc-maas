@@ -457,3 +457,8 @@ ironic_local_api_port: '6385'
 # ironic_local_api_protocol: Protocol for the local ironic API checks
 #
 ironic_local_api_protocol: 'http'
+
+# horizon service 
+horizon_service_protocol: 'http'
+horizon_service_port: '443'
+
