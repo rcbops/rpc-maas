@@ -8,7 +8,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/nova_api_metadata_local_check.py", "{{ ansible_host }}", "--port", "{{ nova_metadata_api_port }}", "--protocol", "{{ nova_metadata_api_protocol }}"]
+    args    : ["{{ maas_plugin_dir }}/nova_api_metadata_local_check.py", "{{ internal_api_ip | default(ansible_host) }}", "--port", "{{ nova_metadata_api_port }}", "--protocol", "{{ nova_metadata_api_protocol }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
