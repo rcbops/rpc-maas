@@ -25,7 +25,7 @@
         maas_current_group: rabbitmq_all
 
   tasks:
-    - name: Install rabbitmq checks
+    - name: Drop in rabbitmq management plugin config
       template:
         src: "templates/rax-maas/enabled_plugins.j2"
         dest: "/var/lib/config-data/puppet-generated/rabbitmq/etc/rabbitmq/enabled_plugins"
