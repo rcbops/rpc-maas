@@ -78,6 +78,13 @@
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
         - deploy_osp | default(False)
+  
+  vars_files:
+    - vars/main.yml
+    - vars/maas-infra.yml
+  tags:
+    - maas-infra-rabbitmq
+  
 
 
 - name: Install checks for infra rabbitmq
