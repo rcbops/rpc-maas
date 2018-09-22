@@ -181,7 +181,8 @@ class RPCRMaasInventory(MaasInventory):
         ]
 
         for ceph_all_group in ceph_all_groups:
-            self.app_all_group_hosts(ceph_all_group, input_inventory)
+            if ceph_all_group in input_inventory:
+                self.app_all_group_hosts(ceph_all_group, input_inventory)
 
         self.inventory["mons"] = {
             'children': ['ceph_mon']
