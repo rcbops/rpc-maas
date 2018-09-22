@@ -367,7 +367,8 @@ class RPCRMaasInventory(MaasInventory):
         }
 
         for cinder_group in cinder_all_groups:
-            self.app_all_group_hosts(cinder_group, input_inventory)
+            if cinder_group in input_inventory:
+                self.app_all_group_hosts(cinder_group, input_inventory)
 
     def generate_horizon_groups(self, input_inventory):
         horizon_all_groups = [
