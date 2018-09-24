@@ -114,7 +114,7 @@
   tags:
     - maas-openstack-cinder
 
-- name: Install checks for openstack cinder-volume
+- name: Install checks for openstack cinder-backup
   hosts: cinder_backup
   gather_facts: false
   tasks:
@@ -147,7 +147,7 @@
       with_dict: "{{ cinder_backends | default({}) }}"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
-        - "'volume_group' in cinder_backends[item.key]"
+        - "'volume_driver' in cinder_backends[item.key]"
 
     - name: Install cinder vg checks
       template:
