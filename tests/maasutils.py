@@ -17,7 +17,7 @@ def cli(api_key, username):
     )
 
 
-@click.command()
+@click.command(name='get_token_url')
 def get_token_url():
     token = pyrax.identity.token
 
@@ -44,7 +44,7 @@ def get_token_url():
     return token, url
 
 
-@click.command()
+@click.command(name='set_webhook_token')
 @click.option("--token", 'webhook_token', required=True)
 @click.pass_context
 def set_webhook_token(ctx, webhook_token):
@@ -66,7 +66,7 @@ def set_webhook_token(ctx, webhook_token):
         raise e
 
 
-@click.command()
+@click.command(name='get_entity_id')
 @click.option("--label", help="label of entity to get ID for", required=True)
 def get_entity_id(label):
     mon = pyrax.cloud_monitoring
