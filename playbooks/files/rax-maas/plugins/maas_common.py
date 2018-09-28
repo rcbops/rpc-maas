@@ -53,7 +53,7 @@ if 'Ubuntu' in platform.linux_distribution()[0]:
 
 
 # Disabling insecure requests warnings in case OS_API_INSECURE is set:
-if AUTH_DETAILS.get('OS_API_INSECURE'):
+if AUTH_DETAILS.get('OS_API_INSECURE') is True:
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 OPENRC = '/root/openrc'
