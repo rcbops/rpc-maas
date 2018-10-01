@@ -70,9 +70,19 @@ function enable_ironic {
   if [[ ! -d "/etc/openstack_deploy" ]]; then
     mkdir -p /etc/openstack_deploy
   fi
+
+  # Beginning with queens, the key must be 'aio_lxc'
+  if [ "${RE_JOB_SCENARIO}" == "kilo" || "${RE_JOB_SCENARIO}" == "liberty" || \
+       "${RE_JOB_SCENARIO}" == "mitaka" || "${RE_JOB_SCENARIO}" == "newton" || \
+       "${RE_JOB_SCENARIO}" == "ocata" || "${RE_JOB_SCENARIO}" == "pike" ]; then
+      key="aio"
+  else
+      key="aio_lxc"
+  fi
+
   echo "
   confd_overrides:
-    aio:
+    $key:
       - name: cinder.yml.aio
       - name: glance.yml.aio
       - name: heat.yml.aio
@@ -200,6 +210,11 @@ pushd /opt/openstack-ansible
     git checkout "a8a809839484105d9cd27463defc19a8a617c64b"  # Branch checkout of Pike (Current Stable)
     # Pin flask so it stops breaking xenial and other versions
     echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
+    enable_ironic
+
+  elif [ "${RE_JOB_SCENARIO}" == "queens" ]; then
+    git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
+    export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
     enable_ironic
 
   else

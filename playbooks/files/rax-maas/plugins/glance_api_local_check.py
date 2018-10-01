@@ -17,6 +17,7 @@
 import argparse
 import collections
 import ipaddr
+import os
 import time
 
 from glanceclient import exc as exc
@@ -33,11 +34,13 @@ IMAGE_STATUSES = ['active', 'queued', 'killed']
 
 
 def check(auth_ref, args):
+    glance_api_version = '2'
     glance_endpoint = (
-        '{protocol}://{ip}:{port}/v1'.format(
+        '{protocol}://{ip}:{port}/v{version}'.format(
             ip=args.ip,
             protocol=args.protocol,
-            port=args.port
+            port=args.port,
+            version=glance_api_version
         )
     )
 
