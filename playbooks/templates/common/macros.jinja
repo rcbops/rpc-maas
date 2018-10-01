@@ -30,6 +30,6 @@ metadata          :
   osa_version: "{{ lookup('pipe', get_product_osa_version_cmd )}}"
 {% endif %}
   rpc_maas_version: "{{  lookup('pipe', 'cd .. && git describe --tags --abbrev=0') }}"
-  rpc_maas_deploy_date: "{{ ansible_date_time.date }}"
+  rpc_maas_deploy_date: "{{ ansible_date_time.iso8601 }}"
   rpc_check_category: "{{ get_check_category(label).strip() }}"
 {% endmacro %}
