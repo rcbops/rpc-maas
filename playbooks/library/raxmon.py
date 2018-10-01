@@ -102,8 +102,10 @@ def _get_entities(conn, entity, create_entity_if_not_exists=False):
     for e in conn.list_entities():
         if e.label == entity:
             entities.append(e)
+    # create entity if needed
     if create_entity_if_not_exists and len(entities) == 0:
-        conn.create_entity(label=entity)
+        created = conn.create_entity(label=entity)
+        entities = [created]
     return entities
 
 
@@ -148,11 +150,19 @@ def create_agent_token(module, conn, entity):
         module.fail_json(msg=msg)
 
 
+def delete_entity(module, conn, entity):
+    entities = _get_entities(conn, entity)
+    for entity in entities:
+        conn.delete_entity(entity)
+    module.exit_json(changed=True)
+
+
 def main():
     module = AnsibleModule(
         argument_spec=dict(
             cmd=dict(
-                choices=['assign_agent_to_entity', 'create_agent_token'],
+                choices=['assign_agent_to_entity', 'create_agent_token',
+                         'delete_entity'],
                 required=True
             ),
             entity=dict(required=True),
@@ -193,6 +203,8 @@ def main():
                                module.params['create_entity_if_not_exists'])
     elif module.params['cmd'] == 'create_agent_token':
         create_agent_token(module, conn, module.params['entity'])
+    elif module.params['cmd'] == 'delete_entity':
+        delete_entity(module, conn, module.params['entity'])
 
 
 if __name__ == '__main__':

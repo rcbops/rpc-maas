@@ -23,3 +23,6 @@
         cmd: delete_entity
         entity: "{{ maas_entity_name }}"
         venv_bin: "{{ maas_venv_bin }}"
+  
+  vars_files:
+    - ../playbooks/vars/main.yml
