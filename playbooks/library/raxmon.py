@@ -153,7 +153,12 @@ def create_agent_token(module, conn, entity):
 def delete_entity(module, conn, entity):
     entities = _get_entities(conn, entity)
     for entity in entities:
-        conn.delete_entity(entity)
+        try:
+            conn.delete_entity(entity)
+        except Exception as e:
+            msg = "Deleting entity: %s failed. Reason:\n" % entity.label
+            msg += str(e.message)
+            module.exit_json(changed=False, msg=msg)
     module.exit_json(changed=True)
 
 
