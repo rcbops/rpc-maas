@@ -1,0 +1,5 @@
+---
+upgrade:
+  - |
+    Refactored maas-common keystone libs to work with RPC-R
+

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 # Copyright 2014, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,30 +20,41 @@ import errno
 import json
 import logging
 import os
+import platform
 import re
 import sys
 import traceback
 
 from monitorstack.common import formatters
-
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_PASSWORD': None,
-                'OS_TENANT_NAME': None,
                 'OS_AUTH_URL': None,
-                'OS_USER_DOMAIN_NAME': None,
-                'OS_PROJECT_DOMAIN_NAME': None,
-                'OS_PROJECT_NAME': None,
+                'OS_USER_DOMAIN_NAME': 'Default',
+                'OS_PROJECT_DOMAIN_NAME': 'Default',
+                'OS_PROJECT_NAME': 'admin',
+                'OS_ENDPOINT_TYPE': 'PublicURL',
                 'OS_IDENTITY_API_VERSION': None,
-                'OS_AUTH_VERSION': None,
-                'OS_ENDPOINT_TYPE': None,
-                'OS_API_INSECURE': True,
-                'OS_REGION_NAME': 'RegionOne'}
+                'OS_API_INSECURE': False}
+
+if 'Ubuntu' in platform.linux_distribution()[0]:
+    AUTH_DETAILS.update({
+        'OS_USER_DOMAIN_NAME': None,
+        'OS_PROJECT_DOMAIN_NAME': None,
+        'OS_PROJECT_NAME': None,
+        'OS_AUTH_VERSION': None,
+        'OS_TENANT_NAME': None,
+        'OS_ENDPOINT_TYPE': None,
+        'OS_API_INSECURE': True,
+        'OS_REGION_NAME': 'RegionOne'
+    })
 
 
-# IMPORTANT:
-# v2 keystone auth is still necessary until RPCR switches over to v3 auth
-
+# Disabling insecure requests warnings in case OS_API_INSECURE is set:
+if AUTH_DETAILS.get('OS_API_INSECURE') is True:
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 OPENRC = '/root/openrc'
 TOKEN_FILE = '/root/.auth_ref.json'
@@ -221,6 +231,35 @@ else:
 
 
 try:
+    from keystoneauth1 import loading
+    from keystoneauth1 import session
+except ImportError:
+    def get_session(*args, **kwargs):
+        status_err('Cannot import keystoneauth1')
+
+else:
+    def get_session():
+        auth_details = get_auth_details()
+        loader = loading.get_plugin_loader('password')
+        auth = loader.load_from_options(
+            username=auth_details['OS_USERNAME'],
+            password=auth_details['OS_PASSWORD'],
+            user_domain_name=auth_details['OS_USER_DOMAIN_NAME'],
+            project_domain_name=auth_details['OS_PROJECT_DOMAIN_NAME'],
+            project_name=auth_details['OS_PROJECT_NAME'],
+            auth_url=auth_details['OS_AUTH_URL'])
+
+        if auth_details['OS_API_INSECURE']:
+            sess = session.Session(auth=auth, verify=False)
+        else:
+            sess = session.Session(auth=auth)
+
+        return sess, auth_details
+
+
+# IMPORTANT:
+# v2 keystone auth is still necessary until RPCR switches over to v3 auth
+try:
     from keystoneclient import exceptions as k_exc
     from keystoneclient.v2_0 import client as k2_client
     from keystoneclient.v3 import client as k3_client
@@ -235,13 +274,8 @@ except ImportError:
 else:
     def keystone_auth(auth_details):
         keystone = None
-        # NOTE(cloudnull): The password variable maybe double quoted, to
-        #                  fix this we strip away any extra quotes in
-        #                  the variable.
-        pw = auth_details['OS_PASSWORD'].strip('"').strip("'")
-        auth_details['OS_PASSWORD'] = pw
         try:
-            if (auth_details['OS_IDENTITY_API_VERSION'] == 3 or
+            if (int(auth_details['OS_IDENTITY_API_VERSION']) == 3 or
                     auth_details['OS_AUTH_URL'].endswith('v3')):
                 keystone = k3_client.Client(
                     username=auth_details['OS_USERNAME'],
@@ -259,7 +293,8 @@ else:
                         'admin'
                     ),
                     auth_url=auth_details['OS_AUTH_URL'],
-                    region_name=auth_details['OS_REGION_NAME']
+                    region_name=auth_details.get('OS_REGION_NAME'),
+                    insecure=AUTH_DETAILS['OS_API_INSECURE']
                 )
             else:
                 keystone = k2_client.Client(
@@ -267,7 +302,8 @@ else:
                     password=auth_details['OS_PASSWORD'],
                     tenant_name=auth_details['OS_TENANT_NAME'],
                     auth_url=auth_details['OS_AUTH_URL'],
-                    region_name=auth_details['OS_REGION_NAME']
+                    region_name=auth_details['OS_REGION_NAME'],
+                    insecure=AUTH_DETAILS['OS_API_INSECURE']
                 )
         except Exception as e:
             metric_bool('client_success', False, m_name='maas_keystone')
@@ -611,7 +647,7 @@ def get_auth_details(openrc_file=OPENRC):
                 if match is None:
                     continue
                 k = match.group('key')
-                v = match.group('value')
+                v = match.group('value').strip('"').strip("'")
                 if k in auth_details and auth_details[k] is None:
                     auth_details[k] = v
     except IOError as e:
@@ -625,6 +661,16 @@ def get_auth_details(openrc_file=OPENRC):
     for key in auth_details.keys():
         if auth_details[key] is None:
             status_err('%s not set' % key, m_name='maas_keystone')
+
+    # NOTE(cloudnull): The password variable maybe double quoted, to
+    #                  fix this we strip away any extra quotes in
+    #                  the variable.
+    pw = auth_details['OS_PASSWORD']
+    if pw.startswith("'") and pw.endswith("'"):
+        pw = pw.strip("'")
+    elif pw.startswith('"') and pw.endswith('"'):
+        pw = pw.strip('"')
+    auth_details['OS_PASSWORD'] = pw
 
     return auth_details
 
@@ -653,9 +699,9 @@ def get_endpoint_url_for_service(service_type, auth_ref,
             for endpoint in service['endpoints']:
                 url = get_url_for_type(endpoint, url_type, auth_version)
                 if url is not None:
-                    # If version is not provided or it is provided and the url
-                    # ends with it, we want to return it, otherwise we want to
-                    # do nothing.
+                    # If version is not provided or it is provided and the
+                    # url ends with it, we want to return it, otherwise we
+                    # want to do nothing.
                     if not version or url.endswith(version):
                         return url
 
