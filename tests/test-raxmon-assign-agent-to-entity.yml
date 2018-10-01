@@ -1,5 +1,5 @@
 ---
-# Copyright 2015, Rackspace US, Inc.
+# Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,18 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Copy Var files in place
+- name: Delete Entity ID for test clean up
   hosts: localhost
   connection: local
-  user: root
-  gather_facts: true
+  user: "{{ ansible_user | default('root') }}"
   tasks:
     - name: Copy RPC-M vars into place
-      copy:
-        src: "user_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
-        dest: "/etc/openstack_deploy/user_rpcm_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
+      raxmon:
+        cmd: assign_agent_to_entity
+        entity: "{{ maas_entity_name }}"
+        venv_bin: "{{ maas_venv_bin }}"
+        create_entity_if_not_exists: "{{ create_entity_if_not_exists | default(False) }}"
 
-    - name: Copy RPC-M secrets into place
-      copy:
-        src: "user_rpcm_secrets.yml"
-        dest: "/etc/openstack_deploy/user_rpcm_secrets.yml"

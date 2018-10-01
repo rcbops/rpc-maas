@@ -31,7 +31,8 @@ description:
 options:
   cmd:
     description: The command to run
-    choices = [ 'assign_agent_to_entity', 'create_agent_token' ]
+    choices = [ 'assign_agent_to_entity', 'create_agent_token',
+                'delete_entity']
     required: true
   entity:
     description: The label of the entity to operate against
@@ -50,9 +51,15 @@ raxmon:
   cmd: assign_agent_to_entity
   entity: controller1
   venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
+  create_entity_if_not_exists: true
 
 raxmon:
   cmd: create_agent_token
+  entity: controller1
+  venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
+
+raxmon:
+  cmd: delete_entity
   entity: controller1
   venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
 """
@@ -90,16 +97,18 @@ def _get_conn(get_driver, provider_cls, raxmon_cfg):
     return conn
 
 
-def _get_entities(conn, entity):
+def _get_entities(conn, entity, create_entity_if_not_exists=False):
     entities = []
     for e in conn.list_entities():
         if e.label == entity:
             entities.append(e)
+    if create_entity_if_not_exists and len(entities) == 0:
+        conn.create_entity(label=entity)
     return entities
 
 
-def assign_agent_to_entity(module, conn, entity):
-    entities = _get_entities(conn, entity)
+def assign_agent_to_entity(module, conn, entity, create_entity_if_not_exists):
+    entities = _get_entities(conn, entity, create_entity_if_not_exists)
     entities_count = len(entities)
     if entities_count == 0:
         msg = "Zero entities with the label %s exist. Entities should be " \
@@ -148,6 +157,10 @@ def main():
             ),
             entity=dict(required=True),
             venv_bin=dict(),
+            create_entity_if_not_exists=dict(
+                type='bool',
+                default=False
+            ),
             raxmon_cfg=dict(default='/root/.raxrc')
         )
     )
@@ -176,7 +189,8 @@ def main():
     conn = _get_conn(get_driver, Provider, module.params['raxmon_cfg'])
 
     if module.params['cmd'] == 'assign_agent_to_entity':
-        assign_agent_to_entity(module, conn, module.params['entity'])
+        assign_agent_to_entity(module, conn, module.params['entity'],
+                               module.params['create_entity_if_not_exists'])
     elif module.params['cmd'] == 'create_agent_token':
         create_agent_token(module, conn, module.params['entity'])
 
