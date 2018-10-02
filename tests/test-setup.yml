@@ -23,6 +23,7 @@
       copy:
         src: "user_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
         dest: "/etc/openstack_deploy/user_rpcm_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
+
     - name: Copy RPC-M secrets into place
       copy:
         src: "user_rpcm_secrets.yml"

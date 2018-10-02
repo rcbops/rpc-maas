@@ -78,7 +78,7 @@ echo "TEST_IDEMPOTENCE: ${TEST_IDEMPOTENCE}"
 
 function set_ansible_parameters {
   # NOTE(tonytan4ever): We always skip preflight metadata check
-  ANSIBLE_CLI_PARAMETERS="-e maas_pre_flight_metadata_check_enabled=false"
+  ANSIBLE_CLI_PARAMETERS="-e maas_pre_flight_metadata_check_enabled=false -e create_entity_if_not_exists=true -e cleanup_entity=true"
 
   if [ "${ANSIBLE_PARAMETERS}" != false ]; then
     ANSIBLE_CLI_PARAMETERS+=" ${ANSIBLE_PARAMETERS}"
