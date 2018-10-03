@@ -79,6 +79,8 @@
       until: maas_verify | success
       retries: "{{ maas_verify_retries }}"
       delay: "{{ maas_verify_delay }}"
+      tags:
+        - maas-verify-local
 
     - name: "Verify Checks & Alarms are registered"
       command: >
