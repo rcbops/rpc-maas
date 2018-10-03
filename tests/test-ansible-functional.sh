@@ -47,6 +47,10 @@ export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
 # Ansible Inventory will be set to OSA
 export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
+if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
+  export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+fi
+
 
 # The maas_rally performance monitoring requires a modern (>1.9) version of
 # ansible that is not available in liberty and mitaka.  There is no reason

@@ -367,6 +367,11 @@ cinder_local_api_protocol: 'http'
 #
 cinder_local_api_port: '8776'
 
+#
+# cinder api version
+#
+os_volume_api_version: '1'
+
 # octavia_api_port: Port number for the octavia service
 #
 octavia_api_port: '9876'
@@ -395,6 +400,11 @@ glance_local_api_port: '9292'
 # glance_local_api_protocol: Protocol for the local glance API checks
 #
 glance_local_api_protocol: 'http'
+
+#
+# glance api version
+#
+os_image_api_version: '1'
 
 #
 # heat_local_api_port: Port number for the local heat api service

@@ -76,6 +76,7 @@
         cmd: assign_agent_to_entity
         entity: "{{ maas_entity_name }}"
         venv_bin: "{{ maas_venv_bin }}"
+        create_entity_if_not_exists: "{{ create_entity_if_not_exists | default(False) }}"
       when:
         - maas_use_api | bool
 

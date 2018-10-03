@@ -19,6 +19,7 @@
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
+    - include: "common-tasks/maas_get_maasrc.yml"
     - name: Set the current group
       set_fact:
         maas_current_group: cinder_all
