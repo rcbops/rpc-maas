@@ -23,26 +23,22 @@
   hosts: shared-infra_hosts
   gather_facts: false
   pre_tasks:
-    - name: Gather variables for each operating system
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
-      include_vars: "{{ item }}"
-      with_first_found:
-        - files:
-            - "vars/maas-poller-{{ ansible_distribution | lower }}.yml"
-            - "vars/maas-poller-{{ ansible_os_family | lower }}.yml"
-          skip: false
-
-    - name: Include distro install tasks
+    - name: Include Ubuntu distro install tasks
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
         - ansible_distribution | lower == 'ubuntu'
       include: "common-tasks/maas-poller-ubuntu-install.yml"
 
+    - name: Include Redhat distro install tasks
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
+        - ansible_distribution | lower == 'redhat'
+      include: "common-tasks/maas-poller-redhat-install.yml"
+
   vars_files:
     - vars/main.yml
-    - vars/maas-poller-{{ ansible_distribution | lower }}.yml
+    - vars/maas-poller.yml
   tags:
     - maas-poller-install

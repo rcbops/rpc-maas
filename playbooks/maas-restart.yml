@@ -15,7 +15,7 @@
 
 - name: Restart MaaS
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   serial: "{{ maas_restart_serial | default(1) }}"
   tasks:
     - name: Restart rackspace-monitoring-poller (systemd)
@@ -29,8 +29,8 @@
       delay: 2
       when:
         - maas_private_monitoring_enabled | bool
-        - physical_host in groups['shared-infra_hosts']
-        - ansible_distribution_version == "16.04"
+        - (physical_host | default(inventory_hostname)) in groups['shared-infra_hosts']
+        - ansible_distribution_version == "16.04" or (ansible_distribution | lower == "redhat")
 
     - name: Restart rackspace-monitoring-poller (upstart)
       service:
@@ -43,7 +43,7 @@
       delay: 2
       when:
         - maas_private_monitoring_enabled | bool
-        - physical_host in groups['shared-infra_hosts']
+        - (physical_host | default(inventory_hostname)) in groups['shared-infra_hosts']
         - ansible_distribution_version == "14.04"
 
     - name: Restart rackspace-monitoring-agent
