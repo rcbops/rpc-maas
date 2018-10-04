@@ -1,0 +1,7 @@
+---
+fixes:
+  - The maas_common.py is setting OS_VOLUME_API_VERSION and
+    OS_IMAGE_API_VERSION with a default of None.  This caused
+    calls to get_auth_details to fail a key check for 'None'
+    causing nova and neutron checks to fail of those variables
+    are not being set in the environment anywhere. 
