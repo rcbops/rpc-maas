@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Some 1.7.8 checks (nova api) breaks in absence of maasrc file.  This fix it. 
+    
