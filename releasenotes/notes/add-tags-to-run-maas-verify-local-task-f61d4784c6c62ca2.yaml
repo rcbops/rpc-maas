@@ -1,0 +1,3 @@
+---
+features:
+  - Added tags to Run MaaS verify local task in maas-verify.yml for ASC test integration
