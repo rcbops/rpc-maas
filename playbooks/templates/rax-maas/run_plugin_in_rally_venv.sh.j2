@@ -4,6 +4,10 @@ if [[ -f ~/openrc ]]; then
   source ~/openrc
 fi
 
+if [[ -f ~/maasrc ]]; then
+  source ~/maasrc
+fi
+
 # NOTE(cloudnull): Hard coded because this was never addressed upstream
 export OS_API_INSECURE=True
 

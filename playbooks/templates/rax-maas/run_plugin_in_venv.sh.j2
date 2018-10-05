@@ -4,6 +4,10 @@ if [[ -f {{ maas_openrc|default('~/openrc') }} ]]; then
   source {{ maas_openrc|default('~/openrc') }}
 fi
 
+if [[ -f {{ maas_maasrc|default('~/maasrc') }} ]]; then
+  source {{ maas_maasrc|default('~/maasrc') }}
+fi
+
 # NOTE(cloudnull): Hard coded because this was never addressed upstream
 export OS_API_INSECURE={{ maas_os_api_insecure|default('True') }}
 

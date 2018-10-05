@@ -14,7 +14,6 @@
 # limitations under the License.
 from __future__ import print_function
 
-from itertools import chain
 import contextlib
 import datetime
 import errno
@@ -652,8 +651,8 @@ def get_auth_details(openrc_file=OPENRC, maasrc_file=MAASRC):
     )
 
     try:
-        with open(openrc_file) as openrc, open(maasrc_file) as maasrc:
-            for line in chain(openrc, maasrc):
+        with open(openrc_file) as openrc:
+            for line in openrc:
                 match = pattern.match(line)
                 if match is None:
                     continue
@@ -661,6 +660,16 @@ def get_auth_details(openrc_file=OPENRC, maasrc_file=MAASRC):
                 v = match.group('value').strip('"').strip("'")
                 if k in auth_details and auth_details[k] is None:
                     auth_details[k] = v
+        if os.path.exists(maasrc_file):
+            with open(maasrc_file) as maasrc:
+                for line in maasrc:
+                    match = pattern.match(line)
+                    if match is None:
+                        continue
+                    k = match.group('key')
+                    v = match.group('value').strip('"').strip("'")
+                    if k in auth_details and auth_details[k] is None:
+                        auth_details[k] = v
     except IOError as e:
         if e.errno != errno.ENOENT:
             status_err(str(e), m_name='maas_keystone')

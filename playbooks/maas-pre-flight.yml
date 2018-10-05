@@ -79,7 +79,6 @@
     - name: Set MaaS product metadata facts
       set_fact:
         maas_product: "{{ (rendered_maas_metata_test_tmpl | from_yaml).metadata.product }}"
-        maas_product_version: "{{ (rendered_maas_metata_test_tmpl | from_yaml).metadata.product_version }}"
         maas_osa_version: "{{ (rendered_maas_metata_test_tmpl | from_yaml).metadata.osa_version }}"
 
     # For Queens and beyond, use image api version 2 and volume api version 3
