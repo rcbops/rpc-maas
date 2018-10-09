@@ -38,8 +38,8 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_ENDPOINT_TYPE': 'PublicURL',
                 'OS_IDENTITY_API_VERSION': None,
                 'OS_API_INSECURE': False,
-                'OS_VOLUME_API_VERSION': None,
-                'OS_IMAGE_API_VERSION': None, }
+                'OS_VOLUME_API_VERSION': 1,
+                'OS_IMAGE_API_VERSION': 1}
 
 if 'Ubuntu' in platform.linux_distribution()[0]:
     AUTH_DETAILS.update({
@@ -668,7 +668,7 @@ def get_auth_details(openrc_file=OPENRC, maasrc_file=MAASRC):
                         continue
                     k = match.group('key')
                     v = match.group('value').strip('"').strip("'")
-                    if k in auth_details and auth_details[k] is None:
+                    if k in auth_details:
                         auth_details[k] = v
     except IOError as e:
         if e.errno != errno.ENOENT:
