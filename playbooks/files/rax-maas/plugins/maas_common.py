@@ -668,7 +668,7 @@ def get_auth_details(openrc_file=OPENRC, maasrc_file=MAASRC):
                         continue
                     k = match.group('key')
                     v = match.group('value').strip('"').strip("'")
-                    if k in auth_details and auth_details[k] is None:
+                    if k in auth_details:
                         auth_details[k] = v
     except IOError as e:
         if e.errno != errno.ENOENT:
