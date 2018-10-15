@@ -76,7 +76,7 @@ TRIPLEO_MAPPING_GROUP = {
     # swift
     'swift_all': ['swift_proxy', 'swift_storage'],
     #
-    'swift_hosts': ['swift_storgage'],
+    'swift_hosts': ['swift_storage'],
     'swift_acc': ['swift_storage'],
     'swift_cont': ['swift_storage'],
     'swift_obj': ['swift_storage'],
