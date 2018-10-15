@@ -98,16 +98,16 @@
         - swift_storage_bridge | skipped
         - swift_storage_bridge_fact | skipped
     
-    - name: Set Storage_address fact for host for osp
+    - name: Set Storage_address fact for host for osp on swift proxy nodes
       set_fact:
-        storage_address: "{{ storage_mgmt_ip }}"
+        storage_address: "{{ storage_ip }}"
         openstack_release: ""
         swift_recon_path: ""
       when:
         - deploy_osp  | default(False)
         - inventory_hostname in groups['swift_proxy']
 
-    - name: Set Storage_address fact for host for osp
+    - name: Set Storage_address fact for host for osp swift host/storage nodes
       set_fact:
         storage_address: "{{ storage_mgmt_ip }}"
         openstack_release: ""
