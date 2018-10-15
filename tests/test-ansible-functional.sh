@@ -92,7 +92,6 @@ export TEST_CHECK_MODE="${TEST_CHECK_MODE:-false}"
 export TEST_IDEMPOTENCE="${TEST_IDEMPOTENCE:-false}"
 
 export COMMON_TESTS_PATH="${COMMON_TESTS_PATH:-$WORKING_DIR/tests/common}"
-export ANSIBLE_BINARY="${ANSIBLE_BINARY:-openstack-ansible}"
 
 echo "ANSIBLE_OVERRIDES: ${ANSIBLE_OVERRIDES}"
 echo "ANSIBLE_PARAMETERS: ${ANSIBLE_PARAMETERS}"
@@ -116,8 +115,19 @@ function set_ansible_parameters {
   fi
 }
 
-function execute_ansible_playbook {
+function setup_embedded_ansible {
+  # Installation of embedded ansible for rpc-maas
+  if [[ ! -f "/opt/bootstrap-embedded-ansible.sh" ]]; then
+    wget https://raw.githubusercontent.com/openstack/openstack-ansible-ops/master/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh -O /opt/bootstrap-embedded-ansible.sh
+  fi
+  source /opt/bootstrap-embedded-ansible.sh
+  export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_VARS"
+  export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
+}
 
+function execute_ansible_playbook {
+  # Ansible task runner
+  setup_embedded_ansible
   CMD_TO_EXECUTE="${ANSIBLE_BINARY} $@ ${ANSIBLE_CLI_PARAMETERS}"
   echo "Executing: ${CMD_TO_EXECUTE}"
   echo "With:"
@@ -125,7 +135,7 @@ function execute_ansible_playbook {
   echo "    ANSIBLE_LOG_PATH: ${ANSIBLE_LOG_PATH}"
 
   ${CMD_TO_EXECUTE}
-
+  deactivate
 }
 
 function gate_job_exit_tasks {
