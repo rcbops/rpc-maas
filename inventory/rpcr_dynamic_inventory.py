@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# need to maake this file executable
 # Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +29,7 @@ from tripleo_common.inventory import TripleoInventory
 from tripleo_validations.utils import get_auth_session
 
 from base_inventory import MaasInventory
+from rpcr_tripleo_host_group_mapping import TRIPLEO_MAPPING_GROUP
 
 
 def validate_ip(s):
@@ -55,7 +57,8 @@ class RPCRMaasInventory(MaasInventory):
         os_cacert = os.environ.get('OS_CACERT')
         ansible_ssh_user = os.environ.get('ANSIBLE_SSH_USER', 'heat-admin')
         self.plan_name = (os.environ.get('TRIPLEO_PLAN_NAME') or
-                          os.environ.get('STACK_NAME_NAME') or "overcloud")
+                          os.environ.get('STACK_NAME_NAME') or
+                          self.get_tripleo_plan_name())
         session = get_auth_session(auth_url,
                                    os_username,
                                    os_project_name,
@@ -74,11 +77,20 @@ class RPCRMaasInventory(MaasInventory):
             plan_name=self.plan_name)
         return inventory.list()
 
-    def app_all_group_hosts(self, group_name, input_inventory):
-        """Given a group name in input_inventory), find out all its
-        leaf groups (groups with hosts but no children anymore)
+    def get_tripleo_plan_name(self):
+        old_stdout = sys.stdout
+        stack_list_result = StringIO()
+        sys.stdout = stack_list_result
+        main('stack list -f json'.split())
+        sys.stdout = old_stdout
+        self.plan_name = (
+            json.loads(stack_list_result.getvalue())[0]['Stack Name']
+        )
+        return self.plan_name
 
-        returns a list of hosts
+    def add_all_group_hosts(self, group_name, input_inventory):
+        """Given a group name in input_inventory), recursively add it
+        child group and child host
         """
         if 'hosts' in input_inventory[group_name]:
             self.inventory[group_name] = copy.deepcopy(
@@ -93,7 +105,7 @@ class RPCRMaasInventory(MaasInventory):
             else:
                 if validate_ip(input_inventory[group_name]['hosts'][0]):
                     self.inventory[group_name]['vars']['ansible_host'] = (
-                            input_inventory[group_name]['hosts'][0])
+                        input_inventory[group_name]['hosts'][0])
 
             # We want undercloud's name hostname to be director
             if group_name.lower() == 'undercloud':
@@ -120,20 +132,20 @@ class RPCRMaasInventory(MaasInventory):
 
                 (self.inventory[group_name]['vars']
                     ['internal_lb_vip_address']) = (
-                       self.endpoint_map_result_json['attributes']
-                       ['endpoint_map']['KeystoneInternal']['host']
+                    self.endpoint_map_result_json['attributes']
+                    ['endpoint_map']['KeystoneInternal']['host']
                 )
                 (self.inventory[group_name]['vars']
                     ['external_lb_vip_address']) = (
-                      self.endpoint_map_result_json['attributes']
-                      ['endpoint_map']['KeystonePublic']['host']
+                    self.endpoint_map_result_json['attributes']
+                    ['endpoint_map']['KeystonePublic']['host']
                 )
         else:
             self.inventory[group_name] = copy.deepcopy(
                 input_inventory[group_name]
             )
             for child in input_inventory[group_name]['children']:
-                self.app_all_group_hosts(child, input_inventory)
+                self.add_all_group_hosts(child, input_inventory)
 
     def genrate_env_specific_variables(self):
         old_stdout = sys.stdout
@@ -160,241 +172,23 @@ class RPCRMaasInventory(MaasInventory):
                                                strip().rstrip('0'))
         sys.stdout = old_stdout
 
-    def generate_mandatory_groups(self, input_inventory):
-        mandatory_groups = ["undercloud", "overcloud",
-                            "Undercloud", "Overcloud"]
-        existing_mandatory_groups = [
-            mandatory_group for mandatory_group in mandatory_groups
-            if mandatory_group in input_inventory
-        ]
-        self.inventory["hosts"] = {'children': existing_mandatory_groups}
-        self.inventory["all"] = {'children': ['hosts']}
-        for key in existing_mandatory_groups:
-            self.app_all_group_hosts(key, input_inventory)
+    def do_host_group_mapping(self, input_inventory):
+        for source_group, children_list in TRIPLEO_MAPPING_GROUP.items():
+            for child in children_list:
+                if child not in self.inventory:
+                    if child in input_inventory:
+                        self.add_all_group_hosts(child, input_inventory)
 
-    def generate_optional_groups(self, input_inventory):
-        self.generate_ceph_groups(input_inventory)
-
-    def generate_ceph_groups(self, input_inventory):
-        ceph_all_groups = [
-            'ceph_osd', 'ceph_mon', 'ceph_rgw'
-        ]
-
-        for ceph_all_group in ceph_all_groups:
-            if ceph_all_group in input_inventory:
-                self.app_all_group_hosts(ceph_all_group, input_inventory)
-
-        self.inventory["mons"] = {
-            'children': ['ceph_mon']
-        }
-
-        self.inventory["osds"] = {
-            'children': ['ceph_osd']
-        }
-
-        self.inventory["rgws"] = {
-            'children': ['ceph_rgw']
-        }
-
-    def generate_infrastracture_groups(self, input_inventory):
-        self.inventory["shared-infra_hosts"] = {
-            'children': ["Controller"]
-        }
-
-        utility_groups = ["undercloud", "Undercloud"]
-        existing_utility_groups = [
-            utility_group for utility_group in utility_groups
-            if utility_group in input_inventory
-        ]
-        self.inventory["utility_all"] = {
-            'children': existing_utility_groups
-        }
-
-        self.inventory["galera_all"] = {
-            'children': ["Controller"],
-            'vars': {
-                'galera_root_password': (
-                   self.password_result_json['attributes']['value'])
+            self.inventory[source_group] = {
+                'children': children_list
             }
-        }
 
-        self.inventory["galera"] = {
-             'children': ["Controller"],
-             'vars': {}
-        }
-
-        self.inventory["rabbitmq_all"] = {
-            'children': ["Controller"]
-        }
-
-        self.inventory["memcached_all"] = {
-            'children': ["Controller"]
-        }
-
-        self.inventory["rsyslog_all"] = {
-            'children': ["Controller"]
-        }
-
-    def generate_openstack_groups(self, input_inventory):
-        self.inventory["keystone_all"] = {
-            'children': ["Controller"]
-        }
-
-        self.generate_nova_groups(input_inventory)
-        self.generate_neutron_groups(input_inventory)
-        self.generate_glance_groups(input_inventory)
-        self.generate_heat_groups(input_inventory)
-        self.generate_cinder_groups(input_inventory)
-        self.generate_horizon_groups(input_inventory)
-        self.generate_swift_groups(input_inventory)
-
-    def generate_nova_groups(self, input_inventory):
-        nova_all_groups = [
-            'nova_placement', 'nova_conductor', 'nova_metadata',
-            'nova_consoleauth', 'nova_api', 'nova_migration_target',
-            'nova_compute', 'nova_scheduler', 'nova_libvirt',
-            'nova_vnc_proxy'
-        ]
-        self.inventory["nova_all"] = {
-            'children': nova_all_groups
-        }
-        for nova_group in nova_all_groups:
-            self.app_all_group_hosts(nova_group, input_inventory)
-
-        self.inventory["nova_api_metadata"] = {
-            'children': ['nova_metadata']
-        }
-
-        self.inventory["nova_api_os_compute"] = {
-            'children': ['nova_api']
-        }
-
-        self.inventory["nova_compute"] = {
-            'children': ['Compute']
-        }
-
-        self.inventory["nova_console"] = {
-            'children': ['nova_consoleauth']
-        }
-
-        # skipping nova_conductor and nova_scheduler
-        # since they are overlapping with triple O inventory
-
-    def generate_neutron_groups(self, input_inventory):
-        neutron_all_groups = [
-            'neutron_metadata', 'neutron_dhcp',
-            'neutron_plugin_ml2', 'neutron_ovs_agent',
-            'neutron_api', 'neutron_l3'
-        ]
-
-        self.inventory["neutron_all"] = {
-            'children': neutron_all_groups
-        }
-        for neutron_group in neutron_all_groups:
-            self.app_all_group_hosts(neutron_group, input_inventory)
-
-        self.inventory["neutron_server"] = {
-            'children': ['neutron_api']
-        }
-
-        self.inventory["neutron_dhcp_agent"] = {
-            'children': ['neutron_dhcp']
-        }
-
-        self.inventory["neutron_l3_agent"] = {
-            'children': ['neutron_l3']
-        }
-
-        self.inventory["neutron_linuxbridge_agent"] = {
-           'children': ['neutron_ovs_agent']
-        }
-
-        self.inventory["neutron_openvswitch_agent"] = {
-            'children': ['neutron_ovs_agent']
-        }
-
-        self.inventory["neutron_metadata_agent"] = {
-            'children': ['neutron_metadata']
-        }
-
-        # self.inventory["neutron_metering_agent"] = {
-        #    'children': ['neutron_metering']
-        # }
-
-    def generate_glance_groups(self, input_inventory):
-        glance_all_groups = [
-            'glance_api', 'glance_registry_disabled'
-        ]
-
-        self.inventory["glance_all"] = {
-            'children': glance_all_groups
-        }
-
-        for glance_group in glance_all_groups:
-            self.app_all_group_hosts(glance_group, input_inventory)
-
-    def generate_heat_groups(self, input_inventory):
-        heat_all_groups = [
-            'heat_api', 'heat_api_cloudwatch_disabled',
-            'heat_engine', 'heat_api_cfn'
-        ]
-
-        self.inventory["heat_all"] = {
-            'children': heat_all_groups
-        }
-
-        for heat_group in heat_all_groups:
-            self.app_all_group_hosts(heat_group, input_inventory)
-
-        # heat_api and heat_engine have been added,  heat_api_cloudwatch
-        # has been deprecated
-        # self.inventory["heat_api"] = {
-        #    'children': ['heat_api']
-        # }
-
-        # self.inventory["heat_engine"] = {
-        #    'children': ['heat_engine']
-        # }
-
-    def generate_cinder_groups(self, input_inventory):
-        cinder_all_groups = [
-            'cinder_api', 'cinder_volume',
-            'cinder_scheduler'
-        ]
-
-        self.inventory["cinder_all"] = {
-            'children': cinder_all_groups
-        }
-
-        for cinder_group in cinder_all_groups:
-            if cinder_group in input_inventory:
-                self.app_all_group_hosts(cinder_group, input_inventory)
-
-    def generate_horizon_groups(self, input_inventory):
-        horizon_all_groups = [
-            'horizon'
-        ]
-
-        for horizon_group in horizon_all_groups:
-            self.app_all_group_hosts(horizon_group, input_inventory)
-
-    def generate_swift_groups(self, input_inventory):
-        swift_all_groups = [
-            'swift_ringbuilder', 'swift_storage',
-            'swift_proxy',
-        ]
-
-        existing_swift_groups = [
-            swift_group for swift_group in swift_all_groups
-            if swift_group in input_inventory
-        ]
-
-        self.inventory["swift_all"] = {
-            'children': existing_swift_groups
-        }
-
-        for swift_group in existing_swift_groups:
-            self.app_all_group_hosts(swift_group, input_inventory)
+    def generate_inventory(self):
+        input_inventory = self.read_input_inventory()
+        # generate some product specific variables
+        self.genrate_env_specific_variables()
+        self.inventory['_meta'] = copy.deepcopy(input_inventory['_meta'])
+        self.do_host_group_mapping(input_inventory)
 
     # Empty inventory for testing.
     def empty_inventory(self):

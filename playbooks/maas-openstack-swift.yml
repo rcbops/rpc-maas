@@ -67,7 +67,7 @@
   tags:
     - maas-openstack-swift
 
-- name: Install checks for openstack swift
+- name: Gather swift host groups extra facts
   hosts: swift_all
   gather_facts: false
   tasks:
