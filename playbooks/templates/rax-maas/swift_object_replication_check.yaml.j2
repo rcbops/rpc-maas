@@ -8,7 +8,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (inventory_hostname not in maas_swift_recon_nodes or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/swift-recon.py", "-t", "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}", "--swift-recon-path", "{{ swift_recon_path }}", "--ring-type", "object", "replication"]
+    args    : ["{{ maas_plugin_dir }}/swift-recon.py", "-t", "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}", {% if deploy_osp %}"--deploy_osp",{% else %}"--swift-recon-path", "{{ swift_recon_path }}",{% endif %} "--ring-type", "object", "replication"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
