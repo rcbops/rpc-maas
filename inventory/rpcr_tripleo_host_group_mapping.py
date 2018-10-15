@@ -73,10 +73,11 @@ TRIPLEO_MAPPING_GROUP = {
     # horizon
     'horizon_all': ['horizon'],
 
-    # horizon
-    'swfit_all': ['swift_proxy', 'swift_ringbuilder', 'swift_storage']
+    # swift
+    'swift_all': ['swift_proxy', 'swift_storage'],
     #
-    # 'swift_acc': []
-    # 'swift_cont': []
-    # 'swift_obj': []
+    'swift_hosts': ['swift_storgage'],
+    'swift_acc': ['swift_storage'],
+    'swift_cont': ['swift_storage'],
+    'swift_obj': ['swift_storage'],
 }

@@ -35,15 +35,15 @@
         dest: "/tmp/pip-constraints.txt"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
-    - name: Retrieve openrc file
-      fetch:
-        src: /root/openrc
-        dest: /root/openrc
-        flat: true
-      delegate_to: "{{ item }}"
-      with_items: "{{ groups['hosts'] }}"
-      when:
-        - "'hosts' in groups"
+    # - name: Retrieve openrc file
+    #  fetch:
+    #    src: /root/openrc
+    #    dest: /root/openrc
+    #    flat: true
+    #  delegate_to: "{{ item }}"
+    #  with_items: "{{ groups['hosts'] }}"
+    #  when:
+    #    - "'hosts' in groups"
 
   post_tasks:
     - name: Install swift pip packages to venv
@@ -76,6 +76,7 @@
         storage_bridge: "{{ 'ansible_' + swift.storage_network | replace('-', '_') }}"
       register: swift_storage_bridge
       when:
+        - not (deploy_osp  | default(False))
         - swift is defined
         - swift.storage_network is defined
         - inventory_hostname in groups['swift_hosts']
@@ -85,6 +86,7 @@
         storage_address: "{{ hostvars[inventory_hostname][storage_bridge]['ipv4']['address'] }}"
       register: swift_storage_bridge_fact
       when:
+        - not (deploy_osp  | default(False))
         - not swift_storage_bridge | skipped
         - "'ipv4' in hostvars[inventory_hostname][storage_bridge]"
 
@@ -92,8 +94,27 @@
       set_fact:
         storage_address: "{{ container_address }}"
       when:
+        - not (deploy_osp  | default(False))
         - swift_storage_bridge | skipped
         - swift_storage_bridge_fact | skipped
+    
+    - name: Set Storage_address fact for host for osp
+      set_fact:
+        storage_address: "{{ storage_mgmt_ip }}"
+        openstack_release: ""
+        swift_recon_path: ""
+      when:
+        - deploy_osp  | default(False)
+        - inventory_hostname in groups['swift_proxy']
+
+    - name: Set Storage_address fact for host for osp
+      set_fact:
+        storage_address: "{{ storage_mgmt_ip }}"
+        openstack_release: ""
+        swift_recon_path: ""
+      when:
+        - deploy_osp  | default(False)
+        - inventory_hostname in groups['swift_hosts']
 
   vars_files:
     - vars/main.yml
@@ -331,6 +352,7 @@
     - name: Setup swift container monitoring check
       shell: |
         source /root/openrc;
+        export SWIFTCLIENT_INSECURE={{ OS_API_INSECURE | default(true) }};
         {{ maas_venv_bin }}/swift upload \
           --object-name index.html \
           {{ maas_swift_accesscheck_container }} \
