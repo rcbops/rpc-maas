@@ -69,7 +69,6 @@ export TEST_CHECK_MODE="${TEST_CHECK_MODE:-false}"
 export TEST_IDEMPOTENCE="${TEST_IDEMPOTENCE:-false}"
 
 export COMMON_TESTS_PATH="${COMMON_TESTS_PATH:-$WORKING_DIR/tests/common}"
-export ANSIBLE_BINARY="${ANSIBLE_BINARY:-openstack-ansible}"
 
 echo "ANSIBLE_OVERRIDES: ${ANSIBLE_OVERRIDES}"
 echo "ANSIBLE_PARAMETERS: ${ANSIBLE_PARAMETERS}"
@@ -93,8 +92,24 @@ function set_ansible_parameters {
   fi
 }
 
-function execute_ansible_playbook {
+function setup_embedded_ansible {
+  # Installation of embedded ansible for rpc-maas
+  if [[ ! -f "/opt/bootstrap-embedded-ansible.sh" ]]; then
+    wget https://raw.githubusercontent.com/openstack/openstack-ansible-ops/master/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh -O /opt/bootstrap-embedded-ansible.sh
+  fi
+  get_pip
+  set +u
+  source /opt/bootstrap-embedded-ansible.sh
+  set -u
+  export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook"
+  export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
+}
 
+function execute_ansible_playbook {
+  # Ansible task runner
+  setup_embedded_ansible
+  export USER_VARS="$(for i in $(ls /etc/openstack_deploy/user_*.yml); do echo -ne "-e @$i "; done)"
+  ANSIBLE_CLI_PARAMETERS+=" ${USER_VARS}"
   CMD_TO_EXECUTE="${ANSIBLE_BINARY} $@ ${ANSIBLE_CLI_PARAMETERS}"
   echo "Executing: ${CMD_TO_EXECUTE}"
   echo "With:"
@@ -102,7 +117,7 @@ function execute_ansible_playbook {
   echo "    ANSIBLE_LOG_PATH: ${ANSIBLE_LOG_PATH}"
 
   ${CMD_TO_EXECUTE}
-
+  deactivate
 }
 
 function gate_job_exit_tasks {
@@ -240,6 +255,10 @@ fi
 if [[ ! -d "${ANSIBLE_LOG_DIR}" ]]; then
   mkdir -p "${ANSIBLE_LOG_DIR}"
 fi
+
+# Try to get around pip 10 issue
+pip uninstall -y pip
+get_pip
 
 # Prepare the extra CLI parameters used in each execution
 set_ansible_parameters
