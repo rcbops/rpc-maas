@@ -45,17 +45,23 @@ def get_container_name(deploy_osp, for_ring):
     if not deploy_osp:
         # identify the container we will use for monitoring
         get_container = shlex.split('lxc-ls -1 --running ".*(swift_proxy|swift)"')
+        shell=False
     else:
         docker_awk_string = 'swift_{for_ring}_server|swift_proxy'.format(
             for_ring=for_ring
         )
-        get_container = shlex.split(
-            "ps -a -f status=running | awk '/{docker_awk_string}/ {print $NF}' "
-            "| head -1".format(docker_awk_string=docker_awk_string)
+        get_container = (
+            "sudo /bin/docker ps -f status=running | "
+            "awk '/{docker_awk_string}/ {extract_string}'".format(
+                docker_awk_string=docker_awk_string,
+                extract_string='{print $NF}'
+            )
         )
+        shell=True
         
         try:
-            containers_list = subprocess.check_output(get_container)
+            containers_list = subprocess.check_output(get_container,
+                                                      shell=shell)
             container = containers_list.splitlines()[0]
         except (IndexError, subprocess.CalledProcessError):
             status_err('no running swift %s  or proxy containers found' % 
@@ -93,7 +99,6 @@ def recon_output(for_ring, options=None, swift_recon_path=None,
 
     # identify the container we will use for monitoring
     container = get_container_name(deploy_osp, for_ring)
-
     command = [os.path.join(swift_recon_path or "", 'swift-recon'), for_ring]
     command.extend(options or [])
     command_options = ' '.join(command)

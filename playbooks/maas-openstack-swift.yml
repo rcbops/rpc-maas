@@ -102,7 +102,7 @@
       set_fact:
         storage_address: "{{ storage_ip }}"
         openstack_release: ""
-        swift_recon_path: ""
+        swift_recon_path: "/bin"
       when:
         - deploy_osp  | default(False)
         - inventory_hostname in groups['swift_proxy']
@@ -111,7 +111,7 @@
       set_fact:
         storage_address: "{{ storage_mgmt_ip }}"
         openstack_release: ""
-        swift_recon_path: ""
+        swift_recon_path: "/bin"
       when:
         - deploy_osp  | default(False)
         - inventory_hostname in groups['swift_hosts']
