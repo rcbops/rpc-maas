@@ -375,6 +375,7 @@
     - name: Retrieve check file key
       shell: |
         source /root/openrc;
+        export SWIFTCLIENT_INSECURE={{ OS_API_INSECURE | default(true) }};
         {{ maas_venv_bin }}/swift stat \
           {{ maas_swift_accesscheck_container }} \
           index.html | grep "Account:" | awk '{print $2}';
