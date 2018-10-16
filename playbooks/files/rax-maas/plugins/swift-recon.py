@@ -47,11 +47,9 @@ def get_container_name(deploy_osp, for_ring):
         get_container = shlex.split('lxc-ls -1 --running ".*(swift_proxy|swift)"')
         shell=False
     else:
-        docker_awk_string = 'swift_{for_ring}_server|swift_proxy'.format(
-            for_ring=for_ring
-        )
+        docker_awk_string = 'swift_proxy'
         get_container = (
-            "sudo /bin/docker ps -f status=running | "
+            "/bin/docker ps -f status=running | "
             "awk '/{docker_awk_string}/ {extract_string}'".format(
                 docker_awk_string=docker_awk_string,
                 extract_string='{print $NF}'
@@ -103,7 +101,7 @@ def recon_output(for_ring, options=None, swift_recon_path=None,
     command.extend(options or [])
     command_options = ' '.join(command)
     if deploy_osp:
-        container_exec_command = 'sudo docker exec -it %s' % container
+        container_exec_command = 'docker exec %s' % container
         full_command = '{container_exec_command} {command_options}'
     else:
         container_exec_command = 'lxc-attach -n %s -- bash -c' % container

@@ -2,9 +2,9 @@
 {% set label = "swift_proxy_server_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 {% if (deploy_osp | default(False)) %}
-  {% set target_ip = storage_ip %}
+{% set target_ip = storage_address %}
 {% else %}
-  {% set target_ip = ansible_host %}
+{% set target_ip = ansible_host %}
 {% endif %}
 type        : agent.plugin
 label       : "{{ check_name }}"
