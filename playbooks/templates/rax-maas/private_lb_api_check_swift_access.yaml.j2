@@ -9,7 +9,7 @@ disabled          : "{{ (inventory_hostname != groups['swift_proxy'][0] or check
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_swift_external_ip_address | default(maas_external_ip_address) }}"
 details           :
-    url           : "{{ maas_swift_proxy_scheme | default(maas_scheme)}}://{{ maas_swift_external_hostname | default(maas_external_hostname) }}:8080/v1/{{ hostvars[groups['swift_proxy'][0]]['maas_swift_access_url_key'] }}/{{ maas_swift_accesscheck_container }}/index.html"
+    url           : "{{ maas_swift_proxy_scheme | default(maas_scheme)}}://{{ maas_swift_external_hostname | default(maas_swift_external_ip_address) | default(maas_external_hostname) }}:8080/v1/{{ hostvars[groups['swift_proxy'][0]]['maas_swift_access_url_key'] }}/{{ maas_swift_accesscheck_container }}/index.html"
 monitoring_zones_poll:
   - "{{ maas_private_monitoring_zone }}"
 {{ get_metadata(label).strip() }}
