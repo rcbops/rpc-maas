@@ -105,7 +105,7 @@ if __name__ == "__main__":
                         help='Protocol for keystone API')
     parser.add_argument('--port',
                         action='store',
-                        default='35357',
+                        default='5000',
                         help='Port for the keystone API service')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):

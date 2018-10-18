@@ -43,6 +43,3 @@ rsyslogd_process_names:
 
 maas_memcached_pip_packages:
   - python-memcached
-
-maas_rabbitmq_pip_packages:
-  - httplib2
