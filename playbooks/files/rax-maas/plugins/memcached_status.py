@@ -15,19 +15,15 @@
 # limitations under the License.
 
 import argparse
-import re
 
 import ipaddr
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
-from maas_common import status_ok
 import memcache
 
 
-VERSION_RE = re.compile('STAT version (\d+\.\d+\.\d+)(?![-+0-9\\.])')
-VERSIONS = ['1.4.14 (Ubuntu)', '1.4.15', '1.4.25 Ubuntu', '1.4.39']
 MEMCACHE_METRICS = {'total_items': 'items',
                     'get_hits': 'cache_hits',
                     'get_misses': 'cache_misses',
@@ -55,17 +51,12 @@ def main(args):
 
     try:
         stats = item_stats(bind_ip, port)
-        current_version = stats['version']
     except (TypeError, IndexError):
         is_up = False
         metric_bool('client_success', False, m_name='maas_memcached')
     else:
         is_up = True
         metric_bool('client_success', True, m_name='maas_memcached')
-        if current_version not in VERSIONS:
-            status_err('This plugin has only been tested with version %s '
-                       'of memcached, and you are using version %s'
-                       % (VERSIONS, current_version), m_name='maas_memcached')
 
     status_ok(m_name='maas_memcached')
     metric_bool('memcache_api_local_status', is_up, m_name='maas_memcached')

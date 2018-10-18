@@ -29,7 +29,7 @@ def utilisation(time):
     device_lines = output.split('\nDevice:')[-1].strip().split('\n')[1:]
     devices = [d for d in device_lines if not d.startswith(('dm-', 'nb'))]
     devices = [d.split() for d in devices]
-    utils = [(d[0], d[-1]) for d in devices]
+    utils = [(d[0], d[-1]) for d in devices if d]
     return utils
 
 if __name__ == '__main__':

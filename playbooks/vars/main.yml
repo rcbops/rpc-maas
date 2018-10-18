@@ -351,7 +351,7 @@ ceph_radosgw_protocol: 'http'
 #
 # keystone_local_api_port: Port number for the local keystone API service
 #
-keystone_local_api_port: '35357'
+keystone_local_api_port: '5000'
 
 #
 # keystone_local_api_protocol: Protocol for the local keystone API
@@ -468,8 +468,21 @@ ironic_local_api_port: '6385'
 #
 ironic_local_api_protocol: 'http'
 
-
-# horizon service 
+#
+# horizon service
+#
 horizon_service_protocol: 'https'
 horizon_service_port: '443'
 
+#
+# Distro packages needed to be installed for rabbitmq monitoring
+#
+maas_rabbitmq_distro_packages:
+  - python-httplib2
+
+#
+# Distro packages to be installed for the maas-agent runtime
+#
+maas_agent_distro_packages:
+  - python-lxc
+  - virtualenv

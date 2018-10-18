@@ -5,10 +5,10 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ ((inventory_hostname != groups['horizon_all'][0]) or (check_name | match(maas_excluded_checks_regex))) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/horizon_check.py", "{{ container_address | default(internal_api_ip | default(ansible_host)) }}", "{{ maas_horizon_site_name }}", "--protocol", "{{ horizon_service_protocol }}", "--port", "{{ horizon_service_port }}"{% if deploy_osp | default(False) %}, "--deploy_osp"{% endif %}]
+    args    : ["{{ maas_plugin_dir }}/horizon_check.py", "{{ internal_lb_vip_address | default(container_address | default(internal_api_ip | default(ansible_host))) }}", "{{ maas_horizon_site_name }}", "--protocol", "{{ horizon_service_protocol }}", "--port", "{{ horizon_service_port }}"{% if deploy_osp | default(False) %}, "--deploy_osp"{% endif %}]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}

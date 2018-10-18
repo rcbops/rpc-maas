@@ -26,11 +26,9 @@
 
   tasks:
     - name: Install rabbitmq pip packages
-      pip:
-        name: "{{ maas_rabbitmq_pip_packages | join(' ') }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          {{ pip_install_options | default('') }}
+      package:
+        name: "{{ maas_rabbitmq_distro_packages }}"
+        state: "present"
       register: install_pip_packages
       until: install_pip_packages|success
       retries: 5
