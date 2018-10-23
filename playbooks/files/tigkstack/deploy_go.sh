@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 pushd /opt
-  wget -P /opt/ https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz
-  tar  -xzf /opt/go1.8.3.linux-amd64.tar.gz -C /opt/
+  wget -P /opt/ https://storage.googleapis.com/golang/go1.11.1.linux-amd64.tar.gz
+  tar  -xzf /opt/go1.11.1.linux-amd64.tar.gz -C /opt/
 popd
 
 pushd /usr/local/bin
