@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Latest influxdb-relay installation requires newer version of go.
+
