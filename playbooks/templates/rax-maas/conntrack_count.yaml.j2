@@ -20,8 +20,8 @@ alarms      :
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (percentage(metric["nf_conntrack_count"] , metric["nf_conntrack_max"]) > {{ maas_nf_conntrack_critical_threshold }}) {
-                return new AlarmStatus(CRITICAL, "Connection count is > {{ maas_nf_conntrack_critical_threshold }}% of maximum allowed.");
+                return new AlarmStatus(CRITICAL, "Connection tracking count is > {{ maas_nf_conntrack_critical_threshold }}% of the critical threshold. Please check all namespaces listed at /var/run/netns including the host.");
             }
             if (percentage(metric["nf_conntrack_count"] , metric["nf_conntrack_max"]) > {{ maas_nf_conntrack_warning_threshold }}) {
-                return new AlarmStatus(WARNING, "Connection count is > {{ maas_nf_conntrack_warning_threshold }}% of maximum allowed.");
+                return new AlarmStatus(WARNING, "Connection tracking count is > {{ maas_nf_conntrack_warning_threshold }}% of the warning threshold. Please check all namespaces inside listed at /var/run/netns including the host.");
             }
