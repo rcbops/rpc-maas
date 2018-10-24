@@ -28,6 +28,14 @@
   hosts: galera_all
   gather_facts: false
   pre_tasks:
+    - name: Check for required galera variables
+      fail:
+        msg: >-
+          The variable `galera_root_password` is undefined. To use these checks this
+          variable is required.
+      when:
+        - not galera_root_password is defined
+
     - name: Gather variables for each operating system
       include_vars: "{{ item }}"
       with_first_found:

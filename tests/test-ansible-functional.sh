@@ -42,7 +42,7 @@ export WORKING_DIR="${WORKING_DIR:-$(pwd)}"
 export ROLE_NAME="${ROLE_NAME:-''}"
 
 export ANSIBLE_CALLBACK_WHITELIST="profile_tasks"
-export ANSIBLE_OVERRIDES="${ANSIBLE_OVERRIDES:-$WORKING_DIR/tests/user_${RE_JOB_SCENARIO}_vars.yml}"
+export ANSIBLE_OVERRIDES="${ANSIBLE_OVERRIDES:-false}"
 export ANSIBLE_PARAMETERS="${ANSIBLE_PARAMETERS:-false}"
 export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
@@ -104,7 +104,8 @@ echo "TEST_IDEMPOTENCE: ${TEST_IDEMPOTENCE}"
 
 function set_ansible_parameters {
   # NOTE(tonytan4ever): We always skip preflight metadata check
-  ANSIBLE_CLI_PARAMETERS="-e maas_pre_flight_metadata_check_enabled=false -e create_entity_if_not_exists=true -e cleanup_entity=true"
+  TEST_DEFAULTS="-e maas_pre_flight_metadata_check_enabled=false -e create_entity_if_not_exists=true -e cleanup_entity=true"
+  ANSIBLE_CLI_PARAMETERS="${TEST_DEFAULTS:-${ANSIBLE_OVERRIDE_CLI_PARAMETERS}}"
 
   if [ "${ANSIBLE_PARAMETERS}" != false ]; then
     ANSIBLE_CLI_PARAMETERS+=" ${ANSIBLE_PARAMETERS}"
@@ -113,6 +114,10 @@ function set_ansible_parameters {
   if [ -f "${ANSIBLE_OVERRIDES}" ]; then
     ANSIBLE_CLI_PARAMETERS+=" -e @${ANSIBLE_OVERRIDES}"
   fi
+
+  if [ -d "/etc/openstack_deploy" ]; then
+    ANSIBLE_CLI_PARAMETERS+=" $(for i in $(ls /etc/openstack_deploy/user_*.yml); do echo -ne "-e @$i "; done)"
+  fi
 }
 
 function setup_embedded_ansible {
@@ -120,6 +125,7 @@ function setup_embedded_ansible {
   if [[ ! -f "/opt/bootstrap-embedded-ansible.sh" ]]; then
     wget https://raw.githubusercontent.com/openstack/openstack-ansible-ops/master/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh -O /opt/bootstrap-embedded-ansible.sh
   fi
+  export PS1="${PS1:-'\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '}"
   source /opt/bootstrap-embedded-ansible.sh
   export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_VARS"
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
@@ -128,6 +134,7 @@ function setup_embedded_ansible {
 function execute_ansible_playbook {
   # Ansible task runner
   setup_embedded_ansible
+  set_ansible_parameters
   CMD_TO_EXECUTE="${ANSIBLE_BINARY} $@ ${ANSIBLE_CLI_PARAMETERS}"
   echo "Executing: ${CMD_TO_EXECUTE}"
   echo "With:"
@@ -143,7 +150,6 @@ function gate_job_exit_tasks {
   # which was present when the trap was initiated.
   # This would be the success/failure of the test.
   export TEST_EXIT_CODE=$?
-  source "${COMMON_TESTS_PATH}/test-log-collect.sh"
 }
 
 function pin_environment {
@@ -174,7 +180,6 @@ function influx_pin_environment {
 }
 
 function get_pip {
-
   # Use pip opts to add options to the pip install command.
   # This can be used to tell it which index to use, etc.
   PIP_OPTS=${PIP_OPTS:-""}
@@ -217,9 +222,12 @@ function enable_maas_api {
   #                  different virtualenv which are done in three tasks. These three tasks are being
   #                  run in this particular order to ensure "pyrax" installs correctly.
   PYTHON_BIN="$(which python)"
-  virtualenv --python="${PYTHON_BIN}" --no-pip /opt/test-maas
-  get_pip /opt/test-maas/bin/python
+  virtualenv --python="${PYTHON_BIN}" /opt/test-maas
   /opt/test-maas/bin/pip install "jinja2" --isolated --upgrade --force-reinstall
+  # NOTE(tonytan4ever):  pip on newton will broken because of a mis-installed version of setuptools
+  if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
+    /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
+  fi
   /opt/test-maas/bin/pip install -r test-requirements.txt --isolated --upgrade --force-reinstall
   /opt/test-maas/bin/pip install "SecretStorage < 3" --isolated
   /opt/test-maas/bin/pip install "pyrax" --isolated
@@ -276,9 +284,6 @@ fi
 if [[ ! -d "${ANSIBLE_LOG_DIR}" ]]; then
   mkdir -p "${ANSIBLE_LOG_DIR}"
 fi
-
-# Prepare the extra CLI parameters used in each execution
-set_ansible_parameters
 
 # Run test setup playbook
 execute_ansible_playbook ${TEST_SETUP_PLAYBOOK}

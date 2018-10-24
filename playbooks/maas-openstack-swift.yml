@@ -183,6 +183,18 @@
 - name: Install swift-recon checks for openstack swift proxy
   hosts: swift_proxy
   gather_facts: false
+  pre_tasks:
+    - name: Get openstack release
+      command: "grep DISTRIB_RELEASE /etc/openstack-release"
+      changed_when: false
+      register: openstack_release
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Set the swift release
+      set_fact:
+        swift_release: >-
+          {{ openstack_release.stdout.split('=')[-1].strip('"') }}
+
   tasks:
     - name: Set recon nodes fact
       set_fact:

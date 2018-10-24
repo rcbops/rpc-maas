@@ -21,9 +21,6 @@ maas_excluded_checks:
 
 maas_pre_flight_check_enabled: true
 
-# Ansible 1.9 compatibility
-ansible_host: "{{ ansible_ssh_host }}"
-
 # Nova console type is required
 maas_nova_console_type: spice
 

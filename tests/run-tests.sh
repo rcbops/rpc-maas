@@ -1,5 +1,6 @@
----
-# Copyright 2018, Rackspace US, Inc.
+#!/usr/bin/env bash
+
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,19 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Delete Entity ID for test clean up
-  hosts: localhost
-  connection: local
-  user: "{{ ansible_user | default('root') }}"
-  tasks:
-    - name: Assign agent to entity.
-      raxmon:
-        cmd: assign_agent_to_entity
-        entity: "{{ maas_entity_name }}"
-        venv_bin: "{{ maas_venv_bin }}"
-        create_entity_if_not_exists: "{{ create_entity_if_not_exists | default(False) }}"
-      
-  vars_files:
-    - ../playbooks/vars/main.yml
 
+## Shell Opts ----------------------------------------------------------------
+set -eovu
 
+## Vars ----------------------------------------------------------------------
+export TEST_DIR="$(readlink -f $(dirname ${0}))"
+
+## Main ----------------------------------------------------------------------
+bash -vc "${TEST_DIR}/env-prep.sh"
+
+# Build AIO
+bash -vc "${TEST_DIR}/aio-create.sh"
+
+# Run functional rpc-maas deployment
+bash -vc "${TEST_DIR}/test-ansible-functional.sh"

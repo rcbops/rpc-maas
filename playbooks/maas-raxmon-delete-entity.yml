@@ -22,7 +22,7 @@
         cmd: delete_entity
         entity: "{{ maas_entity_name }}"
         venv_bin: "{{ maas_venv_bin }}"
-  # when:
-  #  - cleanup_entity  | default(False)
+      when:
+        - cleanup_entity | default(False) | bool
   vars_files:
-    - ../playbooks/vars/main.yml
+    - vars/main.yml

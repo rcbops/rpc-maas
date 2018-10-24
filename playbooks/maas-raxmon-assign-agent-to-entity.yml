@@ -1,5 +1,5 @@
 ---
-# Copyright 2015, Rackspace US, Inc.
+# Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Install rpc-maas
-- include: "../playbooks/site.yml"
+- name: Delete Entity ID for test clean up
+  hosts: localhost
+  connection: local
+  user: "{{ ansible_user | default('root') }}"
+  tasks:
+    - name: Assign agent to entity.
+      raxmon:
+        cmd: assign_agent_to_entity
+        entity: "{{ maas_entity_name }}"
+        venv_bin: "{{ maas_venv_bin }}"
+        create_entity_if_not_exists: "{{ create_entity_if_not_exists | default(False) }}"
 
-# Ensure all plugins are functional
-- include: "../playbooks/maas-verify.yml"
-
-# Run the entity deletion playbook
-- include: "../playbooks/maas-raxmon-delete-entity.yml"
+  vars_files:
+    - vars/main.yml
