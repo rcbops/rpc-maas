@@ -46,6 +46,14 @@
         group: "root"
         mode: "0644"
 
+    - name: Install nfs system checks
+      template:
+        src: "templates/rax-maas/nfs_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nfs_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+
     - name: Install memory Checks
       template:
         src: "templates/rax-maas/memory_check.yaml.j2"
