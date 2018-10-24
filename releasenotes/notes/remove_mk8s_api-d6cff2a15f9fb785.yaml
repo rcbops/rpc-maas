@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Managed Kubernetes k8s API checks have been moved to the maas agent
+    inside the kubernetes cluster to align better with the device id of
+    the cluster under monitoring and simplify management of alerts.
