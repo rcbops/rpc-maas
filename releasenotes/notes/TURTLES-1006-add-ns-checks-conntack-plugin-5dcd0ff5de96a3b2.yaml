@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+    * The `conntrack_count.py` plugin is now checking for network namespaces
+      listed at `/var/run/netns` and retreives the iptables connection
+      tracking infomation for each namespace.
+      This ensures that embedded network namespaces are alerted in case
+      connection tracking hashes are about to exceed a configurable threshold.
+      Due to the limited availability of MAAS metrics per alarm, only the
+      namespace with the higest connection tracking count is reported.

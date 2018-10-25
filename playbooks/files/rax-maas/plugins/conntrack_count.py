@@ -24,6 +24,8 @@ except ImportError:
     pass
 
 import maas_common
+import os
+import subprocess
 import tempfile
 
 
@@ -63,8 +65,28 @@ def get_metrics():
         'nf_conntrack_max': {
             'path': '/proc/sys/net/netfilter/nf_conntrack_max'}}
 
+    # Retrieve root namespace count
     for data in metrics.viewvalues():
         data['value'] = get_value(data['path'])
+
+    # Retrieve conntrack count per namespace
+    # and report the namespace with the highest count.
+    # This is necessary to limit the number of metrics to report to MAAS,
+    # as we can not report a metric per namespace, which by nature are
+    # also volatile.
+    try:
+        namespaces = os.listdir('/var/run/netns')
+        for ns in namespaces:
+            ps = subprocess.check_output(['ip', 'netns', 'exec',
+                                          ns, 'cat',
+                                          '/proc/sys/net/netfilter/'
+                                          'nf_conntrack_count'])
+            nscount = int(ps.strip(os.linesep))
+
+        if nscount > metrics['nf_conntrack_count']['value']:
+            metrics['nf_conntrack_count']['value'] = nscount
+    except (OSError):
+        pass
 
     return metrics
 
@@ -89,11 +111,13 @@ def get_metrics_lxc_container(container_name=''):
     # Check if container is even running
     try:
         with tempfile.TemporaryFile() as tmpfile:
+            # Retrieve root namespace count
             if cont.attach_wait(lxc.attach_run_command,
                                 ['cat',
                                  '/proc/sys/net/netfilter/nf_conntrack_count',
                                  '/proc/sys/net/netfilter/nf_conntrack_max'],
-                                stdout=tmpfile) > -1:
+                                stdout=tmpfile,
+                                stderr=tempfile.TemporaryFile()) > -1:
 
                 tmpfile.seek(0)
                 output = tmpfile.read()
@@ -101,7 +125,39 @@ def get_metrics_lxc_container(container_name=''):
                     'nf_conntrack_count': {'value': output.split('\n')[0]},
                     'nf_conntrack_max': {'value': output.split('\n')[1]}}
 
-            return metrics
+        # Retrieve conntrack count per namespace
+        # and report the namespace with the highest count.
+        # This is necessary to limit the number of metrics to report to MAAS,
+        # as we can not report a metric per namespace, which by nature are
+        # also volatile.
+        with tempfile.TemporaryFile() as nsfile:
+            if cont.attach_wait(lxc.attach_run_command,
+                                ['ls',
+                                 '-1',
+                                 '/var/run/netns'],
+                                stdout=nsfile,
+                                stderr=tempfile.TemporaryFile()) > -1:
+                nsfile.seek(0)
+
+                for line in nsfile.readlines():
+                    ns = line.strip(os.linesep)
+                    nscountfile = tempfile.TemporaryFile()
+
+                    if cont.attach_wait(lxc.attach_run_command,
+                                        ['ip', 'netns', 'exec',
+                                         ns, 'cat',
+                                         '/proc/sys/net/netfilter/'
+                                         'nf_conntrack_count'],
+                                        stdout=nscountfile,
+                                        stderr=tempfile.TemporaryFile()) > -1:
+
+                        nscountfile.seek(0)
+                        nscount = int(nscountfile.read().strip(os.linesep))
+
+                        if nscount > metrics['nf_conntrack_count']['value']:
+                            metrics['nf_conntrack_count']['value'] = nscount
+
+        return metrics
 
     except maas_common.MaaSException as e:
         maas_common.status_err(str(e), m_name='maas_conntrack')
