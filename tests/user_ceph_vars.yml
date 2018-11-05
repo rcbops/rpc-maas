@@ -13,12 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Set overrides for check periods
-maas_check_period_override:
-  disk_utilisation: 900
-
 maas_excluded_alarms: []
-
 maas_excluded_checks: []
 
 maas_rally_enabled: false
+
+# Allow maas-verify to properly validate all issues
+maas_verify_registration: true
+maas_verify_status: true

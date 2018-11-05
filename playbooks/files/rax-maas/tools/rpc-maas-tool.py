@@ -554,7 +554,7 @@ class RpcMassCli(object):
         for check in checks:
             for exclude in self.args.excludedcheck:
                 # ping is a default check and may not have an alarm
-                if exclude in check.label:
+                if exclude in check.label and not check.disabled:
                     present_but_excluded_checks.append(check)
         if present_but_excluded_checks:
             LOGGER.info("The following checks are in the excluded_checks list"

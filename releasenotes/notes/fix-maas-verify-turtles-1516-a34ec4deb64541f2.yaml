@@ -1,0 +1,8 @@
+---
+fixes:
+  - Fix rpc-maas-tool.py to report excludedchecks as the check will always be created
+  - Gating: Enable 'maas_verify_registration' in gating to validate alarms are created in the api
+  - Gating: Enable 'maas_verify_status' in gating to validate alarms are not critical after deployments
+  - Gating: Tweak existing variable overrides for different gating release versions. Remove alarm
+    exclusions, frequency changes, and update excluded checks to include 'horizon_local_check'
+    in newton and onward.
