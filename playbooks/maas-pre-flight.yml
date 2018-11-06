@@ -65,6 +65,8 @@
 - name: Generate maasrc
   hosts: utility_all
   gather_facts: true
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Get rendered test metadata template string
       set_fact:

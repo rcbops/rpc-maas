@@ -31,6 +31,8 @@
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
   become: yes
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
     - name: Write Ceph monitoring client key to file
       copy:

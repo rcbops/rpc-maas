@@ -23,6 +23,8 @@
   delay: 2
 
 - name: Ensure galera packages are installed
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   apt:
     pkg: "{{ item }}"
     state: "{{ maas_package_state }}"

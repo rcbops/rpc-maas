@@ -16,6 +16,8 @@
 - name: Gather facts
   hosts: hosts
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group

@@ -16,6 +16,8 @@
 - name: Gather facts
   hosts: glance_all
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
@@ -56,6 +58,8 @@
 - name: Install checks for openstack glance-api
   hosts: glance_api
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install glance api checks
       template:
@@ -99,6 +103,8 @@
 - name: Install checks for openstack glance-registry
   hosts: glance_registry
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install glance registry checks
       template:

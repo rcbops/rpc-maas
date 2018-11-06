@@ -14,6 +14,8 @@
 # limitations under the License.
 
 - name: Create DB for service
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   mysql_db:
     login_user: "{{ galera_root_user }}"
     login_password: "{{ galera_root_password }}"
@@ -25,6 +27,8 @@
     - common-mysql
 
 - name: Grant access to the DB for the service
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   mysql_user:
     login_user: "{{ galera_root_user }}"
     login_password: "{{ galera_root_password }}"

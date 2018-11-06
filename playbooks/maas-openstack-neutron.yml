@@ -16,6 +16,8 @@
 - name: Gather facts
   hosts: neutron_all
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
@@ -55,6 +57,8 @@
 - name: Install checks for openstack neutron
   hosts: neutron_server
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install neutron server checks
       template:
@@ -98,6 +102,8 @@
 - name: Install checks for openstack neutron dhcp agent
   hosts: neutron_dhcp_agent
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install neutron dhcp agent checks
       template:
@@ -117,6 +123,8 @@
 - name: Install checks for openstack neutron l3 agent
   hosts: neutron_l3_agent
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install neutron l3 agent checks
       template:
@@ -136,6 +144,8 @@
 - name: Install checks for openstack neutron linux bridge agent
   hosts: neutron_linuxbridge_agent
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install neutron linux bridge agent checks
       template:
@@ -156,6 +166,8 @@
 - name: Install checks for openstack neutron OVS agent
   hosts: neutron_openvswitch_agent
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install neutron OVS agent checks
       template:
@@ -176,6 +188,8 @@
 - name: Install checks for openstack neutron metadata agent
   hosts: neutron_metadata_agent
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install neutron metadata agent checks
       template:
@@ -195,6 +209,8 @@
 - name: Install checks for openstack neutron metering agent
   hosts: neutron_metering_agent
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install neutron metadata agent checks
       template:
