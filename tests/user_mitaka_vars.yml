@@ -22,7 +22,7 @@ maas_pre_flight_check_enabled: true
 ansible_host: "{{ ansible_ssh_host }}"
 
 # Nova console type is required
-maas_nova_console_type: novnc
+maas_nova_console_type: spice
 
 # Allow maas-verify to properly validate all issues
 maas_verify_registration: true
