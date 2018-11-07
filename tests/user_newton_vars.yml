@@ -19,9 +19,6 @@ maas_excluded_alarms: []
 maas_excluded_checks:
   - horizon_local_check
 
-# Nova console type is required
-maas_nova_console_type: novnc
-
 maas_rally_enabled: true
 
 # NOTE(cfarquhar): The scenarios that create instances are disabled for now
@@ -52,11 +49,6 @@ maas_pre_flight_check_enabled: true
 # Allow maas-verify to properly validate all issues
 maas_verify_registration: true
 maas_verify_status: true
-
-# Set fqdn as the original hostname to ensure the entity name is unique across
-# other gates. The OSA playbooks reset the hostname to 'aio1' in queens onward
-# so there were overlapping entities.
-maas_fqdn_extension: "{{lookup('file', '/tmp/maas_fqdn_extension') }}"
 
 # Disable remote.http checks because AIO endpoints will always be private
 # addresses. Private network monitoring will need to be added.

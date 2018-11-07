@@ -57,7 +57,7 @@ maas_filesystem_critical_threshold: 90.0
 _maas_disk_util_devices: |
   ---
   {% for device in ansible_devices.keys() %}
-  {%   if (device not in maas_excluded_devices | default([])) and (ansible_devices[device].model != 'VIRTUAL-DISK') and (ansible_devices[device].model != 'QEMU DVD-ROM') and ('nbd' not in device) %}
+  {%   if (device not in maas_excluded_devices | default([])) and (ansible_devices[device].model != 'VIRTUAL-DISK') and (ansible_devices[device].model != 'QEMU DVD-ROM') and ('nbd' not in device) and ('loop' not in device) %}
   - "{{ device }}"
   {%   endif %}
   {% endfor %}
