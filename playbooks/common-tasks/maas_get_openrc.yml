@@ -14,8 +14,6 @@
 # limitations under the License.
 
 - name: Retrieve openrc file
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
   slurp:
     src: /root/openrc
   register: openrc_data
@@ -26,8 +24,6 @@
      openrc_fact: "{{ openrc_data.content }}"
 
 - name: Distribute openrc
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
   copy:
     dest: "/root/openrc"
     content: "{{ openrc_fact | b64decode }}"
