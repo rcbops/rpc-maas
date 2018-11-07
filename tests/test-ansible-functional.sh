@@ -26,7 +26,7 @@
 
 ## Shell Opts ----------------------------------------------------------------
 
-set -eovu
+set -evuo pipefail
 
 echo "Run Functional Tests"
 echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
@@ -57,11 +57,12 @@ fi
 # This will automatically work for new gates
 case $RE_JOB_SCENARIO in
   ceph|hummingbird|kilo|liberty|mitaka|newton|ocata|pike)
-    :
+    echo "There is no need to set maas_fqdn_extension on ${RE_JOB_SCENARIO}"
+    echo | tee /tmp/maas_fqdn_extension
     ;;
   *)
-    echo "Create 16 character unique string to use as maas_fqdn_extension:"
-    echo ".$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})" | tee /tmp/maas_fqdn_extension
+    echo "Create a 16 character unique string to set as maas_fqdn_extension"
+    < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16} | sed 's/^/./' | tee /tmp/maas_fqdn_extension
     ;;
 esac
 
@@ -224,8 +225,9 @@ maas_notification_plan: npTechnicalContactsEmail
 # Use the previously created artifact to make a unique entity for queens+ gates
 # This is required as OSA now sets the hostname generically as 'aio1' which will
 # cause affected gates to use the same entity
-maas_fqdn_extension: "{{ lookup('file', '/tmp/maas_fqdn_extension') | default('') }} "
+maas_fqdn_extension: "{{ lookup('file', '/tmp/maas_fqdn_extension', errors='ignore') | default('') }}"
 
+# Set the entity name to be created
 maas_entity_name: "{{ ansible_hostname }}{{ maas_fqdn_extension }}"
 EOF
 }

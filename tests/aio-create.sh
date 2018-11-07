@@ -195,7 +195,6 @@ pushd /opt/openstack-ansible
     git remote add rcbops-fork https://github.com/rcbops/openstack-ansible.git
     git fetch --all
     git checkout -b newton-fix rcbops-fork/stable/newton
-    enable_ironic
     # NOTE(tonytan4ever): newton needs this to get around gating:
     # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
     add_lxc_overrides
@@ -205,21 +204,16 @@ pushd /opt/openstack-ansible
 
   elif [ "${RE_JOB_SCENARIO}" == "ocata" ]; then
     git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
-    enable_ironic
 
   elif [ "${RE_JOB_SCENARIO}" == "pike" ]; then
     git checkout "a8a809839484105d9cd27463defc19a8a617c64b"  # Branch checkout of Pike (Current Stable)
     # Pin flask so it stops breaking xenial and other versions
     echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
-    enable_ironic
 
   elif [ "${RE_JOB_SCENARIO}" == "queens" ]; then
     git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
     export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
-    enable_ironic
 
-  else
-    enable_ironic
   fi
 
   # Install ovs agent if applicable
