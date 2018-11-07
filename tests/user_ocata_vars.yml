@@ -54,3 +54,7 @@ maas_verify_status: true
 # other gates. The OSA playbooks reset the hostname to 'aio1' in queens onward
 # so there were overlapping entities.
 maas_fqdn_extension: "{{lookup('file', '/tmp/maas_fqdn_extension') }}"
+
+# Disable remote.http checks because AIO endpoints will always be private
+# addresses. Private network monitoring will need to be added.
+maas_remote_check: false

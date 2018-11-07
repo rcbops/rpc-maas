@@ -24,6 +24,9 @@
 # Install maas_rally performance monitoring
 - include: "../playbooks/maas-openstack-rally.yml"
 
+# Restart the rackspace-monitoring-agent after the rally deployment
+- include: "../playbooks/maas-restart.yml"
+
 # Ensure all plugins are functional
 - include: "../playbooks/maas-verify.yml"
 

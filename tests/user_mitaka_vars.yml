@@ -27,3 +27,7 @@ maas_nova_console_type: novnc
 # Allow maas-verify to properly validate all issues
 maas_verify_registration: true
 maas_verify_status: true
+
+# Disable remote.http checks because AIO endpoints will always be private
+# addresses. Private network monitoring will need to be added.
+maas_remote_check: false

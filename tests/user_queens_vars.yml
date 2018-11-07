@@ -16,11 +16,14 @@
 maas_excluded_alarms: []
 
 # horizon_local_check is functionally broken newton+ due to architecture changes
+# glance_registry_local_check is not used with v2+ glance endpoints
 maas_excluded_checks:
   - horizon_local_check
+  - glance_registry_local_check
+  - glance_api_local_check
 
-# Nova console type is required
-maas_nova_console_type: novnc
+# Exclude disk_utilisation devices created in an OSA AIO
+maas_excluded_devices: ['loop0', 'loop1', 'loop2', 'loop3', 'loop4', 'loop5', 'loop6', 'loop7']
 
 maas_rally_enabled: true
 
