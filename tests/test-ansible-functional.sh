@@ -78,6 +78,10 @@ echo "TEST_PLAYBOOK: ${TEST_PLAYBOOK}"
 echo "TEST_CHECK_MODE: ${TEST_CHECK_MODE}"
 echo "TEST_IDEMPOTENCE: ${TEST_IDEMPOTENCE}"
 
+# Create a file with a unique string to set as maas_fqdn_extension
+echo "Create unique string for maas_fqdn_extension:"
+echo ".$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32})" | tee /tmp/maas_fqdn_extension
+
 ## Functions -----------------------------------------------------------------
 
 function set_ansible_parameters {
@@ -204,9 +208,6 @@ function enable_maas_api {
 ---
 # Enable the API usage
 maas_use_api: true
-
-# Will restart the agent service ONLY once at the end of a site.yml run
-maas_restart_independent: false
 
 # Set the default notification plan, in the gate this is set here
 maas_notification_plan: npTechnicalContactsEmail

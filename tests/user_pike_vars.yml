@@ -49,3 +49,8 @@ maas_pre_flight_check_enabled: true
 # Allow maas-verify to properly validate all issues
 maas_verify_registration: true
 maas_verify_status: true
+
+# Set fqdn as the original hostname to ensure the entity name is unique across
+# other gates. The OSA playbooks reset the hostname to 'aio1' in queens onward
+# so there were overlapping entities.
+maas_fqdn_extension: "{{lookup('file', '/tmp/maas_fqdn_extension') }}"
