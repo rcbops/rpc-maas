@@ -53,3 +53,8 @@ maas_verify_status: true
 # Disable remote.http checks because AIO endpoints will always be private
 # addresses. Private network monitoring will need to be added.
 maas_remote_check: false
+
+# Set metadata explicitly to OSA
+maas_env_product: osa
+maas_product_dir: /opt/openstack-ansible
+maas_product_osa_dir: /opt/openstack-ansible

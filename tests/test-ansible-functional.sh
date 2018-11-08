@@ -62,7 +62,7 @@ case $RE_JOB_SCENARIO in
     ;;
   *)
     echo "Create a 16 character unique string to set as maas_fqdn_extension"
-    < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16} | sed 's/^/./' | tee /tmp/maas_fqdn_extension
+    echo $(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16} | sed 's/^/./') | tee /tmp/maas_fqdn_extension
     ;;
 esac
 

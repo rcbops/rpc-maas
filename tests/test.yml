@@ -19,8 +19,5 @@
 # Ensure all plugins are functional
 - include: "../playbooks/maas-verify.yml"
 
-# Run the tigk stack playbooks
-- include: "../playbooks/maas-tigkstack-all.yml"
-
 # Run the entity deletion playbook
 - include: "test-raxmon-delete-entity.yml"

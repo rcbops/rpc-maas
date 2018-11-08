@@ -30,7 +30,7 @@ def nfs_export_check():
 
     output = subprocess.check_output(
         shlex.split(
-            "awk -F':' '/nfs/ {print $1}' /proc/mounts"
+            "awk -F':' '/ nfs / {print $1}' /proc/mounts"
         )
     )
     nfs_mounts = output.splitlines()
