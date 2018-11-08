@@ -13,19 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Set overrides for check periods
-maas_check_period_override:
-  disk_utilisation: 900
-
-# Disable the following MaaS alarms
-# Issue: https://github.com/rcbops/u-suk-dev/issues/1081
-maas_excluded_alarms:
-  - '^idle_percent_average.*'
-  - '^memory_check.*'
-  - '^Network receive rate.*'
-  - '^Network transmit rate.*'
-  - '^percentage_disk_utilisation.*'
-
+maas_excluded_alarms: []
 maas_excluded_checks: []
 
 maas_pre_flight_check_enabled: true
@@ -34,4 +22,17 @@ maas_pre_flight_check_enabled: true
 ansible_host: "{{ ansible_ssh_host }}"
 
 # Nova console type is required
-nova_console_type: novnc
+maas_nova_console_type: spice
+
+# Allow maas-verify to properly validate all issues
+maas_verify_registration: true
+maas_verify_status: true
+
+# Disable remote.http checks because AIO endpoints will always be private
+# addresses. Private network monitoring will need to be added.
+maas_remote_check: false
+
+# Set metadata explicitly to OSA
+maas_env_product: osa
+maas_product_dir: /opt/openstack-ansible
+maas_product_osa_dir: /opt/openstack-ansible

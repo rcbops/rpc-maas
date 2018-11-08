@@ -26,7 +26,7 @@
 
 ## Shell Opts ----------------------------------------------------------------
 
-set -eovu
+set -evuo pipefail
 
 echo "Run Functional Tests"
 echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
@@ -41,7 +41,7 @@ export WORKING_DIR="${WORKING_DIR:-$(pwd)}"
 export ROLE_NAME="${ROLE_NAME:-''}"
 
 export ANSIBLE_CALLBACK_WHITELIST="profile_tasks"
-export ANSIBLE_OVERRIDES="${ANSIBLE_OVERRIDES:-$WORKING_DIR/tests/$ROLE_NAME-overrides.yml}"
+export ANSIBLE_OVERRIDES="${ANSIBLE_OVERRIDES:-$WORKING_DIR/tests/user_${RE_JOB_SCENARIO}_vars.yml}"
 export ANSIBLE_PARAMETERS="${ANSIBLE_PARAMETERS:-false}"
 export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
@@ -51,12 +51,26 @@ if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
   export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
 fi
 
+# NOTE: Create an artifact to make a unique entity for queens+ gates. This is required
+# as OSA now sets the hostname generically as 'aio1' which will cause affected
+# gates to use the same entity
+# This will automatically work for new gates
+case $RE_JOB_SCENARIO in
+  ceph|hummingbird|kilo|liberty|mitaka|newton|ocata|pike)
+    echo "There is no need to set maas_fqdn_extension on ${RE_JOB_SCENARIO}"
+    echo | tee /tmp/maas_fqdn_extension
+    ;;
+  *)
+    echo "Create a 16 character unique string to set as maas_fqdn_extension"
+    echo $(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16} | sed 's/^/./') | tee /tmp/maas_fqdn_extension
+    ;;
+esac
 
 # The maas_rally performance monitoring requires a modern (>1.9) version of
 # ansible that is not available in liberty and mitaka.  There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
-  liberty|mitaka|ceph|hummingbird)
+  kilo|liberty|mitaka|ceph|hummingbird)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -205,12 +219,15 @@ function enable_maas_api {
 # Enable the API usage
 maas_use_api: true
 
-# Will restart the agent service ONLY once at the end of a site.yml run
-maas_restart_independent: false
-
 # Set the default notification plan, in the gate this is set here
 maas_notification_plan: npTechnicalContactsEmail
 
+# Use the previously created artifact to make a unique entity for queens+ gates
+# This is required as OSA now sets the hostname generically as 'aio1' which will
+# cause affected gates to use the same entity
+maas_fqdn_extension: "{{ lookup('file', '/tmp/maas_fqdn_extension', errors='ignore') | default('') }}"
+
+# Set the entity name to be created
 maas_entity_name: "{{ ansible_hostname }}{{ maas_fqdn_extension }}"
 EOF
 }

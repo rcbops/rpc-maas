@@ -1,0 +1,20 @@
+---
+fixes:
+  - Fix nfs_check.py to properly detect nfs file systems
+  - Fix rpc-maas-tool.py to report excludedchecks as the check will always be created.
+  - Gating - Remove 'enable_ironic' from aio-create.sh as the functionality is not
+    currently supported and it is causing numerous critical alarms preventing maas-verify.yml
+    from passing. This can be added back to the necessary release versions when required.
+  - Gating - Remove maas-tigkstack-all.yml from test playbooks. This functionality is
+    no longer supported as a product addition.
+  - Gating - Enable 'maas_verify_registration' in gating to validate alarms are created in the api.
+  - Gating - Enable 'maas_verify_status' in gating to validate alarms are not critical after deployments.
+  - Gating - Tweak existing variable overrides for different gating release versions and
+    actually use these overrides.
+  - Gating - Remove tests/vars alarm exclusions, frequency changes, and update excluded
+    checks to include the proper checks per release version.
+  - Gating - Disable 'maas_remote_check' to exclude remote.http checks from testing as
+    they will always fail in AIOs because of private endpoints.
+  - Gating - Properly enable overrides for user_$VERSION_vars.yml based on the gate
+    release.
+  - Gating - Run maas-restart.yml after deploying rally performance checks.

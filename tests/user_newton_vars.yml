@@ -13,16 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Set overrides for check periods
-maas_check_period_override:
-  disk_utilisation: 900
-
 maas_excluded_alarms: []
 
-maas_excluded_checks: []
-
-# Nova console type is required
-nova_console_type: novnc
+# horizon_local_check is functionally broken newton+ due to architecture changes
+maas_excluded_checks:
+  - horizon_local_check
 
 maas_rally_enabled: true
 
@@ -50,3 +45,16 @@ maas_rally_check_overrides:
       - "swiftoperator"
 
 maas_pre_flight_check_enabled: true
+
+# Allow maas-verify to properly validate all issues
+maas_verify_registration: true
+maas_verify_status: true
+
+# Disable remote.http checks because AIO endpoints will always be private
+# addresses. Private network monitoring will need to be added.
+maas_remote_check: false
+
+# Set metadata explicitly to OSA
+maas_env_product: osa
+maas_product_dir: /opt/openstack-ansible
+maas_product_osa_dir: /opt/openstack-ansible
