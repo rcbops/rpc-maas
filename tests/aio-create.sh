@@ -156,6 +156,10 @@ apt-get install -y iptables util-linux apt-transport-https netbase
 
 echo 'Debug::Acquire::http "true";' > /etc/apt/apt.conf.d/99debug
 
+if [ ! -d "/etc/openstack_deploy" ]; then
+  mkdir -p /etc/openstack_deploy
+fi
+
 if [ ! -d "/opt/openstack-ansible" ]; then
   git clone https://github.com/openstack/openstack-ansible /opt/openstack-ansible
 else
