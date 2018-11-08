@@ -249,7 +249,7 @@ if [[ ${RE_JOB_ACTION} != osp_13_deploy ]]; then
 else
     git clone https://github.com/rcbops/osp-mnaio.git /opt/osp-mnaio
     pushd /opt/osp-mnaio
-      sudo chmod +x ./gating/gating_prerequisites.sh
+      export ENABLE_SWIFT_STORAGE="true"
       sudo -H --preserve-env ./gating/gating_prerequisites.sh
       sudo -H --preserve-env ./gating/check/run
     popd
