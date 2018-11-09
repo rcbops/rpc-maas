@@ -19,8 +19,6 @@
 # OS_IMAGE_API_VERSION and OS_VOLUME_API_VERSION in openrc
 #
 - name: Retrieve maasrc file
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
   slurp:
     src: /root/maasrc
   register: maasrc_data
@@ -31,8 +29,6 @@
      maasrc_fact: "{{ maasrc_data.content }}"
 
 - name: Distribute maasrc
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
   copy:
     dest: "/root/maasrc"
     content: "{{ maasrc_fact | b64decode }}"
