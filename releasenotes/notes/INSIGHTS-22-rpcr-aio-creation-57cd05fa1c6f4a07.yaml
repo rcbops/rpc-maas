@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    This PR allows AIO creation for RPCR osp-13. The condition is 
+    ${RE_JOB_ACTION} == osp_13_deploy
+

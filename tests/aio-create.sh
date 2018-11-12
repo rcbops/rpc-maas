@@ -160,88 +160,97 @@ if [ ! -d "/etc/openstack_deploy" ]; then
   mkdir -p /etc/openstack_deploy
 fi
 
-if [ ! -d "/opt/openstack-ansible" ]; then
-  git clone https://github.com/openstack/openstack-ansible /opt/openstack-ansible
-else
-  pushd /opt/openstack-ansible
-    git fetch --all
-  popd
-fi
-
-pushd /opt/openstack-ansible
-  if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
-    git checkout "97e3425871659881201106d3e7fd406dc5bd8ff3"  # Last commit of Kilo
-    pin_jinja
-    pin_galera "5.5"
-    # NOTE(cloudnull): In kilo we had a broken version of the ssh plugin listed in the role
-    #                  requirements file. This patch gets the role from master and puts
-    #                  into place which satisfies the role requirement.
-    mkdir -p /etc/ansible/roles
-
-  elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
-    git checkout "06d0fd344b5b06456a418745fe9937a3fbedf9b2"  # Last commit of Liberty
-    pin_jinja
-    pin_galera "10.0"
-    # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
-    sed -i 's/\(_container\: \).*/\11/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
-    spice_repo_fix
-
-  elif [ "${RE_JOB_SCENARIO}" == "mitaka" ]; then
-    git checkout "fbafe397808ef3ee3447fe8fefa6ac7e5c6ff144"  # Last commit of Mitaka
-    pin_jinja
-    pin_galera "10.0"
-    export OA_DIR="/opt/openstack-ansible"
-    export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c $OA_DIR/global-requirement-pins.txt'"}
-    export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
-    spice_repo_fix
-
-  elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
-    git remote add rcbops-fork https://github.com/rcbops/openstack-ansible.git
-    git fetch --all
-    git checkout -b newton-fix rcbops-fork/stable/newton
-    # NOTE(tonytan4ever): newton needs this to get around gating:
-    # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
-    add_lxc_overrides
-    if [ "${RE_JOB_IMAGE}" == "trusty" ]; then
-      export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
+if [[ ${RE_JOB_ACTION} != osp_13_deploy ]]; then
+    if [ ! -d "/opt/openstack-ansible" ]; then
+      git clone https://github.com/openstack/openstack-ansible /opt/openstack-ansible
+    else
+      pushd /opt/openstack-ansible
+        git fetch --all
+      popd
     fi
 
-  elif [ "${RE_JOB_SCENARIO}" == "ocata" ]; then
-    git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
+    pushd /opt/openstack-ansible
+      if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
+        git checkout "97e3425871659881201106d3e7fd406dc5bd8ff3"  # Last commit of Kilo
+        pin_jinja
+        pin_galera "5.5"
+        # NOTE(cloudnull): In kilo we had a broken version of the ssh plugin listed in the role
+        #                  requirements file. This patch gets the role from master and puts
+        #                  into place which satisfies the role requirement.
+        mkdir -p /etc/ansible/roles
 
-  elif [ "${RE_JOB_SCENARIO}" == "pike" ]; then
-    git checkout "a8a809839484105d9cd27463defc19a8a617c64b"  # Branch checkout of Pike (Current Stable)
-    # Pin flask so it stops breaking xenial and other versions
-    echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
+      elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
+        git checkout "06d0fd344b5b06456a418745fe9937a3fbedf9b2"  # Last commit of Liberty
+        pin_jinja
+        pin_galera "10.0"
+        # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
+        sed -i 's/\(_container\: \).*/\11/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
+        spice_repo_fix
 
-  elif [ "${RE_JOB_SCENARIO}" == "queens" ]; then
-    git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
-    export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+      elif [ "${RE_JOB_SCENARIO}" == "mitaka" ]; then
+        git checkout "fbafe397808ef3ee3447fe8fefa6ac7e5c6ff144"  # Last commit of Mitaka
+        pin_jinja
+        pin_galera "10.0"
+        export OA_DIR="/opt/openstack-ansible"
+        export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c $OA_DIR/global-requirement-pins.txt'"}
+        export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
+        spice_repo_fix
 
-  fi
+      elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
+        git remote add rcbops-fork https://github.com/rcbops/openstack-ansible.git
+        git fetch --all
+        git checkout -b newton-fix rcbops-fork/stable/newton
+        # NOTE(tonytan4ever): newton needs this to get around gating:
+        # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
+        add_lxc_overrides
+        if [ "${RE_JOB_IMAGE}" == "trusty" ]; then
+          export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
+        fi
 
-  # Install ovs agent if applicable
-  install_ovs
+      elif [ "${RE_JOB_SCENARIO}" == "ocata" ]; then
+        git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
 
-  # Disbale tempest on newer releases
-  if [[ -f "tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2" ]]; then
-    sed -i 's|^tempest_install.*|tempest_install: no|g' tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2
-    sed -i 's|^tempest_run.*|tempest_run: no|g' tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2
-  fi
+      elif [ "${RE_JOB_SCENARIO}" == "pike" ]; then
+        git checkout "a8a809839484105d9cd27463defc19a8a617c64b"  # Branch checkout of Pike (Current Stable)
+        # Pin flask so it stops breaking xenial and other versions
+        echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
 
-  # Disable tempest on older releases
-  sed -i '/.*run-tempest.sh.*/d' scripts/gate-check-commit.sh  # Disable the tempest run
+      elif [ "${RE_JOB_SCENARIO}" == "queens" ]; then
+        git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
+        export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
 
-  # NOTE(tonytan4ever): pin pip to the last working version before pip 10
-  pip install -U -r /opt/openstack-ansible/global-requirement-pins.txt
+      fi
 
-  # Pin python-ldap so it stops breaking everything
-  echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+      # Install ovs agent if applicable
+      install_ovs
 
-  # Disable the sec role
-  disable_security_role
+      # Disbale tempest on newer releases
+      if [[ -f "tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2" ]]; then
+        sed -i 's|^tempest_install.*|tempest_install: no|g' tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2
+        sed -i 's|^tempest_run.*|tempest_run: no|g' tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2
+      fi
 
-  # Setup an AIO
-  sudo -H --preserve-env ./scripts/gate-check-commit.sh
+      # Disable tempest on older releases
+      sed -i '/.*run-tempest.sh.*/d' scripts/gate-check-commit.sh  # Disable the tempest run
 
-popd
+      # NOTE(tonytan4ever): pin pip to the last working version before pip 10
+      pip install -U -r /opt/openstack-ansible/global-requirement-pins.txt
+
+      # Pin python-ldap so it stops breaking everything
+      echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+
+      # Disable the sec role
+      disable_security_role
+
+      # Setup an AIO
+      sudo -H --preserve-env ./scripts/gate-check-commit.sh
+
+    popd
+else
+    git clone https://github.com/rcbops/osp-mnaio.git /opt/osp-mnaio
+    pushd /opt/osp-mnaio
+      export ENABLE_SWIFT_STORAGE="true"
+      sudo -H --preserve-env ./gating/gating_prerequisites.sh
+      sudo -H --preserve-env ./gating/check/run
+    popd
+fi

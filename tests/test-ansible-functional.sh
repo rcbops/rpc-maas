@@ -36,6 +36,7 @@ echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
 ## Vars ----------------------------------------------------------------------
 
 export RE_JOB_SCENARIO="${RE_JOB_SCENARIO:-master}"
+export RE_JOB_ACTION="${RE_JOB_ACTION:-deploy}"
 export TESTING_HOME="${TESTING_HOME:-$HOME}"
 export WORKING_DIR="${WORKING_DIR:-$(pwd)}"
 export ROLE_NAME="${ROLE_NAME:-''}"
@@ -49,6 +50,14 @@ export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
 export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
 if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
   export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+fi
+
+if [ ${RE_JOB_ACTION} == osp_13_deploy ]; then
+  # unregister director node from rhn
+  pushd /opt/osp-mnaio
+    ansible -i playbooks/inventory/hosts deploy_hosts -m shell -a "subscription-manager unregister"
+  popd
+  exit 0
 fi
 
 # NOTE: Create an artifact to make a unique entity for queens+ gates. This is required
@@ -298,4 +307,12 @@ if [ "${TEST_IDEMPOTENCE}" == "true" ]; then
     echo "Idempotence test: fail"
     exit 1
   fi
+fi
+
+
+if [[ ${RE_JOB_ACTION} == osp_13_deploy ]]; then
+    # unregister director node from rhn
+    pushd /opt/osp-mnaio
+      ansible -i playbooks/inventory/hosts deploy_hosts -m shell -a "subscription-manager unregister"
+    popd
 fi
