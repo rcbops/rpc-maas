@@ -21,6 +21,9 @@ maas_excluded_checks:
 
 maas_rally_enabled: true
 
+# Nova console type is required
+maas_nova_console_type: spice
+
 # NOTE(cfarquhar): The scenarios that create instances are disabled for now
 # since public cloud AIOs are unreliable in terms of performance.
 

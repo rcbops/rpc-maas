@@ -26,3 +26,19 @@ Submitting Bugs
 
 Please submit all bugs to the rpc-maas repository:
 https://github.com/rcbops/rpc-maas/issues
+
+
+Local Testing
+-------------
+
+To test these playbooks within a local environment you will need a single server with
+at leasts 8GiB of RAM and 40GiB of storage on root. Running an m1.medium (openstack)
+flavor size is generally enough to get an environment online.
+
+To run the local functional tests execute the `run-tests.sh` script out of the tests
+directory. This will create an OpenStack AIO and run the RPC-MaaS playbooks against
+the newly constructed environment.
+
+.. code-block:: bash
+
+    tests/run-tests.sh

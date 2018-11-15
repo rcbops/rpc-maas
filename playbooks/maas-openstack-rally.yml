@@ -98,14 +98,6 @@
         group: "root"
         mode: "0750"
 
-    - name: Write rally configuration file
-      template:
-        src: "templates/rax-maas/rally.conf.j2"
-        dest: "/etc/rally/rally.conf"
-        owner: "root"
-        group: "root"
-        mode: "0600"
-
     # Shade is required for the os_* ansible modules
     - name: Ensure target has shade module installed
       pip:
@@ -115,6 +107,38 @@
         extra_args: >-
           --isolated
           {{ pip_install_options | default('') }}
+
+    - name: Get keystone endpoint
+      shell: |-
+        . /root/openrc
+        {{ maas_rally_venv_bin }}/openstack endpoint list --interface internal --service keystone --format value
+      register: keystone_endpoint
+      changed_when: False
+      run_once: true
+
+    - name: Get admin password
+      command: grep -w OS_PASSWORD /root/openrc
+      register: admin_password
+      changed_when: False
+      run_once: true
+
+    - name: Set keystone endpoint fact
+      set_fact:
+        keystone_service_internalurl: "{{ (keystone_endpoint.stdout_lines[-1]).strip().split()[-1] }}"
+        service_regkeystone_service_regionion: "{{ (keystone_endpoint.stdout_lines[-1]).strip().split()[2] }}"
+        openrc_os_password: "{{ (admin_password.stdout).strip().split('=')[-1] }}"
+
+    - name: Set keystone endpoint insecure fact
+      set_fact:
+        keystone_service_adminuri_insecure: "{{ 'https' in keystone_service_internalurl }}"
+
+    - name: Write rally configuration file
+      template:
+        src: "templates/rax-maas/rally.conf.j2"
+        dest: "/etc/rally/rally.conf"
+        owner: "root"
+        group: "root"
+        mode: "0600"
 
     - name: Ensure OpenStack client configuration directory
       file:

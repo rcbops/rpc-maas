@@ -8,7 +8,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (inventory_hostname != groups['galera_all'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/galera_check.py", "-H", "{{ ansible_host }}"]
+    args    : ["{{ maas_plugin_dir }}/galera_check.py", "-H", "{{ container_address | default(ansible_host) }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}

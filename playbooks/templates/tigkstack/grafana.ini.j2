@@ -9,7 +9,7 @@ root_url = {{ grafana_root_url }}
 [database]
 {% if groups['galera_all'] | default([]) | length > 0 %}
 type = mysql
-host = {{ hostvars[groups['galera_all'][0]]['galera_address'] }}:3306
+host = {{ hostvars[groups['galera_all'][0]]['ansible_host'] }}:3306
 name = {{ grafana_db_name }}
 user = {{ grafana_db_user }}
 password = {{ grafana_db_password }}

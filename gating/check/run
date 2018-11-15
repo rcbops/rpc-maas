@@ -62,9 +62,7 @@ if [ "${RE_JOB_SCENARIO}" = "ceph" ]; then
     RE_JOB_SCENARIO="functional" bash /opt/rpc-ceph/gating/periodic/run
   popd
 elif [ "${RE_JOB_ACTION}" != "tox-test" ]; then
-  tox -e bindep
-  # Run maas functional tests
-  tox -e functional
+  tests/run-tests.sh
 else
   tmp_tox_dir=$(mktemp -d)
   tox -e $RE_JOB_SCENARIO --workdir $tmp_tox_dir

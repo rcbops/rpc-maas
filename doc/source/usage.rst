@@ -15,13 +15,35 @@ Example usage with Ansible static Inventory
     ansible-playbook -i tests/inventory playbooks/site.yml
 
 
-Example usage with OpenStack-Ansible
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example usage with embedded Ansible
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using an embedded version of ansible will ensure all of the dependencies
+and system requirements are encapsulated giving the operator the ability
+to reliably deploy the RPC-MaaS product in an ansible environment.
+The embedded ansible tooling will automatically source an OpenStack-Ansible
+compatible inventory when found. If the operator wishes to use a static
+inventory they can by simply passing in the ``--inventory`` flag with the
+following command.
 
 .. code-block:: bash
 
-    export ANSIBLE_INVENTORY="/opt/openstack-ansible/playbooks/inventory"
-    openstack-ansible playbooks/site.yml
+    # Get the ansible runtime script
+    wget https://raw.githubusercontent.com/openstack/openstack-ansible-ops/master/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh -O /opt/bootstrap-embedded-ansible.sh
+
+    # Install the ansible embedded runtime
+    source /opt/bootstrap-embedded-ansible.sh
+
+    # Run the desired playbooks
+    ansible-playbook $USER_VARS playbooks/site.yml
+
+    # Deactivate the embedded ansible environment
+    deactivate
+
+When running playbooks with the embedded ansible variable files, if any,
+will need to be manually sourced. This is a departure from the typical
+`openstack-ansible` binary however this is intentional given these tools
+aim to be more explicit and far more minimal.
 
 
 Validating the deployment

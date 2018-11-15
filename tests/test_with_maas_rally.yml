@@ -31,4 +31,4 @@
 - include: "../playbooks/maas-verify.yml"
 
 # Run the entity deletion playbook
-- include: "test-raxmon-delete-entity.yml"
+- include: "../playbooks/maas-raxmon-delete-entity.yml"
