@@ -18,6 +18,8 @@ import copy
 import json
 import os
 import socket
+import sys
+import getopt
 
 from heatclient import client as heat_client
 from tripleo_common.inventory import TripleoInventory
@@ -176,7 +178,7 @@ def main():
             "--host <host>\n"
     try:
         opts, args = getopt.getopt(sys.argv[1:], "list:host", ["list", "host"])
-    except getopt.GetoptError as e:
+    except getopt.GetoptError:
         print(usage)
         sys.exit(2)
 
