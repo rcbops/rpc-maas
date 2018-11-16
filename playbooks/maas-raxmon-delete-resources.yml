@@ -13,16 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Delete Entity for test clean up
-  hosts: hosts[0]
+- name: Clean up MaaS resources for gating tests
+  hosts: hosts
   user: "{{ ansible_user | default('root') }}"
   tasks:
-    - name: Delete entity to clean up
+    - name: Delete gating entity
       raxmon:
         cmd: delete_entity
         entity: "{{ maas_entity_name }}"
         venv_bin: "{{ maas_venv_bin }}"
-      when:
-        - cleanup_entity | default(False) | bool
+
+    - name: Delete gating agent token
+      raxmon:
+        cmd: delete_agent_token
+        entity: "{{ maas_entity_name }}"
+        venv_bin: "{{ maas_venv_bin }}"
+
   vars_files:
-    - vars/main.yml
+    - ../playbooks/vars/main.yml

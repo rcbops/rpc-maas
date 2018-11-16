@@ -32,7 +32,7 @@ options:
   cmd:
     description: The command to run
     choices = [ 'assign_agent_to_entity', 'create_agent_token',
-                'delete_entity']
+                'delete_agent_token', 'delete_entity']
     required: true
   entity:
     description: The label of the entity to operate against
@@ -55,6 +55,11 @@ raxmon:
 
 raxmon:
   cmd: create_agent_token
+  entity: controller1
+  venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
+
+raxmon:
+  cmd: delete_agent_token
   entity: controller1
   venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
 
@@ -150,6 +155,18 @@ def create_agent_token(module, conn, entity):
         module.fail_json(msg=msg)
 
 
+def delete_agent_token(module, conn, entity):
+    agent_tokens = _get_agent_tokens(conn, entity)
+    for token in agent_tokens:
+        try:
+            conn.delete_agent_token(token.id)
+        except Exception as e:
+            msg = "Deleting agent token for %s failed. Reason:\n" % token.label
+            msg += str(e.message)
+            module.fail_json(msg=msg)
+        module.exit_json(changed=True)
+
+
 def delete_entity(module, conn, entity):
     entities = _get_entities(conn, entity)
     for entity in entities:
@@ -158,8 +175,8 @@ def delete_entity(module, conn, entity):
         except Exception as e:
             msg = "Deleting entity: %s failed. Reason:\n" % entity.label
             msg += str(e.message)
-            module.exit_json(changed=False, msg=msg)
-    module.exit_json(changed=True)
+            module.fail_json(msg=msg)
+        module.exit_json(changed=True)
 
 
 def main():
@@ -167,7 +184,7 @@ def main():
         argument_spec=dict(
             cmd=dict(
                 choices=['assign_agent_to_entity', 'create_agent_token',
-                         'delete_entity'],
+                         'delete_agent_token', 'delete_entity'],
                 required=True
             ),
             entity=dict(required=True),
@@ -208,6 +225,8 @@ def main():
                                module.params['create_entity_if_not_exists'])
     elif module.params['cmd'] == 'create_agent_token':
         create_agent_token(module, conn, module.params['entity'])
+    elif module.params['cmd'] == 'delete_agent_token':
+        delete_agent_token(module, conn, module.params['entity'])
     elif module.params['cmd'] == 'delete_entity':
         delete_entity(module, conn, module.params['entity'])
 
