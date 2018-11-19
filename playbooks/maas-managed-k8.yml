@@ -87,6 +87,7 @@
   vars_files:
     - vars/main.yml
     - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-managed-k8
 
@@ -310,5 +311,3 @@
     - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
   tags:
     - maas-managed-k8
-
-

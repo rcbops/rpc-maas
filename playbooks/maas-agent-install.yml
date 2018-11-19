@@ -45,19 +45,16 @@
             - "vars/maas-{{ ansible_distribution | lower }}.yml"
             - "vars/maas-{{ ansible_os_family | lower }}.yml"
           skip: true
-      environment: "{{ deployment_environment_variables | default({}) }}"
 
     - name: Include Ubuntu distro install tasks
       include: "common-tasks/maas-agent-ubuntu-install.yml"
       when:
         - ansible_distribution | lower == 'ubuntu'
-      environment: "{{ deployment_environment_variables | default({}) }}"
-   
+
     - name: Include RedHat distro install tasks
       include: "common-tasks/maas-redhat-os-install.yml"
       when:
         - ansible_distribution | lower == 'redhat'
-      environment: "{{ deployment_environment_variables | default({}) }}"
 
     - name: Converge MaaS container pip packages
       set_fact:
@@ -86,7 +83,6 @@
         dest: "/opt/get-pip.py"
         force: true
         validate_certs: "{{ maas_pip_validate_certs }}"
-      environment: "{{ deployment_environment_variables | default({}) }}"
       register: get_pip
       until: get_pip | success
       retries: 5
@@ -100,7 +96,6 @@
                                {{ maas_pip_get_pip_options }}
                                {{ maas_pip_install_packages | map('quote') | join (' ') }}
       changed_when: pip_install.stdout.find('Successfully installed') != -1
-      environment: "{{ deployment_environment_variables | default({}) }}"
       register: pip_install
       until: pip_install | success
       retries: 3
@@ -135,8 +130,8 @@
         owner: root
         mode: 0775
       become: yes
-    
-    
+
+
     - name: Install pip packages to venv
       pip:
         name: "{{ maas_pip_packages | join(' ') }}"
@@ -146,7 +141,6 @@
           --constraint /tmp/pip-constraints.txt
           {{ pip_install_options | default('') }}
         virtualenv: "{{ maas_venv }}"
-      environment: "{{ deployment_environment_variables | default({}) }}"
       register: install_pip_packages
       until: install_pip_packages|success
       become: yes
@@ -155,5 +149,6 @@
   vars_files:
     - vars/main.yml
     - vars/maas-agent.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-agent-install

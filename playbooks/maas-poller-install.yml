@@ -40,5 +40,6 @@
   vars_files:
     - vars/main.yml
     - vars/maas-poller.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-poller-install

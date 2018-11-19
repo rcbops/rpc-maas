@@ -35,7 +35,7 @@
       when:
         - deploy_osp | default(False)
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-    
+
     - name: Enable rabbitmq management plugin
       command: rabbitmq-plugins enable rabbitmq_management
       when:
@@ -55,9 +55,10 @@
   vars_files:
     - vars/main.yml
     - vars/maas-infra.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-infra-rabbitmq
-    
+
 
 - name: Add admin user on rabbitmq
   hosts: rabbitmq_all
@@ -79,27 +80,28 @@
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
         - not (deploy_osp | default(False))
-    
+
     - name: Find rabbitmq docker container
       raw: /bin/docker ps -a -f status=running | awk '/rabbitmq/ {print $NF}'
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
         - deploy_osp | default(False)
       register: rabbitmq_container_name
-    
+
     - name: Ensure MaaS rabbitmq user as administrator with docker exec rabbitmqctl
       command: >
-        /bin/docker exec {{ rabbitmq_container_name.stdout | trim }} /bin/bash -c 
+        /bin/docker exec {{ rabbitmq_container_name.stdout | trim }} /bin/bash -c
         '/usr/sbin/rabbitmqctl add_user {{ maas_rabbitmq_user }} {{ maas_rabbitmq_password }};
         /usr/sbin/rabbitmqctl set_user_tags {{ maas_rabbitmq_user }} administrator;
         /usr/sbin/rabbitmqctl set_permissions -p / {{ maas_rabbitmq_user }} ".*" ".*" ".*"'
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
         - deploy_osp | default(False)
-  
+
   vars_files:
     - vars/main.yml
     - vars/maas-infra.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-infra-rabbitmq
 
@@ -147,5 +149,6 @@
   vars_files:
     - vars/main.yml
     - vars/maas-infra.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-infra-rabbitmq

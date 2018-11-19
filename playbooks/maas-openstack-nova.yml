@@ -21,7 +21,7 @@
   pre_tasks:
     - include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp  | default(False)  
+        - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
@@ -54,6 +54,7 @@
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-openstack-nova
 

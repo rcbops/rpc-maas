@@ -64,6 +64,7 @@
   vars_files:
     - vars/main.yml
     - vars/maas-openstack.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-openstack-swift
 
@@ -97,7 +98,7 @@
         - not (deploy_osp  | default(False))
         - swift_storage_bridge | skipped
         - swift_storage_bridge_fact | skipped
-    
+
     - name: Set Storage_address fact for host for osp on swift proxy nodes
       set_fact:
         storage_address: "{{ storage_ip }}"
