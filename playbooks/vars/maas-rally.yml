@@ -176,7 +176,7 @@ maas_rally_galera_database: maas_rally
 #
 #  Address for galera database where Rally data will be stored.
 #
-maas_rally_galera_address: "{{ hostvars[groups['galera_all'][0]]['ansible_host'] }}"
+maas_rally_galera_address: "{{ hostvars[groups['galera_all'][0]]['ansible_host'] | default(hostvars[groups['galera_all'][0]]['container_address']) }}"
 
 #
 #  How rally deployments communicate with OpenStack endpoints.

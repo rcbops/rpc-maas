@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Fix a leftover 'ansible_host' compatibility issue in maas-rally.yml playbooks. 
