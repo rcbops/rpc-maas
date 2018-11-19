@@ -16,6 +16,8 @@
 - name: Gather facts
   hosts: memcached_all
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
@@ -54,6 +56,8 @@
 - name: Install checks for infra memcached
   hosts: memcached_all
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install memcached check
       template:

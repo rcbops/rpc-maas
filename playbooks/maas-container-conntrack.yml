@@ -16,6 +16,8 @@
 - name: Gather facts
   hosts: neutron_agent
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
@@ -54,6 +56,8 @@
 - name: Install checks for container conntrack monitoring
   hosts: neutron_agent
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install conntrack count checks
       template:

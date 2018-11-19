@@ -16,6 +16,8 @@
 - name: Gather facts
   hosts: ironic_all:ironic_compute
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
@@ -55,6 +57,8 @@
 - name: Install checks for openstack ironic-api
   hosts: ironic_api
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install ironic api checks
       template:
@@ -107,6 +111,8 @@
 - name: Install checks for openstack ironic-conductor
   hosts: ironic_conductor
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install ironic ironic-conductor checks
       template:
@@ -126,6 +132,8 @@
 - name: Install checks for openstack ironic-compute
   hosts: ironic_compute
   gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   tasks:
     - name: Install ironic ironic-compute checks
       template:
