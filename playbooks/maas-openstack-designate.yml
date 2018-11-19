@@ -57,6 +57,7 @@
   vars_files:
     - vars/main.yml
     - "{{ designate_var_files|default('vars/maas-openstack.yml') }}"
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-openstack-designate
 

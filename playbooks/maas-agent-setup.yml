@@ -119,5 +119,6 @@
     - vars/main.yml
     - vars/maas-auth.yml
     - vars/maas-agent.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-agent-setup
