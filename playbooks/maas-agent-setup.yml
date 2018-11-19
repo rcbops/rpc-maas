@@ -77,6 +77,7 @@
         cmd: assign_agent_to_entity
         entity: "{{ maas_entity_name }}"
         venv_bin: "{{ maas_venv_bin }}"
+      environment: "{{ deployment_environment_variables | default({}) }}"
       when:
         - maas_use_api | bool
 
@@ -85,6 +86,7 @@
         cmd: create_agent_token
         entity: "{{ maas_entity_name }}"
         venv_bin: "{{ maas_venv_bin }}"
+      environment: "{{ deployment_environment_variables | default({}) }}"
       register: agent_token
       when:
         - maas_use_api | bool
