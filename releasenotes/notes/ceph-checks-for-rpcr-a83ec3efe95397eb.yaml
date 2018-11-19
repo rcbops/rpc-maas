@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Adjust ceph plugin code and check templates to make maas ceph cheks working
+    with rpcr osp-13
+

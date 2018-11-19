@@ -24,16 +24,19 @@ import subprocess
 STATUSES = {'HEALTH_OK': 2, 'HEALTH_WARN': 1, 'HEALTH_ERR': 0}
 
 
-def check_command(command, container_name=None):
+def check_command(command, container_name=None, deploy_osp=False):
     if container_name:
-        lxc_command = ['lxc-attach',
-                       '-n',
-                       container_name,
-                       '--',
-                       'bash',
-                       '-c']
-        lxc_command.append("{}".format(' '.join(command)))
-        command = [str(i) for i in lxc_command]
+        container_command = ['lxc-attach',
+                             '-n',
+                             container_name,
+                             '--',
+                             'bash',
+                             '-c']
+        container_command.append("{}".format(' '.join(command)))
+        if deploy_osp:
+            container_command = ['sudo', 'docker', 'exec', container_name]
+            container_command.extend(command)
+        command = [str(i) for i in container_command]
     output = subprocess.check_output(command, stderr=subprocess.STDOUT)
     lines = output.strip().split('\n')
     return json.loads(lines[-1])
@@ -51,29 +54,36 @@ def get_ceph_rgw_hostcheck(rgw_address, container_name=None):
     return status_code
 
 
-def get_ceph_status(client, keyring, fmt='json', container_name=None):
+def get_ceph_status(client, keyring, fmt='json', container_name=None,
+                    deploy_osp=False):
     return check_command(('ceph', '--format', fmt, '--name', client,
                           '--keyring', keyring, 'status'),
-                         container_name=container_name)
+                         container_name=container_name,
+                         deploy_osp=deploy_osp)
 
 
-def get_ceph_pg_dump_osds(client, keyring, fmt='json', container_name=None):
+def get_ceph_pg_dump_osds(client, keyring, fmt='json', container_name=None,
+                          deploy_osp=False):
     return check_command(('ceph', '--format', fmt, '--name', client,
                           '--keyring', keyring, 'pg', 'dump', 'osds'),
-                         container_name=container_name)
+                         container_name=container_name,
+                         deploy_osp=deploy_osp)
 
 
-def get_ceph_osd_dump(client, keyring, fmt='json', container_name=None):
+def get_ceph_osd_dump(client, keyring, fmt='json', container_name=None,
+                      deploy_osp=False):
     return check_command(('ceph', '--format', fmt, '--name', client,
                           '--keyring', keyring, 'osd', 'dump'),
-                         container_name=container_name)
+                         container_name=container_name,
+                         deploy_osp=deploy_osp)
 
 
 def get_mon_statistics(client=None, keyring=None, host=None,
-                       container_name=None):
+                       container_name=None, deploy_osp=False):
     ceph_status = get_ceph_status(client=client,
                                   keyring=keyring,
-                                  container_name=container_name)
+                                  container_name=container_name,
+                                  deploy_osp=deploy_osp)
     mon = [m for m in ceph_status['monmap']['mons']
            if m['name'] == host]
     mon_in = mon[0]['rank'] in ceph_status['quorum']
@@ -81,20 +91,22 @@ def get_mon_statistics(client=None, keyring=None, host=None,
 
 
 def get_rgw_checkup(client, keyring=None, rgw_address=None,
-                    container_name=None):
+                    container_name=None, deploy_osp=False):
     rgw_status = get_ceph_rgw_hostcheck(rgw_address,
                                         container_name=container_name)
     maas_common.metric('rgw_up', 'uint32', rgw_status)
 
 
 def get_osd_statistics(client=None, keyring=None, osd_ids=None,
-                       container_name=None):
+                       container_name=None, deploy_osp=False):
     osd_dump = get_ceph_osd_dump(client=client,
                                  keyring=keyring,
-                                 container_name=container_name)
+                                 container_name=container_name,
+                                 deploy_osp=deploy_osp)
     pg_osds_dump = get_ceph_pg_dump_osds(client=client,
                                          keyring=keyring,
-                                         container_name=container_name)
+                                         container_name=container_name,
+                                         deploy_osp=deploy_osp)
     for osd_id in osd_ids:
         osd_ref = 'osd.%s' % osd_id
         for _osd in osd_dump['osds']:
@@ -115,12 +127,14 @@ def get_osd_statistics(client=None, keyring=None, osd_ids=None,
                 break
 
 
-def get_cluster_statistics(client=None, keyring=None, container_name=None):
+def get_cluster_statistics(client=None, keyring=None, container_name=None,
+                           deploy_osp=False):
     metrics = []
 
     ceph_status = get_ceph_status(client=client,
                                   keyring=keyring,
-                                  container_name=container_name)
+                                  container_name=container_name,
+                                  deploy_osp=deploy_osp)
     # Get overall cluster health
     # For luminous+ this is the ceph_status.health.status
     # For < Luminous this is the ceph_status.health.overall_status
@@ -181,6 +195,14 @@ def get_args():
     parser.add_argument('--name',
                         required=True,
                         help='Ceph client name')
+    # add deploy_osp arg
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        '--' + 'deploy_osp', nargs='?', default=False, const=True,
+        type=bool)
+    group.add_argument('--no' + 'deploy_osp', dest='deploy_osp',
+                       action='store_false')
+
     parser.add_argument('--keyring',
                         required=True,
                         help='Ceph client keyring')
@@ -222,6 +244,7 @@ def main(args):
         kwargs['rgw_address'] = args.rgw_address
 
     kwargs['container_name'] = args.container_name
+    kwargs['deploy_osp'] = args.deploy_osp
 
     get_statistics[args.subparser_name](**kwargs)
     maas_common.status_ok(m_name='maas_ceph')
