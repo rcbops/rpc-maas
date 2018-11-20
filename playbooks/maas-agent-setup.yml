@@ -27,7 +27,8 @@
 
 - name: Setup MaaS Agent
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
+  become: yes
   pre_tasks:
     - name: Drop .raxrc file
       template:
@@ -41,7 +42,7 @@
       file:
         path: "{{ maas_plugin_dir }}"
         state: directory
-        owner: "root"
+        owner: "{{ ansible_ssh_user | default('root')}}"
         group: "root"
         mode: "0755"
 
