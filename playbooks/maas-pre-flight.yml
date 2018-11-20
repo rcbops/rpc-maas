@@ -76,12 +76,16 @@
     - name: Check OSA version is defined
       fail:
         msg: "Unable to figure out OSA version"
-      when: (rendered_maas_metadata_test_tmpl | from_yaml).metadata.osa_version == 'unknown'
+      when:
+        - not (deploy_osp|default(False))
+        - (rendered_maas_metadata_test_tmpl | from_yaml).metadata.osa_version == 'unknown'
 
     - name: Set MaaS product metadata facts
       set_fact:
         maas_product: "{{ (rendered_maas_metadata_test_tmpl | from_yaml).metadata.product }}"
         maas_osa_version: "{{ (rendered_maas_metadata_test_tmpl | from_yaml).metadata.osa_version }}"
+      when:
+        - not (deploy_osp|default(False))
 
     # For Queens/osp13 and beyond, use image api version 2 and volume api version 3
     - name: Override Image and Volume API versions Queens and beyond

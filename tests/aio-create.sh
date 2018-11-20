@@ -252,8 +252,15 @@ if [[ ${RE_JOB_ACTION} != osp_13_deploy ]]; then
 else
     git clone https://github.com/rcbops/osp-mnaio.git /opt/osp-mnaio
     pushd /opt/osp-mnaio
-      export ENABLE_SWIFT_STORAGE="true"
-      sudo -H --preserve-env ./gating/gating_prerequisites.sh
-      sudo -H --preserve-env ./gating/check/run
+      export OSP_DEPLOY_VERSION=`echo ${RE_JOB_ACTION} | awk -F'_' {'print $2'}`
+      export OSP_JOB_ACTION=`echo ${RE_JOB_ACTION} | awk -F'_' {'print $3'}`
+      export REDHAT_USERNAME=${RPC_OSP_REDHAT_USERNAME:-''}
+      export REDHAT_PASSWORD=${RPC_OSP_REDHAT_PASSWORD:-''}
+      export REDHAT_POOL_ID=${RPC_OSP_REDHAT_POOL_ID:-''}
+      export REDHAT_ISO_URL=${RPC_OSP_REDHAT_ISO_URL:-''}
+      export REDHAT_CONSUMER_NAME="osp-mnaio-PR-test"
+      export REDHAT_OSP_VERSION=${OSP_DEPLOY_VERSION:-'13'}
+      export REDHAT_OVERCLOUD_REGISTER="true"
+      bash ./build.sh
     popd
 fi

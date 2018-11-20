@@ -46,10 +46,20 @@ export ANSIBLE_OVERRIDES="${ANSIBLE_OVERRIDES:-false}"
 export ANSIBLE_PARAMETERS="${ANSIBLE_PARAMETERS:-false}"
 export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
-# Ansible Inventory will be set to OSA
-export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
-if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
-  export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+
+if [ ${RE_JOB_ACTION} == osp_13_deploy ]; then
+  # Env vars prep for osp 13
+  export ANSIBLE_HOST_KEY_CHECKING="false"
+  export WORKING_DIR="/opt/rpc-maas"
+  # Set ansible version for embeded ansible runtime
+  export ANSIBLE_VERSION="2.6.5"
+  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-false}"
+else
+  # Ansible Inventory will be set to OSA
+  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
+  if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
+    export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+  fi
 fi
 
 # NOTE: Create an artifact to make a unique entity for queens+ gates. This is required
@@ -71,7 +81,7 @@ esac
 # ansible that is not available in liberty and mitaka.  There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
-  kilo|liberty|mitaka|ceph|hummingbird)
+  kilo|liberty|mitaka|ceph|hummingbird|3ctlr_2comp_3ceph)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -98,7 +108,7 @@ echo "TEST_IDEMPOTENCE: ${TEST_IDEMPOTENCE}"
 
 function set_ansible_parameters {
   # NOTE(tonytan4ever): We always skip preflight metadata check
-  TEST_DEFAULTS="-e maas_pre_flight_metadata_check_enabled=false -e create_entity_if_not_exists=true -e cleanup_entity=true"
+  TEST_DEFAULTS="-f 10 -e maas_pre_flight_metadata_check_enabled=false -e create_entity_if_not_exists=true -e cleanup_entity=true"
   ANSIBLE_CLI_PARAMETERS="${TEST_DEFAULTS:-${ANSIBLE_OVERRIDE_CLI_PARAMETERS}}"
 
   if [ "${ANSIBLE_PARAMETERS}" != false ]; then
@@ -123,6 +133,15 @@ function setup_embedded_ansible {
   source /opt/bootstrap-embedded-ansible.sh
   export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_VARS"
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
+  export ANSIBLE_TRANSPORT="${ANSIBLE_TRANSPORT:-ssh}"
+  export ANSIBLE_SSH_PIPELINING="${ANSIBLE_SSH_PIPELINING:-True}"
+  export ANSIBLE_SSH_RETRIES="${ANSIBLE_SSH_RETRIES:-5}"
+  export ANSIBLE_PIPELINING="${ANSIBLE_SSH_PIPELINING}"
+
+  if [ ${RE_JOB_ACTION} == osp_13_deploy ]; then
+    source /home/stack/stackrc
+    ANSIBLE_BINARY+=" -i ${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
+  fi
 }
 
 function execute_ansible_playbook {
@@ -147,13 +166,6 @@ function gate_job_exit_tasks {
 
   # Cleanup gating entities and agent tokens
   execute_ansible_playbook ${TEST_CLEANUP_PLAYBOOK}
-
-  if [[ ${RE_JOB_ACTION} == osp_13_deploy ]]; then
-      # unregister director node from rhn
-      pushd /opt/osp-mnaio
-        ansible -i playbooks/inventory/hosts deploy_hosts -m shell -a "subscription-manager unregister"
-      popd
-  fi
 }
 
 function pin_environment {
@@ -174,13 +186,15 @@ function ensure_osa_dir {
   if [[ ! -d "/etc/openstack_deploy/conf.d" ]]; then
     mkdir -p "/etc/openstack_deploy/conf.d"
   fi
+  if [[ "${RE_JOB_ACTION}" == "osp_13_deploy" && ! -f "/etc/openstack_deploy/user_rpcm_${RE_JOB_ACTION}_vars.yml" ]]; then
+    echo -e "---\ndeploy_osp: true" > /etc/openstack_deploy/user_rpcm_${RE_JOB_ACTION}_vars.yml
+  fi
 }
 
-function influx_pin_environment {
-  # NOTE(cloudnull): Create log_host to influx_hosts environmental link.
-  ensure_osa_dir
-
-  cp -v "${WORKING_DIR}/tests/rpcm_influx_hosts.yml.env" "/etc/openstack_deploy/env.d/rpcm_influx_hosts.yml"
+function install_director_dev_packages {
+  get_pip
+  yum install -y python-virtualenv iptables python-devel
+  yum groupinstall -y "Development Tools"
 }
 
 function get_pip {
@@ -232,7 +246,7 @@ function enable_maas_api {
   if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
   fi
-  /opt/test-maas/bin/pip install -r test-requirements.txt --isolated --upgrade --force-reinstall
+  /opt/test-maas/bin/pip install -r ${WORKING_DIR}/test-requirements.txt --isolated --upgrade --force-reinstall
   /opt/test-maas/bin/pip install "SecretStorage < 3" --isolated
   /opt/test-maas/bin/pip install "pyrax" --isolated
 
@@ -268,13 +282,8 @@ EOF
 # Set gate job exit traps, this is run regardless of exit state when the job finishes.
 trap gate_job_exit_tasks EXIT
 
-# Enable MaaS API testing if the cloud variables are set.
-if [ ! "${PUBCLOUD_USERNAME:-false}" = false ] && [ ! "${PUBCLOUD_API_KEY:-false}" = false ]; then
-  enable_maas_api
-fi
-
-# Link the log_hosts of OSA to influx_hosts
-influx_pin_environment
+# Create /etc/openstack_deploy if not exists
+ensure_osa_dir
 
 # Export additional ansible environment variables if running Kilo or Liberty
 if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
@@ -291,6 +300,23 @@ fi
 
 # Run test setup playbook
 execute_ansible_playbook ${TEST_SETUP_PLAYBOOK}
+
+# (NOTE: tonytan4ever) Temporary fix until upstream PR:
+# https://review.openstack.org/#/c/620991/3/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh
+# is merged.
+if [ ${RE_JOB_ACTION} == "osp_13_deploy" ]; then
+  pushd "/root/ansible_venv/repositories/openstack-ansible-plugins"
+    git checkout 761338d09c4cfb356c53fbd0d28a0e55a4776da0  # HEAD of master from 29-11-18
+  popd
+fi
+
+# Enable MaaS API testing if the cloud variables are set.
+if [ ! "${PUBCLOUD_USERNAME:-false}" = false ] && [ ! "${PUBCLOUD_API_KEY:-false}" = false ]; then
+  if [ "${RE_JOB_ACTION}" = "osp_13_deploy" ]; then
+    install_director_dev_packages
+  fi
+  enable_maas_api
+fi
 
 # If the test for check mode is enabled, then execute it
 if [ "${TEST_CHECK_MODE}" == "true" ]; then

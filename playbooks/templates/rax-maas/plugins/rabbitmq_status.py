@@ -166,7 +166,7 @@ def _get_node_metrics(session, metrics, protocol, host, port, name):
         if not is_cluster_member:
             status_err_no_exit('{0} not a member of the cluster'.format(name),
                                m_name='maas_rabbitmq')
-        if sum([len(n.get('partitions', 0)) for n in response]):
+        if sum([len(n.get('partitions', [])) for n in response]):
             status_err_no_exit('At least one partition found in the rabbit '
                                'cluster', m_name='maas_rabbitmq')
         if any([len(n.get('cluster_links', [])) != CLUSTER_SIZE - 1
