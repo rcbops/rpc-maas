@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Fix a missed instantiation of ansible_host in rally plays without a container_address default.
