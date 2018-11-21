@@ -19,6 +19,11 @@
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp  | default(False)
+
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
@@ -83,6 +88,7 @@
         - mon_user.rc not in [0, 3]
       register: mon_user
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      no_log: True
       when:
         - inventory_hostname in groups['keystone_all'][0]
 

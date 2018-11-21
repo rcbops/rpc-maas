@@ -1,6 +1,10 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "lb_api_check_horizon" %}
 {% set check_name = label+'--'+maas_lb_name %}
+{% set url = (maas_horizon_scheme | default(maas_scheme))+"://"+maas_external_hostname+":443/auth/login/" %}
+{% if deploy_osp | default(False) %}
+{% set url = (maas_horizon_scheme | default(maas_scheme))+"://"+maas_external_hostname+":443/dashboard/auth/login/" %}
+{% endif %}
 type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -9,7 +13,7 @@ disabled          : "{{ (inventory_hostname != groups['horizon'][0] or check_nam
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
-    url           : "{{ maas_horizon_scheme | default(maas_scheme)}}://{{ maas_external_hostname }}:443/auth/login/"
+    url           : "{{ url }}"
 monitoring_zones_poll:
 {% for zone in maas_monitoring_zones %}
   - {{ zone }}
