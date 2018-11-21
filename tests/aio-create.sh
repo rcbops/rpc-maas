@@ -183,6 +183,8 @@ if [[ ${RE_JOB_ACTION} != osp_13_deploy ]]; then
         git checkout "06d0fd344b5b06456a418745fe9937a3fbedf9b2"  # Last commit of Liberty
         pin_jinja
         pin_galera "10.0"
+        # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
+        sed -i -e 's/0.4.4/v0.4.4/g' /opt/openstack-ansible/ansible-role-requirements.yml
         # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
         sed -i 's/\(_container\: \).*/\11/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
         spice_repo_fix
@@ -195,6 +197,8 @@ if [[ ${RE_JOB_ACTION} != osp_13_deploy ]]; then
         export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c $OA_DIR/global-requirement-pins.txt'"}
         export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
         spice_repo_fix
+        # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
+        sed -i -e 's/0.4.4/v0.4.4/g' /opt/openstack-ansible/ansible-role-requirements.yml
 
       elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
         git remote add rcbops-fork https://github.com/rcbops/openstack-ansible.git
@@ -212,6 +216,8 @@ if [[ ${RE_JOB_ACTION} != osp_13_deploy ]]; then
 
       elif [ "${RE_JOB_SCENARIO}" == "pike" ]; then
         git checkout "a8a809839484105d9cd27463defc19a8a617c64b"  # Branch checkout of Pike (Current Stable)
+        # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
+        sed -i -e 's/0.5.1/v0.5.1/g' /opt/openstack-ansible/ansible-role-requirements.yml
         # Pin flask so it stops breaking xenial and other versions
         echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
 
