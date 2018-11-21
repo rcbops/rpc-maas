@@ -71,7 +71,7 @@ case $RE_JOB_SCENARIO in
     ;;
   *)
     echo "Create a 16 character unique string to set as maas_fqdn_extension"
-    echo $(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16} | sed 's/^/./') | tee /tmp/maas_fqdn_extension
+    echo $(< /dev/urandom tr -dc '[:alnum:]' | head -c${1:-16} | sed 's/^/./') | tee /tmp/maas_fqdn_extension
     ;;
 esac
 
@@ -88,6 +88,7 @@ case $RE_JOB_SCENARIO in
 esac
 
 export TEST_SETUP_PLAYBOOK="${TEST_SETUP_PLAYBOOK:-$WORKING_DIR/tests/test-setup.yml}"
+export TEST_CLEANUP_PLAYBOOK="${TEST_CLEANUP_PLAYBOOK:-$WORKING_DIR/playbooks/maas-raxmon-delete-resources.yml}"
 export TEST_CHECK_MODE="${TEST_CHECK_MODE:-false}"
 export TEST_IDEMPOTENCE="${TEST_IDEMPOTENCE:-false}"
 
@@ -96,6 +97,7 @@ export COMMON_TESTS_PATH="${COMMON_TESTS_PATH:-$WORKING_DIR/tests/common}"
 echo "ANSIBLE_OVERRIDES: ${ANSIBLE_OVERRIDES}"
 echo "ANSIBLE_PARAMETERS: ${ANSIBLE_PARAMETERS}"
 echo "TEST_SETUP_PLAYBOOK: ${TEST_SETUP_PLAYBOOK}"
+echo "TEST_CLEANUP_PLAYBOOK: ${TEST_CLEANUP_PLAYBOOK}"
 echo "TEST_PLAYBOOK: ${TEST_PLAYBOOK}"
 echo "TEST_CHECK_MODE: ${TEST_CHECK_MODE}"
 echo "TEST_IDEMPOTENCE: ${TEST_IDEMPOTENCE}"
@@ -150,6 +152,9 @@ function gate_job_exit_tasks {
   # which was present when the trap was initiated.
   # This would be the success/failure of the test.
   export TEST_EXIT_CODE=$?
+
+  # Cleanup gating entities and agent tokens
+  execute_ansible_playbook ${TEST_CLEANUP_PLAYBOOK}
 }
 
 function pin_environment {

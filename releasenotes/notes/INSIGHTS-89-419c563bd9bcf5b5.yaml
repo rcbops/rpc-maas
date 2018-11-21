@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Add agent token cleanup to raxmon and move execution of entity delete
+    and agent token delete functions to the test-ansible-functional.sh trap.
