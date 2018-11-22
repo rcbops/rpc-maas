@@ -19,6 +19,9 @@
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
+    - include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
@@ -155,7 +158,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: (neutron_plugin_type is not defined) or (neutron_plugin_type | search("lxb"))
+      when: neutron_plugin_type is not defined or (neutron_plugin_type | search("lxb"))
 
   vars_files:
     - vars/main.yml
@@ -177,7 +180,7 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: (neutron_plugin_type is defined) and (neutron_plugin_type | search("ovs"))
+      when: neutron_plugin_type | search("ovs")
 
   vars_files:
     - vars/main.yml
