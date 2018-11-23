@@ -44,8 +44,9 @@ def get_container_name(deploy_osp, for_ring):
     container = None
     if not deploy_osp:
         # identify the container we will use for monitoring
-        get_container = shlex.split('lxc-ls -1 --running ".*(swift_proxy|swift)"')
-        shell=False
+        get_container = shlex.split(
+            'lxc-ls -1 --running ".*(swift_proxy|swift)"')
+        shell = False
     else:
         docker_awk_string = 'swift_proxy'
         get_container = (
@@ -55,17 +56,16 @@ def get_container_name(deploy_osp, for_ring):
                 extract_string='{print $NF}'
             )
         )
-        shell=True
+        shell = True
 
-        try:
-            containers_list = subprocess.check_output(get_container,
-                                                      shell=shell)
-            container = containers_list.splitlines()[0]
-        except (IndexError, subprocess.CalledProcessError):
-            status_err('no running swift %s  or proxy containers found' %
-                       for_ring, m_name='maas_swift')
+    try:
+        containers_list = subprocess.check_output(get_container,
+                                                  shell=shell)
+        container = containers_list.splitlines()[0]
+    except (IndexError, subprocess.CalledProcessError):
+        status_err('no running swift %s  or proxy containers found' %
+                   for_ring, m_name='maas_swift')
     return container
-
 
 
 def recon_output(for_ring, options=None, swift_recon_path=None,
@@ -107,10 +107,10 @@ def recon_output(for_ring, options=None, swift_recon_path=None,
         container_exec_command = 'lxc-attach -n %s -- bash -c' % container
         command_options = '"%s"' % command_options
         full_command = '{container_exec_command} {command_options}'
-    full_command = shlex.split('{container_exec_command} {command_options}'
-                               .format(
-                               container_exec_command=container_exec_command,
-                               command_options=command_options))
+    full_command = shlex.split(
+        '{container_exec_command} {command_options}' .format(
+            container_exec_command=container_exec_command,
+            command_options=command_options))
     try:
         out = subprocess.check_output(full_command)
     except subprocess.CalledProcessError as error:
@@ -438,7 +438,9 @@ metrics_per_stat = {
     'failed': lambda name, val: maas_common.metric(name, 'double', val[:-1])
 }
 
-DEFAULT_METRIC = lambda name, val: maas_common.metric(name, 'uint64', val)
+
+def DEFAULT_METRIC(name, val):
+    return maas_common.metric(name, 'uint64', val)
 
 
 def print_stats(prefix, statistics):

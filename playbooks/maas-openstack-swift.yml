@@ -19,7 +19,8 @@
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
-    - include_vars: vars/maas-osp.yml
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
       when:
         - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"
@@ -158,7 +159,7 @@
   user: "{{ ansible_user | default('root') }}"
   become: yes
   tasks:
-    - name: Install swift container server checks
+    - name: Install swift container process checks
       template:
         src: "templates/rax-maas/swift_container_process_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_process_check--{{ inventory_hostname }}.yaml"
@@ -167,7 +168,7 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
-    - name: Install swift container process checks
+    - name: Install swift container server checks
       template:
         src: "templates/rax-maas/swift_container_server_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_server_check--{{ inventory_hostname }}.yaml"
@@ -182,13 +183,13 @@
   tags:
     - maas-openstack-swift
 
-- name: Install checks for openstack swift object
+- name: Install checks for openstack swift object group
   hosts: swift_obj
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
   become: yes
   tasks:
-    - name: Install swift container server checks
+    - name: Install swift object server checks
       template:
         src: "templates/rax-maas/swift_object_server_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_server_check--{{ inventory_hostname }}.yaml"
@@ -197,7 +198,7 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
-    - name: Install swift container process checks
+    - name: Install swift object process checks
       template:
         src: "templates/rax-maas/swift_object_process_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_process_check--{{ inventory_hostname }}.yaml"
@@ -218,6 +219,17 @@
   user: "{{ ansible_user | default('root') }}"
   become: yes
   tasks:
+    - name: Get openstack release
+      command: "grep DISTRIB_RELEASE /etc/openstack-release"
+      changed_when: false
+      register: openstack_release
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Set the swift release
+      set_fact:
+        swift_release: >-
+          {{ openstack_release.stdout.split('=')[-1].strip('"') }}
+
     - name: Set recon nodes fact
       set_fact:
         maas_swift_recon_nodes: "{{ (maas_swift_multi_region_proxy_nodes | length > 0) | ternary(maas_swift_multi_region_proxy_nodes, groups['swift_proxy'][0:2]) }}"

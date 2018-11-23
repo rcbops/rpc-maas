@@ -19,7 +19,8 @@
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
-    - include_vars: vars/maas-osp.yml
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
       when:
         - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"

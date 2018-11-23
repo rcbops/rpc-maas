@@ -4,7 +4,7 @@
 {% if (deploy_osp | default(False)) %}
 {% set target_ip = storage_address %}
 {% else %}
-{% set target_ip = ansible_host %}
+{% set target_ip = container_address | default(ansible_host) %}
 {% endif %}
 type        : agent.plugin
 label       : "{{ check_name }}"
