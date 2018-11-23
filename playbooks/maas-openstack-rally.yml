@@ -160,6 +160,7 @@
     - vars/main.yml
     - vars/maas-agent.yml
     - vars/maas-rally.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
 
 - name: Prepare OpenStack and DB for performance monitoring
@@ -453,6 +454,7 @@
     - vars/main.yml
     - vars/maas-agent.yml
     - vars/maas-rally.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
 
 - name: Configure performance checks
@@ -578,6 +580,7 @@
     - vars/main.yml
     - vars/maas-agent.yml
     - vars/maas-rally.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
 - name: Deploy support helper script to utility containers
   hosts: utility_all

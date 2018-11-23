@@ -48,6 +48,7 @@
   vars_files:
     - vars/main.yml
     - vars/maas-host.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-hosts-network
 

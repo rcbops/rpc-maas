@@ -117,3 +117,4 @@
   vars_files:
     - vars/main.yml
     - vars/maas-verify.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
