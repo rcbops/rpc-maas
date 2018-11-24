@@ -19,6 +19,10 @@
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
@@ -32,15 +36,15 @@
         dest: "/tmp/pip-constraints.txt"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
-    - name: Retrieve openrc file
-      fetch:
-        src: /root/openrc
-        dest: /root/openrc
-        flat: true
-      delegate_to: "{{ item }}"
-      with_items: "{{ groups['hosts'] }}"
-      when:
-        - "'hosts' in groups"
+    # - name: Retrieve openrc file
+    #  fetch:
+    #    src: /root/openrc
+    #    dest: /root/openrc
+    #    flat: true
+    #  delegate_to: "{{ item }}"
+    #  with_items: "{{ groups['hosts'] }}"
+    #  when:
+    #    - "'hosts' in groups"
 
   post_tasks:
     - name: Install swift pip packages to venv
@@ -65,7 +69,7 @@
   tags:
     - maas-openstack-swift
 
-- name: Install checks for openstack swift
+- name: Gather swift host groups extra facts
   hosts: swift_all
   gather_facts: false
   tasks:
@@ -74,6 +78,7 @@
         storage_bridge: "{{ 'ansible_' + swift.storage_network | replace('-', '_') }}"
       register: swift_storage_bridge
       when:
+        - not (deploy_osp  | default(False))
         - swift is defined
         - swift.storage_network is defined
         - inventory_hostname in groups['swift_hosts']
@@ -83,6 +88,7 @@
         storage_address: "{{ hostvars[inventory_hostname][storage_bridge]['ipv4']['address'] }}"
       register: swift_storage_bridge_fact
       when:
+        - not (deploy_osp  | default(False))
         - not swift_storage_bridge | skipped
         - "'ipv4' in hostvars[inventory_hostname][storage_bridge]"
 
@@ -90,8 +96,27 @@
       set_fact:
         storage_address: "{{ container_address }}"
       when:
+        - not (deploy_osp  | default(False))
         - swift_storage_bridge | skipped
         - swift_storage_bridge_fact | skipped
+
+    - name: Set Storage_address fact for host for osp on swift proxy nodes
+      set_fact:
+        storage_address: "{{ storage_ip }}"
+        openstack_release: ""
+        swift_recon_path: "/bin"
+      when:
+        - deploy_osp  | default(False)
+        - inventory_hostname in groups['swift_proxy']
+
+    - name: Set Storage_address fact for host for osp swift host/storage nodes
+      set_fact:
+        storage_address: "{{ storage_mgmt_ip }}"
+        openstack_release: ""
+        swift_recon_path: "/bin"
+      when:
+        - deploy_osp  | default(False)
+        - inventory_hostname in groups['swift_hosts']
 
   vars_files:
     - vars/main.yml
@@ -135,7 +160,7 @@
   user: "{{ ansible_user | default('root') }}"
   become: yes
   tasks:
-    - name: Install swift container server checks
+    - name: Install swift container process checks
       template:
         src: "templates/rax-maas/swift_container_process_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_process_check--{{ inventory_hostname }}.yaml"
@@ -144,7 +169,7 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
-    - name: Install swift container process checks
+    - name: Install swift container server checks
       template:
         src: "templates/rax-maas/swift_container_server_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_container_server_check--{{ inventory_hostname }}.yaml"
@@ -159,13 +184,13 @@
   tags:
     - maas-openstack-swift
 
-- name: Install checks for openstack swift object
+- name: Install checks for openstack swift object group
   hosts: swift_obj
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
   become: yes
   tasks:
-    - name: Install swift container server checks
+    - name: Install swift object server checks
       template:
         src: "templates/rax-maas/swift_object_server_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_server_check--{{ inventory_hostname }}.yaml"
@@ -174,7 +199,7 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
-    - name: Install swift container process checks
+    - name: Install swift object process checks
       template:
         src: "templates/rax-maas/swift_object_process_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/swift_object_process_check--{{ inventory_hostname }}.yaml"
@@ -194,7 +219,7 @@
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
   become: yes
-  pre_tasks:
+  tasks:
     - name: Get openstack release
       command: "grep DISTRIB_RELEASE /etc/openstack-release"
       changed_when: false
@@ -206,7 +231,6 @@
         swift_release: >-
           {{ openstack_release.stdout.split('=')[-1].strip('"') }}
 
-  tasks:
     - name: Set recon nodes fact
       set_fact:
         maas_swift_recon_nodes: "{{ (maas_swift_multi_region_proxy_nodes | length > 0) | ternary(maas_swift_multi_region_proxy_nodes, groups['swift_proxy'][0:2]) }}"
@@ -341,6 +365,7 @@
     - name: Setup swift container monitoring check
       shell: |
         source /root/openrc;
+        export SWIFTCLIENT_INSECURE={{ OS_API_INSECURE | default(true) }};
         {{ maas_venv_bin }}/swift upload \
           --object-name index.html \
           {{ maas_swift_accesscheck_container }} \
@@ -363,6 +388,7 @@
     - name: Retrieve check file key
       shell: |
         source /root/openrc;
+        export SWIFTCLIENT_INSECURE={{ OS_API_INSECURE | default(true) }};
         {{ maas_venv_bin }}/swift stat \
           {{ maas_swift_accesscheck_container }} \
           index.html | grep "Account:" | awk '{print $2}';

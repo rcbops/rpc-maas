@@ -1,0 +1,4 @@
+---
+features:
+  - |
+    Nova, neutron, and swift checks are now supporting rpcr OSP13

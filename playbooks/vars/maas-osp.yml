@@ -13,12 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-## This files contains the OSP (RPC-R) specific vars
-
 deploy_osp: True
 maas_product_dir: "/home/stack/rpc-maas"
 maas_env_product: "TripleO"
 
+maas_stackrc: '/home/stack/overcloudrc'
 maas_openrc: '/root/openrc-maas'
 
 osp_internal_netmask: "{{ internal_vip_address | ipsubnet(24) }}"
@@ -82,3 +81,5 @@ maas_openstack_designate_pip_packages:
   - python-keystoneclient
   - dnspython
 
+ansible_ssh_private_key_file: /home/stack/.ssh/id_rsa
+ansible_become: yes
