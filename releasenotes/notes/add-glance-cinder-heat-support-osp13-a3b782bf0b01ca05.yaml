@@ -1,0 +1,4 @@
+---
+features:
+  - |
+    Add support Glance, Cinder and Heat support for OSP13

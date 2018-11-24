@@ -1,4 +1,7 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
+{% if deploy_osp|default(false) %}
+{% set ansible_nodename = inventory_hostname %}
+{% endif %}
 {% set label = "cinder_scheduler_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin

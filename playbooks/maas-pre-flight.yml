@@ -43,17 +43,17 @@
   tasks:
     - name: Get rendered test metadata template string
       set_fact:
-        rendered_maas_metata_test_tmpl: "{{ lookup('template', playbook_dir + '/templates/rax-maas/test_metadata.yaml.j2') }}"
+        rendered_maas_metadata_test_tmpl: "{{ lookup('template', playbook_dir + '/templates/rax-maas/test_metadata.yaml.j2') }}"
 
     - name: Check metadata variables are defined
       fail:
         msg: >-
           There are missing metadata environment variable(s), as you can see 'unknown' from
-          this test template '{{ rendered_maas_metata_test_tmpl }}'. Please set proper env
+          this test template '{{ rendered_maas_metadata_test_tmpl }}'. Please set proper env
           variables, possible options are: maas_env_identifier, maas_product_dir, maas_product_osa_dir
       when:
         - maas_pre_flight_metadata_check_enabled | default(true) | bool
-        - rendered_maas_metata_test_tmpl | search('unknown')
+        - rendered_maas_metadata_test_tmpl | search('unknown')
   tags:
     - maas-pre-flight
 
@@ -70,29 +70,28 @@
   tasks:
     - name: Get rendered test metadata template string
       set_fact:
-        rendered_maas_metata_test_tmpl: "{{ lookup('template', playbook_dir + '/templates/rax-maas/test_metadata.yaml.j2') }}"
+        rendered_maas_metadata_test_tmpl: "{{ lookup('template', playbook_dir + '/templates/rax-maas/test_metadata.yaml.j2') }}"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Check OSA version is defined
       fail:
         msg: "Unable to figure out OSA version"
-      when: (rendered_maas_metata_test_tmpl | from_yaml).metadata.osa_version == 'unknown'
+      when: (rendered_maas_metadata_test_tmpl | from_yaml).metadata.osa_version == 'unknown'
 
     - name: Set MaaS product metadata facts
       set_fact:
-        maas_product: "{{ (rendered_maas_metata_test_tmpl | from_yaml).metadata.product }}"
-        maas_osa_version: "{{ (rendered_maas_metata_test_tmpl | from_yaml).metadata.osa_version }}"
+        maas_product: "{{ (rendered_maas_metadata_test_tmpl | from_yaml).metadata.product }}"
+        maas_osa_version: "{{ (rendered_maas_metadata_test_tmpl | from_yaml).metadata.osa_version }}"
 
-    # For Queens and beyond, use image api version 2 and volume api version 3
+    # For Queens/osp13 and beyond, use image api version 2 and volume api version 3
     - name: Override Image and Volume API versions Queens and beyond
       set_fact:
         os_image_api_version: '2'
         os_volume_api_version: '3'
       when:
         - ansible_version.full | version_compare('2.0.0', '>=')
-        - maas_osa_version is defined
-        - maas_osa_version is match('[0-9]+.[0-9]+.[0-9]+')
-        - maas_osa_version | version_compare('17.0.0', '>=', 'true')
+        - ((maas_osa_version is defined) and (maas_osa_version is match('[0-9]+.[0-9]+.[0-9]+')) and (maas_osa_version | version_compare('17.0.0', '>=', 'true'))) or
+          (deploy_osp|default(False))
 
     - name: Generate maasrc file
       template:
