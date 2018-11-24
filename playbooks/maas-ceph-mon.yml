@@ -17,6 +17,10 @@
   hosts: mons
   gather_facts: "{{ gather_facts | default(true) }}"
   tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
       set_fact:
@@ -37,6 +41,18 @@
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Get the first mon container
+      raw: /bin/docker ps -a -f status=running | awk '/ceph-mon/ {print $NF}' | head -1
+      when:
+        - deploy_osp | default(False)
+      register: mon_container_name
+
+    - name: Set container name  for osp template
+      set_fact:
+        container_name: "{{ mon_container_name.stdout | trim }}"
+      when:
+        - deploy_osp | default(False)
 
     - name: Write Ceph monitoring client key to file within legacy rpc hosts
       copy:

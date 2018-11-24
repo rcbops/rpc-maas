@@ -40,17 +40,24 @@ class OSDHostFacts(object):
         self.state_change = False
         self.module = module
 
-    def gather_facts(self, hostname):
+    def gather_facts(self, hostname, container_name, deploy_osp=False):
         """Get information about OSDs."""
-        cmd = ["ceph", "osd", "tree", "--format", "json", "--name",
-               "client.raxmon"]
+        ceph_command_string = "ceph"
+        if deploy_osp:
+            ceph_command_string = (
+                "sudo docker exec {container_name} ceph "
+                "--cluster ceph").format(container_name=container_name)
+        cmd = ["osd", "tree", "--format", "json",
+               "--name", "client.raxmon"]
+        # flatten the cmd list
+        cmd = ceph_command_string.split() + cmd
         try:
             # This command was taken from /etc/init/ceph-osd-all-starter.conf
             output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
             json_output = json.loads(output.strip().split('\n')[-1])
         except subprocess.CalledProcessError as e:
-            message = ('Ceph OSD host fact collection failed: "%s".' %
-                       e.output.strip())
+            message = ('Ceph OSD host fact collection failed: "%s", '
+                       'command is: %s' % (e.output.strip(), cmd))
             self.module.fail_json(msg=message)
         else:
             osd_ids = []
@@ -68,12 +75,22 @@ def main():
         argument_spec=dict(
             hostname=dict(
                 required=True
+            ),
+            container_name=dict(
+                required=True
+            ),
+            deploy_osp=dict(
+                required=False,
+                default=False
             )
         ),
         supports_check_mode=False
     )
     osd_host_facts = OSDHostFacts(module)
-    osd_host_facts.gather_facts(hostname=module.params.get('hostname'))
+    osd_host_facts.gather_facts(
+        hostname=module.params.get('hostname'),
+        container_name=module.params.get('container_name'),
+        deploy_osp=module.params.get('deploy_osp', False))
 
 
 if __name__ == '__main__':

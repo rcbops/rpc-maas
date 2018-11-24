@@ -17,6 +17,11 @@
   hosts: osds
   gather_facts: "{{ gather_facts | default(true) }}"
   tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp  | default(False)
+
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
       set_fact:
@@ -45,10 +50,24 @@
       when:
         - maas_rpc_legacy_ceph | bool
 
+    - name: Get the first osd container
+      raw: /bin/docker ps -a -f status=running | awk '/ceph-osd/ {print $NF}' | head -1
+      when:
+        - deploy_osp | default(False)
+      register: osd_container_name
+
+    - name: Set container name  for osp template
+      set_fact:
+        container_name: "{{ osd_container_name.stdout | trim }}"
+      when:
+        - deploy_osp | default(False)
+
   tasks:
     - name: Discover Ceph facts
       ceph_osd_host_facts:
         hostname: "{{ ansible_hostname }}"
+        container_name: "{{ container_name | default(inventory_hostname) }}"
+        deploy_osp: "{{ deploy_osp  | default(False) }}"
       tags:
         - always
 

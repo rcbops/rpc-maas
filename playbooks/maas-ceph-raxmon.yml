@@ -17,13 +17,25 @@
   hosts: mons[0]
   gather_facts: false
   pre_tasks:
+    - name: Add ceph command line alias string for osp
+      set_fact:
+        ceph_command: sudo docker exec ceph-mon-{{inventory_hostname}} ceph --cluster ceph
+      when:
+        - deploy_osp  | default(False)
+
+    - name: Add ceph command line alias string for other environment
+      set_fact:
+        ceph_command: ceph
+      when:
+        - not (deploy_osp  | default(False))
+
     - name: Create ceph monitoring client
-      command: ceph auth get-or-create client.raxmon
+      command: "{{ ceph_command }} auth get-or-create client.raxmon"
       register: _ceph_raxmon_client
       tags:
         - skip_ansible_lint
     - name: Add mgr auth for client.raxmon
-      command: ceph auth caps client.raxmon mon 'allow r' mgr 'allow *'
+      command: "{{ ceph_command }} auth caps client.raxmon mon 'allow r' mgr 'allow *'"
       tags:
         - skip_ansible_lint
     - name: Set the raxmon_client facts
