@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Host and infra checks are now supporting rpcr OSP13. Also a new check
+    type of pacemaker has been added.

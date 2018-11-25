@@ -16,6 +16,8 @@
 - name: Gather facts
   hosts: rabbitmq_all
   gather_facts: "{{ gather_facts | default(true) }}"
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
@@ -23,6 +25,22 @@
         maas_current_group: rabbitmq_all
 
   tasks:
+    - name: Drop in rabbitmq management plugin config
+      template:
+        src: "templates/rax-maas/enabled_plugins.j2"
+        dest: "/var/lib/config-data/puppet-generated/rabbitmq/etc/rabbitmq/enabled_plugins"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - deploy_osp | default(False)
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+    - name: Enable rabbitmq management plugin
+      command: rabbitmq-plugins enable rabbitmq_management
+      when:
+        - deploy_osp | default(False)
+
     - name: Install rabbitmq pip packages
       pip:
         name: "{{ maas_rabbitmq_pip_packages | join(' ') }}"
@@ -41,13 +59,14 @@
   tags:
     - maas-infra-rabbitmq
 
-- name: Install checks for infra rabbitmq
+
+- name: Add admin user on rabbitmq
   hosts: rabbitmq_all
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: yes
   tasks:
-    - name: Ensure MaaS rabbitmq user as administrator
+    - name: Ensure MaaS rabbitmq user as administrator with rabbitmqctl
       rabbitmq_user:
         user: "{{ maas_rabbitmq_user }}"
         password: "{{ maas_rabbitmq_password }}"
@@ -60,7 +79,39 @@
       no_log: True
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
+        - not (deploy_osp | default(False))
 
+    - name: Find rabbitmq docker container
+      raw: /bin/docker ps -a -f status=running | awk '/rabbitmq/ {print $NF}'
+      when:
+        - inventory_hostname in groups['rabbitmq_all'][0]
+        - deploy_osp | default(False)
+      register: rabbitmq_container_name
+
+    - name: Ensure MaaS rabbitmq user as administrator with docker exec rabbitmqctl
+      command: >
+        /bin/docker exec {{ rabbitmq_container_name.stdout | trim }} /bin/bash -c
+        '/usr/sbin/rabbitmqctl add_user {{ maas_rabbitmq_user }} {{ maas_rabbitmq_password }};
+        /usr/sbin/rabbitmqctl set_user_tags {{ maas_rabbitmq_user }} administrator;
+        /usr/sbin/rabbitmqctl set_permissions -p / {{ maas_rabbitmq_user }} ".*" ".*" ".*"'
+      when:
+        - inventory_hostname in groups['rabbitmq_all'][0]
+        - deploy_osp | default(False)
+      no_log: True
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas-infra.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
+  tags:
+    - maas-infra-rabbitmq
+
+- name: Install checks for infra rabbitmq
+  hosts: rabbitmq_all
+  gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
+  tasks:
     - name: Get list of vhosts
       uri:
         url: "http://localhost:15672/api/vhosts"
@@ -73,15 +124,15 @@
         - inventory_hostname in groups['rabbitmq_all'][0]
 
     - name: Ensure MaaS rabbitmq user has access to all openstack vhosts
-      rabbitmq_user:
+      uri:
+        url: "http://localhost:15672/api/permissions/{{ item.name | urlencode | regex_replace('/','%2F') }}/{{ maas_rabbitmq_user | urlencode }}"
         user: "{{ maas_rabbitmq_user }}"
         password: "{{ maas_rabbitmq_password }}"
-        vhost: "{{ item.name }}"
-        configure_priv: ".*"
-        read_priv: ".*"
-        write_priv: ".*"
-        tags: "administrator"
-        state: "present"
+        method: PUT
+        return_content: yes
+        body: '{"configure":".*","write":".*","read":".*"}'
+        body_format: json
+        status_code: 200,201,204
       with_items: "{{ vhost_list.json | default([]) }}"
       no_log: True
       when:
