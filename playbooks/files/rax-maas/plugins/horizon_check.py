@@ -45,8 +45,11 @@ def check(args):
     OS_USERNAME = auth_details['OS_USERNAME']
     OS_PASSWORD = auth_details['OS_PASSWORD']
     OS_USER_DOMAIN_NAME = auth_details['OS_USER_DOMAIN_NAME']
-    HORIZON_URL = 'https://{ip}'.format(ip=args.ip)
-    HORIZON_PORT = '443'
+    HORIZON_URL = '{protocol}://{ip}'.format(
+        protocol=args.protocol,
+        ip=args.ip,
+    )
+    HORIZON_PORT = args.port
 
     s = requests.Session()
 
@@ -85,20 +88,26 @@ def check(args):
         if domain:
             payload['domain'] = OS_USER_DOMAIN_NAME
         try:
-            l = s.post(
-                ('%s:%s/auth/login/') % (HORIZON_URL, HORIZON_PORT),
-                data=payload,
-                verify=False)
+            login_url = ('%s:%s/auth/login/') % (HORIZON_URL, HORIZON_PORT)
+            if args.deploy_osp:
+                login_url = ('%s:%s/dashboard/auth/login/') % (HORIZON_URL,
+                                                               HORIZON_PORT)
+            login_resp = s.post(login_url, data=payload, verify=False)
         except (exc.ConnectionError,
                 exc.HTTPError,
                 exc.Timeout) as e:
             status_err('While logging in: %s' % e, m_name='maas_horizon')
 
-        if not (l.ok and re.search('overview', l.content, re.IGNORECASE)):
+        search_phrase = 'overview'
+        if args.deploy_osp:
+            search_phrase = 'project'
+        if not (login_resp.ok and re.search(search_phrase,
+                                            login_resp.content,
+                                            re.IGNORECASE)):
             status_err('could not log in', m_name='maas_horizon')
 
-        login_status_code = l.status_code
-        login_milliseconds = l.elapsed.total_seconds() * 1000
+        login_status_code = login_resp.status_code
+        login_milliseconds = login_resp.elapsed.total_seconds() * 1000
 
     status_ok(m_name='maas_horizon')
     metric_bool('horizon_local_status', is_up, m_name='maas_horizon')
@@ -113,6 +122,7 @@ def check(args):
 def main(args):
     check(args)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Check horizon dashboard')
     parser.add_argument('ip',
@@ -126,6 +136,22 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--port',
+                        action='store',
+                        default='443',
+                        help='Port to use for the local horizon service')
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='https',
+                        help='Protocol for the local horizon service')
+    # add deploy_osp arg
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        '--' + 'deploy_osp', nargs='?', default=False, const=True,
+        type=bool)
+    group.add_argument('--no' + 'deploy_osp', dest='deploy_osp',
+                       action='store_false')
+
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)
