@@ -29,6 +29,3 @@
 
 # Ensure all plugins are functional
 - include: "../playbooks/maas-verify.yml"
-
-# Run the entity deletion playbook
-- include: "../playbooks/maas-raxmon-delete-entity.yml"

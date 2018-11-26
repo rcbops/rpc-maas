@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Delete Entity ID for test clean up
+- name: Create non-managed entity for gating tests
   hosts: localhost
   connection: local
   user: "{{ ansible_user | default('root') }}"
