@@ -106,13 +106,10 @@
       when:
         - maas_use_api | bool
 
-    - name: Start raxmon agent
+    - name: Enable rackspace-monitoring-agent
       service:
         name: rackspace-monitoring-agent
-        state: started
         enabled: yes
-      when:
-        - maas_use_api | bool
 
   vars_files:
     - vars/main.yml
