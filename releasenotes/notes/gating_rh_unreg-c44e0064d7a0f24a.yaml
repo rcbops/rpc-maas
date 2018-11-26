@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Move the RH subscription-unregister to the gate exit tasks.

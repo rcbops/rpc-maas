@@ -52,14 +52,6 @@ if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
   export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
 fi
 
-if [ ${RE_JOB_ACTION} == osp_13_deploy ]; then
-  # unregister director node from rhn
-  pushd /opt/osp-mnaio
-    ansible -i playbooks/inventory/hosts deploy_hosts -m shell -a "subscription-manager unregister"
-  popd
-  exit 0
-fi
-
 # NOTE: Create an artifact to make a unique entity for queens+ gates. This is required
 # as OSA now sets the hostname generically as 'aio1' which will cause affected
 # gates to use the same entity
@@ -155,6 +147,13 @@ function gate_job_exit_tasks {
 
   # Cleanup gating entities and agent tokens
   execute_ansible_playbook ${TEST_CLEANUP_PLAYBOOK}
+
+  if [[ ${RE_JOB_ACTION} == osp_13_deploy ]]; then
+      # unregister director node from rhn
+      pushd /opt/osp-mnaio
+        ansible -i playbooks/inventory/hosts deploy_hosts -m shell -a "subscription-manager unregister"
+      popd
+  fi
 }
 
 function pin_environment {
@@ -327,12 +326,4 @@ if [ "${TEST_IDEMPOTENCE}" == "true" ]; then
     echo "Idempotence test: fail"
     exit 1
   fi
-fi
-
-
-if [[ ${RE_JOB_ACTION} == osp_13_deploy ]]; then
-    # unregister director node from rhn
-    pushd /opt/osp-mnaio
-      ansible -i playbooks/inventory/hosts deploy_hosts -m shell -a "subscription-manager unregister"
-    popd
 fi
