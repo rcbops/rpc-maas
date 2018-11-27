@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    1. Added missing supported memcached version 1.4.39 for osp13
+    2. Adjusted client.my.conf tempalte to take internal ip for osp13
+    3. Rearranged maas-agent vars variables.
+

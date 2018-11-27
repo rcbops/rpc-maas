@@ -13,6 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+maas_keys:
+  url: "https://monitoring.api.rackspacecloud.com/pki/agent/linux.asc"
+  state: "present"
+
+maas_repos:
+  repo: "deb http://stable.packages.cloudmonitoring.rackspace.com/ubuntu-{{ ansible_distribution_version | lower }}-x86_64 cloudmonitoring main"
+  redhat_repo: "http://stable.packages.cloudmonitoring.rackspace.com/redhat-{{ ansible_distribution_major_version | lower }}-x86_64/" 
+  state: "present"
+  enabled: "yes"
+
 maas_requires_pip_packages:
   - virtualenv
 
