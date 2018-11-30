@@ -31,6 +31,7 @@ TRIPLEO_MAPPING_GROUP = {
     'rabbitmq_all': ['Controller', 'controller'],
     'memcached_all': ['Controller', 'controller'],
     'galera_all': ['Controller', 'controller'],
+    'galera': ['Controller', 'controller'],
     'rsyslog_all': ['Controller', 'controller'],
     'utility_all': ['undercloud', 'Undercloud'],
 
