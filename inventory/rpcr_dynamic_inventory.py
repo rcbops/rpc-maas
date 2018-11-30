@@ -129,7 +129,10 @@ class RPCRMaasInventory(MaasInventory):
                     ['ansible_ssh_private_key_file']) = (
                         '/home/stack/.ssh/id_rsa'
                 )
-
+                (self.inventory[group_name]['vars']
+                    ['galera_root_password']) = (
+                        self.password_result_json['attributes']['value']
+                )
                 (self.inventory[group_name]['vars']
                     ['internal_lb_vip_address']) = (
                     self.endpoint_map_result_json['attributes']
