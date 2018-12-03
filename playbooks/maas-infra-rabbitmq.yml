@@ -25,22 +25,6 @@
         maas_current_group: rabbitmq_all
 
   tasks:
-    - name: Drop in rabbitmq management plugin config
-      template:
-        src: "templates/rax-maas/enabled_plugins.j2"
-        dest: "/var/lib/config-data/puppet-generated/rabbitmq/etc/rabbitmq/enabled_plugins"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      when:
-        - deploy_osp | default(False)
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-    - name: Enable rabbitmq management plugin
-      command: rabbitmq-plugins enable rabbitmq_management
-      when:
-        - deploy_osp | default(False)
-
     - name: Install rabbitmq pip packages
       pip:
         name: "{{ maas_rabbitmq_pip_packages | join(' ') }}"
@@ -58,7 +42,6 @@
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-infra-rabbitmq
-
 
 - name: Add admin user on rabbitmq
   hosts: rabbitmq_all
@@ -84,9 +67,15 @@
     - name: Find rabbitmq docker container
       raw: /bin/docker ps -a -f status=running | awk '/rabbitmq/ {print $NF}'
       when:
-        - inventory_hostname in groups['rabbitmq_all'][0]
         - deploy_osp | default(False)
       register: rabbitmq_container_name
+
+    - name: Enable rabbitmq management plugin
+      command: >
+        /bin/docker exec {{ rabbitmq_container_name.stdout | trim }} /bin/bash -c
+        '/usr/sbin/rabbitmq-plugins enable rabbitmq_management'
+      when:
+        - deploy_osp | default(False)
 
     - name: Ensure MaaS rabbitmq user as administrator with docker exec rabbitmqctl
       command: >
@@ -114,7 +103,7 @@
   tasks:
     - name: Get list of vhosts
       uri:
-        url: "http://localhost:15672/api/vhosts"
+        url: "http://{{ internal_api_ip | default('localhost') }}:{{ rabbitmq_mgmt_port | default('15672') }}/api/vhosts"
         user: "{{ maas_rabbitmq_user }}"
         password: "{{ maas_rabbitmq_password }}"
         return_content: yes
@@ -125,7 +114,7 @@
 
     - name: Ensure MaaS rabbitmq user has access to all openstack vhosts
       uri:
-        url: "http://localhost:15672/api/permissions/{{ item.name | urlencode | regex_replace('/','%2F') }}/{{ maas_rabbitmq_user | urlencode }}"
+        url: "http://{{ internal_api_ip| default('localhost') }}:{{ rabbitmq_mgmt_port | default('15672') }}/api/permissions/{{ item.name | urlencode | regex_replace('/','%2F') }}/{{ maas_rabbitmq_user | urlencode }}"
         user: "{{ maas_rabbitmq_user }}"
         password: "{{ maas_rabbitmq_password }}"
         method: PUT

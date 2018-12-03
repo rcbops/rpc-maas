@@ -13,18 +13,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Copy Var files in place
+- name: Find and delete existing rpcm vars files
+  hosts: localhost
+  connection: local
+  user: root
+  tasks:
+    - name: Find existing /etc/openstack_deploy/user_rpcm_*.yml files
+      find:
+        paths: /etc/openstack_deploy
+        patterns: "user_rpcm_*.yml"
+      register: vars_files
+
+    - name: Delete existing /etc/openstack_deploy/user_rpcm_*.yml files
+      file:
+        path: "{{ item['path'] }}"
+        state: absent
+      with_items: "{{ vars_files['files'] }}"
+
+- name: Copy var files in place
   hosts: localhost
   connection: local
   user: root
   gather_facts: true
   tasks:
-    - name: Copy RPC-M vars into place
+    - name: Copy RPC-O rpc-maas vars into place
       copy:
         src: "user_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
         dest: "/etc/openstack_deploy/user_rpcm_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
+      when: not (deploy_osp | default(False))
 
-    - name: Copy RPC-M secrets into place
+    - name: Copy RPC-R rpc-maas vars into place
+      copy:
+        src: "user_{{ ansible_env.RE_JOB_ACTION | default('master') }}_vars.yml"
+        dest: "/etc/openstack_deploy/user_rpcm_{{ ansible_env.RE_JOB_ACTION | default('master') }}_vars.yml"
+      when: (deploy_osp | default(False))
+
+    - name: Copy rpc-maas secrets into place
       copy:
         src: "user_rpcm_secrets.yml"
         dest: "/etc/openstack_deploy/user_rpcm_secrets.yml"

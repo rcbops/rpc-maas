@@ -14,7 +14,7 @@
 # limitations under the License.
 
 deploy_osp: True
-maas_product_dir: "/home/stack/rpc-maas"
+maas_product_dir: "/opt/rpc-maas"
 maas_env_product: "TripleO"
 
 maas_stackrc: '/home/stack/overcloudrc'

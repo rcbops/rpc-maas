@@ -28,6 +28,11 @@ TRIPLEO_MAPPING_GROUP = {
 
     # maas infrastructure groups
     'shared-infra_hosts': ['Controller', 'controller'],
+    'rabbitmq_all': ['Controller', 'controller'],
+    'memcached_all': ['Controller', 'controller'],
+    'galera_all': ['Controller', 'controller'],
+    'galera': ['Controller', 'controller'],
+    'rsyslog_all': ['Controller', 'controller'],
     'utility_all': ['undercloud', 'Undercloud'],
 
 

@@ -76,6 +76,7 @@ def get_metrics():
     # also volatile.
     try:
         namespaces = os.listdir('/var/run/netns')
+        nscount = 0
         for ns in namespaces:
             ps = subprocess.check_output(['ip', 'netns', 'exec',
                                           ns, 'cat',

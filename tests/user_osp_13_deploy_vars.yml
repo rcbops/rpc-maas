@@ -1,0 +1,49 @@
+---
+# Copyright 2018, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+maas_excluded_alarms: []
+
+# Exclude the docker container checks that get created during mnaio process
+# NOTE(tonytan4ever): mnaio ceph osd stat checks is not stable for unknown
+# reasons, disable it for now and galera_check is not working due to we can't 
+# find the source of mysql root password
+maas_excluded_checks:
+  - 'filesystem_/var/lib/docker/overlay2'
+  - 'filesystem_/var/lib/docker/containers'
+  - galera_check
+  - ceph_osd_stats
+
+maas_pre_flight_check_enabled: true
+
+# Allow maas-verify to properly validate all issues
+maas_verify_registration: true
+maas_verify_status: true
+
+# Disable remote.http checks because AIO endpoints will always be private
+# addresses. Private network monitoring will need to be added.
+maas_remote_check: false
+
+# Set metadata explicitly to RPCR (doesnt work yet)
+maas_env_product: osa
+maas_product_dir: /opt/rpc-maas/
+maas_product_osa_dir: /opt/rpc-maas/
+
+# Default OSP values for RPCR
+deploy_osp: true
+local_suffix: ".localdomain"
+ansible_nodename: "{{inventory_hostname}}{{local_suffix}}"
+neutron_plugin_type: ovs
+horizon_service_protocol: 'http'
+horizon_service_port: '80'

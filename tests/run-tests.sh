@@ -28,4 +28,8 @@ bash -vc "${TEST_DIR}/env-prep.sh"
 bash -vc "${TEST_DIR}/aio-create.sh"
 
 # Run functional rpc-maas deployment
-bash -vc "${TEST_DIR}/test-ansible-functional.sh"
+if [ "${RE_JOB_ACTION}" = "osp_13_deploy" ]; then
+  bash -vc "${TEST_DIR}/test-ansible-functional-osp-mnaio.sh"
+else
+  bash -vc "${TEST_DIR}/test-ansible-functional.sh"
+fi

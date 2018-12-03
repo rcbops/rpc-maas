@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    This PR enables osp-13 gate for MAAS. It does so by using a wrapper
+    script test-ansible-functional-osp-mnaio.sh to invoke tests on OSP-13
+    MNAIO director node.  It also fixed some discrepencies between several
+    checks and other missing steps in ansible dynamic inventory scripts as
+    well.

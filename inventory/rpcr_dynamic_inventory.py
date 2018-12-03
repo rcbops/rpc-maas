@@ -107,29 +107,6 @@ class RPCRMaasInventory(MaasInventory):
                 if len(self.inventory[group_name]['hosts']) == 1 and \
                         validate_ip(input_inventory[group_name]['hosts'][0]):
                     self.inventory[group_name]['hosts'] = [group_name]
-                self.inventory[group_name]['vars']['ansible_user'] = (
-                    self.inventory[group_name].get('ansible_ssh_user',
-                                                   'heat-admin')
-                )
-                (self.inventory[group_name]['vars']
-                    ['ansible_become']) = (
-                        'yes'
-                )
-                (self.inventory[group_name]['vars']
-                    ['ansible_ssh_private_key_file']) = (
-                        '/home/stack/.ssh/id_rsa'
-                )
-
-                (self.inventory[group_name]['vars']
-                    ['internal_lb_vip_address']) = (
-                    self.endpoint_map_result_json['attributes']
-                    ['endpoint_map']['KeystoneInternal']['host']
-                )
-                (self.inventory[group_name]['vars']
-                    ['external_lb_vip_address']) = (
-                    self.endpoint_map_result_json['attributes']
-                    ['endpoint_map']['KeystonePublic']['host']
-                )
         else:
             self.inventory[group_name] = copy.deepcopy(
                 input_inventory[group_name]
@@ -169,6 +146,31 @@ class RPCRMaasInventory(MaasInventory):
         # generate some product specific variables
         self.generate_env_specific_variables()
         self.inventory['_meta'] = copy.deepcopy(input_inventory['_meta'])
+        for host in self.inventory['_meta']['hostvars']:
+            self.inventory['_meta']['hostvars'][host]['ansible_user'] = (
+                'heat-admin')
+            (self.inventory['_meta']['hostvars'][host]['ansible_become']) = (
+                'yes'
+            )
+            (self.inventory['_meta']['hostvars'][host]
+                ['ansible_ssh_private_key_file']) = (
+                    '/home/stack/.ssh/id_rsa'
+            )
+            (self.inventory['_meta']['hostvars'][host]
+                ['galera_root_password']) = (
+                    self.password_result_json['attributes']['value']
+            )
+
+            (self.inventory['_meta']['hostvars'][host]
+                ['internal_lb_vip_address']) = (
+                self.endpoint_map_result_json['attributes']
+                ['endpoint_map']['KeystoneInternal']['host']
+            )
+            (self.inventory['_meta']['hostvars'][host]
+                ['external_lb_vip_address']) = (
+                self.endpoint_map_result_json['attributes']
+                ['endpoint_map']['KeystonePublic']['host']
+            )
         self.do_host_group_mapping(input_inventory)
 
 
