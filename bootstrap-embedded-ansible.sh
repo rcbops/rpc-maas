@@ -1,0 +1,1 @@
+magnanimous-turbo-chainsaw/bootstrap-embedded-ansible.sh

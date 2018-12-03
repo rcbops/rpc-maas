@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    Now that embedded ansible is required to deploy rpc-maas playbooks against
+    RPC-O and/or RPC-R deployments, the magnanimous-turbo-chainsaw (MTC),
+    tooling repo has been added as a submodule of rpc-maas. This repository
+    contains resources intended to be used across all RPC Toolstack components.
+    As part of the initial commit, the generate-environment-vars.yml playbook
+    and bootstrap-embedded-ansible.sh wrapper have been symlinked into the main
+    directory structure.
