@@ -1,0 +1,3 @@
+[submodule "magnanimous-turbo-chainsaw"]
+	path = magnanimous-turbo-chainsaw
+	url = https://github.com/rcbops/magnanimous-turbo-chainsaw.git
