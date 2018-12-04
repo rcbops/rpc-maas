@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    osp-13 dynamic inventory now includes logic automatically loading up
+    stackrc env file. maas_stackrc will be set by dynamic inventory too.
+upgrade:
+  - |
+    Deployment processes can skip the step sourcing /home/stack/stackrc.
+    Also maas_stackrc can be removed from variable overrides
+

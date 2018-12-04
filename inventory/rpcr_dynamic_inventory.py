@@ -16,10 +16,11 @@
 
 import copy
 import json
+import getopt
 import os
+import re
 import socket
 import sys
-import getopt
 
 from heatclient import client as heat_client
 from tripleo_common.inventory import TripleoInventory
@@ -38,6 +39,11 @@ def validate_ip(s):
 
 
 class RPCRMaasInventory(MaasInventory):
+
+    def __init__(self):
+        # Load stackrc environment variable file
+        self.load_stackrc_file()
+        super(RPCRMaasInventory, self).__init__()
 
     def read_input_inventory(self):
         auth_url = os.environ.get('OS_AUTH_URL')
@@ -68,6 +74,22 @@ class RPCRMaasInventory(MaasInventory):
             ansible_ssh_user=ansible_ssh_user,
             plan_name=self.plan_name)
         return inventory.list()
+
+    def load_stackrc_file(self):
+        undercloud_env_file_path = '/home/stack/stackrc'
+        if not os.path.exists(undercloud_env_file_path):
+            raise RuntimeError('No undercloud stackrc file found, aborting...')
+        envre = re.compile(
+            '^(?:export\s)?(?P<key>\w+)(?:\s+)?=(?:\s+)?(?P<value>.*)$'
+        )
+        with open(undercloud_env_file_path) as ins:
+            for line in ins:
+                match = envre.match(line)
+                if match is None:
+                    continue
+                k = match.group('key')
+                v = match.group('value').strip('"').strip("'")
+                os.environ[k] = v
 
     def get_tripleo_plan_name(self):
         oss_command = 'stack list -f json'
@@ -170,6 +192,9 @@ class RPCRMaasInventory(MaasInventory):
                 ['external_lb_vip_address']) = (
                 self.endpoint_map_result_json['attributes']
                 ['endpoint_map']['KeystonePublic']['host']
+            )
+            (self.inventory['_meta']['hostvars'][host]['maas_stackrc']) = (
+                '/home/stack/{plan_name}rc'.format(plan_name=self.plan_name)
             )
         self.do_host_group_mapping(input_inventory)
 
