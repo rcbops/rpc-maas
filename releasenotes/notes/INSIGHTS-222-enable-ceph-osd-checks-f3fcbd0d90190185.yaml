@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Ceph commands for cech checks needs to run on the host not, not inside
+    ceph docker container on osp-13.  This PR fix that and enable ceph 
+    checks for osp-13 gates. 

@@ -23,7 +23,6 @@ maas_excluded_checks:
   - 'filesystem_/var/lib/docker/overlay2'
   - 'filesystem_/var/lib/docker/containers'
   - galera_check
-  - ceph_osd_stats
 
 maas_pre_flight_check_enabled: true
 
