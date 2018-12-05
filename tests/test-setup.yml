@@ -48,6 +48,12 @@
         dest: "/etc/openstack_deploy/user_rpcm_{{ ansible_env.RE_JOB_ACTION | default('master') }}_vars.yml"
       when: (deploy_osp | default(False))
 
+    - name: Copy RPC-R rpc-maas vars into place
+      copy:
+        src: "user_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
+        dest: "/etc/openstack_deploy/user_rpcm_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
+      when: (deploy_osp | default(False)) and ansible_env.RE_JOB_SCENARIO == 'osp13'
+
     - name: Copy rpc-maas secrets into place
       copy:
         src: "user_rpcm_secrets.yml"
