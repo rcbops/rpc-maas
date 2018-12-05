@@ -139,7 +139,6 @@ function setup_embedded_ansible {
   export ANSIBLE_PIPELINING="${ANSIBLE_SSH_PIPELINING}"
 
   if [ ${RE_JOB_ACTION} == osp_13_deploy ]; then
-    source /home/stack/stackrc
     ANSIBLE_BINARY+=" -i ${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
   fi
 }
