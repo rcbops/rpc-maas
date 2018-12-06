@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    The rpcr-dynamic inventory now is able to set OS_CACERT environment
+    variable automatically.
+upgrade:
+  - |
+    Deployment process can skip the step setting OS_CACERT.

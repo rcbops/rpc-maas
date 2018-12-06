@@ -43,6 +43,7 @@ class RPCRMaasInventory(MaasInventory):
     def __init__(self):
         # Load stackrc environment variable file
         self.load_stackrc_file()
+        self.load_os_cacert()
         super(RPCRMaasInventory, self).__init__()
 
     def read_input_inventory(self):
@@ -90,6 +91,17 @@ class RPCRMaasInventory(MaasInventory):
                 k = match.group('key')
                 v = match.group('value').strip('"').strip("'")
                 os.environ[k] = v
+
+    def load_os_cacert(self):
+        os_cert_path = '/etc/pki/ca-trust/source/anchors/'
+        if os.path.exists(os_cert_path):
+            # load the cert file in this directory
+            certs = []
+            for f in os.listdir(os_cert_path):
+                f_path = os.path.join(os_cert_path, f)
+                if os.path.isfile(f_path):
+                    certs.append(f_path)
+            os.environ['OS_CACERT'] = ' '.join(certs)
 
     def get_tripleo_plan_name(self):
         oss_command = 'stack list -f json'
