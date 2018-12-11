@@ -47,7 +47,7 @@ export ANSIBLE_PARAMETERS="${ANSIBLE_PARAMETERS:-false}"
 export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
 
-if [ ${RE_JOB_ACTION} == osp_13_deploy ]; then
+if [ ${RE_JOB_ACTION} = osp_13_deploy ] ||  [ ${RE_JOB_SCENARIO} = osp13 ]; then
   # Env vars prep for osp 13
   export ANSIBLE_HOST_KEY_CHECKING="false"
   export WORKING_DIR="/opt/rpc-maas"
@@ -81,7 +81,7 @@ esac
 # ansible that is not available in liberty and mitaka.  There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
-  kilo|liberty|mitaka|ceph|hummingbird|3ctlr_2comp_3ceph)
+  kilo|liberty|mitaka|ceph|hummingbird|3ctlr_2comp_3ceph|osp13)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -138,7 +138,7 @@ function setup_embedded_ansible {
   export ANSIBLE_SSH_RETRIES="${ANSIBLE_SSH_RETRIES:-5}"
   export ANSIBLE_PIPELINING="${ANSIBLE_SSH_PIPELINING}"
 
-  if [ ${RE_JOB_ACTION} == osp_13_deploy ]; then
+  if [ ${RE_JOB_ACTION} = osp_13_deploy ] ||  [ ${RE_JOB_SCENARIO} = osp13 ]; then
     ANSIBLE_BINARY+=" -i ${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
   fi
 }
@@ -187,6 +187,9 @@ function ensure_osa_dir {
   fi
   if [[ "${RE_JOB_ACTION}" == "osp_13_deploy" && ! -f "/etc/openstack_deploy/user_rpcm_${RE_JOB_ACTION}_vars.yml" ]]; then
     echo -e "---\ndeploy_osp: true" > /etc/openstack_deploy/user_rpcm_${RE_JOB_ACTION}_vars.yml
+  fi
+  if [[ "${RE_JOB_SCENARIO}" == "osp13" && ! -f "/etc/openstack_deploy/user_rpcm_${RE_JOB_SCENARIO}_vars.yml" ]]; then
+    echo -e "---\ndeploy_osp: true" > /etc/openstack_deploy/user_rpcm_${RE_JOB_SCENARIO}_vars.yml
   fi
 }
 
@@ -303,7 +306,7 @@ execute_ansible_playbook ${TEST_SETUP_PLAYBOOK}
 # (NOTE: tonytan4ever) Temporary fix until upstream PR:
 # https://review.openstack.org/#/c/620991/3/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh
 # is merged.
-if [ ${RE_JOB_ACTION} == "osp_13_deploy" ]; then
+if [ ${RE_JOB_ACTION} == "osp_13_deploy" ] || [ ${RE_JOB_SCENARIO} == "osp13" ]; then
   pushd "/root/ansible_venv/repositories/openstack-ansible-plugins"
     git checkout 761338d09c4cfb356c53fbd0d28a0e55a4776da0  # HEAD of master from 29-11-18
   popd
@@ -311,7 +314,7 @@ fi
 
 # Enable MaaS API testing if the cloud variables are set.
 if [ ! "${PUBCLOUD_USERNAME:-false}" = false ] && [ ! "${PUBCLOUD_API_KEY:-false}" = false ]; then
-  if [ "${RE_JOB_ACTION}" = "osp_13_deploy" ]; then
+  if [ "${RE_JOB_ACTION}" = "osp_13_deploy" ] || [ "${RE_JOB_SCENARIO}" = "osp13" ]; then
     install_director_dev_packages
   fi
   enable_maas_api

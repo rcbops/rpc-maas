@@ -32,7 +32,7 @@ export OSA_REQUIREMENTS_CHECKOUT="master"
 export UPPER_CONSTRAINTS_FILE="https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=${OSA_REQUIREMENTS_CHECKOUT:-master}"
 export OSA_TEST_DEPS="https://git.openstack.org/cgit/openstack/openstack-ansible-tests/plain/test-ansible-deps.txt?h=${OSA_TESTS_CHECKOUT:-master}"
 
-if [ "${RE_JOB_ACTION}" = "osp_13_deploy" ]; then
+if [ "${RE_JOB_ACTION}" = "osp_13_deploy" ] ||  [ "${RE_JOB_SCENARIO}" = "osp13" ]; then
   > ${TEST_DIR}/RE_ENV
   ## TODO: Add pubcloud username/api key here
   env | grep "RE_\|PUBCLOUD_USERNAME\|PUBCLOUD_API_KEY" | while read -r match; do
