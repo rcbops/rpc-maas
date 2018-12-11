@@ -160,7 +160,7 @@ if [ ! -d "/etc/openstack_deploy" ]; then
   mkdir -p /etc/openstack_deploy
 fi
 
-if [[ ${RE_JOB_ACTION} != osp_13_deploy && ${RE_JOB_SCENARIO} != osp13 ]]; then
+if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
     if [ ! -d "/opt/openstack-ansible" ]; then
       git clone https://github.com/openstack/openstack-ansible /opt/openstack-ansible
     else
@@ -253,9 +253,6 @@ else
     git clone https://github.com/rcbops/osp-mnaio.git /opt/osp-mnaio
     pushd /opt/osp-mnaio
       export OSP_DEPLOY_VERSION=`echo ${RE_JOB_SCENARIO} | tr -d 'osp'`
-      # This overrides the above export intentionally on a temporary basis
-      # until we get rid of the old job scenarios and actions
-      export OSP_DEPLOY_VERSION=`echo ${RE_JOB_ACTION} | tr -d '[:alpha:][_]'`
       export OSP_JOB_ACTION=${RE_JOB_ACTION}
       export REDHAT_USERNAME=${RPC_OSP_REDHAT_USERNAME:-''}
       export REDHAT_PASSWORD=${RPC_OSP_REDHAT_PASSWORD:-''}
