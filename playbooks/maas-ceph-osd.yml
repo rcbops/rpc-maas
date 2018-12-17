@@ -20,7 +20,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp  | default(False)
+        - deploy_osp | default(False)
 
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
@@ -56,7 +56,7 @@
         - deploy_osp | default(False)
       register: osd_container_name
 
-    - name: Set container name  for osp template
+    - name: Set container name for osp template
       set_fact:
         container_name: "{{ osd_container_name.stdout | trim }}"
       when:
@@ -67,7 +67,7 @@
       ceph_osd_host_facts:
         hostname: "{{ ansible_hostname }}"
         container_name: "{{ container_name | default(inventory_hostname) }}"
-        deploy_osp: "{{ deploy_osp  | default(False) }}"
+        deploy_osp: "{{ deploy_osp | default(False) }}"
       tags:
         - always
 

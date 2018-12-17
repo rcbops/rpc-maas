@@ -81,7 +81,8 @@ def main():
             ),
             deploy_osp=dict(
                 required=False,
-                default=False
+                default=False,
+                type='bool'
             )
         ),
         supports_check_mode=False
