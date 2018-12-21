@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Add boolean type for deploy_osp in custom OSD fact gathering module.
