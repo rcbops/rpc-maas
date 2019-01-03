@@ -133,10 +133,6 @@ function setup_embedded_ansible {
   source /opt/bootstrap-embedded-ansible.sh
   export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_VARS"
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
-  export ANSIBLE_TRANSPORT="${ANSIBLE_TRANSPORT:-ssh}"
-  export ANSIBLE_SSH_PIPELINING="${ANSIBLE_SSH_PIPELINING:-True}"
-  export ANSIBLE_SSH_RETRIES="${ANSIBLE_SSH_RETRIES:-5}"
-  export ANSIBLE_PIPELINING="${ANSIBLE_SSH_PIPELINING}"
 
   if [ ${RE_JOB_SCENARIO} = osp13 ]; then
     ANSIBLE_BINARY+=" -i ${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
@@ -299,15 +295,6 @@ fi
 
 # Run test setup playbook
 execute_ansible_playbook ${TEST_SETUP_PLAYBOOK}
-
-# (NOTE: tonytan4ever) Temporary fix until upstream PR:
-# https://review.openstack.org/#/c/620991/3/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh
-# is merged.
-if [ ${RE_JOB_SCENARIO} == "osp13" ]; then
-  pushd "/root/ansible_venv/repositories/openstack-ansible-plugins"
-    git checkout 761338d09c4cfb356c53fbd0d28a0e55a4776da0  # HEAD of master from 29-11-18
-  popd
-fi
 
 # Enable MaaS API testing if the cloud variables are set.
 if [ ! "${PUBCLOUD_USERNAME:-false}" = false ] && [ ! "${PUBCLOUD_API_KEY:-false}" = false ]; then
