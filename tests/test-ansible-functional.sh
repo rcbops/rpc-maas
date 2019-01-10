@@ -126,11 +126,12 @@ function set_ansible_parameters {
 
 function setup_embedded_ansible {
   # Installation of embedded ansible for rpc-maas
-  if [[ ! -f "/opt/bootstrap-embedded-ansible.sh" ]]; then
-    wget https://raw.githubusercontent.com/openstack/openstack-ansible-ops/master/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh -O /opt/bootstrap-embedded-ansible.sh
+  if [[ ! -d "/opt/magnanimous-turbo-chainsaw" ]]; then
+    git clone https://github.com/rcbops/magnanimous-turbo-chainsaw.git /opt/magnanimous-turbo-chainsaw
+    bash /opt/magnanimous-turbo-chainsaw/scripts/setup.sh
   fi
   export PS1="${PS1:-'\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '}"
-  source /opt/bootstrap-embedded-ansible.sh
+  PS1=${PS1:-'\\u@\h \\W]\\$'} source /opt/openstack-ansible-ops/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh
   export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_VARS"
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
 
