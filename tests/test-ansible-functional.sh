@@ -52,7 +52,6 @@ if [ ${RE_JOB_SCENARIO} = osp13 ]; then
   export ANSIBLE_HOST_KEY_CHECKING="false"
   export WORKING_DIR="/opt/rpc-maas"
   # Set ansible version for embeded ansible runtime
-  export ANSIBLE_VERSION="2.6.5"
   export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-false}"
 else
   # Ansible Inventory will be set to OSA
@@ -127,10 +126,11 @@ function set_ansible_parameters {
 function setup_embedded_ansible {
   # Installation of embedded ansible for rpc-maas
   if [[ ! -d "/opt/magnanimous-turbo-chainsaw" ]]; then
+    export ANSIBLE_VERSION=2.6.5
     curl https://raw.githubusercontent.com/rcbops/magnanimous-turbo-chainsaw/master/scripts/setup.sh | bash
   fi
   pushd /opt/magnanimous-turbo-chainsaw/scripts
-    source setup-workspace.sh
+    PS1="${PS1:-'\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '}" ANSIBLE_VERSION=2.6.5 source /opt/magnanimous-turbo-chainsaw/scripts/setup-workspace.sh
   popd
   export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_VARS"
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
