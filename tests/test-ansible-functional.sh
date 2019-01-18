@@ -261,7 +261,7 @@ function enable_maas_api {
 maas_use_api: true
 
 # Set the default notification plan, in the gate this is set here
-maas_notification_plan: nptuQS75MU 
+maas_notification_plan: npTechnicalContactsEmail 
 
 # Use the previously created artifact to make a unique entity for queens+ gates
 # This is required as OSA now sets the hostname generically as 'aio1' which will
