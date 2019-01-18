@@ -21,6 +21,7 @@ from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
+from maas_common import status_ok
 import memcache
 
 

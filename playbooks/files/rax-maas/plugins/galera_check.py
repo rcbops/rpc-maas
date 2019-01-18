@@ -108,7 +108,7 @@ def print_metrics(replica_status):
     metric('innodb_row_lock_time_avg', 'int64',
            replica_status['Innodb_row_lock_time_avg'], 'milliseconds')
     metric('innodb_deadlocks', 'int64',
-           replica_status['Innodb_deadlocks'], 'deadlocks')
+           replica_status.get('Innodb_deadlocks', 0), 'deadlocks')
     metric('access_denied_errors', 'int64',
            replica_status['Access_denied_errors'], 'access_denied_errors')
     metric('aborted_clients', 'int64',

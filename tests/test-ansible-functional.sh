@@ -26,7 +26,7 @@
 
 ## Shell Opts ----------------------------------------------------------------
 
-set -evuo pipefail
+set -exuo pipefail
 
 echo "Run Functional Tests"
 echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
@@ -81,7 +81,7 @@ esac
 # ansible that is not available in liberty and mitaka.  There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
-  kilo|liberty|mitaka|ceph|hummingbird|osp13)
+  kilo|liberty|mitaka|ceph|hummingbird|osp13|rocky)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -126,12 +126,12 @@ function set_ansible_parameters {
 
 function setup_embedded_ansible {
   # Installation of embedded ansible for rpc-maas
-  if [[ ! -f "/opt/bootstrap-embedded-ansible.sh" ]]; then
-    wget https://raw.githubusercontent.com/openstack/openstack-ansible-ops/master/bootstrap-embedded-ansible/bootstrap-embedded-ansible.sh -O /opt/bootstrap-embedded-ansible.sh
+  if [[ ! -d "/opt/magnanimous-turbo-chainsaw" ]]; then
+    export ANSIBLE_VERSION=2.6.5
+    curl -s https://raw.githubusercontent.com/rcbops/magnanimous-turbo-chainsaw/master/scripts/setup.sh | bash
   fi
-  export PS1="${PS1:-'\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '}"
-  source /opt/bootstrap-embedded-ansible.sh
-  export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_VARS"
+  PS1="${PS1:-'\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '}" ANSIBLE_VERSION=2.6.5 source /opt/magnanimous-turbo-chainsaw/scripts/setup-workspace.sh
+  export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_ALL_VARS"
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
 
   if [ ${RE_JOB_SCENARIO} = osp13 ]; then
@@ -221,6 +221,7 @@ function enable_maas_api {
   # NOTE(cloudnull): Enable the maas api by setting the "maas_use_api" option to true.
   #                  This will also pull a token from RAX MaaS and set it as an env var.
   ensure_osa_dir
+  get_pip
 
   echo "Show the version of the pip packages in the functional venv."
   echo "This helps identify issues with pyrax"
@@ -229,26 +230,18 @@ function enable_maas_api {
   /usr/bin/env python -c 'import sys; print(sys.path)'
   echo "END PACKAGE LIST"
 
-  # NOTE(cloudnull): In order to verify maas "pyrax" must be installed, which is a terrible piece
-  #                  of software and is poorly maintained. To ensure it does not infect the rest
-  #                  of the stack "pyrax" along with the test requirements are installed in a
-  #                  different virtualenv which are done in three tasks. These three tasks are being
-  #                  run in this particular order to ensure "pyrax" installs correctly.
   PYTHON_BIN="$(which python)"
-  virtualenv --python="${PYTHON_BIN}" /opt/test-maas
-  /opt/test-maas/bin/pip install "jinja2" --isolated --upgrade --force-reinstall
+  virtualenv --no-setuptools --python="${PYTHON_BIN}" /opt/test-maas
+  /opt/test-maas/bin/pip install setuptools requests --isolated --upgrade --force-reinstall
+  
   # NOTE(tonytan4ever):  pip on newton will broken because of a mis-installed version of setuptools
   if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
   fi
-  /opt/test-maas/bin/pip install -r ${WORKING_DIR}/test-requirements.txt --isolated --upgrade --force-reinstall
-  /opt/test-maas/bin/pip install "SecretStorage < 3" --isolated
-  /opt/test-maas/bin/pip install "pyrax" --isolated
 
   # Collect a maas auth token for API tests
   /opt/test-maas/bin/python $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
-                                                            --api-key "${PUBCLOUD_API_KEY}" \
-                                                            get_token_url
+                                                            --apikey "${PUBCLOUD_API_KEY}"
 
   # We're sourcing the file so that it's not written to a collected artifact
   . ~/maas-vars.rc
@@ -260,7 +253,7 @@ function enable_maas_api {
 maas_use_api: true
 
 # Set the default notification plan, in the gate this is set here
-maas_notification_plan: npTechnicalContactsEmail
+maas_notification_plan: nptuQS75MU 
 
 # Use the previously created artifact to make a unique entity for queens+ gates
 # This is required as OSA now sets the hostname generically as 'aio1' which will
