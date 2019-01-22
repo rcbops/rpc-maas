@@ -117,7 +117,7 @@
       when:
         - "'lxc_hosts' in groups"
         - inventory_hostname in groups['lxc_hosts']
- 
+
     - name: Upgrade virtualenv
       pip:
         name: "virtualenv"
@@ -130,6 +130,8 @@
       until: install_pip_packages|success
       become: yes
       retries: 5
+      tags:
+        - skip_ansible_lint
 
     - name: Ensure package venv directory exists
       file:

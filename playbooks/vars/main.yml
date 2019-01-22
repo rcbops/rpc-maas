@@ -485,4 +485,4 @@ maas_rabbitmq_distro_packages:
 #
 maas_agent_distro_packages:
   - python-lxc
-  - virtualenv
+  - python-virtualenv

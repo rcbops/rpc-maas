@@ -241,7 +241,7 @@ function enable_maas_api {
   PYTHON_BIN="$(which python)"
   virtualenv --no-setuptools --python="${PYTHON_BIN}" /opt/test-maas
   /opt/test-maas/bin/pip install setuptools requests --isolated --upgrade --force-reinstall
-  
+
   # NOTE(tonytan4ever):  pip on newton will broken because of a mis-installed version of setuptools
   if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
@@ -261,7 +261,7 @@ function enable_maas_api {
 maas_use_api: true
 
 # Set the default notification plan, in the gate this is set here
-maas_notification_plan: npTechnicalContactsEmail 
+maas_notification_plan: npTechnicalContactsEmail
 
 # Use the previously created artifact to make a unique entity for queens+ gates
 # This is required as OSA now sets the hostname generically as 'aio1' which will
