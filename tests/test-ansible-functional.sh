@@ -224,17 +224,11 @@ function enable_maas_api {
   ensure_osa_dir
 
   echo "Show the version of the pip packages in the functional venv."
-  echo "This helps identify issues with pyrax"
   echo "START PACKAGE LIST"
   pip list --format=columns || pip list
   /usr/bin/env python -c 'import sys; print(sys.path)'
   echo "END PACKAGE LIST"
 
-  # NOTE(cloudnull): In order to verify maas "pyrax" must be installed, which is a terrible piece
-  #                  of software and is poorly maintained. To ensure it does not infect the rest
-  #                  of the stack "pyrax" along with the test requirements are installed in a
-  #                  different virtualenv which are done in three tasks. These three tasks are being
-  #                  run in this particular order to ensure "pyrax" installs correctly.
   PYTHON_BIN="$(which python)"
   virtualenv --python="${PYTHON_BIN}" /opt/test-maas
   /opt/test-maas/bin/pip install "jinja2" --isolated --upgrade --force-reinstall
@@ -243,8 +237,6 @@ function enable_maas_api {
     /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
   fi
   /opt/test-maas/bin/pip install -r ${WORKING_DIR}/test-requirements.txt --isolated --upgrade --force-reinstall
-  /opt/test-maas/bin/pip install "SecretStorage < 3" --isolated
-  /opt/test-maas/bin/pip install "pyrax" --isolated
 
   # Collect a maas auth token for API tests
   /opt/test-maas/bin/python $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \

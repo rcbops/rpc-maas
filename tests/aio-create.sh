@@ -222,13 +222,9 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
       elif [ "${RE_JOB_SCENARIO}" == "queens" ]; then
         git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
-      
-      elif [ "${RE_JOB_SCENARIO}" == "rocky" ]; then
-        git checkout "stable/rokcy"  # Branch checkout of Rokcy (Current Stable)
-        export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
 
       elif [ "${RE_JOB_SCENARIO}" == "rocky" ]; then
-        git checkout "stable/rokcy"  # Branch checkout of Rokcy (Current Stable)
+        git checkout "stable/rocky"  # Branch checkout of Rocky (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
 
       fi
