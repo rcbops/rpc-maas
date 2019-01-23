@@ -246,8 +246,16 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
       # Disable tempest on older releases
       sed -i '/.*run-tempest.sh.*/d' scripts/gate-check-commit.sh  # Disable the tempest run
 
-      # Pin python-ldap so it stops breaking everything
-      echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+      # NOTE(npawelek): Rocky requires a different version to be set, all other
+      # releases work with the existing pin
+      case $RE_JOB_SCENARIO in
+        rocky)
+          true
+          ;;
+        *)
+          echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+          ;;
+      esac
 
       # Disable the sec role
       disable_security_role
