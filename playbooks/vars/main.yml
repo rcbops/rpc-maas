@@ -479,10 +479,3 @@ horizon_service_port: '443'
 #
 maas_rabbitmq_distro_packages:
   - python-httplib2
-
-#
-# Distro packages to be installed for the maas-agent runtime
-#
-maas_agent_distro_packages:
-  - python-lxc
-  - python-virtualenv

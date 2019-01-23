@@ -58,3 +58,9 @@ maas_pip_install_packages:
   - pip
   - setuptools
   - wheel
+
+#
+# Distro packages to be installed for the maas-agent runtime
+#
+maas_agent_distro_packages:
+  - python-virtualenv

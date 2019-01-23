@@ -187,6 +187,8 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
         sed -i -e 's/0.4.4/v0.4.4/g' /opt/openstack-ansible/ansible-role-requirements.yml
         # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
         sed -i 's/\(_container\: \).*/\11/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
+        # NOTE(npawelek): Prevent config file modification prompts and default to existing
+        sed -i '/DEBIAN_FRONTEND=noninteractive apt-get install iptables-persistent/ s/install/install -y --force-yes -o Dpkg::Options::="--force-confold"/' /opt/openstack-ansible/scripts/run-playbooks.sh
         spice_repo_fix
 
       elif [ "${RE_JOB_SCENARIO}" == "mitaka" ]; then

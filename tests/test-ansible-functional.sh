@@ -239,6 +239,7 @@ function enable_maas_api {
   echo "END PACKAGE LIST"
 
   PYTHON_BIN="$(which python)"
+  pip install -U virtualenv --isolated
   virtualenv --no-setuptools --python="${PYTHON_BIN}" /opt/test-maas
   /opt/test-maas/bin/pip install setuptools requests --isolated --upgrade --force-reinstall
 
