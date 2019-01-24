@@ -74,7 +74,7 @@
 
     - name: Install pip packages to venv
       pip:
-        name: "{{ maas_pip_packages | join(' ') }}"
+        name: "{{ maas_pip_packages  }}"
         state: "{{ maas_pip_package_state }}"
         extra_args: >-
           --isolated

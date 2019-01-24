@@ -35,7 +35,7 @@
   post_tasks:
     - name: Install swift pip packages to venv
       pip:
-        name: "{{ maas_openstack_swift_pip_packages | join(' ') }}"
+        name: "{{ maas_openstack_swift_pip_packages  }}"
         state: "{{ maas_pip_package_state }}"
         extra_args: >-
           --isolated
