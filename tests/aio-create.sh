@@ -226,14 +226,8 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
 
       elif [ "${RE_JOB_SCENARIO}" == "rocky" ]; then
-<<<<<<< HEAD
-        git checkout "stable/rokcy"  # Branch checkout of Rokcy (Current Stable)
-        export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
-
-=======
         git checkout "stable/rocky"  # Branch checkout of Rocky (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
->>>>>>> Create rocky job scenario in aio-create.sh
       fi
 
       # Install ovs agent if applicable

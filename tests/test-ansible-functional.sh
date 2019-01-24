@@ -127,19 +127,12 @@ function setup_embedded_ansible {
   # Installation of embedded ansible for rpc-maas
   if [[ ! -d "/opt/magnanimous-turbo-chainsaw" ]]; then
     export ANSIBLE_VERSION=2.6.5
-<<<<<<< HEAD
     curl https://raw.githubusercontent.com/rcbops/magnanimous-turbo-chainsaw/master/scripts/setup.sh | bash
   fi
   pushd /opt/magnanimous-turbo-chainsaw/scripts
     PS1="${PS1:-'\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '}" ANSIBLE_VERSION=2.6.5 source /opt/magnanimous-turbo-chainsaw/scripts/setup-workspace.sh
   popd
-  export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_VARS"
-=======
-    curl -s https://raw.githubusercontent.com/rcbops/magnanimous-turbo-chainsaw/master/scripts/setup.sh | bash
-  fi
-  PS1="${PS1:-'\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '}" ANSIBLE_VERSION=2.6.5 source /opt/magnanimous-turbo-chainsaw/scripts/setup-workspace.sh
   export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_ALL_VARS"
->>>>>>> Update for more rocky and embedded ansible changes
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
 
   if [ ${RE_JOB_SCENARIO} = osp13 ]; then
