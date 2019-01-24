@@ -215,14 +215,16 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
         git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
 
       elif [ "${RE_JOB_SCENARIO}" == "pike" ]; then
-        git checkout "a8a809839484105d9cd27463defc19a8a617c64b"  # Branch checkout of Pike (Current Stable)
-        # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
-        sed -i -e 's/0.5.1/v0.5.1/g' /opt/openstack-ansible/ansible-role-requirements.yml
+        git checkout "stable/pike"  # Branch checkout of Pike (Current Stable)
         # Pin flask so it stops breaking xenial and other versions
         echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
 
       elif [ "${RE_JOB_SCENARIO}" == "queens" ]; then
         git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
+        export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+
+      elif [ "${RE_JOB_SCENARIO}" == "rocky" ]; then
+        git checkout "stable/rokcy"  # Branch checkout of Rokcy (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
 
       fi
