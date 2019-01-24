@@ -1,38 +1,61 @@
 #!/usr/bin/env python
 import os
+import sys
 
 import click
-import pyrax
+from rackspace_monitoring.providers import get_driver
+from rackspace_monitoring.types import Provider
 import requests
 
 
+@click.group()
 @click.option("--username", required=True)
 @click.option("--api-key", required=True)
-@click.group()
-def cli(api_key, username):
-    pyrax.set_setting("identity_type", "rackspace")
-    pyrax.set_credentials(
-        username,
-        api_key
+@click.pass_context
+def cli(ctx, api_key, username):
+    ctx.obj = {
+        'username': username,
+        'api-key': api_key
+    }
+    url = 'https://identity.api.rackspacecloud.com/v2.0/tokens'
+    headers = {"Content-type": "application/json"}
+    data = {
+        "auth": {
+            "RAX-KSKEY:apiKeyCredentials": {
+                "username": username,
+                "apiKey": api_key
+            }
+        }
+    }
+
+    try:
+        r = requests.post(url, headers=headers, json=data)
+        r.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(e)
+        sys.exit(1)
+    except requests.exceptions.HTTPError as httpe:
+        print(httpe)
+        sys.exit(1)
+    resp = r.json()
+    ctx.obj['token'] = resp['access']['token']['id']
+    monitoring_service = next(
+        s for s in resp['access']['serviceCatalog']
+        if s["name"] == "cloudMonitoring"
     )
+    ctx.obj['url'] = monitoring_service['endpoints'][0]['publicURL']
 
 
 @click.command(name='get_token_url')
-def get_token_url():
-    token = pyrax.identity.token
-
-    monitoring_service = next(
-        b for b in pyrax.identity.service_catalog
-        if b["type"] == "rax:monitor"
-    )
-    url = monitoring_service["endpoints"][0]["publicURL"]
+@click.pass_context
+def get_token_url(ctx):
     cred_file = os.path.expanduser('~/maas-vars.rc')
     with open(cred_file, 'w') as f:
         f.write(
             "export MAAS_AUTH_TOKEN={token}\n"
             "export MAAS_API_URL={url}\n".format(
-                token=token,
-                url=url
+                token=ctx.obj['token'],
+                url=ctx.obj['url']
             )
         )
 
@@ -41,7 +64,7 @@ def get_token_url():
             cred_file=cred_file
         )
     )
-    return token, url
+    return ctx.obj['token'], ctx.obj['url']
 
 
 @click.command(name='set_webhook_token')
@@ -68,9 +91,11 @@ def set_webhook_token(ctx, webhook_token):
 
 @click.command(name='get_entity_id')
 @click.option("--label", help="label of entity to get ID for", required=True)
-def get_entity_id(label):
-    mon = pyrax.cloud_monitoring
-    entities = mon.list_entities()
+@click.pass_context
+def get_entity_id(ctx, label):
+    Cls = get_driver(Provider.RACKSPACE)
+    driver = Cls(ctx.obj['username'], ctx.obj['api-key'])
+    entities = driver.list_entities()
     for e in entities:
         if label == e.label:
             click.echo(e.id)
