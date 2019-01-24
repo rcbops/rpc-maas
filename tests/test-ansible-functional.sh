@@ -225,7 +225,6 @@ function enable_maas_api {
   get_pip
 
   echo "Show the version of the pip packages in the functional venv."
-  echo "This helps identify issues with pyrax"
   echo "START PACKAGE LIST"
   pip list --format=columns || pip list
   /usr/bin/env python -c 'import sys; print(sys.path)'
@@ -240,6 +239,8 @@ function enable_maas_api {
   if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
   fi
+
+  /opt/test-maas/bin/pip install -r ${WORKING_DIR}/test-requirements.txt --isolated --upgrade --force-reinstall
 
   # Collect a maas auth token for API tests
   /opt/test-maas/bin/python $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
