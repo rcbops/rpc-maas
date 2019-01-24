@@ -244,7 +244,8 @@ function enable_maas_api {
 
   # Collect a maas auth token for API tests
   /opt/test-maas/bin/python $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
-                                                            --apikey "${PUBCLOUD_API_KEY}"
+                                                            --api-key "${PUBCLOUD_API_KEY}" \
+                                                            get_token_url
 
   # We're sourcing the file so that it's not written to a collected artifact
   . ~/maas-vars.rc
