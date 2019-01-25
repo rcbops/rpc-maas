@@ -61,5 +61,8 @@ maas_product_osa_dir: /opt/openstack-ansible
 # Nova console type is required
 maas_nova_console_type: spice
 
+# cinder_service_backup_enbaled is required for rocky
+cinder_service_backup_program_enabled: false
+
 # Determine if cinder backup is used, otherwise disable
 maas_monitor_cinder_backup: "{{ cinder_service_backup_program_enabled | default(false) }}"

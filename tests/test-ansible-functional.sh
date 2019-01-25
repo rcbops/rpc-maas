@@ -138,6 +138,10 @@ function setup_embedded_ansible {
   if [ ${RE_JOB_SCENARIO} = osp13 ]; then
     ANSIBLE_BINARY+=" -i ${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
   fi
+
+  if [ ${RE_JOB_SCENARIO} = rocky ]; then
+    export ANSIBLE_GATHER_TIMEOUT=30
+  fi
 }
 
 function execute_ansible_playbook {
@@ -189,7 +193,8 @@ function ensure_osa_dir {
 
 function install_director_dev_packages {
   get_pip
-  yum install -y python-virtualenv iptables python-devel
+  # virtualenv will be installed in enable_maas_api with pip. 
+  yum install -y iptables python-virtualenv python-devel
   yum groupinstall -y "Development Tools"
 }
 
@@ -231,7 +236,13 @@ function enable_maas_api {
   echo "END PACKAGE LIST"
 
   PYTHON_BIN="$(which python)"
+  # NOTE(tonytan4ever): pip upgrade virtualenv is broken in osp13
+  if [ ${RE_JOB_SCENARIO} = osp13 ]; then
+    yum remove -y python-virtualenv
+  fi
+
   pip install -U virtualenv --isolated
+
   virtualenv --no-setuptools --python="${PYTHON_BIN}" /opt/test-maas
   /opt/test-maas/bin/pip install setuptools requests --isolated --upgrade --force-reinstall
 
