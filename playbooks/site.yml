@@ -45,10 +45,6 @@
   tags:
     - maas
 
-- include: maas-hummingbird.yml
-  tags:
-    - maas
-    - hummingbird
 - include: maas-managed-k8.yml
   tags:
     - maas
