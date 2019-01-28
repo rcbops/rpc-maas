@@ -70,7 +70,7 @@
         - maas_rally_checks[item]['duration_threshold'] < 1 or maas_rally_checks[item]['duration_threshold'] > 100
 
   vars_files:
-    - vars/maas-rally.yml
+    - vars/maas-openstack.yml
 
 
 - name: Configure maas_rally virtual environments
@@ -158,8 +158,9 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-agent.yml
-    - vars/maas-rally.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
 
 
@@ -452,8 +453,9 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-agent.yml
-    - vars/maas-rally.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
 
 
@@ -578,8 +580,9 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-agent.yml
-    - vars/maas-rally.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
 
 - name: Deploy support helper script to utility containers

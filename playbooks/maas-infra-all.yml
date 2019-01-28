@@ -31,7 +31,7 @@
 
 - include: maas-infra-pacemaker.yml
   when:
-    - deploy_osp | default(False)
+    - deploy_osp | bool
   tags:
     - maas-pacemaker
 

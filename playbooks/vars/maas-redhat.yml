@@ -18,53 +18,38 @@
 #
 maas_distro_packages:
   - git
-  - libffi-dev
-  - libjpeg8-dev
-  - libssl-dev
-  - libxml2-dev
-  - libxslt-dev
-  - sysstat
-  - rackspace-monitoring-agent
-  - python-dev
+  - curl
+  - autoconf
   - gcc
-
-#
-# List of packages maas requires on galera hosts
-#
-maas_galera_distro_packages:
-  - mariadb-client
-
-#
-# MaaS GPG keys
-#
-maas_keys:
-  url: "https://monitoring.api.rackspacecloud.com/pki/agent/linux.asc"
-  state: "present"
+  - gcc-c++
+  - nc
+  - python2
+  - python2-devel
+  - openssl-devel
+  - libffi-devel
+  - libselinux-python
+  - rackspace-monitoring-agent
+  - sysstat
 
 #
 # MaaS poller repos
 #
 maas_repos:
   main:
-    repo: "deb http://stable.packages.cloudmonitoring.rackspace.com/ubuntu-{{ ansible_distribution_version | lower }}-x86_64 cloudmonitoring main"
+    repo: "http://stable.packages.cloudmonitoring.rackspace.com/redhat-{{ ansible_distribution_major_version | lower }}-x86_64/"
     state: "present"
     enabled: "yes"
   poller:
-    repo: "deb [arch=amd64] http://stable.poller.packages.cloudmonitoring.rackspace.com/debian cloudmonitoring main"
+    repo: "http://stable.poller.packages.cloudmonitoring.rackspace.com/redhat-{{ ansible_distribution_major_version | lower }}-x86_64/"
     state: "present"
     enabled: "yes"
+
 
 #
 # MaaS poller distro packages
 #
 maas_poller_distro_packages:
   - rackspace-monitoring-poller
-
-#
-# pip installable packages for given services used within maas
-#
-maas_container_pip_packages:
-  - lxc-python2
 
 #
 # Distro packages needed to be installed for rabbitmq monitoring

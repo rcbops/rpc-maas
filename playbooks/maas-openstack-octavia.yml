@@ -14,6 +14,21 @@
 # limitations under the License.
 
 - name: Gather facts
+  hosts: octavia_all:Controller
+  gather_facts: false
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
+
+- name: Gather facts
   hosts: "{{ octavia_hosts_all|default('octavia_all') }}"
   user: "{{ octavia_ansible_user|default('root') }}"
   become: "{{ octavia_ansible_become|default('no') }}"
@@ -25,11 +40,6 @@
         maas_current_group: "octavia_hosts_all"
 
   post_tasks:
-    - name: Set physical host
-      set_fact:
-        physical_host: "{{ ansible_host }}"
-      when: deploy_osp|default(false)
-
     - name: Install octavia pip packages to venv
       pip:
         name: "{{ maas_openstack_octavia_pip_packages  }}"
@@ -46,7 +56,8 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
   vars_files:
     - vars/main.yml
-    - "{{ octavia_var_files|default('vars/maas-openstack.yml') }}"
+    - vars/maas.yml
+    - vars/maas-openstack.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     -  maas-openstack-octavia
@@ -57,11 +68,6 @@
   become: "{{ octavia_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
-    - name: Set physical host
-      set_fact:
-        physical_host: "{{ ansible_host }}"
-      when: deploy_osp|default(false)
-
     - name: Install octavia process check
       template:
         src: "templates/rax-maas/octavia_process_check.yaml.j2"
@@ -75,28 +81,32 @@
       shell: ". {{ maas_openrc|default('/root/openrc') }} && openstack project list --user octavia -c ID -f value"
       register: octavia_project_return_rpco
       delegate_to: "{{ groups['utility_all'][0] }}"
-      when: not deploy_osp|default(false)
+      when:
+        - not deploy_osp | bool
       tags:
         - skip_ansible_lint
 
     - name: Set project id when rpc-o
       set_fact:
         octavia_project_id: "{{ octavia_project_return_rpco.stdout }}"
-      when: not deploy_osp|default(false)
+      when:
+        - not deploy_osp | bool
 
     - name: Get project id (RPC-R)
       shell: ". {{ director_openrc }} && openstack project show service -c id -f value"
       register: octavia_project_return_rpcr
       run_once: true
       delegate_to: "localhost"
-      when: deploy_osp|default(false)
+      when:
+        - deploy_osp | bool
       tags:
         - skip_ansible_lint
 
     - name: Set project id when rpc-r
       set_fact:
         octavia_project_id: "{{ octavia_project_return_rpcr.stdout }}"
-      when: deploy_osp|default(false)
+      when:
+        - deploy_osp | bool
 
     - name: Install octavia quota check
       template:
@@ -109,7 +119,8 @@
 
   vars_files:
     - vars/main.yml
-    - "{{ octavia_var_files|default('vars/maas-openstack.yml') }}"
+    - vars/maas.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-octavia
 
@@ -119,22 +130,11 @@
   become: "{{ octavia_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
-    - name: Set physical host
-      set_fact:
-        physical_host: "{{ ansible_host }}"
-        internal_ips: "{{ ansible_all_ipv4_addresses|ipaddr(osp_internal_netmask)|difference([internal_vip_address]) }}"
-      when: deploy_osp|default(false)
-
-    - name: Set internal ip
-      set_fact:
-        internal_ip: "{{ internal_ips[0] }}"
-      when: deploy_osp|default(false)
-
-
     - name: Add load-balancer member role (RPC-O)
       shell: ". {{ maas_openrc|default('/root/openrc') }} && openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer"
       delegate_to: "{{ groups['utility_all'][0] }}"
-      when: not deploy_osp|default(false)
+      when:
+        - not deploy_osp | bool
       tags:
         - skip_ansible_lint
 
@@ -146,7 +146,8 @@
         openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer
       delegate_to: "localhost"
       run_once: true
-      when: deploy_osp|default(false)
+      when:
+        - deploy_osp | bool
       tags:
         - skip_ansible_lint
 
@@ -185,6 +186,7 @@
 
   vars_files:
     - vars/main.yml
-    - "{{ octavia_var_files|default('vars/maas-openstack.yml') }}"
+    - vars/maas.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-octavia

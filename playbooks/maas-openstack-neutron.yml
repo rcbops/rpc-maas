@@ -15,14 +15,25 @@
 
 - name: Gather facts
   hosts: neutron_all
+  gather_facts: false
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
+
+- name: Gather facts
+  hosts: neutron_all
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
@@ -54,6 +65,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
@@ -100,6 +112,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron
@@ -121,6 +134,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron
@@ -142,6 +156,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron
@@ -164,6 +179,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron
@@ -186,6 +202,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron
@@ -207,6 +224,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron
@@ -228,6 +246,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-neutron

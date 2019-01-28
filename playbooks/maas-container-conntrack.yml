@@ -49,7 +49,7 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-container.yml
+    - vars/maas.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-container-conntrack
@@ -71,7 +71,6 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-host.yml
-    - vars/maas-container.yml
+    - vars/maas.yml
   tags:
     - maas-container-container

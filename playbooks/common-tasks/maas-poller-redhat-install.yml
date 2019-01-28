@@ -23,9 +23,9 @@
   yum_repository:
     name: rackspace-monitoring-poller
     description: Rackspace Monitoring poller repository
-    file: "{{ maas_poller_repos.file | default(omit) }}"
-    state: "{{ maas_poller_repos.state }}"
-    baseurl: "{{ maas_poller_repos.redhat_repo }}"
+    file: "{{ maas_repos.poller.file | default(omit) }}"
+    state: "{{ maas_repos.poller.state }}"
+    baseurl: "{{ maas_repos.poller.repo }}"
     enabled: yes
   become: yes
   register: add_repos
@@ -34,10 +34,9 @@
   delay: 2
 
 - name: Install Linux poller packages
-  yum:
-    name: "{{ item }}"
+  package:
+    name: "{{ maas_poller_distro_packages }}"
     state: present
   become: yes
-  with_items: "{{ maas_poller_distro_packages }}"
   retries: 5
   delay: 2

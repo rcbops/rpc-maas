@@ -49,7 +49,7 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-infra.yml
+    - vars/maas.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-infra-memcached
@@ -71,5 +71,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
   tags:
     - maas-infra-memcached

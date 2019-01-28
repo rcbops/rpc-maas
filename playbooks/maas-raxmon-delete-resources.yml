@@ -17,6 +17,9 @@
   hosts: hosts
   user: "{{ ansible_user | default('root') }}"
   tasks:
+    - name: Include maas venv create
+      include_tasks: common-tasks/maas-venv-create.yml
+
     - name: Delete gating agent token
       raxmon:
         cmd: delete_agent_token
@@ -40,4 +43,5 @@
         - "'Rackspace Cloud Server entities may not be deleted' not in delete_entity_results.msg"
 
   vars_files:
-    - ../playbooks/vars/main.yml
+    - vars/main.yml
+    - vars/maas.yml

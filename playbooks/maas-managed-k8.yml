@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: "{{ mk8s_infra_host|default('os-infra_hosts') }}"
+  hosts: os-infra_hosts:Controller
   user: "{{ mk8s_ansible_user|default('root') }}"
   become: "{{ mk8s_ansible_become|default('no') }}"
   gather_facts: "{{ gather_facts | default(true) }}"
@@ -25,16 +25,17 @@
       set_fact:
         maas_current_group: k8_all
 
-    - name: Set physical host
-      set_fact:
-        physical_host: "{{ ansible_host }}"
-      when: deploy_osp|default(false)
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
 
   vars_files:
     - vars/main.yml
-    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
+    - vars/maas.yml
   tags:
     - maas-managed-k8
+    - always
 
 - name: Install checks for mk8s ui
   hosts:  "{{ mk8s_ui_hosts | default('mk8s_ui_all') }}"
@@ -49,7 +50,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
     - name: Install mk8s ui local checks
       template:
@@ -58,7 +59,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
     - name: Install mk8s ui lb checks
       template:
@@ -67,7 +68,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
       when:
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
@@ -79,13 +80,13 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
   vars_files:
     - vars/main.yml
-    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
+    - vars/maas.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-managed-k8
@@ -103,7 +104,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
     - name: Install mk8s etp local checks
       template:
@@ -112,11 +113,11 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
     # Ideally ETP should not be accessible from the outside so skip those checks
   vars_files:
     - vars/main.yml
-    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
+    - vars/maas.yml
   tags:
     - maas-managed-k8
 
@@ -133,7 +134,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
     - name: Install mk8s etg local checks
       template:
@@ -142,11 +143,11 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
     # Ideally etg should not be accessible from the outside so skip those checks
   vars_files:
     - vars/main.yml
-    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
+    - vars/maas.yml
   tags:
     - maas-managed-k8
 
@@ -163,7 +164,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
     - name: Install mk8s auth local checks
       template:
@@ -172,10 +173,10 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
     # Ideally auth should not be accessible from the outside so skip those checks
   vars_files:
     - vars/main.yml
-    - "{{ mk8s_var_file|default('vars/maas-managed-k8.yml') }}"
+    - vars/maas.yml
   tags:
     - maas-managed-k8

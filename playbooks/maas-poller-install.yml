@@ -16,30 +16,49 @@
 - name: Gather facts
   hosts: shared-infra_hosts
   gather_facts: "{{ gather_facts | default(true) }}"
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: shared-infra_hosts
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
   tags:
-    - maas-poller-install
+    - always
 
 - name: Install MaaS Poller
   hosts: shared-infra_hosts
   gather_facts: false
   pre_tasks:
-    - name: Include Ubuntu distro install tasks
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
-        - ansible_distribution | lower == 'ubuntu'
-      include: "common-tasks/maas-poller-ubuntu-install.yml"
+    - name: Gather variables for each operating system
+      include_vars: "{{ item }}"
+      with_first_found:
+        - "vars/maas-{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "vars/maas-{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "vars/maas-{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "vars/maas-{{ ansible_distribution | lower }}.yml"
+        - "vars/maas-{{ ansible_os_family | lower }}-{{ ansible_distribution_version.split('.')[0] }}.yml"
+        - "vars/maas-{{ ansible_os_family | lower }}.yml"
+      tags:
+        - always
 
-    - name: Include Redhat distro install tasks
+  tasks:
+    - name: Include Ubuntu distro install tasks
+      include: "common-tasks/maas-poller-{{ ansible_distribution | lower }}-install.yml"
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
-        - ansible_distribution | lower == 'redhat'
-      include: "common-tasks/maas-poller-redhat-install.yml"
 
   vars_files:
     - vars/main.yml
-    - vars/maas-poller.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-poller-install

@@ -14,6 +14,20 @@
 # limitations under the License.
 
 - name: Gather facts
+  hosts: designate_all:Controller
+  gather_facts: false
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
+- name: Gather facts
   hosts: "{{ designate_hosts_all|default('designate_all') }}"
   user: "{{ designate_ansible_user|default('root') }}"
   become: "{{ designate_ansible_become|default('no') }}"
@@ -21,22 +35,18 @@
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
-      when: not deploy_osp|default(false)
+      when:
+        - not deploy_osp | bool
     - name: Set the current group
       set_fact:
         maas_current_group: designate_all
 
   tasks:
-    - name: Set physical host
-      set_fact:
-        physical_host: "{{ ansible_host }}"
-      when: deploy_osp|default(false)
-
     - name: Copy over pip constraints
       copy:
         src: "files/pip-constraints.txt"
         dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
   post_tasks:
     - name: Install designate pip packages to venv
@@ -52,11 +62,12 @@
       until: install_pip_packages|success
       retries: 5
       delay: 2
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
   vars_files:
     - vars/main.yml
-    - "{{ designate_var_files|default('vars/maas-openstack.yml') }}"
+    - vars/maas.yml
+    - vars/maas-openstack.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-openstack-designate
@@ -67,17 +78,6 @@
   become: "{{ designate_ansible_become|default('no') }}"
   gather_facts: false
   tasks:
-    - name: Set physical host
-      set_fact:
-        physical_host: "{{ ansible_host }}"
-        internal_ips: "{{ ansible_all_ipv4_addresses|ipaddr(osp_internal_netmask)|difference([internal_vip_address]) }}"
-      when: deploy_osp|default(false)
-
-    - name: Set internal ip
-      set_fact:
-        internal_ip: "{{ internal_ips[0] }}"
-      when: deploy_osp|default(false)
-
     - name: Install designate api checks
       template:
         src: "templates/rax-maas/designate_api_local_check.yaml.j2"
@@ -85,7 +85,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
     - name: Install designate mdns checks
       template:
@@ -94,7 +94,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
     - name: Install designate lb checks
       template:
@@ -103,7 +103,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
       when:
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
@@ -115,12 +115,13 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
   vars_files:
     - vars/main.yml
-    - "{{ designate_var_files|default('vars/maas-openstack.yml') }}"
+    - vars/maas.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-openstack-designate

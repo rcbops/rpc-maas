@@ -50,6 +50,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-magnum
@@ -80,6 +81,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-magnum

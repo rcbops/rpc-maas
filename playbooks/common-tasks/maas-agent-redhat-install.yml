@@ -23,9 +23,9 @@
   yum_repository:
     name: rackspace-monitoring-agent
     description: Rackspace Monitoring agent repository
-    file: "{{ maas_repos.file | default(omit) }}"
-    state: "{{ maas_repos.state }}"
-    baseurl: "{{ maas_repos.redhat_repo }}"
+    file: "{{ maas_repos.main.file | default(omit) }}"
+    state: "{{ maas_repos.main.state }}"
+    baseurl: "{{ maas_repos.main.repo }}"
     enabled: yes
   become: yes
   register: add_repos
@@ -34,23 +34,9 @@
   delay: 2
 
 - name: Install Linux packages
-  yum:
-    name: "{{ item }}"
+  package:
+    name: "{{ maas_distro_packages }}"
     state: present
   become: yes
-  with_items:
-    - git
-    - curl
-    - autoconf
-    - gcc
-    - gcc-c++
-    - nc
-    - python2
-    - python2-devel
-    - openssl-devel
-    - libffi-devel
-    - libselinux-python
-    - rackspace-monitoring-agent
-    - sysstat
   retries: 5
   delay: 2

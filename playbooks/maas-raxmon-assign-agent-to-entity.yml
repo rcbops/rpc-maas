@@ -27,3 +27,4 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml

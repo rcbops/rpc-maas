@@ -17,12 +17,22 @@
   hosts: shared-infra_hosts
   gather_facts: "{{ gather_facts | default(true) }}"
   tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - include: "common-tasks/maas_excluded_regex.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: shared-infra_hosts
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
   tags:
-    - maas-infra-pacemaker
+    - always
+
 
 - name: Install checks for infra galera
   hosts: shared-infra_hosts
@@ -41,6 +51,7 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-infra.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
   tags:
     - maas-infra-pacemaker

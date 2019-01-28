@@ -38,18 +38,8 @@
       when:
         - not galera_root_password is defined
 
-    - name: Gather variables for each operating system
-      include_vars: "{{ item }}"
-      with_first_found:
-        - files:
-            - "vars/maas-{{ ansible_distribution | lower }}.yml"
-            - "vars/maas-{{ ansible_os_family | lower }}.yml"
-          skip: true
-
     - name: Include ubuntu install tasks
-      include: "common-tasks/maas-infra-ubuntu-install.yml"
-      when:
-        - ansible_distribution | lower == 'ubuntu'
+      include: "common-tasks/maas-infra-{{ ansible_distribution | lower }}-install.yml"
 
     - name: Install holland check
       template:
@@ -84,7 +74,8 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-infra.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-infra-galera
