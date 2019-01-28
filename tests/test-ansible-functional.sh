@@ -26,7 +26,7 @@
 
 ## Shell Opts ----------------------------------------------------------------
 
-set -evuo pipefail
+set -exuo pipefail
 
 echo "Run Functional Tests"
 echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
@@ -80,7 +80,7 @@ esac
 # ansible that is not available in liberty and mitaka.  There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
-  kilo|liberty|mitaka|ceph|hummingbird|osp13)
+  kilo|liberty|mitaka|ceph|hummingbird|osp13|rocky)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -126,17 +126,21 @@ function set_ansible_parameters {
 function setup_embedded_ansible {
   # Installation of embedded ansible for rpc-maas
   if [[ ! -d "/opt/magnanimous-turbo-chainsaw" ]]; then
-    export ANSIBLE_VERSION=2.6.5
+    export ANSIBLE_VERSION=2.6.12
     curl https://raw.githubusercontent.com/rcbops/magnanimous-turbo-chainsaw/master/scripts/setup.sh | bash
   fi
   pushd /opt/magnanimous-turbo-chainsaw/scripts
-    PS1="${PS1:-'\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '}" ANSIBLE_VERSION=2.6.5 source /opt/magnanimous-turbo-chainsaw/scripts/setup-workspace.sh
+    PS1="${PS1:-'\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '}" ANSIBLE_VERSION=2.6.12 source /opt/magnanimous-turbo-chainsaw/scripts/setup-workspace.sh
   popd
-  export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_VARS"
+  export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_ALL_VARS"
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
 
   if [ ${RE_JOB_SCENARIO} = osp13 ]; then
     ANSIBLE_BINARY+=" -i ${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
+  fi
+
+  if [ ${RE_JOB_SCENARIO} = rocky ]; then
+    export ANSIBLE_GATHER_TIMEOUT=30
   fi
 }
 
@@ -189,7 +193,8 @@ function ensure_osa_dir {
 
 function install_director_dev_packages {
   get_pip
-  yum install -y python-virtualenv iptables python-devel
+  # virtualenv will be installed in enable_maas_api with pip. 
+  yum install -y iptables python-virtualenv python-devel
   yum groupinstall -y "Development Tools"
 }
 
@@ -222,6 +227,7 @@ function enable_maas_api {
   # NOTE(cloudnull): Enable the maas api by setting the "maas_use_api" option to true.
   #                  This will also pull a token from RAX MaaS and set it as an env var.
   ensure_osa_dir
+  get_pip
 
   echo "Show the version of the pip packages in the functional venv."
   echo "START PACKAGE LIST"
@@ -230,12 +236,21 @@ function enable_maas_api {
   echo "END PACKAGE LIST"
 
   PYTHON_BIN="$(which python)"
-  virtualenv --python="${PYTHON_BIN}" /opt/test-maas
-  /opt/test-maas/bin/pip install "jinja2" --isolated --upgrade --force-reinstall
+  # NOTE(tonytan4ever): pip upgrade virtualenv is broken in osp13
+  if [ ${RE_JOB_SCENARIO} = osp13 ]; then
+    yum remove -y python-virtualenv
+  fi
+
+  pip install -U virtualenv --isolated
+
+  virtualenv --no-setuptools --python="${PYTHON_BIN}" /opt/test-maas
+  /opt/test-maas/bin/pip install setuptools requests --isolated --upgrade --force-reinstall
+
   # NOTE(tonytan4ever):  pip on newton will broken because of a mis-installed version of setuptools
   if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
   fi
+
   /opt/test-maas/bin/pip install -r ${WORKING_DIR}/test-requirements.txt --isolated --upgrade --force-reinstall
 
   # Collect a maas auth token for API tests

@@ -46,9 +46,10 @@ def check(auth_ref, args):
 
     try:
         if args.ip:
-            glance = get_glance_client(endpoint=glance_endpoint)
+            glance = get_glance_client(endpoint=glance_endpoint,
+                                       glance_api_version=glance_api_version)
         else:
-            glance = get_glance_client()
+            glance = get_glance_client(glance_api_version=glance_api_version)
 
         is_up = True
     except exc.HTTPException:

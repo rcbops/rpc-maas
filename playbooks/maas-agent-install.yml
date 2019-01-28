@@ -70,50 +70,26 @@
         group: root
         owner: root
 
-    - name: Check for pip
-      command: pip --version
-      failed_when: false
-      changed_when:
-        - pip_present.rc != 0
-      register: pip_present
-
-    - name: Get Modern PIP
-      get_url:
-        url: "{{ maas_pip_upstream_url }}"
-        dest: "/opt/get-pip.py"
-        force: true
-        validate_certs: "{{ maas_pip_validate_certs }}"
-      register: get_pip
-      until: get_pip | success
-      retries: 5
-      delay: 2
-      when:
-        - pip_present.rc != 0
-
-    - name: Install Modern PIP
-      command: >
-        python /opt/get-pip.py {{ maas_pip_source_install_options }}
-                               {{ maas_pip_get_pip_options }}
-                               {{ maas_pip_install_packages | map('quote') | join (' ') }}
-      changed_when: pip_install.stdout.find('Successfully installed') != -1
-      register: pip_install
-      until: pip_install | success
-      retries: 3
-      delay: 2
-      when:
-        - pip_present.rc != 0
-
     - name: Install requires pip packages
-      pip:
-        name: "{{ maas_requires_pip_packages | join(' ') }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          --constraint /tmp/pip-constraints.txt
-          {{ pip_install_options | default('') }}
+      package:
+        name: "{{ maas_agent_distro_packages }}"
       register: install_packages
       until: install_packages|success
       retries: 5
       delay: 2
+
+    - name: Create MaaS venv
+      command: "virtualenv --no-site-packages --no-setuptools {{ maas_venv }}"
+      args:
+        creates: "{{ maas_venv }}/bin/python"
+
+    - name: Setup MaaS venv
+      pip:
+        name:
+          - pip
+          - setuptools
+        extra_args: "-U"
+        virtualenv: "{{ maas_venv }}"
 
     - name: Converge MaaS container pip packages
       set_fact:
@@ -122,29 +98,24 @@
         - "'lxc_hosts' in groups"
         - inventory_hostname in groups['lxc_hosts']
 
-    - name: Ensure package venv directory exists
-      file:
-        path: "{{ maas_venv }}"
-        state: directory
-        group: root
-        owner: root
-        mode: 0775
-      become: yes
-
-    - name: Install pip packages to venv
-      pip:
-        name: "{{ maas_pip_packages | join(' ') }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          --isolated
-          --constraint /tmp/pip-constraints.txt
-          {{ pip_install_options | default('') }}
-        virtualenv: "{{ maas_venv }}"
-      register: install_pip_packages
-      until: install_pip_packages|success
-      become: yes
-      retries: 5
-      delay: 2
+    - name: Create MaaS virtualenv
+      vars:
+        ansible_python_interpreter: "{{ maas_venv }}/bin/python"
+      block:
+        - name: Ensure MaaS pip packages are installed
+          pip:
+            name: "{{ maas_pip_packages | join(' ') }}"
+            state: "{{ maas_pip_package_state }}"
+            extra_args: >-
+              --isolated
+              --constraint /tmp/pip-constraints.txt
+              {{ pip_install_options | default('') }}
+            virtualenv: "{{ maas_venv }}"
+          register: install_pip_packages
+          until: install_pip_packages|success
+          become: yes
+          retries: 5
+          delay: 2
 
   vars_files:
     - vars/main.yml

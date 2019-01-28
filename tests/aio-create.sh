@@ -187,6 +187,8 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
         sed -i -e 's/0.4.4/v0.4.4/g' /opt/openstack-ansible/ansible-role-requirements.yml
         # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
         sed -i 's/\(_container\: \).*/\11/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
+        # NOTE(npawelek): Prevent config file modification prompts and default to existing
+        sed -i '/DEBIAN_FRONTEND=noninteractive apt-get install iptables-persistent/ s/install/install -y --force-yes -o Dpkg::Options::="--force-confold"/' /opt/openstack-ansible/scripts/run-playbooks.sh
         spice_repo_fix
 
       elif [ "${RE_JOB_SCENARIO}" == "mitaka" ]; then
@@ -226,7 +228,6 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
       elif [ "${RE_JOB_SCENARIO}" == "rocky" ]; then
         git checkout "stable/rocky"  # Branch checkout of Rocky (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
-
       fi
 
       # Install ovs agent if applicable
@@ -241,8 +242,16 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
       # Disable tempest on older releases
       sed -i '/.*run-tempest.sh.*/d' scripts/gate-check-commit.sh  # Disable the tempest run
 
-      # Pin python-ldap so it stops breaking everything
-      echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+      # NOTE(npawelek): Rocky requires a different version to be set, all other
+      # releases work with the existing pin
+      case $RE_JOB_SCENARIO in
+        rocky)
+          true
+          ;;
+        *)
+          echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+          ;;
+      esac
 
       # Disable the sec role
       disable_security_role
