@@ -182,7 +182,7 @@ maas_openstack_octavia_pip_packages:
 
 octavia_process_names:
   - uwsgi
-  - "octavia-worker.log]"
+  - octavia-worker
   - octavia-health-manager
   - octavia-housekeeping
 

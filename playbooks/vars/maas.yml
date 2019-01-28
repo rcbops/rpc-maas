@@ -346,9 +346,21 @@ maas_memcached_pip_packages:
 maas_verify_pip_packages:
   - futures
   - pyyaml
+  - waxeye
+
+
+#
+# pip install core python packages into the maas venv
+#
+maas_pip_packages:
+  - apache-libcloud
+  - cryptography
+  - ipaddr
+  - lxml
+  - monitorstack
+  - psutil
   - rackspace-monitoring-cli
   - requests
-  - waxeye
 
 #
 # pip installable packages for given services used within maas

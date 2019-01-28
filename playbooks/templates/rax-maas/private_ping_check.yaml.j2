@@ -5,7 +5,7 @@ type              : remote.ping
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled          : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled          : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_hostname   : "{{ ansible_default_ipv4.address }}"
 details           :
   count           : {{ private_ping_check_count }}
@@ -16,9 +16,9 @@ monitoring_zones_poll:
   event-type-override: "ping"
 alarms            :
   Packet_loss               :
-        label               : packet_loss--{{ inventory_hostname|quote }}
+        label               : packet_loss--{{ inventory_hostname | quote }}
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ (('private_ping_check--'+inventory_hostname | quote) | match(
+        disabled            : {{ (('private_ping_check--'+inventory_hostname | quote) is match(
         maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria            : |
             :set consecutiveCount=3

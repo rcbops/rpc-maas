@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
         state: restarted
         sleep: 10
       register: _maas_poller_restart
-      until: _maas_poller_restart | success
+      until: _maas_poller_restart is success
       retries: 3
       delay: 2
       when:
@@ -38,7 +38,7 @@
         state: restarted
         sleep: 10
       register: _maas_poller_restart
-      until: _maas_poller_restart | success
+      until: _maas_poller_restart is success
       retries: 3
       delay: 2
       when:
@@ -51,12 +51,13 @@
         name: rackspace-monitoring-agent
         state: restarted
       register: _maas_agent_restart
-      until: _maas_agent_restart | success
+      until: _maas_agent_restart is success
       retries: 5
       delay: 3
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - maas-restart

@@ -5,7 +5,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (inventory_hostname not in maas_swift_recon_nodes or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname not in maas_swift_recon_nodes or check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/swift-recon.py", "-t", "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}", {% if (deploy_osp | bool) %}"--deploy_osp",{% endif %}"--swift-recon-path", "{{ swift_recon_path }}", "async-pendings"]
@@ -16,7 +16,7 @@ alarms      :
     swift_async_failure_check :
         label                   : swift_async_failure_check--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('swift_async_failure_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_async_failure_check--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["async_failed"] > {{ maas_swift_async_pending_failure_percentage_threshold }}) {
@@ -26,7 +26,7 @@ alarms      :
     swift_async_avg_check :
         label                   : swift_async_avg_check--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('swift_async_avg_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_async_avg_check--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["async_avg"] > {{ maas_swift_async_pending_average_threshold }}) {

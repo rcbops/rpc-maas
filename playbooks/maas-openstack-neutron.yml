@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@
   post_tasks:
     - name: Install neutron pip packages to venv
       pip:
-        name: "{{ maas_openstack_neutron_pip_packages  }}"
+        name: "{{ maas_openstack_neutron_pip_packages }}"
         state: "{{ maas_pip_package_state }}"
         extra_args: >-
           --isolated
@@ -58,7 +58,7 @@
           {{ pip_install_options | default('') }}
         virtualenv: "{{ maas_venv }}"
       register: install_pip_packages
-      until: install_pip_packages|success
+      until: install_pip_packages is success
       retries: 5
       delay: 2
       delegate_to: "{{ physical_host | default(ansible_host) }}"
@@ -70,6 +70,7 @@
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-openstack-neutron
+
 
 - name: Install checks for openstack neutron
   hosts: neutron_server
@@ -114,8 +115,10 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-neutron
+
 
 - name: Install checks for openstack neutron dhcp agent
   hosts: neutron_dhcp_agent
@@ -136,8 +139,10 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-neutron
+
 
 - name: Install checks for openstack neutron l3 agent
   hosts: neutron_l3_agent
@@ -158,8 +163,10 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-neutron
+
 
 - name: Install checks for openstack neutron linux bridge agent
   hosts: neutron_linuxbridge_agent
@@ -175,14 +182,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: (neutron_plugin_type is not defined) or (neutron_plugin_type | search("lxb"))
+      when: (neutron_plugin_type is not defined) or (neutron_plugin_type is search("lxb"))
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-neutron
+
 
 - name: Install checks for openstack neutron OVS agent
   hosts: neutron_openvswitch_agent
@@ -198,14 +207,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: (neutron_plugin_type is defined) and (neutron_plugin_type | search("ovs"))
+      when: (neutron_plugin_type is defined) and (neutron_plugin_type is search("ovs"))
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-neutron
+
 
 - name: Install checks for openstack neutron metadata agent
   hosts: neutron_metadata_agent
@@ -226,8 +237,10 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-neutron
+
 
 - name: Install checks for openstack neutron metering agent
   hosts: neutron_metering_agent
@@ -248,5 +261,6 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-neutron

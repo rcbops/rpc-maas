@@ -5,7 +5,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (inventory_hostname != groups['galera_all'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname != groups['galera_all'][0] or check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/galera_check.py", "-H", "{{ internal_api_ip | default(container_address | default(ansible_host)) }}"]
@@ -16,7 +16,7 @@ alarms      :
     wsrep_cluster_size :
         label                   : wsrep_cluster_size--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('wsrep_cluster_size--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('wsrep_cluster_size--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["wsrep_cluster_size"] < {{ groups["galera"] | length }}) {
@@ -25,7 +25,7 @@ alarms      :
     wsrep_local_state :
         label                   : wsrep_local_state--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('wsrep_local_state--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('wsrep_local_state--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["wsrep_local_state_comment"] != "Synced" ) {
@@ -34,7 +34,7 @@ alarms      :
     percentage_used_mysql_connections :
         label                   : percentage_used_mysql_connections--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('percentage_used_mysql_connections--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('percentage_used_mysql_connections--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (percentage(metric["mysql_current_connections"], metric["mysql_max_configured_connections"]) > {{ maas_mysql_connection_critical_threshold }} ) {
@@ -46,7 +46,7 @@ alarms      :
     open_file_size_limit_reached :
         label                   : open_file_size_limit_reached--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('open_file_size_limit_reached--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('open_file_size_limit_reached--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (percentage(metric["num_of_open_files"], metric["open_files_limit"]) > {{ maas_mysql_open_files_percentage_critical_threshold }}) {
@@ -58,7 +58,7 @@ alarms      :
     innodb_row_lock_time_avg :
         label                   : innodb_row_lock_time_avg--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('innodb_row_lock_time_avg--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('innodb_row_lock_time_avg--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["innodb_row_lock_time_avg"] > {{ maas_innodb_row_lock_time_avg_critical_threshold }}) {
@@ -70,7 +70,7 @@ alarms      :
     innodb_deadlocks :
         label                   : innodb_deadlocks--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('innodb_deadlocks--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('innodb_deadlocks--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric["innodb_deadlocks"]) > {{ maas_innodb_deadlocks_rate_warning_threshold }}) {
@@ -82,7 +82,7 @@ alarms      :
     access_denied_errors :
         label                   : access_denied_errors--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('access_denied_errors--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('access_denied_errors--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric["access_denied_errors"]) > {{ maas_mysql_access_denied_errors_rate_warning_threshold }}) {
@@ -94,7 +94,7 @@ alarms      :
     aborted_connects :
         label                   : aborted_connects--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('aborted_connects--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('aborted_connects--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric["aborted_connects"]) > {{ maas_mysql_aborted_connects_rate_warning_threshold }}) {

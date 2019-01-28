@@ -56,7 +56,7 @@
           variables, possible options are: maas_env_identifier, maas_product_dir, maas_product_osa_dir
       when:
         - maas_pre_flight_metadata_check_enabled | default(true) | bool
-        - rendered_maas_metadata_test_tmpl | search('unknown')
+        - rendered_maas_metadata_test_tmpl is search('unknown')
   vars_files:
     - vars/main.yml
     - vars/maas.yml

@@ -13,40 +13,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-pre-flight.yml
+- import_playbook: maas-pre-flight.yml
   tags:
     - maas
 
-- include: maas-agent-all.yml
+- import_playbook: maas-agent-all.yml
   tags:
     - maas
 
-- include: maas-poller-all.yml
+- import_playbook: maas-poller-all.yml
   tags:
     - maas
 
-- include: maas-ceph-all.yml
+- import_playbook: maas-ceph-all.yml
   tags:
     - maas
 
-- include: maas-host-all.yml
+- import_playbook: maas-host-all.yml
   tags:
     - maas
 
-- include: maas-infra-all.yml
+- import_playbook: maas-infra-all.yml
   tags:
     - maas
 
-- include: maas-container-all.yml
+- import_playbook: maas-container-all.yml
   tags:
     - maas
 
-- include: maas-openstack-all.yml
+- import_playbook: maas-openstack-all.yml
   tags:
     - maas
 
-- include: maas-managed-k8.yml
+- import_playbook: maas-managed-k8.yml
   tags:
     - maas
 
-- include: maas-restart.yml
+- import_playbook: maas-restart.yml

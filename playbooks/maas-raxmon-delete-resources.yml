@@ -20,27 +20,31 @@
     - name: Include maas venv create
       include_tasks: common-tasks/maas-venv-create.yml
 
-    - name: Delete gating agent token
-      raxmon:
-        cmd: delete_agent_token
-        entity: "{{ maas_entity_name }}"
-        venv_bin: "{{ maas_venv_bin }}"
+    - name: Run RAXMON
+      vars:
+        ansible_python_interpreter: "{{ maas_venv }}/bin/python"
+      block:
+        - name: Delete gating agent token
+          raxmon:
+            cmd: delete_agent_token
+            entity: "{{ maas_entity_name }}"
+            venv_bin: "{{ maas_venv_bin }}"
 
-    # NOTE(npawelek) In the case of the entity being the same as the cloud
-    # server name, the entity deletion command will fail via raxmon in the next
-    # task. As a result, failed_when has been designed to exclude this specific
-    # message because the cloud server deletion process will delete the entity
-    # automatically.
-    - name: Delete gating entity
-      raxmon:
-        cmd: delete_entity
-        entity: "{{ maas_entity_name }}"
-        venv_bin: "{{ maas_venv_bin }}"
-      register: delete_entity_results
-      failed_when:
-        - delete_entity_results.failed == true
-        - delete_entity_results.msg is defined
-        - "'Rackspace Cloud Server entities may not be deleted' not in delete_entity_results.msg"
+        # NOTE(npawelek) In the case of the entity being the same as the cloud
+        # server name, the entity deletion command will fail via raxmon in the next
+        # task. As a result, failed_when has been designed to exclude this specific
+        # message because the cloud server deletion process will delete the entity
+        # automatically.
+        - name: Delete gating entity
+          raxmon:
+            cmd: delete_entity
+            entity: "{{ maas_entity_name }}"
+            venv_bin: "{{ maas_venv_bin }}"
+          register: delete_entity_results
+          failed_when:
+            - delete_entity_results.failed == true
+            - delete_entity_results.msg is defined
+            - "'Rackspace Cloud Server entities may not be deleted' not in delete_entity_results.msg"
 
   vars_files:
     - vars/main.yml

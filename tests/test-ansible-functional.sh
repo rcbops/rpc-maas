@@ -6,7 +6,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,17 +48,17 @@ export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
 
 if [ ${RE_JOB_SCENARIO} = osp13 ]; then
-  # Env vars prep for osp 13
-  export ANSIBLE_HOST_KEY_CHECKING="false"
-  export WORKING_DIR="/opt/rpc-maas"
-  # Set ansible version for embeded ansible runtime
-  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-false}"
+ # Env vars prep for osp 13
+ export ANSIBLE_HOST_KEY_CHECKING="false"
+ export WORKING_DIR="/opt/rpc-maas"
+ # Set ansible version for embeded ansible runtime
+ export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-false}"
 else
-  # Ansible Inventory will be set to OSA
-  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
-  if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
-    export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
-  fi
+ # Ansible Inventory will be set to OSA
+ export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
+ if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
+  export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+ fi
 fi
 
 # NOTE: Create an artifact to make a unique entity for queens+ gates. This is required
@@ -77,7 +77,7 @@ case $RE_JOB_SCENARIO in
 esac
 
 # The maas_rally performance monitoring requires a modern (>1.9) version of
-# ansible that is not available in liberty and mitaka.  There is no reason
+# ansible that is not available in liberty and mitaka. There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
   kilo|liberty|mitaka|ceph|osp13|rocky)
@@ -151,8 +151,8 @@ function execute_ansible_playbook {
   CMD_TO_EXECUTE="${ANSIBLE_BINARY} $@ ${ANSIBLE_CLI_PARAMETERS}"
   echo "Executing: ${CMD_TO_EXECUTE}"
   echo "With:"
-  echo "    ANSIBLE_INVENTORY: ${ANSIBLE_INVENTORY}"
-  echo "    ANSIBLE_LOG_PATH: ${ANSIBLE_LOG_PATH}"
+  echo "  ANSIBLE_INVENTORY: ${ANSIBLE_INVENTORY}"
+  echo "  ANSIBLE_LOG_PATH: ${ANSIBLE_LOG_PATH}"
 
   ${CMD_TO_EXECUTE}
   deactivate
@@ -161,7 +161,7 @@ function execute_ansible_playbook {
 function gate_job_exit_tasks {
   # This environment variable captures the exit code
   # which was present when the trap was initiated.
-  # This would be the success/failure of the test.
+  # Th is success/failure of the test.
   export TEST_EXIT_CODE=$?
 
   # Cleanup gating entities and agent tokens
@@ -170,8 +170,8 @@ function gate_job_exit_tasks {
 
 function pin_environment {
   # NOTE(cloudnull): Earlier versions of OSA depended on an ansible.cfg file to lock-in
-  #                  plugins and other configurations. This does the same thing using
-  #                  environment variables.
+  #         plugins and other configurations. This does the same thing using
+  #         environment variables.
   . "$WORKING_DIR/tests/ansible-env.rc"
 }
 
@@ -216,16 +216,16 @@ function get_pip {
   else
     # Otherwise, try the two standard URL's
     ${GETPIP_CMD} https://bootstrap.pypa.io/get-pip.py > ${GETPIP_FILE}\
-      || ${GETPIP_CMD} https://raw.githubusercontent.com/pypa/get-pip/master/get-pip.py > ${GETPIP_FILE}
+    || ${GETPIP_CMD} https://raw.githubusercontent.com/pypa/get-pip/master/get-pip.py > ${GETPIP_FILE}
   fi
 
   ${GETPIP_PYTHON_EXEC_PATH} ${GETPIP_FILE} ${PIP_OPTS} \
-     pip --upgrade
+    pip --upgrade
 }
 
 function enable_maas_api {
   # NOTE(cloudnull): Enable the maas api by setting the "maas_use_api" option to true.
-  #                  This will also pull a token from RAX MaaS and set it as an env var.
+  #         This will also pull a token from RAX MaaS and set it as an env var.
   ensure_osa_dir
   get_pip
 
@@ -246,7 +246,7 @@ function enable_maas_api {
   virtualenv --no-setuptools --python="${PYTHON_BIN}" /opt/test-maas
   /opt/test-maas/bin/pip install setuptools requests --isolated --upgrade --force-reinstall
 
-  # NOTE(tonytan4ever):  pip on newton will broken because of a mis-installed version of setuptools
+  # NOTE(tonytan4ever): pip on newton will broken because of a mis-installed version of setuptools
   if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
     /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
   fi
@@ -255,8 +255,8 @@ function enable_maas_api {
 
   # Collect a maas auth token for API tests
   /opt/test-maas/bin/python $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
-                                                            --api-key "${PUBCLOUD_API_KEY}" \
-                                                            get_token_url
+                                --api-key "${PUBCLOUD_API_KEY}" \
+                                get_token_url
 
   # We're sourcing the file so that it's not written to a collected artifact
   . ~/maas-vars.rc
