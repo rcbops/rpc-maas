@@ -66,7 +66,7 @@ fi
 # gates to use the same entity
 # This will automatically work for new gates
 case $RE_JOB_SCENARIO in
-  ceph|hummingbird|kilo|liberty|mitaka|newton|ocata|pike)
+  ceph|kilo|liberty|mitaka|newton|ocata|pike)
     echo "There is no need to set maas_fqdn_extension on ${RE_JOB_SCENARIO}"
     echo | tee /tmp/maas_fqdn_extension
     ;;
@@ -80,7 +80,7 @@ esac
 # ansible that is not available in liberty and mitaka.  There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
-  kilo|liberty|mitaka|ceph|hummingbird|osp13|rocky)
+  kilo|liberty|mitaka|ceph|osp13|rocky)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -193,7 +193,7 @@ function ensure_osa_dir {
 
 function install_director_dev_packages {
   get_pip
-  # virtualenv will be installed in enable_maas_api with pip. 
+  # virtualenv will be installed in enable_maas_api with pip.
   yum install -y iptables python-virtualenv python-devel
   yum groupinstall -y "Development Tools"
 }

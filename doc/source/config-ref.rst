@@ -49,13 +49,6 @@ OpenStack playbook variables
    :language: yaml
    :start-after: under the License.
 
-Hummingbird playbook variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. literalinclude:: ../../playbooks/vars/maas-hummingbird.yml
-   :language: yaml
-   :start-after: under the License.
-
 Ceph playbook variables
 ~~~~~~~~~~~~~~~~~~~~~~~
 

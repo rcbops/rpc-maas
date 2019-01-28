@@ -168,10 +168,9 @@ Tags
 
 This role supports several high level tags: ``maas``, ``maas-agent``,
 ``maas-ceph``, ``maas-container``, ``maas-host``, ``maas-infra``,
-``maas-hummingbird``, ``maas-openstack``. Within each group a tag
-exists for a specific playbook. This gives the deployer the ability
-to control orchestration even when running the general ``site.yml``
-playbook.
+``maas-openstack``. Within each group a tag exists for a specific
+playbook. This gives the deployer the ability to control orchestration
+even when running the general ``site.yml`` playbook.
 
 
 Playbook Specific Notes
@@ -265,24 +264,6 @@ variable required to be set is ``maas_swift_accesscheck_password``.
     # Example playbook run with variable file.
     ansible-playbook -e @/etc/openstack_deploy/user_secrets.yml /opt/rpc-maas/playbooks/maas-openstack-swift.yml -i inventory
 
-
-maas-hummingbird.yml
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``maas-hummingbird.yml`` playbook will create a user within keystone
-for the purposes of monitoring and then upload an index.html object to a
-configurable container within hummingbird. For this to happen a password
-must be set in a secrets file somewhere and referenced during the
-playbook run. The variable required to be set is
-``maas_hummingbird_accesscheck_password``.
-
-.. code-block:: bash
-
-    # Variable file set
-    echo 'maas_hummingbird_accesscheck_password: secrete' | tee -a /etc/openstack_deploy/user_secrets.yml
-
-    # Example playbook run with variable file.
-    ansible-playbook -e @/etc/openstack_deploy/user_secrets.yml /opt/rpc-maas/playbooks/maas-hummingbird.yml -i inventory
 
 maas-tigkstack-influxdb.yml
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

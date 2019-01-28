@@ -434,28 +434,3 @@ section.
     swift_proxy
     swift_cont
     swift_obj
-
-hummingbird_all
-~~~~~~~~~~~~~~~
-
-If you have node(s) running ``hummingbird``, add the node(s) into the
-"hummingbird" section.
-
-.. code-block:: ini
-
-    [hummingbird]
-    hbird1
-
-influx_hosts
-~~~~~~~~~~~~
-
-If you have node(s) running ``influx``, add the node(s) into the "influx_hosts"
-section.
-
-.. code-block:: ini
-
-    [influx_hosts]
-    influx1
-
-    [influx_all:children]
-    influx_hosts
