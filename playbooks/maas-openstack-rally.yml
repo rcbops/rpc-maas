@@ -79,7 +79,7 @@
   pre_tasks:
     - name: Install maas and maas_rally pip packages to venv
       pip:
-        name: "{{ maas_rally_pip_packages | join(' ') }}"
+        name: "{{ maas_rally_pip_packages  }}"
         state: "{{ maas_rally_pip_package_state }}"
         extra_args: >-
           --isolated
