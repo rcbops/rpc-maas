@@ -18,16 +18,21 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
       set_fact:
         maas_current_group: k8_all
-
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp | bool
 
   vars_files:
     - vars/main.yml
@@ -46,7 +51,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Install mk8s ui process check
@@ -109,7 +114,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Install mk8s etp process check
@@ -150,7 +155,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Install mk8s etg process check
@@ -191,7 +196,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Install mk8s auth process check

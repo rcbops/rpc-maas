@@ -13,11 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-maas_excluded_alarms: []
-maas_excluded_checks: []
+# Set test identifier
+maas_env_identifier: "test"
 
-maas_rally_enabled: false
-
-# Allow maas-verify to properly validate all issues
-maas_verify_registration: true
-maas_verify_status: true
+# Test pre-flight checks
+maas_pre_flight_check_enabled: true

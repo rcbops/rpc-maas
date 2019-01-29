@@ -13,7 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Check all passwords are defined
+- name: Check for RHOSP
+  hosts: localhost
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Check for /etc/rhosp-release
+      stat:
+        path: /etc/rhosp-release
+      register: osp_release_file
+
+    - name: Check for /usr/bin/tripleo-ansible-inventory
+      stat:
+        path: /usr/bin/tripleo-ansible-inventory
+      register: tripleo_inventory_file
+
+    - name: Set deploy_osp fact
+      set_fact:
+        deploy_osp: "{{ (osp_release_file.stat.exists and tripleo_inventory_file.stat.exists) | bool }}"
+
+  tags:
+    - maas-pre-flight
+
+
+- name: Verify all passwords are defined
   hosts: localhost
   connection: local
   gather_facts: true
@@ -25,15 +48,13 @@
         - deploy_osp | bool
 
   tasks:
-    - name: Check password is defined
+    - name: Verify all passwords are defined
       fail:
         msg: >-
           The password "{{ item.key }}" is undefined. Set this password in an
           appropriate secrets file before continuing.
       when:
-        - maas_pre_flight_check_enabled | default(false) | bool
-        - groups['osds'] | default([]) | length > 0
-        - groups['mons'] | default([]) | length > 0
+        - maas_pre_flight_check_enabled | bool
         - ansible_version.full is version_compare('2.1.0.0', '>=')
         - hostvars[inventory_hostname][item.key] is undefined
       with_dict: "{{ maas_pw_check }}"
@@ -41,17 +62,401 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
-
   vars:
     maas_pw_check: "{{ lookup('file', playbook_dir + '/../tests/user_rpcm_secrets.yml') | from_yaml }}"
+  tags:
+    - maas-pre-flight
+
+
+- name: Setup local facts
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Ensure local facts directory exists
+      file:
+        dest: "/etc/ansible/facts.d"
+        state: directory
+        group: "root"
+        owner: "root"
+        mode:  "0755"
+        recurse: no
+
+    - name: Remove local maas.facts
+      file:
+        dest: "/etc/ansible/facts.d/maas.fact"
+        state: absent
+
+    - name: Initialize local facts
+      ini_file:
+        dest: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: cacheable
+        value: true
+
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
 
   tags:
     - maas-pre-flight
 
 
-- name: Check metadata variables are defined
+- name: Dynamic variable generation
   hosts: localhost
   connection: local
+  gather_facts: false
+  become: true
+  pre_tasks:
+    - name: Set persistent deploy_osp fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "deploy_osp"
+        value: "{{ deploy_osp | bool }}"
+
+    - name: Check for /etc/openstack-release
+      stat:
+        path: /etc/openstack-release
+      register: osa_release_file
+
+    - name: osa release block
+      block:
+        - name: Register /etc/openstack-release codename
+          shell: awk -F= '/^DISTRIB_CODENAME/ {print $2}' /etc/openstack-release | tr -d \"\'
+          register: maas_product_osa_codename
+
+        - name: Register /etc/openstack-release version
+          shell: awk -F= '/^DISTRIB_RELEASE/ {print $2}' /etc/openstack-release | tr -d \"\'
+          register: maas_product_osa_version
+
+        - name: Set OSA release codename fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_product_osa_codename"
+            value: "{{ maas_product_osa_codename.stdout | lower }}"
+          when:
+            - maas_product_osa_codename.changed | bool
+
+        - name: Set OSA release version fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_product_osa_version"
+            value: "{{ maas_product_osa_version.stdout }}"
+          when:
+            - maas_product_osa_version.changed | bool
+
+        - name: Refresh local facts
+          setup:
+            filter: ansible_local
+            gather_subset: "!all"
+
+        - name: Set legacy (kilo) swift_recon_path fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+          with_dict: "{{ maas_compat.swift }}"
+          when:
+            - groups['swift_all'] | default([]) | length > 0
+            - ansible_local['maas']['general']['maas_product_osa_codename'] is defined
+            - ansible_local['maas']['general']['maas_product_osa_codename'] == 'kilo'
+      when:
+        - not (deploy_osp | bool)
+        - osa_release_file.stat.exists | bool
+
+    - name: Check for /opt/rpc-openstack
+      stat:
+        path: /opt/rpc-openstack
+      register: rpc_dir_check
+
+    - name: rpco release block
+      block:
+        - name: Determine rpc-openstack git version
+          shell: cd /opt/rpc-openstack && git describe --tags --abbrev=0
+          register: rpco_dir_git_version
+          when:
+            - rpc_dir_check.stat.exists | bool
+            - rpc_dir_check.stat.isdir | bool
+
+        - name: Set RPCO product version fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_product_rpco_version"
+            value: "{{ rpco_dir_git_version.stdout }}"
+          when:
+            - rpco_dir_git_version.changed | bool
+
+        - name: Refresh local facts
+          setup:
+            filter: ansible_local
+            gather_subset: "!all"
+
+        - name: Determine if holland is deployed in a venv
+          find:
+            paths: /openstack/venvs
+            patterns: "holland-{{ ansible_local['maas']['general']['maas_product_rpco_version'] }}"
+            file_type: directory
+          register: holland_venv_detection
+          delegate_to: "{{ groups['galera_all'][0] }}"
+
+        - name: Set RPCO holland facts (venv disabled)
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+          with_dict: "{{ maas_compat.holland }}"
+          when:
+            - ansible_local['maas']['general']['maas_product_rpco_version'] is defined
+            - holland_venv_detection.matched == 0
+
+        - name: Set RPCO holland facts (venv enabled)
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+          with_dict: "{{ maas_compat.holland_venv }}"
+          when:
+            - ansible_local['maas']['general']['maas_product_rpco_version'] is defined
+            - holland_venv_detection.matched > 0
+      when:
+        - not (deploy_osp | bool)
+        - rpc_dir_check.stat.exists | bool
+
+    - name: ceph release block
+      block:
+        - name: Register ceph version
+          command: ceph --version
+          register: maas_product_ceph_version
+
+        - name: Set ceph release version fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_product_ceph_version"
+            value: "{{ maas_product_ceph_version.stdout.split('(')[0].strip() | regex_search('[0-9]+.[0-9]+.[0-9]+') }}"
+          when:
+            - maas_product_ceph_version.changed | bool
+
+        - name: Refresh local facts
+          setup:
+            filter: ansible_local
+            gather_subset: "!all"
+      when:
+        - not (deploy_osp | bool)
+        - groups['ceph_all'] | default([]) | length > 0
+      delegate_to: "{{ groups['ceph_all'][0] }}"
+
+    - name: rhosp release block
+      block:
+        - name: Register /etc/rhosp-release version
+          shell: cat /etc/rhosp-release | tr -dc '0-9.'
+          register: maas_product_osp_version
+
+        - name: Set OSP release version fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_product_osp_version"
+            value: "{{ maas_product_osp_version.stdout }}"
+          when:
+            - maas_product_osp_version.changed | bool
+
+        - name: Refresh local facts
+          setup:
+            filter: ansible_local
+            gather_subset: "!all"
+
+        - name: Set RHOSP compatibility facts
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+          with_dict: "{{ maas_compat.osp }}"
+          when:
+            - ansible_local['maas']['general']['maas_product_osp_version'] is defined
+            - ansible_local['maas']['general']['maas_product_osp_version'] is version('13.0.0', '>=')
+      when:
+        - deploy_osp | bool
+        - osp_release_file.stat.exists | bool
+
+    # NOTE(npawelek): The agents and pollers use an HTTP CONNECT method when
+    # establishing connectivity to the monitoring infrastructure. Unfortunately,
+    # testing this methodology will not work due to a bug in the ansible uri
+    # module. As a workaround, we use HTTP GET and add 404 as a valid response
+    # code. A 404 still represents we were able to make a successful connection
+    - name: maas_proxy_url block
+      block:
+        - name: Test direct http connectivity to agent endpoint
+          uri:
+            url: "{{ maas_agent_endpoint.url }}"
+            validate_certs: "{{ maas_agent_endpoint.validate_certs }}"
+            timeout: 5
+            status_code: "{{ maas_agent_endpoint.status_code }}"
+          environment: {}
+
+      rescue:
+        - name: Test proxy http connectivity to agent endpoint
+          uri:
+            url: "{{ maas_agent_endpoint.url }}"
+            validate_certs: "{{ maas_agent_endpoint.validate_certs }}"
+            timeout: 5
+            status_code: "{{ maas_agent_endpoint.status_code }}"
+          environment: "{{ deployment_environment_variables | default({}) }}"
+
+        - name: Set maas_proxy_url fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_proxy_url"
+            value: "{{ deployment_environment_variables.http_proxy }}"
+      when:
+        - deployment_environment_variables is defined
+        - deployment_environment_variables.http_proxy is defined
+        - deployment_environment_variables.http_proxy != 'none://none:none'
+
+    - name: nova console detection
+      block:
+        - name: Check for spice nova_console_type
+          shell: ss -lt | grep -c 6082
+          register: spice_nova_console
+          delegate_to: "{{ groups['nova_console'][0] }}"
+          failed_when: spice_nova_console.rc >= 2
+
+        - name: Set spice maas_nova_console_type fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_nova_console_type"
+            value: "spice"
+          when: spice_nova_console.rc == 0
+
+        - name: Check for novnc nova_console_type
+          shell: ss -lt | grep -c 6080
+          register: novnc_nova_console
+          when: spice_nova_console.rc != 0
+          delegate_to: "{{ groups['nova_console'][0] }}"
+
+        - name: Set novnc maas_nova_console_type fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_nova_console_type"
+            value: "novnc"
+          when:
+            - spice_nova_console.rc != 0
+      when:
+        - (deploy_osp | bool) or
+          (ansible_local['maas']['general']['maas_product_osa_version'] is defined) or
+          (ansible_local['maas']['general']['maas_product_rpco_version'] is defined)
+
+    - name: Set maas_monitor_cinder_backup fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_monitor_cinder_backup"
+        value: true
+      when:
+        - ((groups['swift_all'] | default([])) | length) > 0
+
+    - name: Merge maas_excluded_checks
+      set_fact:
+        tmp_checks_merge: "{{ maas_excluded_checks }}"
+
+    - name: Merge maas_release_excluded_checks
+      set_fact:
+        tmp_checks_merge: "{{ tmp_checks_merge | union(maas_release_excluded_checks[ansible_local['maas']['general']['maas_product_osa_codename']]) }}"
+      when:
+        - ansible_local['maas']['general']['maas_product_osa_codename'] is defined
+        - maas_release_excluded_checks[ansible_local['maas']['general']['maas_product_osa_codename']] is defined
+
+    - name: Set maas_merged_excluded_checks fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_merged_excluded_checks"
+        value: "{{ tmp_checks_merge }}"
+
+    - name: Merge maas_excluded_alarms to fact
+      set_fact:
+        tmp_alarms_merge: "{{ maas_excluded_alarms }}"
+
+    - name: Set maas_merged_excluded_alarms fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_merged_excluded_alarms"
+        value: "{{ tmp_alarms_merge }}"
+
+  tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
+    - name: Set OSA product metadata fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_env_product"
+        value: "osa"
+      when:
+        - not (deploy_osp | bool)
+        - ansible_local['maas']['general']['maas_product_osa_version'] is defined
+        - ansible_local['maas']['general']['maas_product_rpco_version'] is undefined
+
+    - name: Set RPCO product metadata fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_env_product"
+        value: "rpco"
+      when:
+        - not (deploy_osp | bool)
+        - ansible_local['maas']['general']['maas_product_osa_version'] is defined
+        - ansible_local['maas']['general']['maas_product_rpco_version'] is defined
+
+    - name: Set ceph product metadata fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_env_product"
+        value: "ceph"
+      when:
+        - not (deploy_osp | bool)
+        - ansible_local['maas']['general']['maas_product_osa_version'] is undefined
+        - ansible_local['maas']['general']['maas_product_rpco_version'] is undefined
+        - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
+
+    - name: Set RHOSP product metadata fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_env_product"
+        value: "osp"
+      when:
+        - ansible_local['maas']['general']['maas_product_osa_version'] is undefined
+        - ansible_local['maas']['general']['maas_product_rpco_version'] is undefined
+        - ansible_local['maas']['general']['maas_product_ceph_version'] is undefined
+        - deploy_osp | bool
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - maas-pre-flight
+
+
+- name: Verify metadata variables
+  hosts: localhost
   gather_facts: true
   become: true
   pre_tasks:
@@ -60,27 +465,69 @@
       when:
         - deploy_osp | bool
 
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
   tasks:
     - name: Get rendered test metadata template string
       set_fact:
         rendered_maas_metadata_test_tmpl: "{{ lookup('template', playbook_dir + '/templates/rax-maas/test_metadata.yaml.j2') }}"
 
-    - name: Check metadata variables are defined
-      fail:
-        msg: >-
-          There are missing metadata environment variable(s), as you can see 'unknown' from
-          this test template '{{ rendered_maas_metadata_test_tmpl }}'. Please set proper env
-          variables, possible options are: maas_env_identifier, maas_product_dir, maas_product_osa_dir
+    - name: Print rendered metadata template
+      debug:
+        msg: "{{ rendered_maas_metadata_test_tmpl }}"
       when:
-        - maas_pre_flight_metadata_check_enabled | default(true) | bool
+        - maas_pre_flight_metadata_check_enabled | bool
+
+    - name: Check for unknown values
+      fail:
+        msg: |-
+          The rendered metadata template (above) contains 'unknown' values. Potential issues could be:
+          1. The 'maas_env_identifier' override is not defined.
+          2. If a version is 'unknown', the release file format may have changed.
+      when:
+        - maas_pre_flight_metadata_check_enabled | bool
         - rendered_maas_metadata_test_tmpl is search('unknown')
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+  tags:
+    - maas-pre-flight
+
+
+- name: Distribute local facts
+  hosts: all
+  gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: true
+  tasks:
+    - name: Ensure local facts directory exists
+      file:
+        dest: "/etc/ansible/facts.d"
+        state: directory
+        group: "root"
+        owner: "root"
+        mode:  "0755"
+        recurse: no
+
+    - name: Distribute local facts
+      copy:
+        src: /etc/ansible/facts.d/maas.fact
+        dest: /etc/ansible/facts.d/maas.fact
+        owner: root
+        group: root
+
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
 
   tags:
     - maas-pre-flight
+
 
 #
 # maasrc generation
@@ -99,38 +546,19 @@
         - deploy_osp | bool
 
   tasks:
-    - name: Get rendered test metadata template string
-      set_fact:
-        rendered_maas_metadata_test_tmpl: "{{ lookup('template', playbook_dir + '/templates/rax-maas/test_metadata.yaml.j2') }}"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-    - name: Check OSA version is defined
-      fail:
-        msg: "Unable to figure out OSA version"
-      when:
-        - not (deploy_osp | bool)
-        - (rendered_maas_metadata_test_tmpl | from_yaml).metadata.osa_version == 'unknown'
-
-    - name: Set MaaS product metadata facts
-      set_fact:
-        maas_product: "{{ (rendered_maas_metadata_test_tmpl | from_yaml).metadata.product }}"
-        maas_osa_version: "{{ (rendered_maas_metadata_test_tmpl | from_yaml).metadata.osa_version }}"
-      when:
-        - not (deploy_osp | bool)
-
     # For Queens/osp13 and beyond, use image api version 2 and volume api version 3
     - name: Override Image and Volume API versions Queens and beyond
       set_fact:
         os_image_api_version: '2'
         os_volume_api_version: '3'
       when:
-        - ansible_version.full is version_compare('2.0.0', '>=')
+        - ansible_version.full is version('2.0.0', '>=')
         - (
-            (maas_osa_version is defined) and
-            (maas_osa_version is match('[0-9]+.[0-9]+.[0-9]+')) and
-            (maas_osa_version is version_compare('17.0.0', '>='))
+            (ansible_local['maas']['general']['maas_product_osa_version'] is defined) and
+            (ansible_local['maas']['general']['maas_product_osa_version'] is match('[0-9]+.[0-9]+.[0-9]+')) and
+            (ansible_local['maas']['general']['maas_product_osa_version'] is version('17.0.0', '>='))
           ) or
-          (deploy_osp | bool)
+          (ansible_local['maas']['general']['deploy_osp'] | bool)
 
     - name: Generate maasrc file
       template:
@@ -143,7 +571,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
-
+  tags:
+    - maas-pre-flight
   environment: "{{ deployment_environment_variables | default({}) }}"
 
 
@@ -160,11 +589,11 @@
 
   tasks:
     - include_tasks: "common-tasks/maas_get_openrc.yml"
-
     - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
-
+  tags:
+    - maas-pre-flight
   environment: "{{ deployment_environment_variables | default({}) }}"

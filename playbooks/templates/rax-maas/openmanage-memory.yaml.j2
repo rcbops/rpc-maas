@@ -3,13 +3,13 @@
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
-period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
-timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
+period      : "{{ maas_check_period_override[label] | default(300) }}"
+timeout     : "{{ maas_check_timeout_override[label] | default(299) }}"
 disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/openmanage.py", "chassis", "memory"]
-    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
+    timeout : {{ (maas_check_timeout_override[label] | default(299) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
 alarms      :

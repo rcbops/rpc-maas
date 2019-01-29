@@ -16,10 +16,14 @@
 # Merge regular expressions for excluded checks/alarms into a single
 # regular expression string. If the lists are empty, use '^$' as the regular
 # expression since it does not match anything.
+
 - name: Gather regular expressions for excluded checks and alarms
+  vars:
+    maas_merged_excluded_checks: "{{ ansible_local['maas']['general']['maas_merged_excluded_checks'] }}"
+    maas_merged_excluded_alarms: "{{ ansible_local['maas']['general']['maas_merged_excluded_alarms'] }}"
   set_fact:
-    maas_excluded_checks_regex: "{{ (maas_excluded_checks | default([]) | length > 0) | ternary('('+maas_excluded_checks | default([]) | join(')|(')+')', '^$') }}"
-    maas_excluded_alarms_regex: "{{ (maas_excluded_alarms | default([]) | length > 0) | ternary('('+maas_excluded_alarms | default([]) | join(')|(')+')', '^$') }}"
+    maas_excluded_checks_regex: "{{ (maas_merged_excluded_checks | default([]) | length > 0) | ternary('('+maas_merged_excluded_checks | default([]) | join(')|(')+')', '^$') }}"
+    maas_excluded_alarms_regex: "{{ (maas_merged_excluded_alarms | default([]) | length > 0) | ternary('('+maas_merged_excluded_alarms | default([]) | join(')|(')+')', '^$') }}"
   when:
     - maas_excluded_checks_regex is undefined or maas_excluded_alarms_regex is undefined
   tags:

@@ -36,7 +36,7 @@ maas_horizon_scheme: https
 #  the service. Set this to "false" to disable it regardless of the detected
 #  config.
 #
-maas_monitor_cinder_backup: true
+maas_monitor_cinder_backup: "{{ ansible_local['maas']['general']['maas_monitor_cinder_backup'] | default(false) }}"
 maas_cinder_volumes_vg_warning_threshold: 80.0
 maas_cinder_volumes_vg_critical_threshold: 90.0
 
@@ -127,7 +127,7 @@ swift_release: "{{ openstack_release | default('master') }}"
 swift_recon_path: "/openstack/venvs/swift-{{ swift_release }}/bin"
 
 # Set the nova console type and port
-maas_nova_console_type: "{{ nova_console_type | default('novnc') }}"
+maas_nova_console_type: "{{ ansible_local['maas']['general']['maas_nova_console_type'] | default(nova_console_type) | default('novnc') }}"
 maas_nova_console_ports:
   novnc: 6080
   spice: 6082

@@ -70,20 +70,20 @@ maas_plugin_dir: "/usr/lib/rackspace-monitoring-agent/plugins"
 # maas_use_api: Allow operations that make use of the MaaS api, set to false
 #               for offline testing
 #
-maas_use_api: false
+maas_use_api: true
 
 #
 # maas_verify_status: Test the status of the checks within the MaaS API. This
 #                     will cause a failure on any check reporting CRITICAL.
 #
-maas_verify_status: false
+maas_verify_status: true
 
 #
 # maas_verify_registration: Ensure all checks present in config files
 #                           Are also registered with the API. Fail on any
 #                           discrepancies.
 #
-maas_verify_registration: false
+maas_verify_registration: true
 
 #
 # maas_verify_wait: Pause for 5 minutes before running verifications.
@@ -95,7 +95,7 @@ maas_verify_wait: true
 #
 # maas_verify_retries: How many times to retry maas verification tasks
 #
-maas_verify_retries: 15
+maas_verify_retries: 7
 
 #
 # maas_verify_delay: How long to wait before retrying verification tasks
@@ -263,7 +263,7 @@ maas_agent_upgrade: true
 # maas_raxmon_ssl_verify: Allow enabling or disabling raxmon ssl verification
 #
 #
-maas_raxmon_ssl_verify: true
+maas_raxmon_ssl_verify: false
 
 #
 # maas_rpc_legacy_ceph: Instruct rpc-maas that the ceph deployment is using the old RPC
@@ -288,12 +288,12 @@ maas_holland_enabled: false
 # maas_holland_venv_enabled: Instruct rpc-maas that the holland executable is within a venv
 #                            in the galera containers (RPC-O newton and onward).
 #
-maas_holland_venv_enabled: false
+maas_holland_venv_enabled: "{{ ansible_local['maas']['general']['maas_holland_venv_enabled'] | default(false) }}"
 
 #
 # maas_holland_venv_bin: Set the path to the holland venv
 #
-maas_holland_venv_bin: "/openstack/venvs/holland-{{ rpc_release }}/bin"
+maas_holland_venv_bin: "/openstack/venvs/holland-{{ ansible_local['maas']['general']['maas_product_rpco_version'] | default(rpc_release) }}/bin"
 
 #
 # MaaS mysql check options
@@ -421,7 +421,6 @@ maas_filesystem_overrides: "{{ maas_filesystem_monitors }}"
 maas_filesystem_warning_threshold: 80.0
 maas_filesystem_critical_threshold: 90.0
 
-
 maas_disk_utilisation_warning_threshold: 90
 maas_disk_utilisation_critical_threshold: 99
 
@@ -507,3 +506,61 @@ maas_pip_rally_packages:
   - openstacksdk
   - pymysql
   - rally
+
+#
+# agent endpoint A record
+#
+maas_agent_endpoint:
+  url: "https://agent-endpoint-ord.monitoring.api.rackspacecloud.com"
+  validate_certs: false
+  status_code:
+    - 200
+    - 404
+
+#
+# Check to ensure no 'unknown' values are rendered into metadata
+#
+maas_pre_flight_metadata_check_enabled: true
+
+#
+# Check to validate all necessary passwords are defined
+#
+maas_pre_flight_check_enabled: false
+
+#
+# Allows checks to be disabled in template rendering
+#
+maas_excluded_checks: []
+
+#
+# Allows alarms to be disabled in template rendering
+#
+maas_excluded_alarms: []
+
+#
+# RPCO/OSP compatibility variables
+#
+maas_compat:
+  holland:
+    maas_holland_enabled: true
+  holland_venv:
+    maas_holland_enabled: true
+    maas_holland_venv_enabled: true
+  swift:
+    swift_recon_path: "/usr/local/bin"
+  osp:
+    local_suffix: ".localdomain"
+    neutron_plugin_type: 'ovs'
+    horizon_service_protocol: 'http'
+    horizon_service_port: '80'
+
+#
+# Release specific check exclusions
+#
+maas_release_excluded_checks:
+  kilo:
+    - swift_time_sync_check
+  queens:
+    - glance_registry_local_check
+  rocky:
+    - glance_registry_local_check

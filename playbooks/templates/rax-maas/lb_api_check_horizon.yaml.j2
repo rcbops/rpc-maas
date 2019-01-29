@@ -1,8 +1,8 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "lb_api_check_horizon" %}
-{% set check_name = label+'--'+maas_lb_name %}
+{% set check_name = label %}
 {% set url = (maas_horizon_scheme | default(maas_scheme))+"://"+maas_external_hostname+":443/auth/login/" %}
-{% if (deploy_osp | bool) %}
+{% if (ansible_local['maas']['general']['deploy_osp'] | bool) %}
 {% set url = (maas_horizon_scheme | default(maas_scheme))+"://"+maas_external_hostname+":443/dashboard/auth/login/" %}
 {% endif %}
 type              : remote.http

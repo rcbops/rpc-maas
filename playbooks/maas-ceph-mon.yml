@@ -18,10 +18,15 @@
   gather_facts: true
   become: true
   tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
@@ -50,7 +55,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Write Ceph monitoring client key to file
       copy:
@@ -61,14 +66,14 @@
     - name: Get the first mon container
       raw: /bin/docker ps -a -f status=running | awk '/ceph-mon/ {print $NF}' | head -1
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
       register: mon_container_name
 
     - name: Set container name  for osp template
       set_fact:
         container_name: "{{ mon_container_name.stdout | trim }}"
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Write Ceph monitoring client key to file within legacy rpc hosts
       copy:

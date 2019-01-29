@@ -18,10 +18,15 @@
   gather_facts: true
   become: true
   pre_tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -35,7 +40,7 @@
         storage_bridge: "{{ 'ansible_' + swift.storage_network | replace('-', '_') }}"
       register: swift_storage_bridge
       when:
-        - not (deploy_osp | bool)
+        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
         - swift is defined
         - swift.storage_network is defined
         - inventory_hostname in groups['swift_hosts']
@@ -45,7 +50,7 @@
         storage_address: "{{ hostvars[inventory_hostname][storage_bridge]['ipv4']['address'] }}"
       register: swift_storage_bridge_fact
       when:
-        - not (deploy_osp | bool)
+        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
         - not swift_storage_bridge | skipped
         - "'ipv4' in hostvars[inventory_hostname][storage_bridge]"
 
@@ -53,7 +58,7 @@
       set_fact:
         storage_address: "{{ container_address }}"
       when:
-        - not (deploy_osp | bool)
+        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
         - swift_storage_bridge | skipped
         - swift_storage_bridge_fact | skipped
 
@@ -63,7 +68,7 @@
         openstack_release: ""
         swift_recon_path: "/bin"
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
         - inventory_hostname in groups['swift_proxy']
 
     - name: Set Storage_address fact for host for osp swift host/storage nodes
@@ -72,7 +77,7 @@
         openstack_release: ""
         swift_recon_path: "/bin"
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
         - inventory_hostname in groups['swift_hosts']
 
   vars_files:
@@ -94,7 +99,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -141,7 +146,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -187,7 +192,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -234,7 +239,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -343,7 +348,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:

@@ -19,10 +19,15 @@
   serial: "{{ maas_restart_serial | default(1) }}"
   become: true
   pre_tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Restart rackspace-monitoring-poller (systemd)
