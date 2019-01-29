@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Install checks for openstack designate
-  hosts: designate_all:Controller
+  hosts: designate_all
   user: "{{ ansible_user | default('root') }}"
   become: true
   gather_facts: true

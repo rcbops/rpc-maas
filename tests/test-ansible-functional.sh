@@ -26,7 +26,7 @@
 
 ## Shell Opts ----------------------------------------------------------------
 
-set -exuo pipefail
+set -evuo pipefail
 
 echo "Run Functional Tests"
 echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
@@ -149,9 +149,10 @@ function execute_ansible_playbook {
   setup_embedded_ansible
   set_ansible_parameters
   CMD_TO_EXECUTE="${ANSIBLE_BINARY} $@ ${ANSIBLE_CLI_PARAMETERS}"
+  set +x
   echo "Executing: ${CMD_TO_EXECUTE}"
   echo "ANSIBLE environment variables:"
-  echo -e "$(env | grep -i '^ansible' | xargs -n 1 echo ' [*]')"
+  echo -e "$(env | grep -i -e '^ansible' | xargs -n 1 echo '[+] ')"
   ${CMD_TO_EXECUTE}
   deactivate
 }
@@ -203,35 +204,43 @@ function determine_distro {
 }
 
 function get_pip {
-  # Determine the distribution which the host is running on
-  determine_distro
+  if [[ ! -f "/opt/test-maas/bin/python" ]]; then
+    # Determine the distribution which the host is running on
+    determine_distro
 
-  # Install the base packages
-  case ${DISTRO_ID} in
-      centos|rhel)
-          # Prefer dnf over yum for CentOS.
-          which dnf &>/dev/null && RHT_PKG_MGR='dnf' || RHT_PKG_MGR='yum'
-          $RHT_PKG_MGR -y install python-virtualenv \
-                                  python-requests \
-                                  python2-requests \
-                                  python2-requestsexceptions
-          ;;
-      ubuntu)
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get -y install python-virtualenv \
-                                                            python3-virtualenv \
-                                                            python-requests \
-                                                            python-requestsexceptions
-          ;;
-      opensuse*)
-          zypper -n install -l python2-virtualenv \
-                               python3-virtualenv \
-                               python2-requests \
-                               python3-requests \
-                               python2-requestsexceptions \
-                               python3-requestsexceptions
-          ;;
-  esac
+    # Install the base packages
+    case ${DISTRO_ID} in
+        centos|rhel)
+            # Prefer dnf over yum for CentOS.
+            which dnf &>/dev/null && RHT_PKG_MGR='dnf' || RHT_PKG_MGR='yum'
+            $RHT_PKG_MGR -y install python-virtualenv \
+                                    python-requests \
+                                    python2-requests \
+                                    python2-requestsexceptions
+            ;;
+        ubuntu)
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get -y install python-virtualenv \
+                                                              python3-virtualenv \
+                                                              python-requests \
+                                                              python-requestsexceptions || \
+            DEBIAN_FRONTEND=noninteractive apt-get -y install python-virtualenv \
+                                                              python-requests \
+            ;;
+        opensuse*)
+            zypper -n install -l python2-virtualenv \
+                                 python3-virtualenv \
+                                 python2-requests \
+                                 python3-requests \
+                                 python2-requestsexceptions \
+                                 python3-requestsexceptions
+            ;;
+    esac
+
+    virtualenv --no-setuptools /opt/test-maas
+    /opt/test-maas/bin/pip install pip setuptools --upgrade
+    /opt/test-maas/bin/pip install requests --upgrade
+  fi
 }
 
 function enable_maas_api {
@@ -239,10 +248,6 @@ function enable_maas_api {
   #         This will also pull a token from RAX MaaS and set it as an env var.
   ensure_osa_dir
   get_pip
-
-  virtualenv --no-setuptools /opt/test-maas
-  /opt/test-maas/bin/pip install pip setuptools --upgrade
-  /opt/test-maas/bin/pip install requests --upgrade
 
   echo "Show the version of the pip packages in the functional venv."
   echo "START PACKAGE LIST"

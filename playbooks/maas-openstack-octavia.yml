@@ -14,8 +14,8 @@
 # limitations under the License.
 
 - name: Install checks for octavia
-  hosts: "{{ octavia_hosts_all | default('octavia_all') }}"
-  user: "{{ octavia_ansible_user | default('root') }}"
+  hosts: "octavia_all"
+  user: "{{ ansible_user | default('root') }}"
   become: true
   gather_facts: true
   pre_tasks:
@@ -26,7 +26,7 @@
 
     - name: Set the current group
       set_fact:
-        maas_current_group: octavia_hosts_all
+        maas_current_group: octavia_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
@@ -92,8 +92,8 @@
 
 
 - name: Install checks for openstack octavia-api
-  hosts: "{{ octavia_hosts_api | default('octavia-api') }}"
-  user: "{{ octavia_ansible_user | default('root') }}"
+  hosts: "octavia-api"
+  user: "{{ ansible_user | default('root') }}"
   become: true
   gather_facts: true
   pre_tasks:
@@ -104,7 +104,7 @@
 
     - name: Set the current group
       set_fact:
-        maas_current_group: octavia_hosts_all
+        maas_current_group: octavia_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
