@@ -30,10 +30,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
   tasks:
     - name: Install glance api checks
       template:
@@ -95,10 +91,6 @@
         maas_current_group: glance_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Install glance registry checks

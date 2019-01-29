@@ -30,10 +30,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
   tasks:
     - name: Install cinder api checks
       template:
@@ -96,10 +92,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
   tasks:
     - name: Install cinder api checks
       template:
@@ -137,10 +129,6 @@
         maas_current_group: cinder_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
     - name: Stop deployment of cinder backup
       block:
@@ -191,10 +179,6 @@
         maas_current_group: cinder_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Install cinder volume checks

@@ -30,9 +30,7 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
 
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Install heat api checks
@@ -96,9 +94,7 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
 
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Install heat api cfn checks
@@ -161,10 +157,6 @@
         maas_current_group: heat_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Install heat api cloudwatch checks

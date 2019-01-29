@@ -30,10 +30,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
   tasks:
     - name: Install nova nova-api-metadata checks
       template:
@@ -71,10 +67,6 @@
         maas_current_group: nova_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Install nova api checks
@@ -147,10 +139,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
   tasks:
     - name: Install nova api checks
       template:
@@ -188,10 +176,6 @@
         maas_current_group: nova_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Install nova nova-api-metadata checks
@@ -231,10 +215,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
   tasks:
     - name: Install nova nova-compute checks
       template:
@@ -273,10 +253,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
   tasks:
     - name: Install nova nova-conductor checks
       template:
@@ -314,10 +290,6 @@
         maas_current_group: nova_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Install nova nova-console-auth checks

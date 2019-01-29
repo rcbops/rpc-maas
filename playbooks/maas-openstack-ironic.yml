@@ -30,10 +30,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
   tasks:
     - name: Install ironic api checks
       template:
@@ -105,10 +101,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
   tasks:
     - name: Install ironic ironic-conductor checks
       template:
@@ -144,10 +136,6 @@
         maas_current_group: ironic_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Install ironic ironic-compute checks

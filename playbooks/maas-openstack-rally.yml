@@ -51,10 +51,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
-
     - name: Safety check - ensure maas_rally is enabled
       debug:
         msg: "Rally performance tests are disabled. If you really want them please read the documentation and set maas_rally_enabled to true."
@@ -142,10 +138,6 @@
         maas_current_group: rally_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
     - name: Create rally constraint file
       template:
@@ -244,10 +236,6 @@
         maas_current_group: rally_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
     - name: Create maas_rally database
       include_tasks: common-tasks/mysql-db-user.yml
@@ -695,10 +683,6 @@
         maas_current_group: rally_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   tasks:
     - name: Copy maas_rally support helper script

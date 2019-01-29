@@ -37,5 +37,7 @@
         dest: "/root/openrc"
         content: "{{ openrc_fact | b64decode }}"
         mode: "0640"
+      when:
+        - (inventory_hostname | default(ansible_host)) != groups['utility_all'][0]
   when:
     - openrc_file_check.stat.exists | bool
