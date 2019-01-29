@@ -54,7 +54,7 @@
 
   tasks:
     - name: Include Ubuntu distro install tasks
-      include: "common-tasks/maas-poller-{{ ansible_distribution | lower }}-install.yml"
+      include_tasks: "common-tasks/maas-poller-{{ ansible_distribution | lower }}-install.yml"
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
@@ -65,5 +65,6 @@
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
 
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-poller-install

@@ -13,20 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Retrieve openrc file
-  slurp:
-    src: "{{ maas_stackrc | default('/root/openrc') }}"
-  register: openrc_data
-  delegate_to: "{{ groups['utility_all'][0] }}"
+- name: Locate openrc file
+  stat: "{{ maas_stackrc | default('/root/openrc') }}"
+  register: openrc_file_check
 
-- name: Register a fact for the openrc
-  set_fact:
-     openrc_fact: "{{ openrc_data.content }}"
+- name: Get openrc
+  block:
+    - name: Retrieve openrc file
+      slurp:
+        src: "{{ maas_stackrc | default('/root/openrc') }}"
+      register: openrc_data
+      delegate_to: "{{ groups['utility_all'][0] }}"
 
-- name: Distribute openrc
-  copy:
-    dest: "/root/openrc"
-    content: "{{ openrc_fact | b64decode }}"
-    mode: "0640"
-  delegate_to: "{{ physical_host | default(ansible_host) }}"
-  become: yes
+    - name: Register a fact for the openrc
+      set_fact:
+        openrc_fact: "{{ openrc_data.content }}"
+
+    - name: Distribute openrc
+      copy:
+        dest: "/root/openrc"
+        content: "{{ openrc_fact | b64decode }}"
+        mode: "0640"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      become: yes
+  when:
+    - openrc_file_check.stat.exists | bool

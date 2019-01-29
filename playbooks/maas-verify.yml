@@ -76,11 +76,6 @@
         - rpc-maas-tool.py
         - alarmparser.py
 
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-
     - name: Include maas venv create
       include_tasks: common-tasks/maas-venv-create.yml
 

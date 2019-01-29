@@ -23,6 +23,8 @@
       when:
         - deploy_osp | bool
 
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
@@ -35,34 +37,6 @@
 
   tags:
     - always
-
-
-- name: Gather facts
-  hosts: "{{ designate_hosts_all | default('designate_all') }}"
-  user: "{{ designate_ansible_user | default('root') }}"
-  become: true
-  gather_facts: "{{ gather_facts | default(true) }}"
-  pre_tasks:
-    - include: "common-tasks/maas_get_openrc.yml"
-      when:
-        - not deploy_osp | bool
-
-  tasks:
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host }}"
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-    - vars/maas-openstack.yml
-
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
-  tags:
-    - maas-openstack-designate
 
 
 - name: Install checks for openstack designate
@@ -78,7 +52,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Install designate mdns checks
       template:
@@ -87,7 +61,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Install designate lb checks
       template:
@@ -96,7 +70,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
@@ -108,7 +82,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
@@ -117,6 +91,8 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-openstack-designate

@@ -23,14 +23,16 @@
       when:
         - deploy_osp | bool
 
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
       set_fact:
         maas_current_group: shared-infra_hosts
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
 
@@ -56,6 +58,8 @@
     - vars/main.yml
     - vars/maas.yml
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-infra-pacemaker

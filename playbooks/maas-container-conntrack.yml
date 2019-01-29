@@ -23,40 +23,18 @@
       when:
         - deploy_osp | bool
 
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-  tags:
-    - always
-
-
-- name: Gather facts
-  hosts: neutron_agent
-  gather_facts: "{{ gather_facts | default(true) }}"
-  user: "{{ ansible_user | default('root') }}"
-  become: true
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
       set_fact:
         maas_current_group: neutron_agent
 
-  tasks:
-   - name: Copy over pip constraints
-     copy:
-       src: "files/pip-constraints.txt"
-       dest: "/tmp/pip-constraints.txt"
-     delegate_to: "{{ physical_host | default(ansible_host) }}"
-
   vars_files:
     - vars/main.yml
     - vars/maas.yml
 
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
   tags:
-    - maas-container-conntrack
+    - always
 
 
 - name: Install checks for container conntrack monitoring
@@ -77,6 +55,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-container-container

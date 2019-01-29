@@ -19,13 +19,13 @@
 # Liberty and Mitaka deployments, add the include tasks to test.yml.
 
 # Install rpc-maas
-- include: "../playbooks/site.yml"
+- import_playbook: "../playbooks/site.yml"
 
 # Install maas_rally performance monitoring
-- include: "../playbooks/maas-openstack-rally.yml"
+- import_playbook: "../playbooks/maas-openstack-rally.yml"
 
 # Restart the rackspace-monitoring-agent after the rally deployment
-- include: "../playbooks/maas-restart.yml"
+- import_playbook: "../playbooks/maas-restart.yml"
 
 # Ensure all plugins are functional
-- include: "../playbooks/maas-verify.yml"
+- import_playbook: "../playbooks/maas-verify.yml"

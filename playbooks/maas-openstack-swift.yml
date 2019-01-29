@@ -39,39 +39,6 @@
     - always
 
 
-- name: Gather facts
-  hosts: swift_all
-  gather_facts: "{{ gather_facts | default(true) }}"
-  user: "{{ ansible_user | default('root') }}"
-  become: true
-  tasks:
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-    # - name: Retrieve openrc file
-    # fetch:
-    #  src: /root/openrc
-    #  dest: /root/openrc
-    #  flat: true
-    # delegate_to: "{{ item }}"
-    # with_items: "{{ groups['hosts'] }}"
-    # when:
-    #  - "'hosts' in groups"
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-    - vars/maas-openstack.yml
-
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
-  tags:
-    - maas-openstack-swift
-
-
 - name: Gather swift host groups extra facts
   hosts: swift_all
   gather_facts: false
@@ -127,6 +94,8 @@
     - vars/maas.yml
     - vars/maas-openstack.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-swift
 
@@ -158,6 +127,8 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-openstack-swift
@@ -191,6 +162,9 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-swift
 
@@ -222,6 +196,8 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-openstack-swift
@@ -317,6 +293,8 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-openstack-swift
@@ -492,6 +470,8 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-openstack-swift

@@ -23,7 +23,7 @@
       when:
         - deploy_osp | bool
 
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
       set_fact:

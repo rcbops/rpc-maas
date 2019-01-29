@@ -43,13 +43,15 @@
   become: true
   tasks:
     - name: Run vendor tasks
-      include: "common-tasks/maas-host-vendor-{{ ansible_system_vendor.split()[0] | lower }}.yml"
+      include_tasks: "common-tasks/maas-host-vendor-{{ ansible_system_vendor.split()[0] | lower }}.yml"
       when:
         - maas_host_check | bool
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-hosts-vendor

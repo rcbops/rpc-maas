@@ -32,6 +32,7 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
 
@@ -43,7 +44,7 @@
   pre_tasks:
     - name: Add ceph command line alias string
       set_fact:
-        ceph_command: "{{ (deploy_osp | bool) | ternary('sudo docker exec ceph-mon-{{inventory_hostname}} ceph --cluster ceph', 'ceph') }}"
+        ceph_command: "{{ (deploy_osp | bool) | ternary('docker exec ceph-mon-{{inventory_hostname}} ceph --cluster ceph', 'ceph') }}"
 
     - name: Create ceph monitoring client
       command: "{{ ceph_command }} auth get-or-create client.raxmon"
@@ -63,6 +64,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-ceph

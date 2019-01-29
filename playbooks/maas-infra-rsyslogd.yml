@@ -57,5 +57,7 @@
     - vars/maas.yml
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-infra-rsyslog

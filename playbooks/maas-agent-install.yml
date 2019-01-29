@@ -37,31 +37,13 @@
     - always
 
 
-- name: Gather facts
-  hosts: hosts
-  gather_facts: "{{ gather_facts | default(true) }}"
-  user: "{{ ansible_user | default('root') }}"
-  become: true
-  tasks:
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
-  tags:
-    - maas-agent-install
-
-
 - name: Install MaaS Agent
   hosts: hosts
   gather_facts: false
   become: true
   pre_tasks:
     - name: Include distro install tasks
-      include: "common-tasks/maas-agent-{{ ansible_distribution | lower }}-install.yml"
+      include_tasks: "common-tasks/maas-agent-{{ ansible_distribution | lower }}-install.yml"
 
     - name: Ensure rackspace-monitoring-agent config directory exists
       file:
