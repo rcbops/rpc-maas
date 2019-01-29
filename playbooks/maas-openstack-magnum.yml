@@ -13,38 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-- name: Gather facts
+- name: Install checks for openstack magnum-api
   hosts: magnum
-  gather_facts: false
+  gather_facts: true
+  user: "{{ ansible_user | default('root') }}"
   become: true
-  tasks:
+  pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
 
-    - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
     - name: Set the current group
       set_fact:
         maas_current_group: magnum
 
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-  tags:
-    - always
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
 
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
-- name: Install checks for openstack magnum-api
-  hosts: magnum
-  gather_facts: false
-  user: "{{ ansible_user | default('root') }}"
-  become: true
   tasks:
     - name: Install magnum api checks
       template:

@@ -13,36 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Gather facts
+- name: Gather swift host groups extra facts
   hosts: swift_all
-  gather_facts: false
+  gather_facts: true
   become: true
-  tasks:
+  pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
 
-    - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
     - name: Set the current group
       set_fact:
         maas_current_group: swift_all
 
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-  tags:
-    - always
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
 
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
-- name: Gather swift host groups extra facts
-  hosts: swift_all
-  gather_facts: false
-  become: true
   tasks:
     - name: Set Storage address fact for host
       set_fact:
@@ -101,9 +91,25 @@
 
 - name: Install checks for openstack swift account
   hosts: swift_acc
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Install swift account server checks
       template:
@@ -136,9 +142,25 @@
 
 - name: Install checks for openstack swift container
   hosts: swift_cont
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Install swift container process checks
       template:
@@ -170,9 +192,25 @@
 
 - name: Install checks for openstack swift object group
   hosts: swift_obj
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Install swift object server checks
       template:
@@ -205,9 +243,25 @@
 
 - name: Install swift-recon checks for openstack swift proxy
   hosts: swift_proxy
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Get openstack release
       command: "grep DISTRIB_RELEASE /etc/openstack-release"
@@ -302,9 +356,25 @@
 
 - name: Install accesscheck for openstack swift proxy
   hosts: swift_proxy
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Create keystone user for swift filecheck
       shell: |

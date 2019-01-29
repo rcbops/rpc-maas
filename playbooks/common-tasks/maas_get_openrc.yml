@@ -14,8 +14,11 @@
 # limitations under the License.
 
 - name: Locate openrc file
-  stat: "{{ maas_stackrc | default('/root/openrc') }}"
+  stat:
+    path: "{{ maas_stackrc | default('/root/openrc') }}"
   register: openrc_file_check
+  delegate_to: "{{ groups['utility_all'][0] }}"
+  run_once: true
 
 - name: Get openrc
   block:
@@ -34,7 +37,5 @@
         dest: "/root/openrc"
         content: "{{ openrc_fact | b64decode }}"
         mode: "0640"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      become: yes
   when:
     - openrc_file_check.stat.exists | bool

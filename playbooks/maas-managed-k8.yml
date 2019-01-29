@@ -17,7 +17,7 @@
   hosts: os-infra_hosts:Controller
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
@@ -43,7 +43,13 @@
   hosts:  "{{ mk8s_ui_hosts | default('mk8s_ui_all') }}"
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install mk8s ui process check
       template:
@@ -101,7 +107,13 @@
   hosts:  "{{ mk8s_etp_hosts | default('mk8s_etp_all') }}"
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install mk8s etp process check
       template:
@@ -136,7 +148,13 @@
   hosts: "{{ mk8s_etg_hosts | default('mk8s_etg_all') }}"
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install mk8s etg process check
       template:
@@ -171,7 +189,13 @@
   hosts:  "{{ mk8s_auth_hosts | default('mk8s_auth_all') }}"
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install mk8s auth process check
       template:

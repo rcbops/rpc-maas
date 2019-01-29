@@ -15,7 +15,7 @@
 
 - name: Gather facts
   hosts: galera_all
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: true
   become: true
   tasks:
     - name: Include OSP vars
@@ -28,16 +28,26 @@
     - name: Set the current group
       set_fact:
         maas_current_group: galera_all
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+
   tags:
     - maas-infra-galera
 
 
 - name: Install checks for infra galera
   hosts: galera_all
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - name: Check for required galera variables
       fail:
         msg: >-
@@ -46,7 +56,7 @@
       when:
         - not galera_root_password is defined
 
-    - name: Include ubuntu install tasks
+    - name: Include install tasks
       include_tasks: "common-tasks/maas-infra-{{ ansible_distribution | lower }}-install.yml"
 
     - name: Install holland check

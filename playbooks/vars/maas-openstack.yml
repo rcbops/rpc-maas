@@ -171,21 +171,15 @@ designate_process_names:
 maas_rally_enabled: false
 
 #
-#  The ansible host group where the maas_rally performance monitoring plugin
-#  will be installed.
-#
-maas_rally_target_group: shared-infra_hosts
-
-#
 #  The node from which checks will run.  The maas_rally plugin will be installed
-#  on all hosts in `maas_rally_target_group`, but performance checks (each of
+#  on all hosts in "shared-infra_hosts" machines, but performance checks (each of
 #  which consumes resources) should only execute from a single node to avoid
 #  uncoordinated resource consumption.  The best practice is to override this
 #  with a single hostname (e.g. infra01) in user vars.  Then, if the primary
 #  node fails maas_rally_primary_node can be updated to resume monitoring from
 #  another node.
 #
-maas_rally_primary_node: "{{ groups[maas_rally_target_group][0] }}"
+maas_rally_primary_node: "{{ groups['shared-infra_hosts'][0] }}"
 
 #
 #  The maas_rally_check_overrides dictionary is the primary configuration

@@ -15,7 +15,7 @@
 
 - name: Gather facts
   hosts: swift_all
-  gather_facts: false
+  gather_facts: true
   become: true
   tasks:
     - name: Include OSP vars
@@ -33,9 +33,15 @@
 
 - name: Verify MaaS
   hosts: hosts
-  user: root
-  gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  gather_facts: true
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Ensure log directories
       file:

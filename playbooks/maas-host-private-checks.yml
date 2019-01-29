@@ -16,7 +16,7 @@
 
 - name: Gather facts
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   become: true
   tasks:
     - name: Include OSP vars
@@ -40,8 +40,14 @@
 
 - name: Install private network monitoring checks
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install private ping and SSH checks
       template:

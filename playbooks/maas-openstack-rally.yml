@@ -13,15 +13,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Perform pre-flight and configuration checks
-  hosts: "{{ maas_rally_target_group }}[0]"
+- name: Ensure rally basic requirements are met
+  hosts: "shared-infra_hosts"
   gather_facts: false
+  connection: local
+  tasks:
+    - name: Add hosts to dynamic inventory group
+      group_by:
+        key: dynamic_rally_hosts
+        parents: rally_all
+      when:
+        - (((groups['swift_all'] | default([])) | union(groups['rgws'] | default([]))) | length) > 0
+
+    - name: Set rally fact when needed
+      set_fact:
+        maas_rally_enabled: false
+      when:
+        - maas_rally_enabled | bool
+        - (((groups['swift_all'] | default([])) | union(groups['rgws'] | default([]))) | length) > 0
+  tags:
+    - always
+
+
+- name: Perform pre-flight and configuration checks
+  hosts: "dynamic_rally_hosts[0]"
+  gather_facts: true
   become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: rally_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
     - name: Safety check - ensure maas_rally is enabled
-      fail:
+      debug:
         msg: "Rally performance tests are disabled. If you really want them please read the documentation and set maas_rally_enabled to true."
-      when: not maas_rally_enabled
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
 
     - name: Generate check template dictionary
       set_fact:
@@ -71,16 +114,39 @@
         - maas_rally_checks[item]['duration_threshold'] < 1 or maas_rally_checks[item]['duration_threshold'] > 100
 
   vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
     - vars/maas-openstack.yml
 
   environment: "{{ deployment_environment_variables | default({}) }}"
 
 
 - name: Configure maas_rally virtual environments
-  hosts: "{{ maas_rally_target_group }}"
+  hosts: "dynamic_rally_hosts"
   gather_facts: true
   become: true
   pre_tasks:
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: rally_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
     - name: Create rally constraint file
       template:
         src: templates/rax-maas/rally-constraint.txt.j2
@@ -159,11 +225,29 @@
 
 
 - name: Prepare OpenStack and DB for performance monitoring
-  hosts: "{{ maas_rally_target_group }}[0]"
-  gather_facts: false
+  hosts: "dynamic_rally_hosts[0]"
+  gather_facts: true
   become: true
   pre_tasks:
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: rally_all
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
     - name: Create maas_rally database
       include_tasks: common-tasks/mysql-db-user.yml
@@ -451,10 +535,20 @@
 
 
 - name: Configure performance checks
-  hosts: "{{ maas_rally_target_group }}"
-  gather_facts: false
+  hosts: "dynamic_rally_hosts"
+  gather_facts: true
   become: true
   pre_tasks:
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Ensure maas plugin directory exists
@@ -583,8 +677,29 @@
 
 - name: Deploy support helper script to utility containers
   hosts: utility_all
-  gather_facts: false
+  gather_facts: true
   become: true
+  pre_tasks:
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: rally_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Copy maas_rally support helper script
       copy:

@@ -13,37 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Gather facts
+- name: Install checks for openstack designate
   hosts: designate_all:Controller
-  gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
   become: true
-  tasks:
+  gather_facts: true
+  pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
 
-    - include_tasks: "common-tasks/maas_get_openrc.yml"
-
-    - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
     - name: Set the current group
       set_fact:
         maas_current_group: designate_all
 
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-  tags:
-    - always
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
 
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
-- name: Install checks for openstack designate
-  hosts: "{{ designate_hosts_all | default('designate_all') }}"
-  user: "{{ designate_ansible_user | default('root') }}"
-  become: true
-  gather_facts: false
   tasks:
     - name: Install designate api checks
       template:

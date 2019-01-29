@@ -15,7 +15,7 @@
 
 - name: Gather facts
   hosts: rgws
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: true
   become: true
   tasks:
     - name: Include OSP vars
@@ -37,12 +37,20 @@
     - maas-ceph-rgws
 
 
+- import_playbook: maas-ceph-raxmon.yml
+
+
 - name: Install checks for ceph rgws
   hosts: rgws
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - name: Write Ceph monitoring client key to file
       copy:
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"

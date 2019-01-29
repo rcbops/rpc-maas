@@ -18,6 +18,12 @@
   gather_facts: true
   serial: "{{ maas_restart_serial | default(1) }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Restart rackspace-monitoring-poller (systemd)
       service:

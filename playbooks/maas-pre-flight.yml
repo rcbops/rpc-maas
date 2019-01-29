@@ -18,6 +18,12 @@
   connection: local
   gather_facts: true
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Check password is defined
       fail:
@@ -28,7 +34,7 @@
         - maas_pre_flight_check_enabled | default(false) | bool
         - groups['osds'] | default([]) | length > 0
         - groups['mons'] | default([]) | length > 0
-        - ansible_version.full | version_compare('2.1.0.0', '>=')
+        - ansible_version.full is version_compare('2.1.0.0', '>=')
         - hostvars[inventory_hostname][item.key] is undefined
       with_dict: "{{ maas_pw_check }}"
 
@@ -46,8 +52,14 @@
 - name: Check metadata variables are defined
   hosts: localhost
   connection: local
-  gather_facts: false
+  gather_facts: true
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Get rendered test metadata template string
       set_fact:
@@ -80,6 +92,12 @@
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Get rendered test metadata template string
       set_fact:
@@ -106,11 +124,11 @@
         os_image_api_version: '2'
         os_volume_api_version: '3'
       when:
-        - ansible_version.full | version_compare('2.0.0', '>=')
+        - ansible_version.full is version_compare('2.0.0', '>=')
         - (
             (maas_osa_version is defined) and
             (maas_osa_version is match('[0-9]+.[0-9]+.[0-9]+')) and
-            (maas_osa_version | version_compare('17.0.0', '>='))
+            (maas_osa_version is version_compare('17.0.0', '>='))
           ) or
           (deploy_osp | bool)
 

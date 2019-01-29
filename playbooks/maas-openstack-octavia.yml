@@ -13,35 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Gather facts
-  hosts: octavia_all:Controller
-  gather_facts: false
+- name: Install checks for octavia
+  hosts: "{{ octavia_hosts_all | default('octavia_all') }}"
+  user: "{{ octavia_ansible_user | default('root') }}"
   become: true
-  tasks:
+  gather_facts: true
+  pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
 
-    - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
     - name: Set the current group
       set_fact:
-        maas_current_group: "octavia_hosts_all"
+        maas_current_group: octavia_hosts_all
 
-  vars_files:
-   - vars/main.yml
-   - vars/maas.yml
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-  tags:
-   - always
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
 
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
-- name: Install checks for octavia
-  hosts: "{{ octavia_hosts_all | default('octavia_all') }}"
-  user: "{{ octavia_ansible_user | default('root') }}"
-  become: true
-  gather_facts: false
   tasks:
     - name: Install octavia process check
       template:
@@ -107,7 +99,23 @@
   hosts: "{{ octavia_hosts_api | default('octavia-api') }}"
   user: "{{ octavia_ansible_user | default('root') }}"
   become: true
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: octavia_hosts_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Add load-balancer member role (RPC-O)
       shell: ". {{ maas_openrc | default('/root/openrc') }} && openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer"

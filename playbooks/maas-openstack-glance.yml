@@ -13,16 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-- name: Gather facts
-  hosts: glance_all
-  gather_facts: false
+- name: Install checks for openstack glance-api
+  hosts: glance_api
+  gather_facts: true
+  user: "{{ ansible_user | default('root') }}"
   become: true
-  tasks:
+  pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: glance_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
@@ -30,23 +34,6 @@
 
     - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
-    - name: Set the current group
-      set_fact:
-        maas_current_group: glance_all
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-
-  tags:
-    - always
-
-
-- name: Install checks for openstack glance-api
-  hosts: glance_api
-  gather_facts: false
-  user: "{{ ansible_user | default('root') }}"
-  become: true
   tasks:
     - name: Install glance api checks
       template:
@@ -94,9 +81,25 @@
 
 - name: Install checks for openstack glance-registry
   hosts: glance_registry
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: glance_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Install glance registry checks
       template:

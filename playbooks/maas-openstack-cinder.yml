@@ -13,15 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Gather facts
-  hosts: cinder_all
-  gather_facts: false
+- name: Install checks for openstack cinder-api
+  hosts: cinder_api
+  gather_facts: true
+  user: "{{ ansible_user | default('root') }}"
   become: true
-  tasks:
+  pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: cinder_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
@@ -29,23 +34,6 @@
 
     - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
-    - name: Set the current group
-      set_fact:
-        maas_current_group: cinder_all
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-
-  tags:
-    - always
-
-
-- name: Install checks for openstack cinder-api
-  hosts: cinder_api
-  gather_facts: false
-  user: "{{ ansible_user | default('root') }}"
-  become: true
   tasks:
     - name: Install cinder api checks
       template:
@@ -93,9 +81,25 @@
 
 - name: Install checks for openstack cinder-api
   hosts: cinder_scheduler
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: cinder_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Install cinder api checks
       template:
@@ -119,9 +123,37 @@
 
 - name: Install checks for openstack cinder-backup
   hosts: cinder_backup
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: cinder_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
+    - name: Stop deployment of cinder backup
+      block:
+        - name: Notify
+          debug:
+            msg: >-
+              No suitable backed was available for cinder backup to run. This check will not be deployed.
+
+        - name: Exit
+          meta: end_play
+      when:
+        - (((groups['swift_all'] | default([])) | union(groups['rgws'] | default([]))) | length) < 1
+
   tasks:
     - name: Install cinder backup checks
       template:
@@ -145,9 +177,25 @@
 
 - name: Install checks for openstack cinder-volume
   hosts: cinder_volume
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: cinder_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - include_tasks: "common-tasks/maas_get_maasrc.yml"
+
   tasks:
     - name: Install cinder volume checks
       template:

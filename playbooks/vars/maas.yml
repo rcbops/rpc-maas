@@ -514,6 +514,8 @@ maas_pip_openstack_packages:
 maas_pip_rally_packages:
   - influxdb
   - keystoneauth1
+  - monitorstack
   - numpy
-  - pymysql
   - openstacksdk
+  - pymysql
+  - rally

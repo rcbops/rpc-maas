@@ -15,7 +15,7 @@
 
 - name: Gather facts
   hosts: mons
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: true
   become: true
   tasks:
     - name: Include OSP vars
@@ -39,9 +39,14 @@
 
 - name: Install checks for ceph mons
   hosts: maas_mon_hosts
-  gather_facts: false
+  gather_facts: true
   become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - name: Add ceph command line alias string
       set_fact:
         ceph_command: "{{ (deploy_osp | bool) | ternary('docker exec ceph-mon-{{inventory_hostname}} ceph --cluster ceph', 'ceph') }}"

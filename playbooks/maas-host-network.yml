@@ -15,7 +15,7 @@
 
 - name: Gather facts
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   become: true
   tasks:
     - name: Include OSP vars
@@ -39,9 +39,14 @@
 
 - name: Install checks for hosts network
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - name: Test that network interfaces exist
       fail:
         msg: "The specified network interfaces {{ item.name }} doesn't exist, consider setting the 'maas_network_checks_list' variable to override these interfaces"
@@ -73,8 +78,14 @@
 
 - name: Install checks for bonding interfaces
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install checks for bonding interfaces
       template:

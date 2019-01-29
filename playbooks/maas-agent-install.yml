@@ -15,7 +15,7 @@
 
 - name: Gather facts
   hosts: hosts
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: true
   become: true
   tasks:
     - name: Include OSP vars
@@ -39,9 +39,14 @@
 
 - name: Install MaaS Agent
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - name: Include distro install tasks
       include_tasks: "common-tasks/maas-agent-{{ ansible_distribution | lower }}-install.yml"
 

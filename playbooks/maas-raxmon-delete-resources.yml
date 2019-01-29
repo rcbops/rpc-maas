@@ -15,7 +15,7 @@
 
 - name: Gather facts
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   become: true
   tasks:
     - name: Include OSP vars
@@ -33,9 +33,15 @@
 
 - name: Clean up MaaS resources for gating tests
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Run RAXMON
       vars:
