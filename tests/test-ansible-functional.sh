@@ -150,10 +150,8 @@ function execute_ansible_playbook {
   set_ansible_parameters
   CMD_TO_EXECUTE="${ANSIBLE_BINARY} $@ ${ANSIBLE_CLI_PARAMETERS}"
   echo "Executing: ${CMD_TO_EXECUTE}"
-  echo "With:"
-  echo "  ANSIBLE_INVENTORY: ${ANSIBLE_INVENTORY}"
-  echo "  ANSIBLE_LOG_PATH: ${ANSIBLE_LOG_PATH}"
-
+  echo "ANSIBLE environment variables:"
+  echo -e "$(env | grep -i '^ansible' | xargs -n 1 echo ' [*]')"
   ${CMD_TO_EXECUTE}
   deactivate
 }
