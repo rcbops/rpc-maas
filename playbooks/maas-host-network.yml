@@ -5,13 +5,28 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+- name: Gather facts
+  hosts: hosts
+  gather_facts: false
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
 
 - name: Gather facts
   hosts: hosts
@@ -33,7 +48,7 @@
   post_tasks:
     - name: Install network pip packages to venv
       pip:
-        name: "{{ maas_network_check_pip_packages  }}"
+        name: "{{ maas_network_check_pip_packages }}"
         state: "{{ maas_pip_package_state }}"
         extra_args: >-
           --isolated
@@ -41,16 +56,19 @@
           {{ pip_install_options | default('') }}
         virtualenv: "{{ maas_venv }}"
       register: install_pip_packages
-      until: install_pip_packages|success
+      until: install_pip_packages is success
       retries: 5
       delay: 2
 
   vars_files:
     - vars/main.yml
-    - vars/maas-host.yml
+    - vars/maas.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-hosts-network
+
 
 - name: Install checks for hosts network
   hosts: hosts
@@ -77,7 +95,8 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-host.yml
+    - vars/maas.yml
+
   tags:
     - maas-hosts-network
 
@@ -97,6 +116,7 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-host.yml
+    - vars/maas.yml
+
   tags:
     - maas-hosts-network

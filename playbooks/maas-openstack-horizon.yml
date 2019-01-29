@@ -15,20 +15,35 @@
 
 - name: Gather facts
   hosts: horizon
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: false
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp  | default(False)
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
 
+
+- name: Gather facts
+  hosts: horizon
+  user: "{{ ansible_user | default('root') }}"
+  become: yes
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
+
     - include: "common-tasks/maas_get_openrc.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: horizon
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
   tags:
     - maas-openstack-horizon
 
@@ -99,6 +114,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-horizon

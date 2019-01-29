@@ -21,13 +21,13 @@
       set_fact:
         ceph_command: sudo docker exec ceph-mon-{{inventory_hostname}} ceph --cluster ceph
       when:
-        - deploy_osp  | default(False)
+        - deploy_osp | bool
 
     - name: Add ceph command line alias string for other environment
       set_fact:
         ceph_command: ceph
       when:
-        - not (deploy_osp  | default(False))
+        - not (deploy_osp | bool)
 
     - name: Create ceph monitoring client
       command: "{{ ceph_command }} auth get-or-create client.raxmon"

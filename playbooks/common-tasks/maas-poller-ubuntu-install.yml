@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,24 +20,24 @@
     url: "{{ maas_keys.url | default(omit) }}"
     state: "{{ maas_keys.state }}"
   register: add_repo_keys
-  until: add_repo_keys | success
+  until: add_repo_keys is success
   retries: 3
   delay: 2
 
 - name: Add maas repo
   apt_repository:
-    repo: "{{ maas_poller_repos.repo }}"
-    state: "{{ maas_poller_repos.state }}"
+    repo: "{{ maas_repos.poller.repo }}"
+    state: "{{ maas_repos.poller.state }}"
+    filename: "{{ maas_repos.main.filename | default(omit) }}"
     update_cache: yes
   register: add_repos
-  until: add_repos | success
+  until: add_repos is success
   retries: 5
   delay: 2
 
 - name: Ensure container packages are installed
-  apt:
-    pkg: "{{ item }}"
+  package:
+    name: "{{ maas_poller_distro_packages }}"
     state: "{{ maas_package_state }}"
     update_cache: yes
     cache_valid_time: 600
-  with_items: "{{ maas_poller_distro_packages }}"

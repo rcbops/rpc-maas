@@ -5,13 +5,28 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+- name: Gather facts
+  hosts: swift_all
+  gather_facts: false
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
 
 - name: Verify MaaS
   hosts: hosts
@@ -38,14 +53,16 @@
         owner: "root"
         group: "root"
         mode: "0755"
-      when: deploy_osp | default(False)
+      when:
+        - deploy_osp | bool
 
     - name: Create log link
       file:
         src: "{{ workspace_logs }}"
         dest: "{{ working_dir_logs }}"
         state: link
-      when: not (deploy_osp | default(False))
+      when:
+        - not (deploy_osp | bool)
 
     - name: Copy verification tool to host
       copy:
@@ -60,19 +77,8 @@
         src: "files/pip-constraints.txt"
         dest: "/tmp/pip-constraints.txt"
 
-    - name: Install verify pip packages to venv
-      pip:
-        name: "{{ maas_verify_pip_packages  }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          --isolated
-          --constraint /tmp/pip-constraints.txt
-          {{ pip_install_options | default('') }}
-        virtualenv: "{{ maas_venv }}"
-      register: install_pip_packages
-      until: install_pip_packages|success
-      retries: "{{ maas_verify_retries }}"
-      delay: "{{ maas_verify_delay }}"
+    - name: Include maas venv create
+      include_tasks: common-tasks/maas-venv-create.yml
 
     - name: "Allow MAAS time to run checks before verifying they're created"
       pause:
@@ -86,7 +92,7 @@
       become: true
       register: maas_verify
       changed_when: false
-      until: maas_verify | success
+      until: maas_verify is success
       retries: "{{ maas_verify_retries }}"
       delay: "{{ maas_verify_delay }}"
       tags:
@@ -124,7 +130,10 @@
   vars:
     working_dir_logs: "{{ lookup('env', 'WORKING_DIR') | default('/tmp', true) }}/logs"
     workspace_logs: "{{ lookup('env', 'RE_HOOK_ARTIFACT_DIR') | default('/tmp', true) }}"
+
   vars_files:
     - vars/main.yml
-    - vars/maas-verify.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+
   environment: "{{ deployment_environment_variables | default({}) }}"

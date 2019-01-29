@@ -5,10 +5,10 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (inventory_hostname not in maas_swift_recon_nodes or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname not in maas_swift_recon_nodes or check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/swift-recon.py", "-t", "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}", {% if deploy_osp | default(False) %}"--deploy_osp",{% endif %}"--swift-recon-path", "{{ swift_recon_path }}", "md5"]
+    args    : ["{{ maas_plugin_dir }}/swift-recon.py", "-t", "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}", {% if (deploy_osp | bool) %}"--deploy_osp",{% endif %}"--swift-recon-path", "{{ swift_recon_path }}", "md5"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
@@ -16,7 +16,7 @@ alarms      :
     swift_ring_md5_check :
         label                   : swift_ring_md5_check--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('swift_ring_md5_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_ring_md5_check--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["ring_errors"] > 0) {
@@ -26,7 +26,7 @@ alarms      :
     swift_conf_md5_check :
         label                   : swift_conf_md5_check--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('swift_conf_md5_check--'+inventory_hostname) | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_conf_md5_check--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["swift_conf_errors"] > 0) {

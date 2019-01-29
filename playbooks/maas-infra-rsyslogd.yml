@@ -41,6 +41,7 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-infra.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
   tags:
     - maas-infra-rsyslog

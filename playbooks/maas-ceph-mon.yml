@@ -20,13 +20,19 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp  | default(False)
+        - deploy_osp | bool
+
     - include: "common-tasks/maas_excluded_regex.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: mons
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
   tags:
     - maas-ceph-mons
+    - always
 
 - include: maas-ceph-raxmon.yml
 
@@ -40,19 +46,19 @@
       copy:
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
 
     - name: Get the first mon container
       raw: /bin/docker ps -a -f status=running | awk '/ceph-mon/ {print $NF}' | head -1
       when:
-        - deploy_osp | default(False)
+        - deploy_osp | bool
       register: mon_container_name
 
     - name: Set container name  for osp template
       set_fact:
         container_name: "{{ mon_container_name.stdout | trim }}"
       when:
-        - deploy_osp | default(False)
+        - deploy_osp | bool
 
     - name: Write Ceph monitoring client key to file within legacy rpc hosts
       copy:
@@ -69,12 +75,13 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
       with_items:
         - ceph_mon_stats
         - ceph_cluster_stats
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
   tags:
     - maas-ceph-mons

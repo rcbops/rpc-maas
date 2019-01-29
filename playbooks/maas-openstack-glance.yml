@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,16 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+- name: Gather facts
+  hosts: glance_all
+  gather_facts: false
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
+
 - name: Gather facts
   hosts: glance_all
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - include: "common-tasks/maas_get_maasrc.yml"
@@ -40,7 +52,7 @@
   post_tasks:
     - name: Install glance pip packages to venv
       pip:
-        name: "{{ maas_openstack_glance_pip_packages  }}"
+        name: "{{ maas_openstack_glance_pip_packages }}"
         state: "{{ maas_pip_package_state }}"
         extra_args: >-
           --isolated
@@ -48,17 +60,21 @@
           {{ pip_install_options | default('') }}
         virtualenv: "{{ maas_venv }}"
       register: install_pip_packages
-      until: install_pip_packages|success
+      until: install_pip_packages is success
       retries: 5
       delay: 2
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-glance
+
 
 - name: Install checks for openstack glance-api
   hosts: glance_api
@@ -101,9 +117,12 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-glance
+
 
 - name: Install checks for openstack glance-registry
   hosts: glance_registry
@@ -122,6 +141,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-glance

@@ -13,20 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-tigkstack-influxdb.yml
-  when:
-    - influxdb_db_root_password is defined
-    - influxdb_db_metric_password is defined
-  tags:
-    - maas-tigkstack
-
-- include: maas-tigkstack-telegraf.yml
-  tags:
-    - maas-tigkstack
-
-- include: maas-tigkstack-grafana.yml
-  when:
-    - grafana_db_password is defined
-    - grafana_admin_password is defined
-  tags:
-    - maas-tigkstack
+- name: Show notice
+  debug: >-
+    This task file is a place holder at this time.

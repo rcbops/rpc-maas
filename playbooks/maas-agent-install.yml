@@ -16,6 +16,20 @@
 - name: Gather facts
   hosts: hosts
   gather_facts: "{{ gather_facts | default(true) }}"
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
+- name: Gather facts
+  hosts: hosts
+  gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
@@ -38,30 +52,8 @@
   hosts: hosts
   gather_facts: false
   pre_tasks:
-    - name: Gather variables for each operating system
-      include_vars: "{{ item }}"
-      with_first_found:
-        - files:
-            - "vars/maas-{{ ansible_distribution | lower }}.yml"
-            - "vars/maas-{{ ansible_os_family | lower }}.yml"
-          skip: true
-
-    - name: Include Ubuntu distro install tasks
-      include: "common-tasks/maas-agent-ubuntu-install.yml"
-      when:
-        - ansible_distribution | lower == 'ubuntu'
-
-    - name: Include RedHat distro install tasks
-      include: "common-tasks/maas-redhat-os-install.yml"
-      when:
-        - ansible_distribution | lower == 'redhat'
-
-    - name: Converge MaaS container pip packages
-      set_fact:
-        maas_requires_pip_packages: "{{ maas_requires_pip_packages | union(maas_pip_container_packages) }}"
-      when:
-        - "'lxc_hosts' in groups"
-        - inventory_hostname in groups['lxc_hosts']
+    - name: Include distro install tasks
+      include: "common-tasks/maas-agent-{{ ansible_distribution | lower }}-install.yml"
 
     - name: Ensure rackspace-monitoring-agent config directory exists
       file:
@@ -70,56 +62,14 @@
         group: root
         owner: root
 
-    - name: Install requires pip packages
-      package:
-        name: "{{ maas_agent_distro_packages }}"
-      register: install_packages
-      until: install_packages|success
-      retries: 5
-      delay: 2
-
-    - name: Create MaaS venv
-      command: "virtualenv --no-site-packages --no-setuptools {{ maas_venv }}"
-      args:
-        creates: "{{ maas_venv }}/bin/python"
-
-    - name: Setup MaaS venv
-      pip:
-        name:
-          - pip
-          - setuptools
-        extra_args: "-U"
-        virtualenv: "{{ maas_venv }}"
-
-    - name: Converge MaaS container pip packages
-      set_fact:
-        maas_pip_packages: "{{ maas_pip_packages | union(maas_pip_container_packages) }}"
-      when:
-        - "'lxc_hosts' in groups"
-        - inventory_hostname in groups['lxc_hosts']
-
-    - name: Create MaaS virtualenv
-      vars:
-        ansible_python_interpreter: "{{ maas_venv }}/bin/python"
-      block:
-        - name: Ensure MaaS pip packages are installed
-          pip:
-            name: "{{ maas_pip_packages }}"
-            state: "{{ maas_pip_package_state }}"
-            extra_args: >-
-              --isolated
-              --constraint /tmp/pip-constraints.txt
-              {{ pip_install_options | default('') }}
-            virtualenv: "{{ maas_venv }}"
-          register: install_pip_packages
-          until: install_pip_packages|success
-          become: yes
-          retries: 5
-          delay: 2
+    - name: Include maas venv create
+      include_tasks: common-tasks/maas-venv-create.yml
 
   vars_files:
     - vars/main.yml
-    - vars/maas-agent.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - maas-agent-install

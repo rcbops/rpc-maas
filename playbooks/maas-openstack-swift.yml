@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,16 +15,29 @@
 
 - name: Gather facts
   hosts: swift_all
+  gather_facts: false
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
+
+- name: Gather facts
+  hosts: swift_all
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp  | default(False)
     - include: "common-tasks/maas_excluded_regex.yml"
+
     - include: "common-tasks/maas_get_openrc.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: swift_all
@@ -37,19 +50,19 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     # - name: Retrieve openrc file
-    #  fetch:
-    #    src: /root/openrc
-    #    dest: /root/openrc
-    #    flat: true
-    #  delegate_to: "{{ item }}"
-    #  with_items: "{{ groups['hosts'] }}"
-    #  when:
-    #    - "'hosts' in groups"
+    # fetch:
+    #  src: /root/openrc
+    #  dest: /root/openrc
+    #  flat: true
+    # delegate_to: "{{ item }}"
+    # with_items: "{{ groups['hosts'] }}"
+    # when:
+    #  - "'hosts' in groups"
 
   post_tasks:
     - name: Install swift pip packages to venv
       pip:
-        name: "{{ maas_openstack_swift_pip_packages  }}"
+        name: "{{ maas_openstack_swift_pip_packages }}"
         state: "{{ maas_pip_package_state }}"
         extra_args: >-
           --isolated
@@ -57,17 +70,20 @@
           {{ pip_install_options | default('') }}
         virtualenv: "{{ maas_venv }}"
       register: install_pip_packages
-      until: install_pip_packages|success
+      until: install_pip_packages is success
       retries: 5
       delay: 2
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-swift
+
 
 - name: Gather swift host groups extra facts
   hosts: swift_all
@@ -78,7 +94,7 @@
         storage_bridge: "{{ 'ansible_' + swift.storage_network | replace('-', '_') }}"
       register: swift_storage_bridge
       when:
-        - not (deploy_osp  | default(False))
+        - not (deploy_osp | bool)
         - swift is defined
         - swift.storage_network is defined
         - inventory_hostname in groups['swift_hosts']
@@ -88,7 +104,7 @@
         storage_address: "{{ hostvars[inventory_hostname][storage_bridge]['ipv4']['address'] }}"
       register: swift_storage_bridge_fact
       when:
-        - not (deploy_osp  | default(False))
+        - not (deploy_osp | bool)
         - not swift_storage_bridge | skipped
         - "'ipv4' in hostvars[inventory_hostname][storage_bridge]"
 
@@ -96,7 +112,7 @@
       set_fact:
         storage_address: "{{ container_address }}"
       when:
-        - not (deploy_osp  | default(False))
+        - not (deploy_osp | bool)
         - swift_storage_bridge | skipped
         - swift_storage_bridge_fact | skipped
 
@@ -106,7 +122,7 @@
         openstack_release: ""
         swift_recon_path: "/bin"
       when:
-        - deploy_osp  | default(False)
+        - deploy_osp | bool
         - inventory_hostname in groups['swift_proxy']
 
     - name: Set Storage_address fact for host for osp swift host/storage nodes
@@ -115,12 +131,14 @@
         openstack_release: ""
         swift_recon_path: "/bin"
       when:
-        - deploy_osp  | default(False)
+        - deploy_osp | bool
         - inventory_hostname in groups['swift_hosts']
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-swift
 
@@ -150,9 +168,12 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-swift
+
 
 - name: Install checks for openstack swift container
   hosts: swift_cont
@@ -180,6 +201,7 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
   tags:
     - maas-openstack-swift
@@ -210,9 +232,12 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-swift
+
 
 - name: Install swift-recon checks for openstack swift proxy
   hosts: swift_proxy
@@ -302,9 +327,12 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-swift
+
 
 - name: Install accesscheck for openstack swift proxy
   hosts: swift_proxy
@@ -316,26 +344,26 @@
       shell: |
         source /root/openrc
         if ! {{ maas_venv_bin }}/openstack user show "{{ maas_swift_accesscheck_user_name }}"; then
-          if ! {{ maas_venv_bin }}/openstack project show "{{ maas_swift_service_project_name }}"; then
-            {{ maas_venv_bin }}/openstack project create \
-                                          --domain default \
-                                          --description "Service Project" \
-                                          {{ maas_swift_service_project_name }}
-          fi
-          if ! {{ maas_venv_bin }}/openstack role show "{{ maas_swift_operator_role }}"; then
-            {{ maas_venv_bin }}/openstack role create \
-                                          {{ maas_swift_operator_role }}
-          fi
-          MAAS_ID=$({{ maas_venv_bin }}/openstack user create \
-                                                  --domain default \
-                                                  --password "{{ maas_swift_accesscheck_password }}" \
-                                                  "{{ maas_swift_accesscheck_user_name }}" | grep -w id | awk '{print $4}')
-          sleep 1
-          {{ maas_venv_bin }}/openstack role add \
-                                        --project admin \
-                                        --user "${MAAS_ID}" \
-                                        "{{ maas_swift_operator_role }}"
-          exit 3
+        if ! {{ maas_venv_bin }}/openstack project show "{{ maas_swift_service_project_name }}"; then
+          {{ maas_venv_bin }}/openstack project create \
+                        --domain default \
+                        --description "Service Project" \
+                        {{ maas_swift_service_project_name }}
+        fi
+        if ! {{ maas_venv_bin }}/openstack role show "{{ maas_swift_operator_role }}"; then
+          {{ maas_venv_bin }}/openstack role create \
+                        {{ maas_swift_operator_role }}
+        fi
+        MAAS_ID=$({{ maas_venv_bin }}/openstack user create \
+                            --domain default \
+                            --password "{{ maas_swift_accesscheck_password }}" \
+                            "{{ maas_swift_accesscheck_user_name }}" | grep -w id | awk '{print $4}')
+        sleep 1
+        {{ maas_venv_bin }}/openstack role add \
+                        --project admin \
+                        --user "${MAAS_ID}" \
+                        "{{ maas_swift_operator_role }}"
+        exit 3
         fi
       args:
         executable: "/bin/bash"
@@ -367,14 +395,14 @@
         source /root/openrc;
         export SWIFTCLIENT_INSECURE={{ OS_API_INSECURE | default(true) }};
         {{ maas_venv_bin }}/swift upload \
-          --object-name index.html \
-          {{ maas_swift_accesscheck_container }} \
-          /tmp/index.html;
+        --object-name index.html \
+        {{ maas_swift_accesscheck_container }} \
+        /tmp/index.html;
         {{ maas_venv_bin }}/swift post \
-          -r '.r:*' {{ maas_swift_accesscheck_container }};
+        -r '.r:*' {{ maas_swift_accesscheck_container }};
         {{ maas_venv_bin }}/swift post \
-          -m 'web-index:index.html' \
-          {{ maas_swift_accesscheck_container }};
+        -m 'web-index:index.html' \
+        {{ maas_swift_accesscheck_container }};
       args:
         executable: "/bin/bash"
       changed_when: false
@@ -390,8 +418,8 @@
         source /root/openrc;
         export SWIFTCLIENT_INSECURE={{ OS_API_INSECURE | default(true) }};
         {{ maas_venv_bin }}/swift stat \
-          {{ maas_swift_accesscheck_container }} \
-          index.html | grep "Account:" | awk '{print $2}';
+        {{ maas_swift_accesscheck_container }} \
+        index.html | grep "Account:" | awk '{print $2}';
       args:
         executable: "/bin/bash"
       register: swift_url_key
@@ -474,6 +502,8 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-swift

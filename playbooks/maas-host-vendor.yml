@@ -23,19 +23,13 @@
         maas_current_group: hosts
 
   post_tasks:
-    - name: Run HP tasks
-      include: "common-tasks/maas-host-vendor-hp.yml"
+    - name: Run vendor tasks
+      include: "common-tasks/maas-host-vendor-{{ ansible_system_vendor.split()[0] | lower }}.yml"
       when:
         - maas_host_check | bool
-        - ansible_system_vendor.split()[0] | lower == 'hp'
-
-    - name: Run DELL tasks
-      include: "common-tasks/maas-host-vendor-dell.yml"
-      when:
-        - maas_host_check | bool
-        - ansible_system_vendor.split()[0] | lower == 'dell'
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
   tags:
     - maas-hosts-vendor

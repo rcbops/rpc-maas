@@ -6,7 +6,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,14 +36,14 @@ lsb_release -a
 uname -a
 echo "+---------------- MNAIO RELEASE AND KERNEL --------------+"
 ${MNAIO_DIRECTOR} <<EOC
-  set -xe
-  echo "+--------------- DIRECTOR RELEASE AND KERNEL --------------+"
-  lsb_release -a
-  uname -a
-  echo "+--------------- DIRECTOR RELEASE AND KERNEL --------------+"
-  cd /opt/rpc-maas/
-  ls -la
-  echo "+--------------- END OF DIRECTOR PREVIEW --------------+"
+set -xe
+echo "+--------------- DIRECTOR RELEASE AND KERNEL --------------+"
+lsb_release -a
+uname -a
+echo "+--------------- DIRECTOR RELEASE AND KERNEL --------------+"
+cd /opt/rpc-maas/
+ls -la
+echo "+--------------- END OF DIRECTOR PREVIEW --------------+"
 EOC
 
 # start the osp rpc-maas install from director
@@ -53,7 +53,7 @@ echo "OSP13 MNAIO Maas tests completed..."
 function gate_job_exit_tasks {
   # This environment variable captures the exit code
   # which was present when the trap was initiated.
-  # This would be the success/failure of the test.
+  # Th is success/failure of the test.
   export TEST_EXIT_CODE=$?
 
   pushd /opt/osp-mnaio

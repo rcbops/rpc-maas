@@ -30,6 +30,9 @@
         - ansible_version.full | version_compare('2.1.0.0', '>=')
         - hostvars[inventory_hostname][item.key] is undefined
       with_dict: "{{ maas_pw_check }}"
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
   vars:
     maas_pw_check: "{{ lookup('file', playbook_dir + '/../tests/user_rpcm_secrets.yml') | from_yaml }}"
   tags:
@@ -53,7 +56,10 @@
           variables, possible options are: maas_env_identifier, maas_product_dir, maas_product_osa_dir
       when:
         - maas_pre_flight_metadata_check_enabled | default(true) | bool
-        - rendered_maas_metadata_test_tmpl | search('unknown')
+        - rendered_maas_metadata_test_tmpl is search('unknown')
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
   tags:
     - maas-pre-flight
 
@@ -77,7 +83,7 @@
       fail:
         msg: "Unable to figure out OSA version"
       when:
-        - not (deploy_osp|default(False))
+        - not (deploy_osp | bool)
         - (rendered_maas_metadata_test_tmpl | from_yaml).metadata.osa_version == 'unknown'
 
     - name: Set MaaS product metadata facts
@@ -85,7 +91,7 @@
         maas_product: "{{ (rendered_maas_metadata_test_tmpl | from_yaml).metadata.product }}"
         maas_osa_version: "{{ (rendered_maas_metadata_test_tmpl | from_yaml).metadata.osa_version }}"
       when:
-        - not (deploy_osp|default(False))
+        - not (deploy_osp | bool)
 
     # For Queens/osp13 and beyond, use image api version 2 and volume api version 3
     - name: Override Image and Volume API versions Queens and beyond
@@ -99,7 +105,7 @@
             (maas_osa_version is match('[0-9]+.[0-9]+.[0-9]+')) and
             (maas_osa_version | version_compare('17.0.0', '>='))
           ) or
-          (deploy_osp | default(False))
+          (deploy_osp | bool)
 
     - name: Generate maasrc file
       template:
@@ -111,3 +117,4 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml

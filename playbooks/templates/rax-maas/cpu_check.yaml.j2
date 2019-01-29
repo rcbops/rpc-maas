@@ -5,14 +5,14 @@ type              : agent.cpu
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled          : "{{ (check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled          : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
 alarms            :
     idle_percent_average        :
-        label                   : idle_percent_average--{{ inventory_hostname|quote }}
+        label                   : idle_percent_average--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('idle_percent_average--'+inventory_hostname|quote) | match(maas_excluded_alarms_regex) or inventory_hostname in (groups['shared-infra_hosts']|default([]))) | ternary('false', 'true') }}
+        disabled                : {{ (('idle_percent_average--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex) or inventory_hostname in (groups['shared-infra_hosts'] | default([]))) | ternary('false', 'true') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["idle_percent_average"] <= {{ maas_cpu_idle_percent_avg_critical_threshold }}) {

@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,13 +20,13 @@
   tasks:
     - name: Create known container hosts fact
       set_fact:
-        _known_container_hosts: >
+        _known_container_hosts: |-
           {% set _var = [] -%}
           {% for item in groups['all_containers'] | default([]) -%}
-          {%   if hostvars[item]['physical_host'] | default(false) != item -%}
-          {%     if _var.append(hostvars[item]['physical_host']) -%}
-          {%     endif -%}
+          {%  if hostvars[item]['physical_host'] | default(false) != item -%}
+          {%   if _var.append(hostvars[item]['physical_host']) -%}
           {%   endif -%}
+          {%  endif -%}
           {% endfor -%}
           {{ _var | unique }}
 
@@ -35,6 +35,22 @@
         hostname: "{{ item }}"
         groups: "known_container_hosts"
       with_items: "{{ _known_container_hosts }}"
+
+
+- name: Gather facts
+  hosts: known_container_hosts
+  gather_facts: false
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
 
 - name: Gather facts
   hosts: known_container_hosts
@@ -57,7 +73,7 @@
   post_tasks:
     - name: Install glance pip packages to venv
       pip:
-        name: "{{ maas_container_pip_packages  }}"
+        name: "{{ maas_container_pip_packages }}"
         state: "{{ maas_pip_package_state }}"
         extra_args: >-
           --isolated
@@ -65,17 +81,20 @@
           {{ pip_install_options | default('') }}
         virtualenv: "{{ maas_venv }}"
       register: install_pip_packages
-      until: install_pip_packages|success
+      until: install_pip_packages is success
       retries: 5
       delay: 2
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
   vars_files:
     - vars/main.yml
-    - vars/maas-container.yml
+    - vars/maas.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-container-storage
+
 
 - name: Install checks for infra memcached
   hosts: known_container_hosts
@@ -96,6 +115,7 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-container.yml
+    - vars/maas.yml
+
   tags:
     - maas-container-storage

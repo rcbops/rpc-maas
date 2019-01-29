@@ -2,14 +2,14 @@
 {% set label = "lb_api_check_horizon" %}
 {% set check_name = label+'--'+maas_lb_name %}
 {% set url = (maas_horizon_scheme | default(maas_scheme))+"://"+maas_external_hostname+":443/auth/login/" %}
-{% if deploy_osp | default(False) %}
+{% if (deploy_osp | bool) %}
 {% set url = (maas_horizon_scheme | default(maas_scheme))+"://"+maas_external_hostname+":443/dashboard/auth/login/" %}
 {% endif %}
 type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled          : "{{ (inventory_hostname != groups['horizon'][0] or check_name | match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled          : "{{ (inventory_hostname != groups['horizon'][0] or check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
@@ -24,7 +24,7 @@ alarms            :
     lb_api_alarm_horizon     :
         label               : lb_api_alarm_horizon
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ ('lb_api_alarm_horizon' | match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled            : {{ ('lb_api_alarm_horizon' is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria            : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric['code'] != '200') {

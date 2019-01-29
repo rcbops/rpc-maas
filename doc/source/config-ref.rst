@@ -17,7 +17,7 @@ Default variables
 Agent playbook variables
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../playbooks/vars/maas-agent.yml
+.. literalinclude:: ../../playbooks/vars/maas.yml
    :language: yaml
    :start-after: under the License.
 
@@ -49,16 +49,9 @@ OpenStack playbook variables
    :language: yaml
    :start-after: under the License.
 
-Hummingbird playbook variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. literalinclude:: ../../playbooks/vars/maas-hummingbird.yml
-   :language: yaml
-   :start-after: under the License.
-
 Ceph playbook variables
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../playbooks/vars/maas-ceph.yml
+.. literalinclude:: ../../playbooks/vars/maas.yml
    :language: yaml
    :start-after: under the License.

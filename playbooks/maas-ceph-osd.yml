@@ -20,14 +20,19 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | default(False)
+        - deploy_osp | bool
 
     - include: "common-tasks/maas_excluded_regex.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: osds
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
   tags:
     - maas-ceph-osds
+    - always
 
 - include: maas-ceph-raxmon.yml
 
@@ -53,21 +58,20 @@
     - name: Get the first osd container
       raw: /bin/docker ps -a -f status=running | awk '/ceph-osd/ {print $NF}' | head -1
       when:
-        - deploy_osp | default(False)
+        - deploy_osp | bool
       register: osd_container_name
 
     - name: Set container name for osp template
       set_fact:
         container_name: "{{ osd_container_name.stdout | trim }}"
       when:
-        - deploy_osp | default(False)
+        - deploy_osp | bool
 
   tasks:
     - name: Discover Ceph facts
       ceph_osd_host_facts:
         hostname: "{{ ansible_hostname }}"
         container_name: "{{ container_name | default(inventory_hostname) }}"
-        deploy_osp: "{{ deploy_osp | default(False) }}"
       tags:
         - always
 
@@ -83,5 +87,6 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
   tags:
     - maas-ceph-osds

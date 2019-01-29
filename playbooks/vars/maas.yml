@@ -1,0 +1,504 @@
+---
+# Copyright 2019, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# Set the maas job reference. This is used by telegraf to add tags to a given set of metrics.
+#   This makes querying metrics easy when aggregating metrics to a single influxdb cluster.
+#
+maas_job_reference: "testing"
+
+#
+# Set the pip package state, defaults to latest.
+#
+maas_pip_package_state: "latest"
+
+#
+# Set the distro package state
+#
+maas_package_state: "latest"
+
+#
+# MaaS release version, this was tied to the RPC release version
+#   however it is now release independent.
+#
+maas_release: 0.0.0
+
+#
+# Name of the virtual env to deploy into (maas)
+#
+maas_venv: "/openstack/venvs/maas-{{ maas_release }}"
+maas_venv_bin: "{{ maas_venv }}/bin"
+
+#
+# maas_fqdn_extension: Sets the fully-qualified domain name (FQDN) extension that will be appended
+#                      to the short names for hosts that are specified in rpc_user_config. This
+#                      avoids the need to specify extremely long container names.
+#
+#   For example, if this variable was not set, a device called 12345-node1.mytestcluster.com would
+#   have to be named in openstack_user_config.yml as 12345-node1.mytestcluster.com for MaaS checks
+#   to be created correctly. However, if maas_fqdn_extension is set as .mytestcluster.com, the
+#   device can be named 12345-node1 in openstack_user_config.yml. This enables shorter container
+#   names while still enabling MaaS checks and alarms to be created properly.
+#
+# maas_fqdn_extension: .example.com
+maas_fqdn_extension: ""
+
+#
+# The entity name is the inventory hostname and fqdn extension combined.
+#
+# Set the hostname for use with the api checks
+maas_entity_name: "{{ inventory_hostname }}{{ maas_fqdn_extension }}"
+
+#
+# Plugin directory when all agent plugins will be installed.
+#
+maas_plugin_dir: "/usr/lib/rackspace-monitoring-agent/plugins"
+
+#
+# maas_use_api: Allow operations that make use of the MaaS api, set to false
+#               for offline testing
+#
+maas_use_api: false
+
+#
+# maas_verify_status: Test the status of the checks within the MaaS API. This
+#                     will cause a failure on any check reporting CRITICAL.
+#
+maas_verify_status: false
+
+#
+# maas_verify_registration: Ensure all checks present in config files
+#                           Are also registered with the API. Fail on any
+#                           discrepancies.
+#
+maas_verify_registration: false
+
+#
+# maas_verify_wait: Pause for 5 minutes before running verifications.
+#                   This option should be used after an initial deployment of
+#                    MaaS
+#
+maas_verify_wait: true
+
+#
+# maas_verify_retries: How many times to retry maas verification tasks
+#
+maas_verify_retries: 15
+
+#
+# maas_verify_delay: How long to wait before retrying verification tasks
+#
+maas_verify_delay: 60
+
+#
+# maas_notification_plan: The Cloud Monitoring notification plan, which defines who will be
+#                         notified, and for what.
+#
+maas_notification_plan: npManaged
+
+#
+# Customizing override for maas_notification_plan.
+# If a customer wants to see alerts pertaining to certain checks. This will allow each check
+# to be overridden with a specific notification plan. The override should include the check
+# label and appropriate notification plan to override it with.
+#
+#   maas_notification_plan_override:
+#     - lb_api_check_keystone: npHj234ksd
+#
+maas_notification_plan_override: {}
+
+#
+# maas_external_ip_address:
+#
+maas_external_ip_address: "{{ external_lb_vip_address }}"
+
+
+#
+# maas_external_hostname: The hostname to use when constructing URLs for remote
+#                         API checks.
+#
+#   NOTE: In most environments this should match maas_external_ip_address. This
+#         variable exists to support environments where the monitored URL is
+#         not externally resolvable, which requires different values for MaaS's
+#         `url` and `target_hostname` settings.
+#
+maas_external_hostname: "{{ maas_external_ip_address }}"
+
+#
+# maas_alarm_local_consecutive_count: The number of consecutive failures before an alert is
+#                                     generated for local checks.
+#
+#   WARNING: Changing this variable affects a customer's SLA, DO NOT change unless you are sure you
+#            are sure you know what you're doing!
+#
+maas_alarm_local_consecutive_count: 3
+
+#
+# maas_alarm_remote_consecutive_count: The number of consecutive failures before an alert is
+#                                      generate for remote checks.
+#
+#   WARNING: Changing this variable affects a customer's SLA, DO NOT change unless you are sure you
+#            are sure you know what you're doing!
+#
+maas_alarm_remote_consecutive_count: 1
+
+#
+# maas_check_period: The polling interval, defined in seconds
+#
+#   WARNING: Changing this variable affects a customer's SLA, DO NOT change unless you are sure you
+#            are sure you know what you're doing!
+#
+maas_check_period: 60
+
+#
+# maas_check_timeout: Time that will elapse before timeout, defined in seconds. This period must be
+#                     less than the maas_check_period.
+#
+#   WARNING: Changing this variable affects a customer's SLA, DO NOT change unless you are sure you
+#            are sure you know what you're doing!
+#
+# TURTLES-745: Now that timeouts are properly applied to agent.plugin checks,
+# the maas_check_timeout value should be raised from 30s to 59s (1s short of the
+# period). If not, I suspect that we're going to see a higher percentage of
+# plugin timeouts as the default value is currently half that of what we have
+# been using all this time (60s default in rackspace monitoring).
+maas_check_timeout: 59
+
+#
+# Customizing MaaS check period and timeout.
+# The following two variables allow deployers to provide custom check periods
+# and timeouts for certain checks. Each variable is a list of dictionaries
+# containing the check label and the appropriate value:
+#
+#   maas_check_period_override:
+#     - disk_utilization: 60
+#     - conntrack_count: 45
+#   maas_check_timeout_override:
+#     - cinder_backup_check: 120
+#
+maas_check_period_override: {}
+maas_check_timeout_override: {}
+
+#
+# maas_monitoring_zones: Specifies the list of data centers (DCs) to poll from for remote
+#                        (non-agent) checks.
+#
+# The default is usually sufficient; for example, if three out of five zones return without failure,
+# the check will complete successfully. If for some reason one DC consistently could not perform
+# the checks, or if you want to explicitly exclude a DC, set this variable to a list of zones that
+# does not include the blocked DC.
+#
+maas_monitoring_zones:
+  - mzdfw
+  - mziad
+  - mzord
+  - mzlon
+  - mzhkg
+
+#
+# maas_private_monitoring_enabled: This flag indicates if the
+#                                  rackspace-monitoring-poller will be
+#                                  installed and configured.
+#
+maas_private_monitoring_enabled: false
+
+#
+# maas_private_monitoring_zone: Specifies the private zone for use with
+#                               rackspace-monitoring-poller.
+#
+maas_private_monitoring_zone:
+
+#
+# host_check: This flag indicates if the host-related hardware monitoring checks and alarms should
+#             be deployed.
+#
+maas_host_check: false
+
+#
+# lb_name: Defines the entity name of the load balancing device against which the remote MaaS
+#          checks and alarms are configured.
+#
+maas_lb_name: 'unspecified_lb'
+
+#
+# maas_scheme: The scheme (http/https) to use when creating remote.http checks.
+#
+maas_scheme: http
+
+#
+# ssl_check: This flag indicates if the ssl-related checks and alarms should be deployed.
+#
+maas_ssl_check: false
+
+#
+# remote_check: This flag indicates if the remote.http checks and alarms should be deployed.
+#
+maas_remote_check: true
+
+#
+# maas_keystone_user: The keystone user to use/create to allow monitoring plugins to query
+#                     OpenStack APIs.
+#
+maas_keystone_user: maas
+
+#
+# maas_agent_upgrade: Allow for automatic MaaS agent upgrades
+#
+#
+maas_agent_upgrade: true
+
+#
+# maas_raxmon_ssl_verify: Allow enabling or disabling raxmon ssl verification
+#
+#
+maas_raxmon_ssl_verify: true
+
+#
+# maas_rpc_legacy_ceph: Instruct rpc-maas that the ceph deployment is using the old RPC
+#                       methods thereby installing ceph within containers.
+#
+maas_rpc_legacy_ceph: false
+
+# maas_proxy_url: (Optional) Specifies an HTTP proxy for use by the MaaS agent.
+#
+#   NOTE: In an openstack-ansible deployment, this would typically be set
+#         to "{{ proxy_env_url }}".
+#
+# maas_proxy_url: http://username:pa$$w0rd@10.10.10.9:9000/
+
+#
+# maas_holland_enabled: (Optional) Instruct rpc-maas to deploy holland check
+#
+#
+maas_holland_enabled: false
+
+#
+# maas_holland_venv_enabled: Instruct rpc-maas that the holland executable is within a venv
+#                            in the galera containers (RPC-O newton and onward).
+#
+maas_holland_venv_enabled: false
+
+#
+# maas_holland_venv_bin: Set the path to the holland venv
+#
+maas_holland_venv_bin: "/openstack/venvs/holland-{{ rpc_release }}/bin"
+
+#
+# MaaS mysql check options
+#
+maas_mysql_connection_warning_threshold: 80
+maas_mysql_connection_critical_threshold: 90
+maas_mysql_access_denied_errors_rate_warning_threshold: 10
+maas_mysql_access_denied_errors_rate_critical_threshold: 20
+maas_mysql_aborted_clients_rate_warning_threshold: 1
+maas_mysql_aborted_clients_rate_critical_threshold: 2
+maas_mysql_aborted_connects_rate_warning_threshold: 1
+maas_mysql_aborted_connects_rate_critical_threshold: 2
+maas_mysql_open_files_percentage_warning_threshold: 90
+maas_mysql_open_files_percentage_critical_threshold: 95
+
+#
+# Maas innodb check options
+#
+maas_innodb_row_lock_time_avg_warning_threshold: 2000
+maas_innodb_row_lock_time_avg_critical_threshold: 10000
+maas_innodb_deadlocks_rate_warning_threshold: 1
+maas_innodb_deadlocks_rate_critical_threshold: 2
+
+#
+# MaaS RabbitMQ check options
+#
+maas_rabbitmq_user: maas_user
+maas_rabbitmq_max_channels_per_con_threshold: 10
+maas_rabbitmq_fd_used_threshold: 90
+maas_rabbitmq_proc_used_threshold: 90
+maas_rabbitmq_socket_used_threshold: 90
+maas_rabbitmq_queued_messages_excluding_notifications_threshold: 5000
+maas_rabbitmq_queue_growth_rate_threshold: 15
+maas_rabbitmq_messages_without_consumers_threshold: 20000
+
+#
+# Set the container storage threshold
+#
+maas_percent_used_critical_threshold: 85
+
+#
+# Packages used for the maas memcached check
+#
+maas_memcached_pip_packages:
+  - python-memcached
+
+#
+# pip installable packages for verifying maas deployment
+#
+maas_verify_pip_packages:
+  - futures
+  - pyyaml
+  - waxeye
+
+
+#
+# pip install core python packages into the maas venv
+#
+maas_pip_packages:
+  - apache-libcloud
+  - cryptography
+  - ipaddr
+  - lxml
+  - monitorstack
+  - psutil
+  - rackspace-monitoring-cli
+  - requests
+
+#
+# pip installable packages for given services used within maas
+#
+maas_container_pip_packages:
+  - lxc-python2
+
+#
+# MaaS GPG keys
+#
+maas_keys:
+  url: "https://monitoring.api.rackspacecloud.com/pki/agent/linux.asc"
+  state: "present"
+
+#
+# Distro packages to be installed for the maas-agent runtime
+#
+maas_agent_distro_packages:
+  - python-virtualenv
+
+
+#
+# MaaS poller options
+#
+maas_poller_fd_warning_threshold: 80
+maas_poller_fd_critical_threshold: 90
+
+## Example writing custom file system monitors:
+# maas_filesystem_monitors:
+#  - filesystem: /
+#    warning_threshold: 80.0
+#    critical_threshold: 90.0
+#  - filesystem: /boot
+#    warning_threshold: 80.0
+#    critical_threshold: 90.0
+
+# maas_filesystem_monitors: Explicitly set the filesystems to set up monitors/alerts for.
+#
+#   NOTE: You can override these in your openstack_user_config.yml per device using
+#         "maas_filesystem_monitors".
+#   NOTE(cloudnull): The legacy variable "maas_filesystem_overrides" has been deprecated.
+#                    The variable maas_filesystem_monitors can be overridden "as-is".
+#                    The variable "maas_filesystem_overrides" will be removed in Q
+
+#
+# maas_filesystem_threshold: Sets the threshold (%) for filesystem monitoring when you are not
+#                            specifying specific filesystems.
+#
+_maas_filesystem_monitors: |
+  ---
+  {% for item in ansible_mounts %}
+  {%   if 'xfs' in item.fstype or 'ext' in item.fstype %}
+  - filesystem: "{{ item.mount }}"
+    warning_threshold: "{{ maas_filesystem_warning_threshold }}"
+    critical_threshold: "{{ maas_filesystem_critical_threshold }}"
+  {%   endif %}
+  {% endfor %}
+maas_filesystem_monitors: "{{ _maas_filesystem_monitors | from_yaml }}"
+maas_filesystem_overrides: "{{ maas_filesystem_monitors }}"
+maas_filesystem_warning_threshold: 80.0
+maas_filesystem_critical_threshold: 90.0
+
+#
+# maas_excluded_devices: Specifies devices that will be skipped when creating alarms for disk
+#                        utilisation monitoring.
+#
+# maas_excluded_devices: ['xvde']
+#
+_maas_disk_util_devices: |
+  ---
+  {% for device in ansible_devices.keys() %}
+  {%   if (device not in maas_excluded_devices | default([])) and (ansible_devices[device].model != 'VIRTUAL-DISK') and (ansible_devices[device].model != 'QEMU DVD-ROM') and ('nbd' not in device) and ('dm' not in device) and ('ram' not in device) and ('loop' not in device) %}
+  - "{{ device }}"
+  {%   endif %}
+  {% endfor %}
+maas_disk_util_devices: "{{ _maas_disk_util_devices | from_yaml }}"
+maas_disk_utilisation_warning_threshold: 90
+maas_disk_utilisation_critical_threshold: 99
+
+_maas_bonding_interfaces: |
+  ---
+  {% for interface in ansible_interfaces %}
+  {% set interface_detail = (hostvars[inventory_hostname]['ansible_%s' | format(interface)] | default({})) %}
+  {%   if (interface_detail and interface_detail['type'] == 'bonding' ) %}
+  - "{{ interface }}"
+  {%   endif %}
+  {% endfor %}
+maas_bonding_interfaces: "{{ _maas_bonding_interfaces | from_yaml }}"
+
+#
+# MaaS memory check options
+#
+maas_memory_used_percentage_warning_threshold: 90.0
+maas_memory_used_percentage_critical_threshold: 99.0
+
+#
+# MaaS CPU check options
+#
+maas_cpu_idle_percent_avg_warning_threshold: 10.0
+maas_cpu_idle_percent_avg_critical_threshold: 1.0
+
+#
+# MaaS contrack table options
+#
+maas_nf_conntrack_warning_threshold: 80
+maas_nf_conntrack_critical_threshold: 90
+
+#
+# MaaS network check options
+#
+maas_network_checks_list:
+  - name: "{{ ansible_default_ipv4.interface }}"
+    max_speed: "{{ ((ansible_default_ipv4 | default({})).speed | default(1000) | int) * 131072 }}"
+    rx_pct_warn: 60
+    rx_pct_crit: 80
+    tx_pct_warn: 60
+    tx_pct_crit: 80
+
+maas_network_check_pip_packages:
+  - "netifaces"
+
+#
+# maas_k8s_ui_scheme: https
+#
+maas_managed_k8_kube_config_dir: /root/.k8
+maas_managed_k8_kubectl_release: v1.9.1
+maas_managed_k8_auth_url: "http://{{ internal_vip_address }}:{{ mk8s_auth_port_lb }}"
+
+#
+# maas_k8s processes checks
+#
+maas_managed_k8s_ui_process_name: controlpanel
+maas_managed_k8s_etp_process_name: etp
+maas_managed_k8s_etg_process_name: etg
+maas_managed_k8s_auth_process_name: auth
+
+#
+# Set pip packages that will be installed in the maas venv
+#
+maas_pip_container_packages:
+  - lxc-python2

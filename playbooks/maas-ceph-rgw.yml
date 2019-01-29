@@ -20,12 +20,15 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp  | default(False)
+        - deploy_osp | bool
 
     - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
       set_fact:
         maas_current_group: rgws
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
   tags:
     - maas-ceph-rgws
 
@@ -64,6 +67,6 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-ceph.yml
+    - vars/maas.yml
   tags:
     - maas-ceph-rgws

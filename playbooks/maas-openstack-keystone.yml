@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,15 +15,25 @@
 
 - name: Gather facts
   hosts: keystone_all
+  gather_facts: false
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  tags:
+    - always
+
+
+- name: Gather facts
+  hosts: keystone_all
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
   become: yes
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp  | default(False)
-
     - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
@@ -40,7 +50,7 @@
   post_tasks:
     - name: Install keystone pip packages to venv
       pip:
-        name: "{{ maas_openstack_keystone_pip_packages  }}"
+        name: "{{ maas_openstack_keystone_pip_packages }}"
         state: "{{ maas_pip_package_state }}"
         extra_args: >-
           --isolated
@@ -48,17 +58,21 @@
           {{ pip_install_options | default('') }}
         virtualenv: "{{ maas_venv }}"
       register: install_pip_packages
-      until: install_pip_packages|success
+      until: install_pip_packages is success
       retries: 5
       delay: 2
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-keystone
+
 
 - name: Install checks for openstack keystone
   hosts: keystone_all
@@ -70,16 +84,16 @@
       shell: |
         . /root/openrc
         if ! {{ maas_venv_bin }}/openstack user show "{{ maas_keystone_user }}"; then
-          MAAS_ID=$({{ maas_venv_bin }}/openstack user create \
-                                                  --domain default \
-                                                  --password "{{ maas_keystone_password }}" \
-                                                  "{{ maas_keystone_user }}" | grep -w id | awk '{print $4}')
-          sleep 1
-          {{ maas_venv_bin }}/openstack role add \
-                                        --project admin \
-                                        --user "${MAAS_ID}" \
-                                        admin
-          exit 3
+        MAAS_ID=$({{ maas_venv_bin }}/openstack user create \
+                            --domain default \
+                            --password "{{ maas_keystone_password }}" \
+                            "{{ maas_keystone_user }}" | grep -w id | awk '{print $4}')
+        sleep 1
+        {{ maas_venv_bin }}/openstack role add \
+                        --project admin \
+                        --user "${MAAS_ID}" \
+                        admin
+        exit 3
         fi
       args:
         executable: "/bin/bash"
@@ -129,6 +143,8 @@
 
   vars_files:
     - vars/main.yml
+    - vars/maas.yml
     - vars/maas-openstack.yml
+
   tags:
     - maas-openstack-keystone

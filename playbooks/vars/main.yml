@@ -13,287 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# Set the maas job reference. This is used by telegraf to add tags to a given set of metrics.
-#   This makes querying metrics easy when aggregating metrics to a single influxdb cluster.
-#
-maas_job_reference: "testing"
-
-#
-# Set the pip package state, defaults to latest.
-#
-maas_pip_package_state: "latest"
-
-#
-# Set the distro package state
-#
-maas_package_state: "latest"
-
-#
-# MaaS release version, this was tied to the RPC release version
-#   however it is now release independent.
-#
-maas_release: 0.0.0
-
-#
-# Name of the virtual env to deploy into (maas)
-#
-maas_venv: "/openstack/venvs/maas-{{ maas_release }}"
-maas_venv_bin: "{{ maas_venv }}/bin"
-
-#
-# maas_fqdn_extension: Sets the fully-qualified domain name (FQDN) extension that will be appended
-#                      to the short names for hosts that are specified in rpc_user_config. This
-#                      avoids the need to specify extremely long container names.
-#
-#   For example, if this variable was not set, a device called 12345-node1.mytestcluster.com would
-#   have to be named in openstack_user_config.yml as 12345-node1.mytestcluster.com for MaaS checks
-#   to be created correctly. However, if maas_fqdn_extension is set as .mytestcluster.com, the
-#   device can be named 12345-node1 in openstack_user_config.yml. This enables shorter container
-#   names while still enabling MaaS checks and alarms to be created properly.
-#
-# maas_fqdn_extension: .example.com
-maas_fqdn_extension: ""
-
-#
-# The entity name is the inventory hostname and fqdn extension combined.
-#
-# Set the hostname for use with the api checks
-maas_entity_name: "{{ inventory_hostname }}{{ maas_fqdn_extension }}"
-
-#
-# Plugin directory when all agent plugins will be installed.
-#
-maas_plugin_dir: "/usr/lib/rackspace-monitoring-agent/plugins"
-
-#
-# maas_use_api: Allow operations that make use of the MaaS api, set to false
-#               for offline testing
-#
-maas_use_api: false
-
-#
-# maas_verify_status: Test the status of the checks within the MaaS API. This
-#                     will cause a failure on any check reporting CRITICAL.
-#
-maas_verify_status: false
-
-#
-# maas_verify_registration: Ensure all checks present in config files
-#                           Are also registered with the API. Fail on any
-#                           discrepancies.
-#
-maas_verify_registration: false
-
-#
-# maas_verify_wait: Pause for 5 minutes before running verifications.
-#                   This option should be used after an initial deployment of
-#                    MaaS
-#
-maas_verify_wait: true
-
-#
-# maas_verify_retries: How many times to retry maas verification tasks
-#
-maas_verify_retries: 15
-
-#
-# maas_verify_delay: How long to wait before retrying verification tasks
-#
-maas_verify_delay: 60
-
-#
-# maas_notification_plan: The Cloud Monitoring notification plan, which defines who will be
-#                         notified, and for what.
-#
-maas_notification_plan: npManaged
-
-#
-# Customizing override for maas_notification_plan.
-# If a customer wants to see alerts pertaining to certain checks. This will allow each check
-# to be overridden with a specific notification plan. The override should include the check
-# label and appropriate notification plan to override it with.
-#
-#   maas_notification_plan_override:
-#     - lb_api_check_keystone: npHj234ksd
-#
-maas_notification_plan_override: {}
-
-#
-# maas_external_ip_address:
-#
-maas_external_ip_address: "{{ external_lb_vip_address }}"
 # Added for compatibility (should be removed soon)
 # ****************************************************
 external_vip_address: "{{ maas_external_ip_address }}"
 # ****************************************************
 internal_vip_address: "{{ internal_lb_vip_address }}"
 # ****************************************************
-
-#
-# maas_external_hostname: The hostname to use when constructing URLs for remote
-#                         API checks.
-#
-#   NOTE: In most environments this should match maas_external_ip_address. This
-#         variable exists to support environments where the monitored URL is
-#         not externally resolvable, which requires different values for MaaS's
-#         `url` and `target_hostname` settings.
-#
-maas_external_hostname: "{{ maas_external_ip_address }}"
-
-#
-# maas_alarm_local_consecutive_count: The number of consecutive failures before an alert is
-#                                     generated for local checks.
-#
-#   WARNING: Changing this variable affects a customer's SLA, DO NOT change unless you are sure you
-#            are sure you know what you're doing!
-#
-maas_alarm_local_consecutive_count: 3
-
-#
-# maas_alarm_remote_consecutive_count: The number of consecutive failures before an alert is
-#                                      generate for remote checks.
-#
-#   WARNING: Changing this variable affects a customer's SLA, DO NOT change unless you are sure you
-#            are sure you know what you're doing!
-#
-maas_alarm_remote_consecutive_count: 1
-
-#
-# maas_check_period: The polling interval, defined in seconds
-#
-#   WARNING: Changing this variable affects a customer's SLA, DO NOT change unless you are sure you
-#            are sure you know what you're doing!
-#
-maas_check_period: 60
-
-#
-# maas_check_timeout: Time that will elapse before timeout, defined in seconds. This period must be
-#                     less than the maas_check_period.
-#
-#   WARNING: Changing this variable affects a customer's SLA, DO NOT change unless you are sure you
-#            are sure you know what you're doing!
-#
-# TURTLES-745: Now that timeouts are properly applied to agent.plugin checks,
-# the maas_check_timeout value should be raised from 30s to 59s (1s short of the
-# period). If not, I suspect that we're going to see a higher percentage of
-# plugin timeouts as the default value is currently half that of what we have
-# been using all this time (60s default in rackspace monitoring).
-maas_check_timeout: 59
-
-#
-# Customizing MaaS check period and timeout.
-# The following two variables allow deployers to provide custom check periods
-# and timeouts for certain checks. Each variable is a list of dictionaries
-# containing the check label and the appropriate value:
-#
-#   maas_check_period_override:
-#     - disk_utilization: 60
-#     - conntrack_count: 45
-#   maas_check_timeout_override:
-#     - cinder_backup_check: 120
-#
-maas_check_period_override: {}
-maas_check_timeout_override: {}
-
-#
-# maas_monitoring_zones: Specifies the list of data centers (DCs) to poll from for remote
-#                        (non-agent) checks.
-#
-# The default is usually sufficient; for example, if three out of five zones return without failure,
-# the check will complete successfully. If for some reason one DC consistently could not perform
-# the checks, or if you want to explicitly exclude a DC, set this variable to a list of zones that
-# does not include the blocked DC.
-#
-maas_monitoring_zones:
-  - mzdfw
-  - mziad
-  - mzord
-  - mzlon
-  - mzhkg
-
-#
-# maas_private_monitoring_enabled: This flag indicates if the
-#                                  rackspace-monitoring-poller will be
-#                                  installed and configured.
-#
-maas_private_monitoring_enabled: false
-
-#
-# maas_private_monitoring_zone: Specifies the private zone for use with
-#                               rackspace-monitoring-poller.
-#
-maas_private_monitoring_zone:
-
-#
-# host_check: This flag indicates if the host-related hardware monitoring checks and alarms should
-#             be deployed.
-#
-maas_host_check: false
-
-#
-# lb_name: Defines the entity name of the load balancing device against which the remote MaaS
-#          checks and alarms are configured.
-#
-maas_lb_name: 'unspecified_lb'
-
-#
-# maas_scheme: The scheme (http/https) to use when creating remote.http checks.
-#
-maas_scheme: http
-
-#
-# ssl_check: This flag indicates if the ssl-related checks and alarms should be deployed.
-#
-maas_ssl_check: false
-
-#
-# remote_check: This flag indicates if the remote.http checks and alarms should be deployed.
-#
-maas_remote_check: true
-
-#
-# maas_keystone_user: The keystone user to use/create to allow monitoring plugins to query
-#                     OpenStack APIs.
-#
-maas_keystone_user: maas
-
-#
-# maas_agent_upgrade: Allow for automatic MaaS agent upgrades
-#
-#
-maas_agent_upgrade: true
-
-#
-# maas_raxmon_ssl_verify: Allow enabling or disabling raxmon ssl verification
-#
-#
-maas_raxmon_ssl_verify: true
-
-#
-# maas_rpc_legacy_ceph: Instruct rpc-maas that the ceph deployment is using the old RPC
-#                       methods thereby installing ceph within containers.
-#
-maas_rpc_legacy_ceph: false
-
-# maas_proxy_url: (Optional) Specifies an HTTP proxy for use by the MaaS agent.
-#
-#   NOTE: In an openstack-ansible deployment, this would typically be set
-#         to "{{ proxy_env_url }}".
-#
-# maas_proxy_url: http://username:pa$$w0rd@10.10.10.9:9000/
-
-#
-# maas_holland_enabled: (Optional) Instruct rpc-maas to deploy holland check
-#
-#
-maas_holland_enabled: false
-
-#
-# maas_holland_venv_enabled: Instruct rpc-maas that the holland executable is within a venv
-#                            in the galera containers (RPC-O newton and onward).
-#
-maas_holland_venv_enabled: false
 
 #
 # nova_service_check_protocol: Protocol to use when authenticating for nova
@@ -475,7 +200,52 @@ horizon_service_protocol: 'https'
 horizon_service_port: '443'
 
 #
-# Distro packages needed to be installed for rabbitmq monitoring
+# private_ping_check_count: Number of times to try ping check in private
+#                           network monitoring case. Must be integer
+#                           1-15 inclusive.
+private_ping_check_count: 6
+
 #
-maas_rabbitmq_distro_packages:
-  - python-httplib2
+# private_ssh_port: The port number to use for SSH connections.
+private_ssh_port: 22
+
+#
+# Set the process names for rsyslog
+#
+rsyslogd_process_names:
+  - rsyslogd
+
+#
+# This should mirror this var in your ceph-ansible deployment.
+#
+radosgw_civetweb_port: "8080"
+
+
+#
+# Varibles required to populate clouds.yaml
+#
+
+## Endpoint types
+openrc_clouds_yml_interface: internal
+
+## Default credentials
+openrc_os_username: admin
+openrc_os_tenant_name: admin
+openrc_os_auth_url: "{{ keystone_service_internalurl }}"
+openrc_region_name: "{{ keystone_service_region | default('RegionOne') }}"
+
+## Create clouds.yml file
+openrc_os_domain_name: Default
+openrc_openstack_client_config_dir_dest: "{{ ansible_env.HOME }}/.config/openstack"
+openrc_openstack_client_config_dir_owner: "{{ ansible_user_id }}"
+openrc_openstack_client_config_dir_group: "{{ ansible_user_id }}"
+openrc_openstack_client_config_dir_mode: "0700"
+openrc_clouds_yml_file_dest: "{{ openrc_openstack_client_config_dir_dest }}/clouds.yaml"
+openrc_clouds_yml_file_owner: "{{ ansible_user_id }}"
+openrc_clouds_yml_file_group: "{{ ansible_user_id }}"
+openrc_clouds_yml_file_mode: "0600"
+
+#
+# Enable the deployment of MaaS on OSP
+#
+deploy_osp: false

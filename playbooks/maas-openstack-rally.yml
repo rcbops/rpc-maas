@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in witing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,12 +19,12 @@
   pre_tasks:
     - name: Safety check - ensure maas_rally is enabled
       fail:
-        msg: "Rally performance tests are disabled.  If you really want them please read the documentation and set maas_rally_enabled to true."
+        msg: "Rally performance tests are disabled. If you really want them please read the documentation and set maas_rally_enabled to true."
       when: not maas_rally_enabled
 
     - name: Generate check template dictionary
       set_fact:
-        check_template: "{{ check_template|default({})|combine({item: maas_rally_check_default_template}) }}"
+        check_template: "{{ check_template | default({})|combine({item: maas_rally_check_default_template}) }}"
       with_items:
         - "{{ maas_rally_checks.keys() | list }}"
 
@@ -34,7 +34,7 @@
 
     - name: Generate a list of enabled checks
       set_fact:
-        enabled_checks: "{{ enabled_checks|default([])|union([item.key]) }}"
+        enabled_checks: "{{ enabled_checks | default([])|union([item.key]) }}"
       with_dict: "{{ maas_rally_checks }}"
 
     - name: Config validation - ensure concurrency <= times
@@ -70,7 +70,7 @@
         - maas_rally_checks[item]['duration_threshold'] < 1 or maas_rally_checks[item]['duration_threshold'] > 100
 
   vars_files:
-    - vars/maas-rally.yml
+    - vars/maas-openstack.yml
 
 
 - name: Configure maas_rally virtual environments
@@ -79,14 +79,14 @@
   pre_tasks:
     - name: Install maas and maas_rally pip packages to venv
       pip:
-        name: "{{ maas_rally_pip_packages  }}"
+        name: "{{ maas_rally_pip_packages }}"
         state: "{{ maas_rally_pip_package_state }}"
         extra_args: >-
           --isolated
           {{ pip_install_options | default('') }}
         virtualenv: "{{ maas_rally_venv }}"
       register: install_pip_packages
-      until: install_pip_packages|success
+      until: install_pip_packages is success
       retries: 5
       delay: 2
 
@@ -158,8 +158,10 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-agent.yml
-    - vars/maas-rally.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
 
 
@@ -180,7 +182,7 @@
 
     - name: Generate check template dictionary
       set_fact:
-        check_template: "{{ check_template|default({})|combine({item: maas_rally_check_default_template}) }}"
+        check_template: "{{ check_template | default({})|combine({item: maas_rally_check_default_template}) }}"
       with_items:
         - "{{ maas_rally_checks.keys() | list }}"
 
@@ -209,37 +211,36 @@
         - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
       register: rally_projects
 
-# NOTE(cfarquhar): The os_quota module is new in ansible 2.3.  Use it instead
-#                  of the shell module below when we reach ansible >=2.3.
-
-#    - name: Ensure quotas for rally projects
-#      os_quota:
-#        state: present
-#        cloud: default
-#        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-#        name: "{{ item.value.project | default('rally_' + item.key) }}"
-#        instances: "{{ item.value.quotas.instances }}"
-#        cores: "{{ item.value.quotas.cores }}"
-#        ram: "{{ item.value.quotas.ram }}"
-#        fixed_ips: "{{ item.value.quotas.fixed-ips }}"
-#        floatingip: "{{ item.value.quotas.floating-ips }}"
-#        port: "{{ item.value.quotas.ports }}"
-#        snapshots: "{{ item.value.quotas.snapshots }}"
-#        volumes: "{{ item.value.quotas.volumes }}"
-#        per_volume_gigabytes: "{{ item.value.quotas.gigabytes }}"
-#      with_dict: "{{ maas_rally_checks }}"
-#      when:
-#        - item.value.quotas is defined
+  #   NOTE(cfarquhar): The os_quota module is new in ansible 2.3. Use it instead
+  #                    of the shell module below when we reach ansible >= 2.3.
+  #  - name: Ensure quotas for rally projects
+  #    os_quota:
+  #      state: present
+  #      cloud: default
+  #      validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+  #      name: "{{ item.value.project | default('rally_' + item.key) }}"
+  #      instances: "{{ item.value.quotas.instances }}"
+  #      cores: "{{ item.value.quotas.cores }}"
+  #      ram: "{{ item.value.quotas.ram }}"
+  #      fixed_ips: "{{ item.value.quotas.fixed-ips }}"
+  #      floatingip: "{{ item.value.quotas.floating-ips }}"
+  #      port: "{{ item.value.quotas.ports }}"
+  #      snapshots: "{{ item.value.quotas.snapshots }}"
+  #      volumes: "{{ item.value.quotas.volumes }}"
+  #      per_volume_gigabytes: "{{ item.value.quotas.gigabytes }}"
+  #    with_dict: "{{ maas_rally_checks }}"
+  #    when:
+  #     - item.value.quotas is defined
 
     - name: Set quotas for maas_rally projects
-      shell: |
+      shell: |-
         . /root/openrc
         {{ maas_rally_venv_bin }}/openstack \
         {% if keystone_service_adminuri_insecure %} --insecure \ {% endif %}
         quota set \
         {% for quota in item.value.per_iter_quotas %} \
-            --{{ quota }} \
-            {{ item.value.per_iter_quotas[quota]*item.value.task_args.concurrency*item.value.quota_factor }} \
+          --{{ quota }} \
+          {{ item.value.per_iter_quotas[quota]*item.value.task_args.concurrency*item.value.quota_factor }} \
         {% endfor %} \
         {{ item.value.project }}
       with_dict: "{{ maas_rally_checks }}"
@@ -263,7 +264,6 @@
         - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
       when:
         - item.value.enabled
-
 
     - name: Create maas_rally users in keystone
       os_user:
@@ -345,27 +345,27 @@
       vars:
         - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
 
-# NOTE(cfarquhar): Unfortunately rally's validation step doesn't account for
-#                  predefined contexts (i.e. project and user) and non-public
-#                  flavors.  Once that is fixed then is_public above should
-#                  be set to false and the next two tasks should be enabled.
+    # NOTE(cfarquhar): Unfortunately rally's validation step doesn't account for
+    #         predefined contexts (i.e. project and user) and non-public
+    #         flavors. Once that is fixed then is_public above should
+    #         be set to false and the next two tasks should be enabled.
 
-#   - name: Check flavor access for rally users
-#     shell: |
-#       . "{{ maas_rally_venv_bin }}"/activate
-#       . /root/openrc
-#       nova flavor-access-list --flavor rally | grep rally_ | awk '{print $4}'
-#     register: flavor_access
-#     changed_when: False
+    #  - name: Check flavor access for rally users
+    #    shell: |-
+    #      . "{{ maas_rally_venv_bin }}"/activate
+    #      . /root/openrc
+    #      nova flavor-access-list --flavor rally | grep rally_ | awk '{print $4}'
+    #    register: flavor_access
+    #    changed_when: False
 
-#    - name: Grant flavor access to maas_rally users
-#      shell: |
-#        . "{{ maas_rally_venv_bin }}"/activate
-#        . /root/openrc
-#        nova flavor-access-add rally "{{ item.value.project | default('rally_' + item.key) }}"
-#      with_dict: "{{ maas_rally_checks }}"
-#      when:
-#        - item.value.enabled
+    #  - name: Grant flavor access to maas_rally users
+    #    shell: |-
+    #      . "{{ maas_rally_venv_bin }}"/activate
+    #      . /root/openrc
+    #      nova flavor-access-add rally "{{ item.value.project | default('rally_' + item.key) }}"
+    #    with_dict: "{{ maas_rally_checks }}"
+    #    when:
+    #     - item.value.enabled
 
     - name: Create rally networks
       os_network:
@@ -420,7 +420,7 @@
         awk -F'|' '{print $4}' | \
         sed 's/ //g'
       register: rally_deployments
-      changed_when: False
+      changed_when: false
 
     - name: Generate rally deployment definition files
       template:
@@ -452,8 +452,10 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-agent.yml
-    - vars/maas-rally.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
 
 
@@ -485,7 +487,7 @@
         recursive: yes
         times: yes
         rsync_opts:
-          - "--no-motd"
+        - "--no-motd"
 
     - name: Install maas_rally venv wrapper script
       template:
@@ -507,7 +509,7 @@
 
     - name: Generate check template dictionary
       set_fact:
-        check_template: "{{ check_template|default({})|combine({item: maas_rally_check_default_template}) }}"
+        check_template: "{{ check_template | default({})|combine({item: maas_rally_check_default_template}) }}"
       with_items:
         - "{{ maas_rally_checks.keys() | list }}"
 
@@ -526,7 +528,7 @@
 
     - name: Store network UUIDs in dictionary
       set_fact:
-        network_uuids: "{{ network_uuids|default({})|combine({item.name: item.id}) }}"
+        network_uuids: "{{ network_uuids | default({})|combine({item.name: item.id}) }}"
       with_items: "{{ openstack_networks }}"
 
     - name: Add network UUIDs to checks' task_args
@@ -578,9 +580,11 @@
 
   vars_files:
     - vars/main.yml
-    - vars/maas-agent.yml
-    - vars/maas-rally.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
   environment: "{{ deployment_environment_variables | default({}) }}"
+
 
 - name: Deploy support helper script to utility containers
   hosts: utility_all
