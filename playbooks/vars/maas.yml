@@ -334,16 +334,11 @@ maas_rabbitmq_messages_without_consumers_threshold: 20000
 #
 maas_percent_used_critical_threshold: 85
 
-#
-# Packages used for the maas memcached check
-#
-maas_memcached_pip_packages:
-  - python-memcached
 
 #
 # pip installable packages for verifying maas deployment
 #
-maas_verify_pip_packages:
+maas_pip_verify_packages:
   - futures
   - pyyaml
   - waxeye
@@ -355,17 +350,20 @@ maas_verify_pip_packages:
 maas_pip_packages:
   - apache-libcloud
   - cryptography
+  - dnspython
   - ipaddr
   - lxml
   - monitorstack
+  - netifaces
   - psutil
+  - python-memcached
   - rackspace-monitoring-cli
   - requests
 
 #
 # pip installable packages for given services used within maas
 #
-maas_container_pip_packages:
+maas_pip_container_packages:
   - lxc-python2
 
 #
@@ -479,9 +477,6 @@ maas_network_checks_list:
     tx_pct_warn: 60
     tx_pct_crit: 80
 
-maas_network_check_pip_packages:
-  - "netifaces"
-
 #
 # maas_k8s_ui_scheme: https
 #
@@ -498,7 +493,28 @@ maas_managed_k8s_etg_process_name: etg
 maas_managed_k8s_auth_process_name: auth
 
 #
-# Set pip packages that will be installed in the maas venv
+# pip installable packages for given services used within maas
 #
-maas_pip_container_packages:
-  - lxc-python2
+maas_pip_openstack_packages:
+  - python-cinderclient
+  - python-designateclient
+  - python-glanceclient
+  - python-heatclient
+  - python-ironicclient
+  - python-keystoneclient
+  - python-magnumclient
+  - python-neutronclient
+  - python-novaclient
+  - python-openstackclient
+  - python-swiftclient
+  - openstacksdk
+
+#
+# pip packages required for plugin functionality
+#
+maas_pip_rally_packages:
+  - influxdb
+  - keystoneauth1
+  - numpy
+  - pymysql
+  - openstacksdk
