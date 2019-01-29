@@ -17,6 +17,7 @@
   hosts: hosts
   gather_facts: true
   serial: "{{ maas_restart_serial | default(1) }}"
+  become: true
   tasks:
     - name: Restart rackspace-monitoring-poller (systemd)
       service:

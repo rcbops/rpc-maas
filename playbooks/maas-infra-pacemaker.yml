@@ -16,6 +16,7 @@
 - name: Gather facts
   hosts: shared-infra_hosts
   gather_facts: "{{ gather_facts | default(true) }}"
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
@@ -38,7 +39,7 @@
   hosts: shared-infra_hosts
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Install checks for infra pacemaker
       template:
@@ -48,10 +49,13 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - deploy_osp | bool
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
+
   tags:
     - maas-infra-pacemaker

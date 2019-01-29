@@ -13,14 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-ceph-mon.yml
+- import_playbook: maas-ceph-raxmon.yml
   tags:
     - maas-ceph
 
-- include: maas-ceph-osd.yml
+- import_playbook: maas-ceph-mon.yml
   tags:
     - maas-ceph
 
-- include: maas-ceph-rgw.yml
+- import_playbook: maas-ceph-osd.yml
+  tags:
+    - maas-ceph
+
+- import_playbook: maas-ceph-rgw.yml
   tags:
     - maas-ceph

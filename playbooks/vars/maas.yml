@@ -379,7 +379,6 @@ maas_keys:
 maas_agent_distro_packages:
   - python-virtualenv
 
-
 #
 # MaaS poller options
 #

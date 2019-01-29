@@ -16,14 +16,23 @@
 - name: Gather facts
   hosts: rabbitmq_all:Controller
   gather_facts: false
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: rabbitmq_all
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
 
@@ -32,13 +41,7 @@
   hosts: rabbitmq_all
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
-  become: yes
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
-    - name: Set the current group
-      set_fact:
-        maas_current_group: rabbitmq_all
-
+  become: true
   tasks:
     - name: Install rabbitmq pip packages
       package:
@@ -64,7 +67,7 @@
   hosts: rabbitmq_all
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Ensure MaaS rabbitmq user as administrator with rabbitmqctl
       rabbitmq_user:
@@ -120,7 +123,7 @@
   hosts: rabbitmq_all
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Get list of vhosts
       uri:

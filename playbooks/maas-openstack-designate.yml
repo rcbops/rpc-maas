@@ -16,14 +16,23 @@
 - name: Gather facts
   hosts: designate_all:Controller
   gather_facts: false
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: designate_all
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
 
@@ -31,17 +40,12 @@
 - name: Gather facts
   hosts: "{{ designate_hosts_all | default('designate_all') }}"
   user: "{{ designate_ansible_user | default('root') }}"
-  become: "{{ designate_ansible_become | default('no') }}"
+  become: true
   gather_facts: "{{ gather_facts | default(true) }}"
   pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
     - include: "common-tasks/maas_get_openrc.yml"
       when:
         - not deploy_osp | bool
-
-    - name: Set the current group
-      set_fact:
-        maas_current_group: designate_all
 
   tasks:
     - name: Copy over pip constraints
@@ -64,7 +68,7 @@
 - name: Install checks for openstack designate
   hosts: "{{ designate_hosts_all | default('designate_all') }}"
   user: "{{ designate_ansible_user | default('root') }}"
-  become: "{{ designate_ansible_become | default('no') }}"
+  become: true
   gather_facts: false
   tasks:
     - name: Install designate api checks

@@ -16,44 +16,31 @@
 - name: Gather facts
   hosts: octavia_all:Controller
   gather_facts: false
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
-  vars_files:
-   - vars/main.yml
-   - vars/maas.yml
-  tags:
-   - always
 
-
-- name: Gather facts
-  hosts: "{{ octavia_hosts_all | default('octavia_all') }}"
-  user: "{{ octavia_ansible_user | default('root') }}"
-  become: "{{ octavia_ansible_become | default('no') }}"
-  gather_facts: "{{ gather_facts | default(true) }}"
-  tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: "octavia_hosts_all"
 
   vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-    - vars/maas-openstack.yml
-
-  environment: "{{ deployment_environment_variables | default({}) }}"
+   - vars/main.yml
+   - vars/maas.yml
 
   tags:
-    - maas-openstack-octavia
+   - always
 
 
 - name: Install checks for octavia
   hosts: "{{ octavia_hosts_all | default('octavia_all') }}"
   user: "{{ octavia_ansible_user | default('root') }}"
-  become: "{{ octavia_ansible_become | default('no') }}"
+  become: true
   gather_facts: false
   tasks:
     - name: Install octavia process check
@@ -117,7 +104,7 @@
 - name: Install checks for openstack octavia-api
   hosts: "{{ octavia_hosts_api | default('octavia-api') }}"
   user: "{{ octavia_ansible_user | default('root') }}"
-  become: "{{ octavia_ansible_become | default('no') }}"
+  become: true
   gather_facts: false
   tasks:
     - name: Add load-balancer member role (RPC-O)

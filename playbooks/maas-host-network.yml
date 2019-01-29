@@ -16,14 +16,17 @@
 - name: Gather facts
   hosts: hosts
   gather_facts: false
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
 
@@ -32,9 +35,10 @@
   hosts: hosts
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: hosts
@@ -58,6 +62,7 @@
 - name: Install checks for hosts network
   hosts: hosts
   gather_facts: false
+  become: true
   pre_tasks:
     - name: Test that network interfaces exist
       fail:
@@ -89,6 +94,7 @@
 - name: Install checks for bonding interfaces
   hosts: hosts
   gather_facts: false
+  become: true
   tasks:
     - name: Install checks for bonding interfaces
       template:

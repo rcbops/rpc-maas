@@ -33,9 +33,11 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - maas-managed-k8
     - always
+
 
 - name: Install checks for mk8s ui
   hosts:  "{{ mk8s_ui_hosts | default('mk8s_ui_all') }}"
@@ -84,12 +86,16 @@
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-managed-k8
+
 
 - name: Install checks for mk8s etp
   hosts:  "{{ mk8s_etp_hosts | default('mk8s_etp_all') }}"
@@ -115,11 +121,14 @@
         mode: "0644"
       delegate_to: "{{ physical_host }}"
     # Ideally ETP should not be accessible from the outside so skip those checks
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - maas-managed-k8
+
 
 - name: Install checks for mk8s etg
   hosts: "{{ mk8s_etg_hosts | default('mk8s_etg_all') }}"
@@ -145,11 +154,14 @@
         mode: "0644"
       delegate_to: "{{ physical_host }}"
     # Ideally etg should not be accessible from the outside so skip those checks
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - maas-managed-k8
+
 
 - name: Install checks for mk8s auth
   hosts:  "{{ mk8s_auth_hosts | default('mk8s_auth_all') }}"
@@ -175,8 +187,10 @@
         mode: "0644"
       delegate_to: "{{ physical_host }}"
     # Ideally auth should not be accessible from the outside so skip those checks
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - maas-managed-k8

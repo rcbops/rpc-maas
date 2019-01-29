@@ -16,14 +16,17 @@
 - name: Gather facts
   hosts: swift_all
   gather_facts: false
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
 
@@ -32,6 +35,7 @@
   hosts: hosts
   user: root
   gather_facts: false
+  become: true
   tasks:
     - name: Ensure log directories
       file:

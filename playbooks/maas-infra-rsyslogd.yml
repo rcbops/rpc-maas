@@ -15,20 +15,33 @@
 
 - name: Gather facts
   hosts: rsyslog_all
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: false
+  become: true
   tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: rsyslog_all
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+
   tags:
-    - maas-infra-rsyslog
+    - always
+
 
 - name: Install checks for infra rsyslog
   hosts: rsyslog_all
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Install rsyslog check
       template:
@@ -43,5 +56,6 @@
     - vars/main.yml
     - vars/maas.yml
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
+
   tags:
     - maas-infra-rsyslog

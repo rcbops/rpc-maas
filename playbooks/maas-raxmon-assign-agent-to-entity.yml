@@ -17,6 +17,7 @@
   hosts: localhost
   connection: local
   user: "{{ ansible_user | default('root') }}"
+  become: true
   tasks:
     - name: Run RAXMON
       vars:

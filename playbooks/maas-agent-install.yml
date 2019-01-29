@@ -16,28 +16,32 @@
 - name: Gather facts
   hosts: hosts
   gather_facts: "{{ gather_facts | default(true) }}"
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: hosts
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
+
 
 - name: Gather facts
   hosts: hosts
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
-  become: yes
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
-    - name: Set the current group
-      set_fact:
-        maas_current_group: hosts
-
+  become: true
   tasks:
     - name: Copy over pip constraints
       copy:
@@ -45,12 +49,16 @@
         dest: "/tmp/pip-constraints.txt"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-agent-install
+
 
 - name: Install MaaS Agent
   hosts: hosts
   gather_facts: false
+  become: true
   pre_tasks:
     - name: Include distro install tasks
       include: "common-tasks/maas-agent-{{ ansible_distribution | lower }}-install.yml"
@@ -71,5 +79,6 @@
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
 
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-agent-install

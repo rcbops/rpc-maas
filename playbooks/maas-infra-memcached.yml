@@ -16,11 +16,19 @@
 - name: Gather facts
   hosts: memcached_all
   gather_facts: false
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: memcached_all
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
@@ -32,13 +40,7 @@
   hosts: memcached_all
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
-  become: yes
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
-    - name: Set the current group
-      set_fact:
-        maas_current_group: memcached_all
-
+  become: true
   tasks:
     - name: Copy over pip constraints
       copy:

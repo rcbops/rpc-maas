@@ -13,50 +13,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-openstack-cinder.yml
+- import_playbook: maas-openstack-cinder.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-designate.yml
+- import_playbook: maas-openstack-designate.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-glance.yml
+- import_playbook: maas-openstack-glance.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-heat.yml
+- import_playbook: maas-openstack-heat.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-horizon.yml
+- import_playbook: maas-openstack-horizon.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-ironic.yml
+- import_playbook: maas-openstack-ironic.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-keystone.yml
+- import_playbook: maas-openstack-keystone.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-magnum.yml
+- import_playbook: maas-openstack-magnum.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-neutron.yml
+- import_playbook: maas-openstack-neutron.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-nova.yml
+- import_playbook: maas-openstack-nova.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-octavia.yml
+- import_playbook: maas-openstack-octavia.yml
   tags:
     - maas-openstack
 
-- include: maas-openstack-swift.yml
+- import_playbook: maas-openstack-swift.yml
   tags:
     - maas-openstack

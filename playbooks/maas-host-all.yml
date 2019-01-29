@@ -13,22 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-host-private-checks.yml
+- import_playbook: maas-host-private-checks.yml
   tags:
     - maas-host
 
-- include: maas-host-cdm.yml
+- import_playbook: maas-host-cdm.yml
   tags:
     - maas-host
 
-- include: maas-host-kernel.yml
+- import_playbook: maas-host-kernel.yml
   tags:
     - maas-host
 
-- include: maas-host-network.yml
+- import_playbook: maas-host-network.yml
   tags:
     - maas-host
 
-- include: maas-host-vendor.yml
+- import_playbook: maas-host-vendor.yml
   tags:
     - maas-host

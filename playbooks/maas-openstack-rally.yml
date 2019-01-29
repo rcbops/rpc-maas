@@ -16,6 +16,7 @@
 - name: Perform pre-flight and configuration checks
   hosts: "{{ maas_rally_target_group }}[0]"
   gather_facts: false
+  become: true
   pre_tasks:
     - name: Safety check - ensure maas_rally is enabled
       fail:
@@ -72,10 +73,13 @@
   vars_files:
     - vars/maas-openstack.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
 
 - name: Configure maas_rally virtual environments
   hosts: "{{ maas_rally_target_group }}"
   gather_facts: true
+  become: true
   pre_tasks:
     - name: Create rally constraint file
       template:
@@ -157,6 +161,7 @@
 - name: Prepare OpenStack and DB for performance monitoring
   hosts: "{{ maas_rally_target_group }}[0]"
   gather_facts: false
+  become: true
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
 
@@ -449,6 +454,7 @@
 - name: Configure performance checks
   hosts: "{{ maas_rally_target_group }}"
   gather_facts: false
+  become: true
   pre_tasks:
     - include: "common-tasks/maas_excluded_regex.yml"
 
@@ -572,15 +578,25 @@
     - vars/maas.yml
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
     - vars/maas-openstack.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
 
 
 - name: Deploy support helper script to utility containers
   hosts: utility_all
   gather_facts: false
+  become: true
   tasks:
     - name: Copy maas_rally support helper script
       copy:
         src: files/rax-maas/tools/rally_diag.sh
         dest: /root/rally_diag.sh
         mode: 0770
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"

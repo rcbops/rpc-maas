@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-poller-install.yml
+- import_playbook: maas-poller-install.yml
   tags:
     - maas-poller
 
-- include: maas-poller-setup.yml
+- import_playbook: maas-poller-setup.yml
   tags:
     - maas-poller

@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-container-storage.yml
+- import_playbook: maas-container-storage.yml
   tags:
     - maas-container
 
-- include: maas-container-conntrack.yml
+- import_playbook: maas-container-conntrack.yml
   tags:
     - maas-container

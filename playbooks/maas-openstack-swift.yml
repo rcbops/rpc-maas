@@ -16,14 +16,25 @@
 - name: Gather facts
   hosts: swift_all
   gather_facts: false
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - include_tasks: "common-tasks/maas_get_openrc.yml"
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
 
@@ -32,16 +43,7 @@
   hosts: swift_all
   gather_facts: "{{ gather_facts | default(true) }}"
   user: "{{ ansible_user | default('root') }}"
-  become: yes
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
-
-    - include: "common-tasks/maas_get_openrc.yml"
-
-    - name: Set the current group
-      set_fact:
-        maas_current_group: swift_all
-
+  become: true
   tasks:
     - name: Copy over pip constraints
       copy:
@@ -73,6 +75,7 @@
 - name: Gather swift host groups extra facts
   hosts: swift_all
   gather_facts: false
+  become: true
   tasks:
     - name: Set Storage address fact for host
       set_fact:
@@ -131,7 +134,7 @@
   hosts: swift_acc
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Install swift account server checks
       template:
@@ -164,7 +167,7 @@
   hosts: swift_cont
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Install swift container process checks
       template:
@@ -195,7 +198,7 @@
   hosts: swift_obj
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Install swift object server checks
       template:
@@ -228,7 +231,7 @@
   hosts: swift_proxy
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Get openstack release
       command: "grep DISTRIB_RELEASE /etc/openstack-release"
@@ -323,7 +326,7 @@
   hosts: swift_proxy
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Create keystone user for swift filecheck
       shell: |

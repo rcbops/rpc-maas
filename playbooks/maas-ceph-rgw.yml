@@ -16,6 +16,7 @@
 - name: Gather facts
   hosts: rgws
   gather_facts: "{{ gather_facts | default(true) }}"
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
@@ -32,13 +33,12 @@
   tags:
     - maas-ceph-rgws
 
-- include: maas-ceph-raxmon.yml
 
 - name: Install checks for ceph rgws
   hosts: rgws
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   pre_tasks:
     - name: Write Ceph monitoring client key to file
       copy:
@@ -68,5 +68,6 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - maas-ceph-rgws

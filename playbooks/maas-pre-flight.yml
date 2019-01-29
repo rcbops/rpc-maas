@@ -16,7 +16,8 @@
 - name: Check all passwords are defined
   hosts: localhost
   connection: local
-  gather_facts: "true"
+  gather_facts: true
+  become: true
   tasks:
     - name: Check password is defined
       fail:
@@ -30,11 +31,14 @@
         - ansible_version.full | version_compare('2.1.0.0', '>=')
         - hostvars[inventory_hostname][item.key] is undefined
       with_dict: "{{ maas_pw_check }}"
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   vars:
     maas_pw_check: "{{ lookup('file', playbook_dir + '/../tests/user_rpcm_secrets.yml') | from_yaml }}"
+
   tags:
     - maas-pre-flight
 
@@ -43,6 +47,7 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  become: true
   tasks:
     - name: Get rendered test metadata template string
       set_fact:
@@ -57,9 +62,11 @@
       when:
         - maas_pre_flight_metadata_check_enabled | default(true) | bool
         - rendered_maas_metadata_test_tmpl is search('unknown')
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - maas-pre-flight
 
@@ -72,7 +79,7 @@
   hosts: utility_all
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   tasks:
     - name: Get rendered test metadata template string
       set_fact:

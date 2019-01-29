@@ -16,19 +16,32 @@
 - name: Gather facts
   hosts: hosts
   gather_facts: "{{ gather_facts | default(true) }}"
+  become: true
   tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - include: "common-tasks/maas_excluded_regex.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: hosts
 
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+
   tags:
     - maas-agent-setup
+    - always
+
 
 - name: Setup MaaS Agent
   hosts: hosts
   gather_facts: true
-  become: yes
+  become: true
   pre_tasks:
     - name: Drop .raxrc file
       template:
@@ -120,6 +133,8 @@
     - vars/maas.yml
     - vars/maas-auth.yml
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
+
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-agent-setup

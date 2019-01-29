@@ -16,6 +16,7 @@
 - name: Gather facts
   hosts: osds
   gather_facts: "{{ gather_facts | default(true) }}"
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
@@ -27,20 +28,20 @@
     - name: Set the current group
       set_fact:
         maas_current_group: osds
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
-    - maas-ceph-osds
     - always
 
-- include: maas-ceph-raxmon.yml
 
 - name: Install checks for ceph mons
   hosts: osds
   gather_facts: false
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   pre_tasks:
     - name: Write Ceph monitoring client key to file
       copy:
@@ -88,5 +89,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-ceph-osds

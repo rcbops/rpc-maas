@@ -16,17 +16,31 @@
 - name: Gather facts
   hosts: hosts
   gather_facts: "{{ gather_facts | default(true) }}"
+  become: true
   tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: hosts
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+
   tags:
-    - maas-host-cdm
+    - always
+
 
 - name: Install checks for CDM
   hosts: hosts
   gather_facts: false
+  become: true
   tasks:
     - name: Install filesystem Checks
       template:
@@ -73,5 +87,6 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
-    - maas-ceph-osds
+    - maas-hosts-cdm
