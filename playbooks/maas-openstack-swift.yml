@@ -13,81 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Gather facts
+- name: Gather swift host groups extra facts
   hosts: swift_all
-  gather_facts: false
-  tasks:
+  gather_facts: true
+  become: true
+  pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-  tags:
-    - always
-
-
-- name: Gather facts
-  hosts: swift_all
-  gather_facts: "{{ gather_facts | default(true) }}"
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
-
-    - include: "common-tasks/maas_get_openrc.yml"
 
     - name: Set the current group
       set_fact:
         maas_current_group: swift_all
 
-  tasks:
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    # - name: Retrieve openrc file
-    # fetch:
-    #  src: /root/openrc
-    #  dest: /root/openrc
-    #  flat: true
-    # delegate_to: "{{ item }}"
-    # with_items: "{{ groups['hosts'] }}"
-    # when:
-    #  - "'hosts' in groups"
-
-  post_tasks:
-    - name: Install swift pip packages to venv
-      pip:
-        name: "{{ maas_openstack_swift_pip_packages }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          --isolated
-          --constraint /tmp/pip-constraints.txt
-          {{ pip_install_options | default('') }}
-        virtualenv: "{{ maas_venv }}"
-      register: install_pip_packages
-      until: install_pip_packages is success
-      retries: 5
-      delay: 2
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-    - vars/maas-openstack.yml
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
-  tags:
-    - maas-openstack-swift
-
-
-- name: Gather swift host groups extra facts
-  hosts: swift_all
-  gather_facts: false
   tasks:
     - name: Set Storage address fact for host
       set_fact:
@@ -139,14 +80,28 @@
     - vars/maas.yml
     - vars/maas-openstack.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-swift
 
 - name: Install checks for openstack swift account
   hosts: swift_acc
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install swift account server checks
       template:
@@ -171,15 +126,29 @@
     - vars/maas.yml
     - vars/maas-openstack.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-swift
 
 
 - name: Install checks for openstack swift container
   hosts: swift_cont
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install swift container process checks
       template:
@@ -203,14 +172,29 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-swift
 
 - name: Install checks for openstack swift object group
   hosts: swift_obj
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install swift object server checks
       template:
@@ -235,15 +219,29 @@
     - vars/maas.yml
     - vars/maas-openstack.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-swift
 
 
 - name: Install swift-recon checks for openstack swift proxy
   hosts: swift_proxy
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Get openstack release
       command: "grep DISTRIB_RELEASE /etc/openstack-release"
@@ -330,15 +328,29 @@
     - vars/maas.yml
     - vars/maas-openstack.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-swift
 
 
 - name: Install accesscheck for openstack swift proxy
   hosts: swift_proxy
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: swift_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Create keystone user for swift filecheck
       shell: |
@@ -504,6 +516,8 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-openstack-swift

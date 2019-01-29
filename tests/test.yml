@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Install rpc-maas
-- include: "../playbooks/site.yml"
+- import_playbook: "../playbooks/site.yml"
 
 # Ensure all plugins are functional
-- include: "../playbooks/maas-verify.yml"
+- import_playbook: "../playbooks/maas-verify.yml"

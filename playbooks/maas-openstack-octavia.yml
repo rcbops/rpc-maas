@@ -13,60 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Gather facts
-  hosts: octavia_all:Controller
-  gather_facts: false
-  tasks:
+- name: Install checks for octavia
+  hosts: "{{ octavia_hosts_all | default('octavia_all') }}"
+  user: "{{ octavia_ansible_user | default('root') }}"
+  become: true
+  gather_facts: true
+  pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
-  vars_files:
-   - vars/main.yml
-   - vars/maas.yml
-  tags:
-   - always
 
-
-- name: Gather facts
-  hosts: "{{ octavia_hosts_all | default('octavia_all') }}"
-  user: "{{ octavia_ansible_user | default('root') }}"
-  become: "{{ octavia_ansible_become | default('no') }}"
-  gather_facts: "{{ gather_facts | default(true) }}"
-  tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
       set_fact:
-        maas_current_group: "octavia_hosts_all"
+        maas_current_group: octavia_hosts_all
 
-  post_tasks:
-    - name: Install octavia pip packages to venv
-      pip:
-        name: "{{ maas_openstack_octavia_pip_packages }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          --isolated
-          --constraint /tmp/pip-constraints.txt
-          {{ pip_install_options | default('') }}
-        virtualenv: "{{ maas_venv }}"
-      register: install_pip_packages
-      until: install_pip_packages is success
-      retries: 5
-      delay: 2
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-    - vars/maas-openstack.yml
-  environment: "{{ deployment_environment_variables | default({}) }}"
-  tags:
-    - maas-openstack-octavia
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-- name: Install checks for octavia
-  hosts: "{{ octavia_hosts_all | default('octavia_all') }}"
-  user: "{{ octavia_ansible_user | default('root') }}"
-  become: "{{ octavia_ansible_become | default('no') }}"
-  gather_facts: false
   tasks:
     - name: Install octavia process check
       template:
@@ -121,14 +84,30 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-octavia
+
 
 - name: Install checks for openstack octavia-api
   hosts: "{{ octavia_hosts_api | default('octavia-api') }}"
   user: "{{ octavia_ansible_user | default('root') }}"
-  become: "{{ octavia_ansible_become | default('no') }}"
-  gather_facts: false
+  become: true
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: octavia_hosts_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Add load-balancer member role (RPC-O)
       shell: ". {{ maas_openrc | default('/root/openrc') }} && openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer"
@@ -188,5 +167,8 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-octavia

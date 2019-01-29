@@ -13,14 +13,54 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Perform pre-flight and configuration checks
-  hosts: "{{ maas_rally_target_group }}[0]"
+- name: Ensure rally basic requirements are met
+  hosts: "shared-infra_hosts"
   gather_facts: false
+  connection: local
+  tasks:
+    - name: Add hosts to dynamic inventory group
+      group_by:
+        key: dynamic_rally_hosts
+        parents: rally_all
+      when:
+        - (((groups['swift_all'] | default([])) | union(groups['rgws'] | default([]))) | length) > 0
+
+    - name: Set rally fact when needed
+      set_fact:
+        maas_rally_enabled: false
+      when:
+        - maas_rally_enabled | bool
+        - (((groups['swift_all'] | default([])) | union(groups['rgws'] | default([]))) | length) > 0
+  tags:
+    - always
+
+
+- name: Perform pre-flight and configuration checks
+  hosts: "dynamic_rally_hosts[0]"
+  gather_facts: true
+  become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: rally_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
     - name: Safety check - ensure maas_rally is enabled
-      fail:
+      debug:
         msg: "Rally performance tests are disabled. If you really want them please read the documentation and set maas_rally_enabled to true."
-      when: not maas_rally_enabled
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
 
     - name: Generate check template dictionary
       set_fact:
@@ -70,25 +110,46 @@
         - maas_rally_checks[item]['duration_threshold'] < 1 or maas_rally_checks[item]['duration_threshold'] > 100
 
   vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
 
 - name: Configure maas_rally virtual environments
-  hosts: "{{ maas_rally_target_group }}"
+  hosts: "dynamic_rally_hosts"
   gather_facts: true
+  become: true
   pre_tasks:
-    - name: Install maas and maas_rally pip packages to venv
-      pip:
-        name: "{{ maas_rally_pip_packages }}"
-        state: "{{ maas_rally_pip_package_state }}"
-        extra_args: >-
-          --isolated
-          {{ pip_install_options | default('') }}
-        virtualenv: "{{ maas_rally_venv }}"
-      register: install_pip_packages
-      until: install_pip_packages is success
-      retries: 5
-      delay: 2
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: rally_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Create rally constraint file
+      template:
+        src: templates/rax-maas/rally-constraint.txt.j2
+        dest: /tmp/rally-constraint.txt
+
+    - include_tasks: common-tasks/maas-venv-create.yml
+      vars:
+        target_venv: "{{ maas_rally_venv }}"
+        pip_package_list: "{{ maas_pip_rally_packages }}"
+        pip_package_state: "{{ maas_pip_rally_package_state }}"
+        pip_package_constraint: "/tmp/rally-constraint.txt"
 
     - name: Create rally config directory
       file:
@@ -97,16 +158,6 @@
         owner: "root"
         group: "root"
         mode: "0750"
-
-    # Shade is required for the os_* ansible modules
-    - name: Ensure target has shade module installed
-      pip:
-        name: shade
-        state: present
-        virtualenv: /tmp/maas_rally_shade_venv
-        extra_args: >-
-          --isolated
-          {{ pip_install_options | default('') }}
 
     - name: Get keystone endpoint
       shell: |-
@@ -166,14 +217,28 @@
 
 
 - name: Prepare OpenStack and DB for performance monitoring
-  hosts: "{{ maas_rally_target_group }}[0]"
-  gather_facts: false
+  hosts: "dynamic_rally_hosts[0]"
+  gather_facts: true
+  become: true
   pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: rally_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Create maas_rally database
-      include: common-tasks/mysql-db-user.yml
-      static: no
+      include_tasks: common-tasks/mysql-db-user.yml
       vars:
         user_name: "{{ maas_rally_galera_user }}"
         password: "{{ maas_rally_galera_password }}"
@@ -196,41 +261,43 @@
       with_items:
         - "{{ maas_rally_checks.keys() | list }}"
 
-    - name: Create maas_rally projects
-      os_project:
-        name: "{{ item.value.project }}"
-        state: present
-        cloud: default
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-        domain_id: "Default"
-      with_dict: "{{ maas_rally_checks }}"
-      when:
-        - item.value.enabled
+    - name: Create MaaS virtualenv
       vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
-      register: rally_projects
+        ansible_python_interpreter: "{{ maas_rally_venv }}/bin/python"
+      block:
+        - name: Create maas_rally projects
+          os_project:
+            name: "{{ item.value.project }}"
+            state: present
+            cloud: default
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+            domain_id: "Default"
+          with_dict: "{{ maas_rally_checks }}"
+          when:
+            - item.value.enabled
+          register: rally_projects
 
-  #   NOTE(cfarquhar): The os_quota module is new in ansible 2.3. Use it instead
-  #                    of the shell module below when we reach ansible >= 2.3.
-  #  - name: Ensure quotas for rally projects
-  #    os_quota:
-  #      state: present
-  #      cloud: default
-  #      validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-  #      name: "{{ item.value.project | default('rally_' + item.key) }}"
-  #      instances: "{{ item.value.quotas.instances }}"
-  #      cores: "{{ item.value.quotas.cores }}"
-  #      ram: "{{ item.value.quotas.ram }}"
-  #      fixed_ips: "{{ item.value.quotas.fixed-ips }}"
-  #      floatingip: "{{ item.value.quotas.floating-ips }}"
-  #      port: "{{ item.value.quotas.ports }}"
-  #      snapshots: "{{ item.value.quotas.snapshots }}"
-  #      volumes: "{{ item.value.quotas.volumes }}"
-  #      per_volume_gigabytes: "{{ item.value.quotas.gigabytes }}"
-  #    with_dict: "{{ maas_rally_checks }}"
-  #    when:
-  #     - item.value.quotas is defined
+      #   NOTE(cfarquhar): The os_quota module is new in ansible 2.3. Use it instead
+      #                    of the shell module below when we reach ansible >= 2.3.
+      #  - name: Ensure quotas for rally projects
+      #    os_quota:
+      #      state: present
+      #      cloud: default
+      #      validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+      #      name: "{{ item.value.project | default('rally_' + item.key) }}"
+      #      instances: "{{ item.value.quotas.instances }}"
+      #      cores: "{{ item.value.quotas.cores }}"
+      #      ram: "{{ item.value.quotas.ram }}"
+      #      fixed_ips: "{{ item.value.quotas.fixed-ips }}"
+      #      floatingip: "{{ item.value.quotas.floating-ips }}"
+      #      port: "{{ item.value.quotas.ports }}"
+      #      snapshots: "{{ item.value.quotas.snapshots }}"
+      #      volumes: "{{ item.value.quotas.volumes }}"
+      #      per_volume_gigabytes: "{{ item.value.quotas.gigabytes }}"
+      #    with_dict: "{{ maas_rally_checks }}"
+      #    when:
+      #     - item.value.quotas is defined
 
     - name: Set quotas for maas_rally projects
       shell: |-
@@ -250,100 +317,96 @@
       when:
         - item.value.enabled
 
-    - name: Grant admin role to admin user for maas_rally projects
-      os_user_role:
-        user: "{{ openrc_os_username }}"
-        project: "{{ item.value.project }}"
-        role: "admin"
-        state: present
-        cloud: default
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-      with_dict: "{{ maas_rally_checks }}"
+    - name: Create MaaS virtualenv
       vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
-      when:
-        - item.value.enabled
+        ansible_python_interpreter: "{{ maas_rally_venv }}/bin/python"
+      block:
+        - name: Grant admin role to admin user for maas_rally projects
+          os_user_role:
+            user: "{{ openrc_os_username }}"
+            project: "{{ item.value.project }}"
+            role: "admin"
+            state: present
+            cloud: default
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+          with_dict: "{{ maas_rally_checks }}"
+          when:
+            - item.value.enabled
 
-    - name: Create maas_rally users in keystone
-      os_user:
-        name: "{{ item.value.user_name }}"
-        password: "{{ item.value.user_password }}"
-        default_project: "{{ item.value.project }}"
-        state: present
-        cloud: default
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-        domain: "Default"
-      with_dict: "{{ maas_rally_checks }}"
-      vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
-      when:
-        - item.value.enabled
+        - name: Create maas_rally users in keystone
+          os_user:
+            name: "{{ item.value.user_name }}"
+            password: "{{ item.value.user_password }}"
+            default_project: "{{ item.value.project }}"
+            state: present
+            cloud: default
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+            domain: "Default"
+          with_dict: "{{ maas_rally_checks }}"
+          when:
+            - item.value.enabled
 
-    - name: Grant _member_ role for rally users
-      os_user_role:
-        user: "{{ item.value.user_name }}"
-        project: "{{ item.value.project }}"
-        role: "_member_"
-        state: present
-        cloud: default
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-      with_dict: "{{ maas_rally_checks }}"
-      vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
-      when:
-        - item.value.enabled
+        - name: Grant _member_ role for rally users
+          os_user_role:
+            user: "{{ item.value.user_name }}"
+            project: "{{ item.value.project }}"
+            role: "_member_"
+            state: present
+            cloud: default
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+          with_dict: "{{ maas_rally_checks }}"
+          when:
+            - item.value.enabled
 
-    - name: Grant extra roles for rally users
-      os_user_role:
-        user: "{{ item.0.user_name }}"
-        project: "{{ item.0.project }}"
-        role: "{{ item.1 }}"
-        state: present
-        cloud: default
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-      with_subelements:
-        - "{{ maas_rally_checks }}"
-        - extra_user_roles
-        - skip_missing: yes
-      vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
-      when:
-        - item.0.enabled
+        - name: Grant extra roles for rally users
+          os_user_role:
+            user: "{{ item.0.user_name }}"
+            project: "{{ item.0.project }}"
+            role: "{{ item.1 }}"
+            state: present
+            cloud: default
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+          with_subelements:
+            - "{{ maas_rally_checks }}"
+            - extra_user_roles
+            - skip_missing: yes
+          when:
+            - item.0.enabled
 
     - name: Download cirros image for rally_cirros
       get_url:
         url: http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
         dest: /tmp/cirros-0.3.5-x86_64-disk.img"
 
-    - name: Create rally_cirros image in glance
-      os_image:
-        cloud: default
-        state: present
-        name: rally_cirros
-        filename: /tmp/cirros-0.3.5-x86_64-disk.img"
-        is_public: yes
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+    - name: Create MaaS virtualenv
       vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+        ansible_python_interpreter: "{{ maas_rally_venv }}/bin/python"
+      block:
+        - name: Create rally_cirros image in glance
+          os_image:
+            cloud: default
+            state: present
+            name: rally_cirros
+            filename: /tmp/cirros-0.3.5-x86_64-disk.img"
+            is_public: yes
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
 
-    - name: Create rally nova flavor
-      os_nova_flavor:
-        cloud: default
-        state: present
-        name: rally
-        ram: 256
-        disk: 1
-        vcpus: 1
-        is_public: true
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-      vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+        - name: Create rally nova flavor
+          os_nova_flavor:
+            cloud: default
+            state: present
+            name: rally
+            ram: 256
+            disk: 1
+            vcpus: 1
+            is_public: true
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
 
     # NOTE(cfarquhar): Unfortunately rally's validation step doesn't account for
     #         predefined contexts (i.e. project and user) and non-public
@@ -367,40 +430,40 @@
     #    when:
     #     - item.value.enabled
 
-    - name: Create rally networks
-      os_network:
-        cloud: default
-        state: present
-        name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
-        shared: no
-        project: "{{ item.value.project }}"
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-        wait: yes
-      with_dict: "{{ maas_rally_checks }}"
+    - name: Create MaaS virtualenv
       vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
-      when:
-        - item.value.enabled
-        - "{{ 'compute' in item.value.primary_resources }}"
+        ansible_python_interpreter: "{{ maas_rally_venv }}/bin/python"
+      block:
+        - name: Create rally networks
+          os_network:
+            cloud: default
+            state: present
+            name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
+            shared: no
+            project: "{{ item.value.project }}"
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+            wait: yes
+          with_dict: "{{ maas_rally_checks }}"
+          when:
+            - item.value.enabled
+            - "{{ 'compute' in item.value.primary_resources }}"
 
-    - name: Create rally subnets
-      os_subnet:
-        cloud: default
-        state: present
-        name: "{{ item.value.subnet_name | default('rally_subnet_' + item.key) }}"
-        network_name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
-        cidr: "{{ item.value.subnet_cidr | default('192.168.0.0/24') }}"
-        project: "{{ item.value.project }}"
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
-        wait: yes
-      with_dict: "{{ maas_rally_checks }}"
-      vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
-      when:
-        - item.value.enabled
-        - "{{ 'compute' in item.value.primary_resources }}"
+        - name: Create rally subnets
+          os_subnet:
+            cloud: default
+            state: present
+            name: "{{ item.value.subnet_name | default('rally_subnet_' + item.key) }}"
+            network_name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
+            cidr: "{{ item.value.subnet_cidr | default('192.168.0.0/24') }}"
+            project: "{{ item.value.project }}"
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+            wait: yes
+          with_dict: "{{ maas_rally_checks }}"
+          when:
+            - item.value.enabled
+            - "{{ 'compute' in item.value.primary_resources }}"
 
     - name: Check for existing maas_rally database initialization
       command: "{{ maas_rally_venv_bin }}/rally-manage db revision"
@@ -460,10 +523,21 @@
 
 
 - name: Configure performance checks
-  hosts: "{{ maas_rally_target_group }}"
-  gather_facts: false
+  hosts: "dynamic_rally_hosts"
+  gather_facts: true
+  become: true
   pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Ensure maas plugin directory exists
       file:
@@ -517,14 +591,16 @@
       set_fact:
         maas_rally_checks: "{{ check_template|combine(maas_rally_checks, recursive=True) }}"
 
-    - name: Retrieve network UUIDs
-      os_networks_facts:
-        cloud: default
-        wait: yes
-        endpoint_type: "admin"
-        validate_certs: "{{ not keystone_service_adminuri_insecure }}"
+    - name: Create MaaS virtualenv
       vars:
-        - ansible_python_interpreter: /tmp/maas_rally_shade_venv/bin/python
+        ansible_python_interpreter: "{{ maas_rally_venv }}/bin/python"
+      block:
+        - name: Retrieve network UUIDs
+          os_networks_facts:
+            cloud: default
+            wait: yes
+            endpoint_type: "admin"
+            validate_certs: "{{ not keystone_service_adminuri_insecure }}"
 
     - name: Store network UUIDs in dictionary
       set_fact:
@@ -583,15 +659,42 @@
     - vars/maas.yml
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
     - vars/maas-openstack.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
 
 
 - name: Deploy support helper script to utility containers
   hosts: utility_all
-  gather_facts: false
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Exit
+      meta: end_play
+      when:
+        - not (maas_rally_enabled | bool)
+
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: rally_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Copy maas_rally support helper script
       copy:
         src: files/rax-maas/tools/rally_diag.sh
         dest: /root/rally_diag.sh
         mode: 0770
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"

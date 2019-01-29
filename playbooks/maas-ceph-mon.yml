@@ -15,38 +15,48 @@
 
 - name: Gather facts
   hosts: mons
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: true
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
 
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
       set_fact:
         maas_current_group: mons
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - maas-ceph-mons
     - always
 
-- include: maas-ceph-raxmon.yml
+
+- import_playbook: maas-ceph-raxmon.yml
+
 
 - name: Install checks for ceph mons
   hosts: mons
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - name: Write Ceph monitoring client key to file
       copy:
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Get the first mon container
       raw: /bin/docker ps -a -f status=running | awk '/ceph-mon/ {print $NF}' | head -1
@@ -75,7 +85,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       with_items:
         - ceph_mon_stats
         - ceph_cluster_stats
@@ -83,5 +93,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-ceph-mons

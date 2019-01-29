@@ -16,18 +16,17 @@
 - name: Generate container host list
   hosts: localhost
   connection: local
-  gather_facts: false
+  gather_facts: true
   tasks:
     - name: Create known container hosts fact
       set_fact:
         _known_container_hosts: |-
           {% set _var = [] -%}
-          {% for item in groups['all_containers'] | default([]) -%}
-          {%  if hostvars[item]['physical_host'] | default(false) != item -%}
-          {%   if _var.append(hostvars[item]['physical_host']) -%}
-          {%   endif -%}
-          {%  endif -%}
-          {% endfor -%}
+          {% for item in groups['all_containers'] | default([]) %}
+          {%   if hostvars[item]['physical_host'] | default(false) != item %}
+          {%     set _ = _var.append(hostvars[item]['physical_host']) %}
+          {%   endif %}
+          {% endfor %}
           {{ _var | unique }}
 
     - name: Create dynamic lxc_host group
@@ -39,68 +38,39 @@
 
 - name: Gather facts
   hosts: known_container_hosts
-  gather_facts: false
+  gather_facts: true
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-  tags:
-    - always
 
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-- name: Gather facts
-  hosts: known_container_hosts
-  gather_facts: "{{ gather_facts | default(true) }}"
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
       set_fact:
         maas_current_group: hosts
 
-  tasks:
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-  post_tasks:
-    - name: Install glance pip packages to venv
-      pip:
-        name: "{{ maas_container_pip_packages }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          --isolated
-          --constraint /tmp/pip-constraints.txt
-          {{ pip_install_options | default('') }}
-        virtualenv: "{{ maas_venv }}"
-      register: install_pip_packages
-      until: install_pip_packages is success
-      retries: 5
-      delay: 2
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
   vars_files:
     - vars/main.yml
     - vars/maas.yml
 
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
   tags:
-    - maas-container-storage
+    - always
 
 
 - name: Install checks for infra memcached
   hosts: known_container_hosts
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install local checks
       template:
@@ -116,6 +86,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-container-storage

@@ -13,72 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Gather facts
-  hosts: nova_all
-  gather_facts: false
-  tasks:
+- name: Install checks for openstack nova-api-metadata
+  hosts: nova_api_metadata
+  gather_facts: true
+  user: "{{ ansible_user | default('root') }}"
+  become: true
+  pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-  tags:
-    - always
 
-
-- name: Gather facts
-  hosts: nova_all
-  gather_facts: "{{ gather_facts | default(true) }}"
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
-    - include: "common-tasks/maas_get_openrc.yml"
     - name: Set the current group
       set_fact:
         maas_current_group: nova_all
 
-  tasks:
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-  post_tasks:
-    - name: Install nova pip packages to venv
-      pip:
-        name: "{{ maas_openstack_nova_pip_packages }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          --isolated
-          --constraint /tmp/pip-constraints.txt
-          {{ pip_install_options | default('') }}
-      virtualenv: "{{ maas_venv }}"
-      register: install_pip_packages
-      until: install_pip_packages is success
-      retries: 5
-      delay: 2
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-    - vars/maas-openstack.yml
-
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
-  tags:
-    - maas-openstack-nova
-
-
-- name: Install checks for openstack nova-api-metadata
-  hosts: nova_api_metadata
-  gather_facts: false
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
   tasks:
     - name: Install nova nova-api-metadata checks
       template:
@@ -94,14 +45,29 @@
     - vars/maas.yml
     - vars/maas-openstack.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-nova
 
+
 - name: Install checks for openstack nova-api
   hosts: nova_api_os_compute
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: nova_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install nova api checks
       template:
@@ -149,14 +115,30 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-nova
 
+
 - name: Install checks for openstack nova-api
   hosts: nova_scheduler
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: nova_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install nova api checks
       template:
@@ -171,14 +153,30 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-nova
 
+
 - name: Install checks for openstack nova-api-metadata
   hosts: nova_cert
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: nova_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install nova nova-api-metadata checks
       template:
@@ -193,14 +191,30 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-nova
 
+
 - name: Install checks for openstack nova-compute
   hosts: nova_compute
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: nova_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install nova nova-compute checks
       template:
@@ -215,14 +229,30 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-nova
 
+
 - name: Install checks for openstack nova-conductor
   hosts: nova_conductor
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: nova_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install nova nova-conductor checks
       template:
@@ -237,14 +267,30 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-nova
 
+
 - name: Install checks for openstack nova-console
   hosts: nova_console
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: nova_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install nova nova-console-auth checks
       template:
@@ -268,5 +314,8 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-nova

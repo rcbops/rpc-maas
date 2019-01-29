@@ -13,76 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Gather facts
-  hosts: heat_all
-  gather_facts: false
-  tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp | bool
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-  tags:
-    - always
-
-
-- name: Gather facts
-  hosts: heat_all
-  gather_facts: "{{ gather_facts | default(true) }}"
+- name: Install checks for openstack heat-api
+  hosts: heat_api
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
   pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
-    - include: "common-tasks/maas_excluded_regex.yml"
-    - include: "common-tasks/maas_get_openrc.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: heat_all
 
-  tasks:
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-  post_tasks:
-    - name: Install heat pip packages to venv
-      pip:
-        name: "{{ maas_openstack_heat_pip_packages }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          --isolated
-          --constraint /tmp/pip-constraints.txt
-          {{ pip_install_options | default('') }}
-        virtualenv: "{{ maas_venv }}"
-      register: install_pip_packages
-      until: install_pip_packages is success
-      retries: 5
-      delay: 2
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-    - vars/maas-openstack.yml
-
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
-  tags:
-    - maas-openstack-heat
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
 
-- name: Install checks for openstack heat-api
-  hosts: heat_api
-  gather_facts: false
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
+
   tasks:
     - name: Install heat api checks
       template:
@@ -122,15 +71,31 @@
     - vars/maas.yml
     - vars/maas-openstack.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-heat
 
 
 - name: Install checks for openstack heat-api-cfn
   hosts: heat_api_cfn
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: heat_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+
+
   tasks:
     - name: Install heat api cfn checks
       template:
@@ -170,15 +135,29 @@
     - vars/maas.yml
     - vars/maas-openstack.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-openstack-heat
 
 
 - name: Install checks for openstack heat-api-cloudwatch
   hosts: heat_api_cloudwatch
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: heat_all
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
   tasks:
     - name: Install heat api cloudwatch checks
       template:
@@ -217,6 +196,8 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-openstack-heat

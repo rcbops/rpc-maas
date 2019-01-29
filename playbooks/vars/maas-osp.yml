@@ -28,9 +28,6 @@ maas_openrc: '/root/openrc-maas'
 
 osp_internal_netmask: "{{ internal_vip_address | ipsubnet(24) }}"
 
-maas_openstack_octavia_pip_packages:
-  - python-keystoneclient
-
 octavia_hosts_all: 'Controller'
 octavia_hosts_api: 'Controller'
 octavia_process_names:
@@ -82,11 +79,7 @@ designate_ansible_become: True
 designate_ansible_user: 'heat-admin'
 designate_hosts_all: 'Controller'
 
-maas_openstack_designate_pip_packages:
-  - python-designateclient
-  - python-keystoneclient
-  - dnspython
-
+ansible_user: heat-admin
 ansible_ssh_private_key_file: /home/stack/.ssh/id_rsa
 ansible_become: yes
 

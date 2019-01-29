@@ -31,49 +31,6 @@ maas_horizon_scheme: https
 # maas_designate_scheme: https
 
 #
-# pip installable packages for given services used within maas
-#
-maas_openstack_cinder_pip_packages:
-  - python-cinderclient
-  - python-keystoneclient
-
-maas_openstack_designate_pip_packages:
-  - python-designateclient
-  - python-keystoneclient
-  - dnspython
-
-maas_openstack_glance_pip_packages:
-  - python-glanceclient
-  - python-keystoneclient
-
-maas_openstack_heat_pip_packages:
-  - python-heatclient
-  - python-keystoneclient
-
-maas_openstack_ironic_pip_packages:
-  - python-ironicclient
-  - python-keystoneclient
-
-maas_openstack_keystone_pip_packages:
-  - python-openstackclient
-
-maas_openstack_magnum_pip_packages:
-  - python-keystoneclient
-  - python-magnumclient
-
-maas_openstack_neutron_pip_packages:
-  - python-keystoneclient
-  - python-neutronclient
-
-maas_openstack_nova_pip_packages:
-  - python-keystoneclient
-  - python-novaclient
-
-maas_openstack_swift_pip_packages:
-  - python-openstackclient
-  - python-swiftclient
-
-#
 # The Cinder backup monitor can be turned on or off based on provided config.
 #  By default this will be enabeled should hosts be setup and configured for
 #  the service. Set this to "false" to disable it regardless of the detected
@@ -177,9 +134,6 @@ maas_nova_console_ports:
 
 maas_nova_console_port: "{{ maas_nova_console_ports[maas_nova_console_type] }}"
 
-maas_openstack_octavia_pip_packages:
-  - python-keystoneclient
-
 octavia_process_names:
   - uwsgi
   - octavia-worker
@@ -217,21 +171,15 @@ designate_process_names:
 maas_rally_enabled: false
 
 #
-#  The ansible host group where the maas_rally performance monitoring plugin
-#  will be installed.
-#
-maas_rally_target_group: shared-infra_hosts
-
-#
 #  The node from which checks will run.  The maas_rally plugin will be installed
-#  on all hosts in `maas_rally_target_group`, but performance checks (each of
+#  on all hosts in "shared-infra_hosts" machines, but performance checks (each of
 #  which consumes resources) should only execute from a single node to avoid
 #  uncoordinated resource consumption.  The best practice is to override this
 #  with a single hostname (e.g. infra01) in user vars.  Then, if the primary
 #  node fails maas_rally_primary_node can be updated to resume monitoring from
 #  another node.
 #
-maas_rally_primary_node: "{{ groups[maas_rally_target_group][0] }}"
+maas_rally_primary_node: "{{ groups['shared-infra_hosts'][0] }}"
 
 #
 #  The maas_rally_check_overrides dictionary is the primary configuration
@@ -425,18 +373,7 @@ maas_rally_git_version: "stable/0.9"
 #
 # Set the pip package state, defaults to present
 #
-maas_rally_pip_package_state: present
-
-#
-# pip packages required for plugin functionality
-#
-maas_rally_pip_packages:
-  - influxdb
-  - "keystoneauth1>=3.0.0"
-  - "git+https://github.com/openstack/monitorstack@master#egg=monitorstack"
-  - numpy
-  - pymysql
-  - "git+{{ maas_rally_git_repo }}@{{ maas_rally_git_version }}#egg=rally"
+maas_pip_rally_package_state: present
 
 #
 #  Default values for performance checks.  They are intentionally conservative

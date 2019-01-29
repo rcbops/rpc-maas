@@ -18,19 +18,32 @@
 # (This playbook could be removed when upstream decides to include
 # OS_IMAGE_API_VERSION and OS_VOLUME_API_VERSION in openrc
 #
-- name: Retrieve maasrc file
-  slurp:
-    src: /root/maasrc
-  register: maasrc_data
+
+- name: Locate openrc file
+  stat:
+    path: "/root/maasrc"
+  register: maasrc_file_check
   delegate_to: "{{ groups['utility_all'][0] }}"
+  run_once: true
 
-- name: Register a fact for the maasrc
-  set_fact:
-     maasrc_fact: "{{ maasrc_data.content }}"
+- name: Get openrc
+  block:
+    - name: Retrieve maasrc file
+      slurp:
+        src: /root/maasrc
+      register: maasrc_data
+      delegate_to: "{{ groups['utility_all'][0] }}"
 
-- name: Distribute maasrc
-  copy:
-    dest: "/root/maasrc"
-    content: "{{ maasrc_fact | b64decode }}"
-    mode: "0640"
-  delegate_to: "{{ physical_host | default(ansible_host) }}"
+    - name: Register a fact for the maasrc
+      set_fact:
+        maasrc_fact: "{{ maasrc_data.content }}"
+
+    - name: Distribute maasrc
+      copy:
+        dest: "/root/maasrc"
+        content: "{{ maasrc_fact | b64decode }}"
+        mode: "0640"
+      when:
+        - (inventory_hostname | default(ansible_host)) != groups['utility_all'][0]
+  when:
+    - maasrc_file_check.stat.exists | bool

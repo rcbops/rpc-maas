@@ -15,7 +15,8 @@
 
 - name: Gather facts
   hosts: shared-infra_hosts
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: true
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
@@ -25,16 +26,25 @@
     - name: Set the current group
       set_fact:
         maas_current_group: shared-infra_hosts
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
 
+
 - name: Install MaaS Poller
   hosts: shared-infra_hosts
-  gather_facts: false
+  gather_facts: true
+  become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - name: Gather variables for each operating system
       include_vars: "{{ item }}"
       with_first_found:
@@ -49,7 +59,7 @@
 
   tasks:
     - name: Include Ubuntu distro install tasks
-      include: "common-tasks/maas-poller-{{ ansible_distribution | lower }}-install.yml"
+      include_tasks: "common-tasks/maas-poller-{{ ansible_distribution | lower }}-install.yml"
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
@@ -60,5 +70,6 @@
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
 
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-poller-install

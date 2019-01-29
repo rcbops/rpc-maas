@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-agent-install.yml
+- import_playbook: maas-agent-install.yml
   tags:
     - maas-agent
 
-- include: maas-agent-setup.yml
+- import_playbook: maas-agent-setup.yml
   tags:
     - maas-agent

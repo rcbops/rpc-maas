@@ -17,9 +17,9 @@
   hosts: os-infra_hosts:Controller
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: true
   pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
       set_fact:
@@ -33,15 +33,23 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - maas-managed-k8
     - always
+
 
 - name: Install checks for mk8s ui
   hosts:  "{{ mk8s_ui_hosts | default('mk8s_ui_all') }}"
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install mk8s ui process check
       template:
@@ -50,7 +58,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Install mk8s ui local checks
       template:
@@ -59,7 +67,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Install mk8s ui lb checks
       template:
@@ -68,7 +76,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
@@ -80,22 +88,32 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-managed-k8
+
 
 - name: Install checks for mk8s etp
   hosts:  "{{ mk8s_etp_hosts | default('mk8s_etp_all') }}"
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install mk8s etp process check
       template:
@@ -104,7 +122,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Install mk8s etp local checks
       template:
@@ -113,19 +131,30 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
     # Ideally ETP should not be accessible from the outside so skip those checks
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-managed-k8
+
 
 - name: Install checks for mk8s etg
   hosts: "{{ mk8s_etg_hosts | default('mk8s_etg_all') }}"
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install mk8s etg process check
       template:
@@ -134,7 +163,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Install mk8s etg local checks
       template:
@@ -143,19 +172,30 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
     # Ideally etg should not be accessible from the outside so skip those checks
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-managed-k8
+
 
 - name: Install checks for mk8s auth
   hosts:  "{{ mk8s_auth_hosts | default('mk8s_auth_all') }}"
   user: "{{ mk8s_ansible_user | default('root') }}"
   become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install mk8s auth process check
       template:
@@ -164,7 +204,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
     - name: Install mk8s auth local checks
       template:
@@ -173,10 +213,14 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host }}"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
     # Ideally auth should not be accessible from the outside so skip those checks
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-managed-k8

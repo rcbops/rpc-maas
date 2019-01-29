@@ -13,13 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Gather facts
+  hosts: hosts
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+
+  tags:
+    - always
+
+
 - name: Clean up MaaS resources for gating tests
   hosts: hosts
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  tasks:
-    - name: Include maas venv create
-      include_tasks: common-tasks/maas-venv-create.yml
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
 
+  tasks:
     - name: Run RAXMON
       vars:
         ansible_python_interpreter: "{{ maas_venv }}/bin/python"
@@ -49,3 +72,5 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"

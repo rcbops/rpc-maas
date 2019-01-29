@@ -13,25 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- include: maas-infra-galera.yml
+- import_playbook: maas-infra-galera.yml
   tags:
     - maas-infra
 
-- include: maas-infra-memcached.yml
+- import_playbook: maas-infra-memcached.yml
   tags:
     - maas-infra
 
-- include: maas-infra-rabbitmq.yml
+- import_playbook: maas-infra-rabbitmq.yml
   tags:
     - maas-infra
 
-- include: maas-infra-rsyslogd.yml
+- import_playbook: maas-infra-rsyslogd.yml
   tags:
     - maas-infra
 
-- include: maas-infra-pacemaker.yml
-  when:
-    - deploy_osp | bool
+- import_playbook: maas-infra-pacemaker.yml
   tags:
     - maas-pacemaker
 

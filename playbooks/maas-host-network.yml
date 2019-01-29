@@ -15,65 +15,38 @@
 
 - name: Gather facts
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-  tags:
-    - always
 
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-- name: Gather facts
-  hosts: hosts
-  gather_facts: "{{ gather_facts | default(true) }}"
-  user: "{{ ansible_user | default('root') }}"
-  become: yes
-  tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
     - name: Set the current group
       set_fact:
         maas_current_group: hosts
 
-    - name: Copy over pip constraints
-      copy:
-        src: "files/pip-constraints.txt"
-        dest: "/tmp/pip-constraints.txt"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-  post_tasks:
-    - name: Install network pip packages to venv
-      pip:
-        name: "{{ maas_network_check_pip_packages }}"
-        state: "{{ maas_pip_package_state }}"
-        extra_args: >-
-          --isolated
-          --constraint /tmp/pip-constraints.txt
-          {{ pip_install_options | default('') }}
-        virtualenv: "{{ maas_venv }}"
-      register: install_pip_packages
-      until: install_pip_packages is success
-      retries: 5
-      delay: 2
-
   vars_files:
     - vars/main.yml
     - vars/maas.yml
 
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
   tags:
-    - maas-hosts-network
+    - always
 
 
 - name: Install checks for hosts network
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
+  become: true
   pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
     - name: Test that network interfaces exist
       fail:
         msg: "The specified network interfaces {{ item.name }} doesn't exist, consider setting the 'maas_network_checks_list' variable to override these interfaces"
@@ -97,13 +70,22 @@
     - vars/main.yml
     - vars/maas.yml
 
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-hosts-network
 
 
 - name: Install checks for bonding interfaces
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install checks for bonding interfaces
       template:
@@ -117,6 +99,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-hosts-network

@@ -2,7 +2,7 @@
 {% set label = "ceph_osd_stats" %}
 {% set check_name = label+'--'+inventory_hostname %}
 {% set ceph_args = [maas_plugin_dir + "/ceph_monitoring.py", "--name", "client.raxmon", "--keyring", "/etc/ceph/ceph.client.raxmon.keyring"] %}
-{% if (physical_host is defined and physical_host != ansible_host) or (deploy_osp) %}
+{% if (physical_host is defined and physical_host != ansible_host) or (deploy_osp | bool) %}
 {% if (deploy_osp | bool) %}
 {% set _ = ceph_args.extend(["--deploy_osp"]) %}
 {% endif %}

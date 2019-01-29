@@ -15,49 +15,71 @@
 
 - name: Gather facts
   hosts: shared-infra_hosts
-  gather_facts: "{{ gather_facts | default(true) }}"
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+    - name: Set the current group
+      set_fact:
+        maas_current_group: shared-infra_hosts
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+
   tags:
-    - maas-poller-setup
+    - always
+
 
 - name: Setup MaaS Poller
   hosts: shared-infra_hosts
-  gather_facts: false
-  become: yes
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Generate MaaS poller config
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
       template:
         src: "templates/rax-maas/rackspace-monitoring-poller.cfg"
         dest: /etc/rackspace-monitoring-poller.cfg
         mode: 0600
         owner: root
         group: root
-
-    - name: Enable MaaS poller via config
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
+
+    - name: Enable MaaS poller via config
       copy:
         src: files/rackspace-monitoring-poller-enabled
         dest: /etc/default/rackspace-monitoring-poller
         mode: 0600
         owner: root
         group: root
-
-    - name: Install check for poller's file descriptor usage
       when:
         - maas_private_monitoring_enabled | bool
         - maas_private_monitoring_zone is defined
+
+    - name: Install check for poller's file descriptor usage
       template:
         src: "templates/rax-maas/maas_poller_fd_count.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/maas_poller_fd_count--{{ inventory_hostname }}.yaml"
         mode: 0644
         owner: root
         group: root
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
 
     - name: Start maas poller
       include_tasks: common-tasks/maas_poller_start.yml
@@ -65,5 +87,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-poller-setup

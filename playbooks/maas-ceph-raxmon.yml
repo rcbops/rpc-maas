@@ -13,34 +13,65 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install checks for ceph mons
-  hosts: mons[0]
-  gather_facts: false
-  pre_tasks:
-    - name: Add ceph command line alias string for osp
-      set_fact:
-        ceph_command: sudo docker exec ceph-mon-{{inventory_hostname}} ceph --cluster ceph
+- name: Gather facts
+  hosts: mons
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
 
-    - name: Add ceph command line alias string for other environment
-      set_fact:
-        ceph_command: ceph
+    - name: Create dynamic ceph osd group
+      add_host:
+        hostname: "{{ item }}"
+        groups: "maas_mon_hosts"
+      with_items: "{{ groups['mons'][0] }}"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+
+  tags:
+    - always
+
+
+- name: Install checks for ceph mons
+  hosts: maas_mon_hosts
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
       when:
-        - not (deploy_osp | bool)
+        - deploy_osp | bool
+
+    - name: Add ceph command line alias string
+      set_fact:
+        ceph_command: "{{ (deploy_osp | bool) | ternary('docker exec ceph-mon-{{inventory_hostname}} ceph --cluster ceph', 'ceph') }}"
 
     - name: Create ceph monitoring client
       command: "{{ ceph_command }} auth get-or-create client.raxmon"
       register: _ceph_raxmon_client
       tags:
         - skip_ansible_lint
+
     - name: Add mgr auth for client.raxmon
       command: "{{ ceph_command }} auth caps client.raxmon mon 'allow r' mgr 'allow *'"
       tags:
         - skip_ansible_lint
+
     - name: Set the raxmon_client facts
       set_fact:
         ceph_raxmon_client: "{{ _ceph_raxmon_client }}"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-ceph
     - always

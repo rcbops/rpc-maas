@@ -17,6 +17,13 @@
   hosts: localhost
   connection: local
   user: "{{ ansible_user | default('root') }}"
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Run RAXMON
       vars:
@@ -32,3 +39,5 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"

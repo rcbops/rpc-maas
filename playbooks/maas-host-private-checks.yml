@@ -13,32 +13,52 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 - name: Gather facts
   hosts: hosts
-  gather_facts: "{{ gather_facts | default(true) }}"
-  pre_tasks:
-    - include: "common-tasks/maas_excluded_regex.yml"
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
     - name: Set the current group
       set_fact:
         maas_current_group: hosts
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+
   tags:
-    - maas-poller-setup
+    - always
+
 
 - name: Install private network monitoring checks
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
 
   tasks:
     - name: Install private ping and SSH checks
-      when:
-        - maas_private_monitoring_enabled | bool
-        - maas_private_monitoring_zone is defined
       template:
         src: "templates/rax-maas/{{ item.name }}.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item.name }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
+      when:
+        - maas_private_monitoring_enabled | bool
+        - maas_private_monitoring_zone is defined
       with_items:
         - { name: "private_ping_check" }
         - { name: "private_ssh_check" }
@@ -46,5 +66,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-poller-setup

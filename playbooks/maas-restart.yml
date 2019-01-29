@@ -17,6 +17,13 @@
   hosts: hosts
   gather_facts: true
   serial: "{{ maas_restart_serial | default(1) }}"
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Restart rackspace-monitoring-poller (systemd)
       service:
@@ -58,6 +65,8 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
 
   tags:
     - maas-restart

@@ -15,30 +15,39 @@
 
 - name: Gather facts
   hosts: shared-infra_hosts
-  gather_facts: "{{ gather_facts | default(true) }}"
+  gather_facts: true
+  become: true
   tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
         - deploy_osp | bool
 
-    - include: "common-tasks/maas_excluded_regex.yml"
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
       set_fact:
         maas_current_group: shared-infra_hosts
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+
   tags:
     - always
 
 
 - name: Install checks for infra galera
   hosts: shared-infra_hosts
-  gather_facts: false
+  gather_facts: true
   user: "{{ ansible_user | default('root') }}"
-  become: yes
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | bool
+
   tasks:
     - name: Install checks for infra pacemaker
       template:
@@ -48,10 +57,15 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - deploy_osp | bool
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
     - "vars/maas-{{ ansible_distribution | lower }}.yml"
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
   tags:
     - maas-infra-pacemaker
