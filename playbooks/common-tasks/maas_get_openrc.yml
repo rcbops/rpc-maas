@@ -22,20 +22,18 @@
 
 - name: Get openrc
   block:
-    - name: Retrieve openrc file
-      slurp:
+    - name: Fetch openrc
+      fetch:
         src: "{{ maas_stackrc | default('/root/openrc') }}"
-      register: openrc_data
+        dest: "/tmp/openrc"
+        flat: true
       delegate_to: "{{ groups['utility_all'][0] }}"
-
-    - name: Register a fact for the openrc
-      set_fact:
-        openrc_fact: "{{ openrc_data.content }}"
+      run_once: true
 
     - name: Distribute openrc
       copy:
+        src: "/tmp/openrc"
         dest: "/root/openrc"
-        content: "{{ openrc_fact | b64decode }}"
         mode: "0640"
       when:
         - (inventory_hostname | default(ansible_host)) != groups['utility_all'][0]

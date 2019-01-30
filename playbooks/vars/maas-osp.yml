@@ -28,8 +28,6 @@ maas_openrc: '/root/openrc-maas'
 
 osp_internal_netmask: "{{ internal_vip_address | ipsubnet(24) }}"
 
-octavia_hosts_all: 'Controller'
-octavia_hosts_api: 'Controller'
 octavia_process_names:
   - octavia-api
   - octavia-worker
@@ -59,26 +57,17 @@ maas_managed_k8_kubectl_release: v1.9.1
 
 maas_managed_k8_auth_url: "http://{{ internal_vip_address }}:{{ mk8s_auth_port_lb }}"
 
+#
 # processes
+#
 maas_managed_k8s_ui_process_name: kubernetes-control-panel
 maas_managed_k8s_etp_process_name: etp
 maas_managed_k8s_etg_process_name: etg
 maas_managed_k8s_auth_process_name: kubernetes-auth
 
-# hosts
-mk8s_infra_host: 'Controller'
-mk8s_ui_hosts: 'Controller'
-mk8s_etp_hosts: 'Controller'
-mk8s_etg_hosts: 'Controller'
-mk8s_auth_hosts: 'Controller'
-mk8s_ansible_user: 'heat-admin'
-mk8s_ansible_become: yes
-
-# designate
-designate_ansible_become: True
-designate_ansible_user: 'heat-admin'
-designate_hosts_all: 'Controller'
-
+#
+# Basic ansible options
+#
 ansible_user: heat-admin
 ansible_ssh_private_key_file: /home/stack/.ssh/id_rsa
 ansible_become: yes

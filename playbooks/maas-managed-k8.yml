@@ -14,10 +14,9 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: os-infra_hosts:Controller
-  user: "{{ mk8s_ansible_user | default('root') }}"
-  become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: true
+  hosts: os-infra_hosts
+  user: "{{ ansible_user | default('root') }}"
+  become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
@@ -40,10 +39,9 @@
 
 
 - name: Install checks for mk8s ui
-  hosts:  "{{ mk8s_ui_hosts | default('mk8s_ui_all') }}"
-  user: "{{ mk8s_ansible_user | default('root') }}"
-  become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: true
+  hosts:  mk8s_ui_all
+  user: "{{ ansible_user | default('root') }}"
+  become: true
   pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
@@ -104,10 +102,9 @@
 
 
 - name: Install checks for mk8s etp
-  hosts:  "{{ mk8s_etp_hosts | default('mk8s_etp_all') }}"
-  user: "{{ mk8s_ansible_user | default('root') }}"
-  become: "{{ mk8s_ansible_become | default('no') }}"
-  gather_facts: true
+  hosts:  mk8s_etp_all
+  user: "{{ ansible_user | default('root') }}"
+  become: true
   pre_tasks:
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
@@ -145,9 +142,9 @@
 
 
 - name: Install checks for mk8s etg
-  hosts: "{{ mk8s_etg_hosts | default('mk8s_etg_all') }}"
-  user: "{{ mk8s_ansible_user | default('root') }}"
-  become: "{{ mk8s_ansible_become | default('no') }}"
+  hosts: mk8s_etg_all
+  user: "{{ ansible_user | default('root') }}"
+  become: true
   gather_facts: true
   pre_tasks:
     - name: Include OSP vars
@@ -186,9 +183,9 @@
 
 
 - name: Install checks for mk8s auth
-  hosts:  "{{ mk8s_auth_hosts | default('mk8s_auth_all') }}"
-  user: "{{ mk8s_ansible_user | default('root') }}"
-  become: "{{ mk8s_ansible_become | default('no') }}"
+  hosts:  "mk8s_auth_all"
+  user: "{{ ansible_user | default('root') }}"
+  become: true
   gather_facts: true
   pre_tasks:
     - name: Include OSP vars

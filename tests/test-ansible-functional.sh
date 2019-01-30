@@ -26,7 +26,7 @@
 
 ## Shell Opts ----------------------------------------------------------------
 
-set -exuo pipefail
+set -evuo pipefail
 
 echo "Run Functional Tests"
 echo "+-------------------- FUNCTIONAL ENV VARS --------------------+"
@@ -136,7 +136,7 @@ function setup_embedded_ansible {
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
 
   if [ ${RE_JOB_SCENARIO} = osp13 ]; then
-    ANSIBLE_BINARY+=" -i ${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
+    ANSIBLE_INVENTORY="${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
   fi
 
   if [ ${RE_JOB_SCENARIO} = rocky ]; then
@@ -149,11 +149,10 @@ function execute_ansible_playbook {
   setup_embedded_ansible
   set_ansible_parameters
   CMD_TO_EXECUTE="${ANSIBLE_BINARY} $@ ${ANSIBLE_CLI_PARAMETERS}"
+  set +x
   echo "Executing: ${CMD_TO_EXECUTE}"
-  echo "With:"
-  echo "  ANSIBLE_INVENTORY: ${ANSIBLE_INVENTORY}"
-  echo "  ANSIBLE_LOG_PATH: ${ANSIBLE_LOG_PATH}"
-
+  echo "ANSIBLE environment variables:"
+  echo -e "$(env | grep -i -e '^ansible' | xargs -n 1 echo '[+] ')"
   ${CMD_TO_EXECUTE}
   deactivate
 }
@@ -192,35 +191,56 @@ function ensure_osa_dir {
 }
 
 function install_director_dev_packages {
-  get_pip
   # virtualenv will be installed in enable_maas_api with pip.
-  yum install -y iptables python-virtualenv python-devel
+  yum install -y iptables python-devel
   yum groupinstall -y "Development Tools"
 }
 
+function determine_distro {
+    source /etc/os-release 2>/dev/null
+    export DISTRO_ID="${ID}"
+    export DISTRO_NAME="${NAME}"
+    export DISTRO_VERSION_ID="${VERSION_ID}"
+}
+
 function get_pip {
-  # Use pip opts to add options to the pip install command.
-  # This can be used to tell it which index to use, etc.
-  PIP_OPTS=${PIP_OPTS:-""}
+  if [[ ! -f "/opt/test-maas/bin/python" ]]; then
+    # Determine the distribution which the host is running on
+    determine_distro
 
-  # The python executable to use when executing get-pip is passed
-  # as a parameter to this function.
-  GETPIP_PYTHON_EXEC_PATH="${1:-$(which python)}"
+    # Install the base packages
+    case ${DISTRO_ID} in
+        centos|rhel)
+            # Prefer dnf over yum for CentOS.
+            which dnf &>/dev/null && RHT_PKG_MGR='dnf' || RHT_PKG_MGR='yum'
+            $RHT_PKG_MGR -y install python-virtualenv \
+                                    python-requests \
+                                    python2-requests \
+                                    python2-requestsexceptions
+            ;;
+        ubuntu)
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get -y install python-virtualenv \
+                                                              python3-virtualenv \
+                                                              python-requests \
+                                                              python-requestsexceptions || \
+            DEBIAN_FRONTEND=noninteractive apt-get -y install python-virtualenv \
+                                                              python-requests \
+            ;;
+        opensuse*)
+            zypper -n install -l python2-virtualenv \
+                                 python3-virtualenv \
+                                 python2-requests \
+                                 python3-requests \
+                                 python2-requestsexceptions \
+                                 python3-requestsexceptions
+            ;;
+    esac
 
-  # Download the get-pip script using the primary or secondary URL
-  GETPIP_CMD="curl --silent --show-error --retry 5"
-  GETPIP_FILE="/opt/get-pip.py"
-  # If GET_PIP_URL is set, then just use it
-  if [ -n "${GET_PIP_URL:-}" ]; then
-    ${GETPIP_CMD} ${GET_PIP_URL} > ${GETPIP_FILE}
-  else
-    # Otherwise, try the two standard URL's
-    ${GETPIP_CMD} https://bootstrap.pypa.io/get-pip.py > ${GETPIP_FILE}\
-    || ${GETPIP_CMD} https://raw.githubusercontent.com/pypa/get-pip/master/get-pip.py > ${GETPIP_FILE}
+    virtualenv --no-setuptools /opt/test-maas
+    /opt/test-maas/bin/pip install pip setuptools --upgrade
+    /opt/test-maas/bin/pip install requests --upgrade
   fi
-
-  ${GETPIP_PYTHON_EXEC_PATH} ${GETPIP_FILE} ${PIP_OPTS} \
-    pip --upgrade
 }
 
 function enable_maas_api {
@@ -231,20 +251,9 @@ function enable_maas_api {
 
   echo "Show the version of the pip packages in the functional venv."
   echo "START PACKAGE LIST"
-  pip list --format=columns || pip list
-  /usr/bin/env python -c 'import sys; print(sys.path)'
+  /opt/test-maas/bin/pip list --format=columns || /opt/test-maas/bin/pip list
+  /opt/test-maas/bin/python -c 'import sys; print(sys.path)'
   echo "END PACKAGE LIST"
-
-  PYTHON_BIN="$(which python)"
-  # NOTE(tonytan4ever): pip upgrade virtualenv is broken in osp13
-  if [ ${RE_JOB_SCENARIO} = osp13 ]; then
-    yum remove -y python-virtualenv
-  fi
-
-  pip install -U virtualenv --isolated
-
-  virtualenv --no-setuptools --python="${PYTHON_BIN}" /opt/test-maas
-  /opt/test-maas/bin/pip install setuptools requests --isolated --upgrade --force-reinstall
 
   # NOTE(tonytan4ever): pip on newton will broken because of a mis-installed version of setuptools
   if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
@@ -255,8 +264,8 @@ function enable_maas_api {
 
   # Collect a maas auth token for API tests
   /opt/test-maas/bin/python $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
-                                --api-key "${PUBCLOUD_API_KEY}" \
-                                get_token_url
+                                                            --api-key "${PUBCLOUD_API_KEY}" \
+                                                            get_token_url
 
   # We're sourcing the file so that it's not written to a collected artifact
   . ~/maas-vars.rc
