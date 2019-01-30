@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import copy
-import json
 import getopt
 import os
 import re
@@ -23,6 +22,7 @@ import socket
 import sys
 
 from heatclient import client as heat_client
+from openstack.connection import Connection
 from tripleo_common.inventory import TripleoInventory
 from tripleo_validations.utils import get_auth_session
 
@@ -42,8 +42,7 @@ class RPCRMaasInventory(MaasInventory):
 
     def __init__(self):
         # Load stackrc environment variable file
-        self.load_stackrc_file()
-        self.load_os_cacert()
+        self.load_rc_file()
         super(RPCRMaasInventory, self).__init__()
 
     def read_input_inventory(self):
@@ -55,6 +54,8 @@ class RPCRMaasInventory(MaasInventory):
         os_auth_token = os.environ.get('OS_AUTH_TOKEN')
         os_cacert = os.environ.get('OS_CACERT')
         ansible_ssh_user = os.environ.get('ANSIBLE_SSH_USER', 'heat-admin')
+        self.osc_conn = Connection(verify=False)
+        self.undercloud_stack = next(self.osc_conn.orchestration.stacks())
         self.plan_name = (os.environ.get('TRIPLEO_PLAN_NAME') or
                           os.environ.get('STACK_NAME_NAME') or
                           self.get_tripleo_plan_name())
@@ -64,10 +65,10 @@ class RPCRMaasInventory(MaasInventory):
                                    os_password,
                                    os_auth_token,
                                    os_cacert)
-        hclient = heat_client.Client('1', session=session)
+        self.hclient = heat_client.Client('1', session=session)
         inventory = TripleoInventory(
             session=session,
-            hclient=hclient,
+            hclient=self.hclient,
             auth_url=auth_url,
             cacert=os_cacert,
             project_name=os_project_name,
@@ -76,40 +77,30 @@ class RPCRMaasInventory(MaasInventory):
             plan_name=self.plan_name)
         return inventory.list()
 
-    def load_stackrc_file(self):
-        undercloud_env_file_path = '/home/stack/stackrc'
-        if not os.path.exists(undercloud_env_file_path):
-            raise RuntimeError('No undercloud stackrc file found, aborting...')
+    def load_rc_file(self, stack_name='stack'):
+        rc_env_file_path = '/home/stack/{stack_name}rc'.format(
+            stack_name=stack_name
+        )
+        if not os.path.exists(rc_env_file_path):
+            raise RuntimeError('No {stack_name}rc file found, aborting...'.
+                               format(stack_name=stack_name))
         envre = re.compile(
             '^(?:export\s)?(?P<key>\w+)(?:\s+)?=(?:\s+)?(?P<value>.*)$'
         )
-        with open(undercloud_env_file_path) as ins:
+        with open(rc_env_file_path) as ins:
             for line in ins:
                 match = envre.match(line)
                 if match is None:
                     continue
                 k = match.group('key')
                 v = match.group('value').strip('"').strip("'")
-                os.environ[k] = v
-
-    def load_os_cacert(self):
-        os_cert_path = '/etc/pki/ca-trust/source/anchors/'
-        if os.path.exists(os_cert_path):
-            # load the cert file in this directory
-            certs = []
-            for f in os.listdir(os_cert_path):
-                f_path = os.path.join(os_cert_path, f)
-                if os.path.isfile(f_path):
-                    certs.append(f_path)
-            os.environ['OS_CACERT'] = ' '.join(certs)
+                # (NOTE:tonytan4ever) dealing with case in OSP13:
+                # OS_BAREMETAL_API_VERSION=$IRONIC_API_VERSION
+                if not v.startswith("$"):
+                    os.environ[k] = v
 
     def get_tripleo_plan_name(self):
-        oss_command = 'stack list -f json'
-        stack_list_result = self.run_oss_command(oss_command)
-        self.plan_name = (
-            json.loads(stack_list_result.getvalue())[0]['Stack Name']
-        )
-        return self.plan_name
+        return self.undercloud_stack.name
 
     def add_all_group_hosts(self, group_name, input_inventory):
         """Given a group name in input_inventory), recursively add it
@@ -149,21 +140,49 @@ class RPCRMaasInventory(MaasInventory):
                 self.add_all_group_hosts(child, input_inventory)
 
     def generate_env_specific_variables(self):
-        oss_command = ('stack resource show {plan} '
-                       'EndpointMap -c attributes -f json').format(
-                           plan=self.plan_name)
+        endpointmap_resource = self.hclient.resources.get(self.plan_name,
+                                                          'EndpointMap')
+        endpointmap_resource_dict = endpointmap_resource.to_dict()[
+            'attributes']['endpoint_map']
 
-        endpoint_map_result = self.run_oss_command(oss_command)
-        self.endpoint_map_result_json = json.loads(
-            endpoint_map_result.getvalue().strip().rstrip('0'))
+        self.internal_lb_vip = endpointmap_resource_dict['KeystoneInternal'][
+            'host'
+        ]
+        self.external_lb_vip = endpointmap_resource_dict['KeystonePublic'][
+            'host'
+        ]
 
-        # get MysqlRootPassword
-        oss_command = ('stack resource show {plan} '
-                       'MysqlRootPassword -c attributes -f json').format(
-                           plan=self.plan_name)
-        password_result = self.run_oss_command(oss_command)
-        self.password_result_json = json.loads(password_result.getvalue().
-                                               strip().rstrip('0'))
+        stack_env_dict = self.osc_conn.orchestration.get_stack_environment(
+            self.plan_name
+        ).to_dict()['parameter_defaults']
+
+        # get galera root password
+        self.galera_password = stack_env_dict['MysqlRootPassword']
+
+        # load overcloud env and osc
+        self.load_rc_file(stack_name=self.plan_name)
+        tmp_osc_conn = Connection(verify=False)
+
+        # get cinder_backend_volume fact
+        self.cinder_backend_fact = {
+        }
+        for cinder_backend_pool in tmp_osc_conn.volume.backend_pools():
+            cinder_backend_pool_dict = cinder_backend_pool.to_dict()[
+                'capabilities']
+            if 'solidfire' in cinder_backend_pool_dict['volume_backend_name']:
+                self.cinder_backend_fact['solidfire'] = {
+                    'volume_driver': 'abc'
+                }
+            if 'netapp' in cinder_backend_pool_dict['volume_backend_name']:
+                self.cinder_backend_fact['netapp'] = {
+                    'volume_driver': 'abc'
+                }
+            if 'ceph' in cinder_backend_pool_dict['volume_backend_name']:
+                self.cinder_backend_fact['ceph'] = {
+                    'volume_driver': 'abc'
+                }
+        # restore to undercloud rc, osc
+        self.load_rc_file()
 
     def do_host_group_mapping(self, input_inventory):
         for source_group, children_list in TRIPLEO_MAPPING_GROUP.items():
@@ -181,6 +200,10 @@ class RPCRMaasInventory(MaasInventory):
         self.generate_env_specific_variables()
         self.inventory['_meta'] = copy.deepcopy(input_inventory['_meta'])
         for host in self.inventory['_meta']['hostvars']:
+            (self.inventory['_meta']['hostvars'][host][
+                'container_address']) = (
+                self.inventory['_meta']['hostvars'][host]['internal_api_ip']
+            )
             self.inventory['_meta']['hostvars'][host]['ansible_user'] = (
                 'heat-admin')
             (self.inventory['_meta']['hostvars'][host]['ansible_become']) = (
@@ -192,21 +215,23 @@ class RPCRMaasInventory(MaasInventory):
             )
             (self.inventory['_meta']['hostvars'][host]
                 ['galera_root_password']) = (
-                    self.password_result_json['attributes']['value']
+                    self.galera_password
             )
 
             (self.inventory['_meta']['hostvars'][host]
                 ['internal_lb_vip_address']) = (
-                self.endpoint_map_result_json['attributes']
-                ['endpoint_map']['KeystoneInternal']['host']
+                self.internal_lb_vip
             )
             (self.inventory['_meta']['hostvars'][host]
                 ['external_lb_vip_address']) = (
-                self.endpoint_map_result_json['attributes']
-                ['endpoint_map']['KeystonePublic']['host']
+                self.external_lb_vip
             )
             (self.inventory['_meta']['hostvars'][host]['maas_stackrc']) = (
                 '/home/stack/{plan_name}rc'.format(plan_name=self.plan_name)
+            )
+            (self.inventory['_meta']['hostvars'][host]
+                ['cinder_backends']) = (
+                self.cinder_backend_fact
             )
         self.do_host_group_mapping(input_inventory)
 
