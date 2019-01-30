@@ -583,7 +583,7 @@ class RpcMassCli(object):
     def _compare_alarm(self, config_alarm, api_alarm):
         """Compare one config alarm with one api alarm"""
         return (config_alarm['label'] == api_alarm.label and
-                config_alarm['criteria'] == api_alarm.criteria)
+                config_alarm['criteria'].strip() == api_alarm.criteria.strip())
 
     def compare_alarms(self):
         """Compare alarms.

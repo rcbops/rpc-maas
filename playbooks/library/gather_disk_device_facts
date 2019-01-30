@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+# Copyright 2018, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from ansible.module_utils.basic import *  # noqa: ignore=H303
+
+
+DOCUMENTATION = """
+---
+module: gather_disk_device_facts
+short_description:
+    - A module for gathering disk device facts.
+description:
+    - A module for gathering disk device facts.
+author: Rcbops
+"""
+
+EXAMPLES = """
+- name: Gather disk device facts
+  gather_disk_device_facts:
+"""
+
+
+class DiskDeviceFacts(object):
+    def __init__(self, module):
+        self.state_change = False
+        self.module = module
+
+    # TODO(tonytan4ever):  Add whitelist override variable
+    def gather_facts(self, hostname, container_name, venv_bin=None):
+        """Get disk device facts on a host"""
+
+        if venv_bin is not None:
+            activate_this = '%s/activate_this.py' % (venv_bin)
+            execfile(activate_this, dict(__file__=activate_this))
+
+        # We place these imports after we activate the virtualenv to ensure
+        # we're importing the correct libraries
+        import psutil
+        import pyudev
+
+        try:
+            dev_context = pyudev.Context()
+
+            # (NOTE: tonytan4ever): we only whitelist / and /openstack
+            # mountpoint for now
+            whitelisted_mountpoints = ['/', '/openstack']
+            maas_disk_util_devices = []
+            for p in psutil.disk_partitions():
+                if p.mountpoint in whitelisted_mountpoints:
+                    device = pyudev.Devices.from_device_file(
+                        dev_context, p.device)
+                    if device.parent is not None:
+                        maas_disk_util_devices.append(
+                            device.parent.device_node
+                        )
+        except Exception as e:
+            message = ('Disk device host fact collection failed: "%s"'
+                       'on host: %s, container: %s'
+                       % (str(e), hostname, container_name))
+            self.module.fail_json(msg=message)
+        else:
+            self.module.exit_json(
+                changed=self.state_change,
+                ansible_facts={
+                    'maas_disk_util_devices': maas_disk_util_devices
+                })
+
+
+def main():
+    module = AnsibleModule(
+        argument_spec=dict(
+            hostname=dict(
+                required=True
+            ),
+            container_name=dict(
+                required=True
+            ),
+            venv_bin=dict(),
+        ),
+        supports_check_mode=False
+    )
+
+    disk_device_facts = DiskDeviceFacts(module)
+    disk_device_facts.gather_facts(
+        hostname=module.params.get('hostname'),
+        container_name=module.params.get('container_name'),
+        venv_bin=module.params.get('venv_bin', None))
+
+
+if __name__ == '__main__':
+    main()

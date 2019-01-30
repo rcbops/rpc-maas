@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: rabbitmq_all:Controller
+  hosts: rabbitmq_all
   gather_facts: true
   become: true
   tasks:

@@ -24,16 +24,23 @@ from maas_common import status_err
 from maas_common import status_ok
 
 
-def utilisation(time):
-    output = subprocess.check_output(shlex.split('iostat -x -d %s 2' % time))
+def utilisation(args, time):
+    output = subprocess.check_output(
+        shlex.split('iostat {device} -x -d {time} 2'
+                    .format(device=args.device,
+                            time=time)
+                    ))
     device_lines = output.split('\nDevice:')[-1].strip().split('\n')[1:]
-    devices = [d for d in device_lines if not d.startswith(('dm-', 'nb'))]
-    devices = [d.split() for d in devices]
+    devices = [d.split() for d in device_lines]
     utils = [(d[0], d[-1]) for d in devices if d]
     return utils
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Disk utilisation checks')
+    parser.add_argument('device',
+                        type=str,
+                        help='Device we gather metric from')
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,
@@ -41,7 +48,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         try:
-            utils = utilisation(5)
+            utils = utilisation(args, 5)
         except Exception as e:
             status_err(e, m_name='maas_disk_utilisation')
         else:
