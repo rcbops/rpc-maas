@@ -17,16 +17,8 @@ import argparse
 import copy
 import json
 import os
-import shlex
-
-try:
-    from StringIO import StringIO  # Python2
-except ImportError:
-    from io import StringIO  # Python3
-import sys
 
 from abc import ABCMeta, abstractmethod
-from openstackclient.shell import main as openstack_shell
 
 
 class MaasInventory(object):
@@ -85,23 +77,6 @@ class MaasInventory(object):
     # Empty inventory to use as a template
     def empty_inventory(self):
         return {'_meta': {'hostvars': {}}}
-
-    # Run openstack shell command
-    def run_oss_command(self, oss_command):
-        old_stdout = sys.stdout
-        result = StringIO()
-        sys.stdout = result
-        try:
-            openstack_shell(shlex.split(oss_command))
-        except Exception as e:
-            sys.stdout = old_stdout
-            print('Something went wrong with openstack shell command: '
-                  '{} {}: {}'.format(oss_command,
-                                     type(e).__name__,
-                                     e.args[0]))
-            quit()
-        sys.stdout = old_stdout
-        return result
 
     # Read the command line args passed to the script.
     def read_cli_args(self):

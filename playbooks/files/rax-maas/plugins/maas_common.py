@@ -37,7 +37,7 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_PROJECT_NAME': 'admin',
                 'OS_ENDPOINT_TYPE': 'PublicURL',
                 'OS_IDENTITY_API_VERSION': None,
-                'OS_API_INSECURE': False,
+                'OS_API_INSECURE': True,
                 'OS_VOLUME_API_VERSION': 1,
                 'OS_IMAGE_API_VERSION': 1}
 
