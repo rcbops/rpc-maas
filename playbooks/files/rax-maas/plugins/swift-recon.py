@@ -57,10 +57,8 @@ def get_container_name(deploy_osp, for_ring):
         # identify the container we will use for monitoring
         get_container = shlex.split(
             'lxc-ls -1 --running ".*(swift_proxy|swift)"')
-        shell = False
-
+        
         try:
-            #containers_list = subprocess.check_output(get_container, shell=shell)
             containers_list = subprocess.check_output(get_container)
             container = containers_list.splitlines()[0]
         except (IndexError, subprocess.CalledProcessError):
@@ -71,12 +69,9 @@ def get_container_name(deploy_osp, for_ring):
         get_containers = (
             "/usr/local/bin/docker ps -f status=running"
         )
-        shell = False
-        #containers_list = subprocess.check_output(get_containers.split(), shell=shell)
         containers_list = subprocess.check_output(get_containers.split())
 
         c = getcontainer('swift_proxy', containers_list)
-
         if c != None:
             container = c.split()[-1]
 
