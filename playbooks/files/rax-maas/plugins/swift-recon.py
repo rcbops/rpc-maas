@@ -40,31 +40,44 @@ class CommandNotRecognized(maas_common.MaaSException):
     pass
 
 
+def getcontainer(pattern, containers):
+    c = None
+
+    for container in containers.split("\n"):
+      if re.search(pattern, container):
+	    c = container
+	    break
+    return c
+
+
 def get_container_name(deploy_osp, for_ring):
     container = None
+
     if not deploy_osp:
         # identify the container we will use for monitoring
         get_container = shlex.split(
             'lxc-ls -1 --running ".*(swift_proxy|swift)"')
         shell = False
-    else:
-        docker_awk_string = 'swift_proxy'
-        get_container = (
-            "/bin/docker ps -f status=running | "
-            "awk '/{docker_awk_string}/ {extract_string}'".format(
-                docker_awk_string=docker_awk_string,
-                extract_string='{print $NF}'
-            )
-        )
-        shell = True
 
-    try:
-        containers_list = subprocess.check_output(get_container,
-                                                  shell=shell)
-        container = containers_list.splitlines()[0]
-    except (IndexError, subprocess.CalledProcessError):
-        status_err('no running swift %s  or proxy containers found' %
-                   for_ring, m_name='maas_swift')
+        try:
+            containers_list = subprocess.check_output(get_container, shell=shell)
+            container = containers_list.splitlines()[0]
+        except (IndexError, subprocess.CalledProcessError):
+            status_err('no running swift %s  or proxy containers found' %
+                       for_ring, m_name='maas_swift')
+
+    else:
+        get_containers = (
+            "/usr/local/bin/docker ps -f status=running"
+        )
+        shell = False
+        containers_list = subprocess.check_output(get_containers.split())
+
+        c = getcontainer("swift_proxy", containers_list)
+
+	if c != None:
+            container = c.split()[-1]
+
     return container
 
 
