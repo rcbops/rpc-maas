@@ -22,6 +22,7 @@ import ipaddr
 from maas_common import get_auth_ref
 from maas_common import get_heat_client
 from maas_common import get_keystone_client
+from maas_common import get_os_component_major_api_version
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -32,10 +33,12 @@ from maas_common import status_ok
 def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     tenant_id = keystone.tenant_id
+    heat_version = get_os_component_major_api_version('heat')[0]
 
-    heat_endpoint = ('{protocol}://{ip}:{port}/v1/{tenant}'.format(
+    heat_endpoint = ('{protocol}://{ip}:{port}/v{version}/{tenant}'.format(
         ip=args.ip,
         tenant=tenant_id,
+        version=heat_version,
         protocol=args.protocol,
         port=args.port
     ))

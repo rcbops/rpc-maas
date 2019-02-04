@@ -19,8 +19,8 @@ import argparse
 # Technically maas_common isn't third-party but our own thing but hacking
 # consideres it third-party
 from maas_common import get_auth_ref
-from maas_common import get_cinder_api_version
 from maas_common import get_keystone_client
+from maas_common import get_os_component_major_api_version
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
@@ -36,7 +36,7 @@ from requests import exceptions as exc
 def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     auth_token = keystone.auth_token
-    cinder_api_version = get_cinder_api_version()
+    cinder_api_version = get_os_component_major_api_version('cinder')[0]
 
     VOLUME_ENDPOINT = (
         '{protocol}://{hostname}:8776/v{version}/{tenant}'.format(

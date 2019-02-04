@@ -20,6 +20,7 @@ import ipaddr
 from ironicclient import exc
 from maas_common import get_auth_ref
 from maas_common import get_ironic_client
+from maas_common import get_os_component_major_api_version
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -28,11 +29,12 @@ from maas_common import status_ok
 
 
 def check(auth_ref, args):
-
-    ironic_endpoint = ('{protocol}://{ip}:{port}/v1'.format(
+    ironic_version = get_os_component_major_api_version('ironic')[0]
+    ironic_endpoint = ('{protocol}://{ip}:{port}/v{version}'.format(
         ip=args.ip,
         protocol=args.protocol,
-        port=args.port
+        port=args.port,
+        version=ironic_version
     ))
 
     try:

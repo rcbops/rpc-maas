@@ -19,8 +19,8 @@ import time
 
 import ipaddr
 from keystoneclient import exceptions as exc
-from maas_common import get_auth_details
 from maas_common import get_keystone_client
+from maas_common import get_os_component_major_api_version
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -28,14 +28,14 @@ from maas_common import status_err
 from maas_common import status_ok
 
 
-def check(args, auth_details):
+def check(args):
     identity_endpoint = '{protocol}://{ip}:{port}/'.format(
         protocol=args.protocol,
         port=args.port,
         ip=args.ip
     )
-    auth_version = auth_details.get("OS_AUTH_VERSION")
-    if auth_version == '2':
+    auth_version = get_os_component_major_api_version('keystone')[0]
+    if auth_version == 2:
         identity_endpoint += 'v2.0'
     else:
         identity_endpoint += 'v3'
@@ -63,7 +63,7 @@ def check(args, auth_details):
         milliseconds = (end - start) * 1000
 
         # gather some vaguely interesting metrics to return
-        if auth_version == '2':
+        if auth_version == 2:
             project_count = len(keystone.tenants.list())
             user_count = len(keystone.users.list())
         else:
@@ -83,8 +83,7 @@ def check(args, auth_details):
 
 
 def main(args):
-    auth_details = get_auth_details()
-    check(args, auth_details)
+    check(args)
 
 
 if __name__ == "__main__":

@@ -67,6 +67,7 @@ def check(args):
 def main(args):
     check(args)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Check nova-api-metdata API')
