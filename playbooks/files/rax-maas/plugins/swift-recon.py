@@ -45,8 +45,8 @@ def getcontainer(pattern, containers):
 
     for container in containers.split("\n"):
       if re.search(pattern, container):
-	    c = container
-	    break
+        c = container
+        break
     return c
 
 
@@ -60,7 +60,8 @@ def get_container_name(deploy_osp, for_ring):
         shell = False
 
         try:
-            containers_list = subprocess.check_output(get_container, shell=shell)
+            #containers_list = subprocess.check_output(get_container, shell=shell)
+            containers_list = subprocess.check_output(get_container)
             container = containers_list.splitlines()[0]
         except (IndexError, subprocess.CalledProcessError):
             status_err('no running swift %s  or proxy containers found' %
@@ -71,14 +72,16 @@ def get_container_name(deploy_osp, for_ring):
             "/usr/local/bin/docker ps -f status=running"
         )
         shell = False
+        #containers_list = subprocess.check_output(get_containers.split(), shell=shell)
         containers_list = subprocess.check_output(get_containers.split())
 
-        c = getcontainer("swift_proxy", containers_list)
+        c = getcontainer("gauss", containers_list)
 
-	if c != None:
+        if c != None:
             container = c.split()[-1]
 
     return container
+
 
 
 def recon_output(for_ring, options=None, swift_recon_path=None,
