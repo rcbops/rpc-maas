@@ -72,7 +72,7 @@ def get_container_name(deploy_osp, for_ring):
         containers_list = subprocess.check_output(get_containers.split())
 
         c = getcontainer('swift_proxy', containers_list)
-        if c is not None:
+        if c:
             container = c.split()[-1]
 
     return container
