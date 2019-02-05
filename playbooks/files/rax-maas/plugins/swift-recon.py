@@ -44,9 +44,9 @@ def getcontainer(pattern, containers):
     c = None
 
     for container in containers.split("\n"):
-      if re.search(pattern, container):
-        c = container
-        break
+        if re.search(pattern, container):
+            c = container
+            break
     return c
 
 
@@ -57,7 +57,7 @@ def get_container_name(deploy_osp, for_ring):
         # identify the container we will use for monitoring
         get_container = shlex.split(
             'lxc-ls -1 --running ".*(swift_proxy|swift)"')
-        
+
         try:
             containers_list = subprocess.check_output(get_container)
             container = containers_list.splitlines()[0]
@@ -72,11 +72,10 @@ def get_container_name(deploy_osp, for_ring):
         containers_list = subprocess.check_output(get_containers.split())
 
         c = getcontainer('swift_proxy', containers_list)
-        if c != None:
+        if c is not None:
             container = c.split()[-1]
 
     return container
-
 
 
 def recon_output(for_ring, options=None, swift_recon_path=None,
