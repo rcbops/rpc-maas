@@ -1,5 +1,12 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
-{% set label = "cinder_volume_"+item.key+"_check" %}
+{% if deploy_osp | default(False) %}
+{% set cinder_volume_host = item.value.host %}
+{% set backend_name = cinder_volume_host.split('@')[1] %}
+{% else %}
+{% set cinder_volume_host = ansible_nodename %}
+{% set backend_name = item.key %}
+{% endif %}
+{% set label = "cinder_volume_"+backend_name+"_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
@@ -8,17 +15,17 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/cinder_service_check.py", "--host", "{{ ansible_nodename }}", "--protocol", "{{ cinder_client_protocol }}", "{{ internal_vip_address }}"]
+    args    : ["{{ maas_plugin_dir }}/cinder_service_check.py", "--host", "{{ cinder_volume_host }}", "--protocol", "{{ cinder_client_protocol }}", "{{ internal_vip_address }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
 alarms      :
-    cinder_volume_{{ item.key }}_status :
-        label                   : cinder_volume_{{ item.key }}_status--{{ inventory_hostname }}
+    cinder_volume_{{ backend_name }}_status :
+        label                   : cinder_volume_{{ backend_name }}_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('cinder_volume_'+item.key+'_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('cinder_volume_'+ backend_name +'_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["cinder-volume-{{ item.key}}_status"] != 1) {
-                return new AlarmStatus(CRITICAL, "cinder-volume {{ item.key }} backend down");
+            if (metric["cinder-volume-{{ backend_name }}_status"] != 1) {
+                return new AlarmStatus(CRITICAL, "cinder-volume {{ backend_name }} backend down");
             }
