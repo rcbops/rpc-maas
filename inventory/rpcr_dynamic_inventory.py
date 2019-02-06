@@ -54,7 +54,7 @@ class RPCRMaasInventory(MaasInventory):
         os_auth_token = os.environ.get('OS_AUTH_TOKEN')
         os_cacert = os.environ.get('OS_CACERT')
         ansible_ssh_user = os.environ.get('ANSIBLE_SSH_USER', 'heat-admin')
-        self.osc_conn = Connection(verify=False)
+        self.osc_conn = Connection()
         self.undercloud_stack = next(self.osc_conn.orchestration.stacks())
         self.plan_name = (os.environ.get('TRIPLEO_PLAN_NAME') or
                           os.environ.get('STACK_NAME_NAME') or
@@ -65,7 +65,10 @@ class RPCRMaasInventory(MaasInventory):
                                    os_password,
                                    os_auth_token,
                                    os_cacert)
-        self.hclient = heat_client.Client('1', session=session)
+        heat_api_version = (
+            self.osc_conn.orchestration.get_api_major_version()[0])
+        self.hclient = heat_client.Client(heat_api_version,
+                                          session=session)
         inventory = TripleoInventory(
             session=session,
             hclient=self.hclient,
@@ -161,27 +164,34 @@ class RPCRMaasInventory(MaasInventory):
 
         # load overcloud env and osc
         self.load_rc_file(stack_name=self.plan_name)
-        tmp_osc_conn = Connection(verify=False)
+        tmp_osc_conn = Connection()
 
         # get cinder_backend_volume fact
         self.cinder_backend_fact = {
         }
         for cinder_backend_pool in tmp_osc_conn.volume.backend_pools():
+            backend_host = cinder_backend_pool.name.split('#')[0]
+            # (NOTE:tonytan4ever): skip transient legacy backends
+            if 'legacy' in backend_host:
+                continue
             cinder_backend_pool_dict = cinder_backend_pool.to_dict()[
                 'capabilities']
             if 'solidfire' in cinder_backend_pool_dict['volume_backend_name']:
                 self.cinder_backend_fact['solidfire'] = {
-                    'volume_driver': 'abc'
+                    'volume_driver': 'abc',
+                    'host': backend_host
                 }
             if 'netapp' in cinder_backend_pool_dict['volume_backend_name']:
                 self.cinder_backend_fact['netapp'] = {
-                    'volume_driver': 'abc'
+                    'volume_driver': 'abc',
+                    'host': backend_host
                 }
             if 'ceph' in cinder_backend_pool_dict['volume_backend_name']:
                 self.cinder_backend_fact['ceph'] = {
-                    'volume_driver': 'abc'
+                    'volume_driver': 'abc',
+                    'host': backend_host
                 }
-        # restore to undercloud rc, osc
+        # reset to undercloud rc for osc
         self.load_rc_file()
 
     def do_host_group_mapping(self, input_inventory):

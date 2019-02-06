@@ -53,6 +53,7 @@ if [ ${RE_JOB_SCENARIO} = osp13 ]; then
  export WORKING_DIR="/opt/rpc-maas"
  # Set ansible version for embeded ansible runtime
  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-false}"
+ export OS_CACERT=/etc/pki/ca-trust/source/anchors/cm-local-ca.pem
 else
  # Ansible Inventory will be set to OSA
  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"

@@ -116,6 +116,7 @@ def main(args):
     auth_ref = get_auth_ref()
     check(auth_ref, args)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check Cinder API against"
                                      " local or remote address")

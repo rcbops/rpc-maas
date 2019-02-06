@@ -48,6 +48,15 @@
         - deploy_osp | bool
 
   tasks:
+    - name: Discover disk device facts
+      gather_disk_device_facts:
+        hostname: "{{ ansible_hostname }}"
+        container_name: "{{ container_name | default(inventory_hostname) }}"
+        venv_bin: "{{ maas_venv_bin }}"
+      tags:
+        - always
+
+  post_tasks:
     - name: Install filesystem Checks
       template:
         src: "templates/rax-maas/filesystem.yaml.j2"
@@ -61,10 +70,12 @@
     - name: Install disk utilisation Checks
       template:
         src: "templates/rax-maas/disk_utilisation.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/disk_utilisation--{{ inventory_hostname }}.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/disk_utilisation_{{ item.split('/')[-1] }}--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
+      with_items:
+        - "{{ maas_disk_util_devices }}"
 
     - name: Install nfs system checks
       template:
