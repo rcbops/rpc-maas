@@ -53,7 +53,6 @@ if [ ${RE_JOB_SCENARIO} = osp13 ]; then
  export WORKING_DIR="/opt/rpc-maas"
  # Set ansible version for embeded ansible runtime
  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-false}"
- export OS_CACERT=/etc/pki/ca-trust/source/anchors/cm-local-ca.pem
 else
  # Ansible Inventory will be set to OSA
  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
@@ -61,6 +60,8 @@ else
   export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
  fi
 fi
+
+echo "WORKING_DIR: ${WORKING_DIR}"
 
 # NOTE: Create an artifact to make a unique entity for queens+ gates. This is required
 # as OSA now sets the hostname generically as 'aio1' which will cause affected

@@ -40,7 +40,7 @@ def check(auth_ref, args):
         map(str, get_os_component_major_api_version('nova')))
 
     compute_endpoint = (
-        '{protocol}://{ip}:{port}/v{version}/{tenant_id}'.format(
+        '{protocol}://{ip}:{port}/v{api_version}/{tenant_id}'.format(
             ip=args.ip,
             tenant_id=tenant_id,
             protocol=args.protocol,

@@ -26,7 +26,9 @@ import sys
 import traceback
 
 from monitorstack.common import formatters
+from openstack.config import get_cloud_region
 from openstack.connection import Connection
+from openstack.exceptions import ConfigException
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -79,7 +81,20 @@ NOVA_SERVICE_TYPE_LIST = [
     'nova-scheduler'
 ]
 
-OSC_CLIENT = Connection(verify=False)
+cloud = 'default'
+# (NOTE:tonytan4ever): for OSP cloud, cloud parameter needs to be None
+if os.getenv('OS_CLOUDNAME') is not None:
+    cloud = None
+
+try:
+    OSC_CONFIG = get_cloud_region(cloud=cloud)
+except ConfigException as e:
+    # (NOTE:tonytan4ever) Liberty cloud does not have 'default' config
+    if 'Cloud default was not found' in str(e):
+        OSC_CONFIG = get_cloud_region(cloud=None)
+    else:
+        raise e
+OSC_CLIENT = Connection(config=OSC_CONFIG, verify=False)
 
 
 def get_os_component_major_api_version(component_name):
@@ -228,7 +243,7 @@ else:
                                                           auth_details))
 
         nova = nova_client.Client(
-            get_os_component_major_api_version('compute')[0],
+            get_os_component_major_api_version('nova')[0],
             auth_token=auth_token,
             auth_url=auth_details['OS_AUTH_URL'],
             bypass_url=bypass_url,
@@ -559,6 +574,53 @@ else:
             status_err(str(e))
 
         return ironic
+
+
+try:
+    from magnumclient import client as magnum_client
+    from magnumclient.common.apiclient import exceptions as magnum_exc
+except ImportError:
+    def get_magnum_client(*args, **kwargs):
+        metric_bool('client_success', False, m_name='maas_magnum')
+        status_err('Cannot import magnumclient', m_name='maas_magnum')
+else:
+    def get_magnum_client(token=None, endpoint=None, previous_tries=0):
+        if previous_tries > 3:
+            return None
+
+        # first try to use auth details from auth_ref so we
+        # don't need to auth with keystone every time
+        auth_ref = get_auth_ref()
+        auth_details = get_auth_details()
+        keystone = get_keystone_client(auth_ref)
+
+        if not token:
+            token = keystone.auth_token
+        if not endpoint:
+            endpoint = get_endpoint_url_for_service('container-infra',
+                                                    auth_ref,
+                                                    get_endpoint_type(
+                                                        auth_details))
+
+        magnum = magnum_client.Client('1',
+                                      endpoint_override=endpoint,
+                                      auth_token=token,
+                                      insecure=auth_details['OS_API_INSECURE'])
+        try:
+            magnum.cluster_templates.list()
+        except h_exc.HTTPUnauthorized:
+            auth_ref = force_reauth()
+            keystone = get_keystone_client(auth_ref)
+
+            token = keystone.auth_token
+            magnum = get_magnum_client(token, endpoint, previous_tries + 1)
+        except magnum_exc.HttpError:
+            raise
+        except Exception as e:
+            metric_bool('client_success', False, m_name='maas_magnum')
+            status_err(str(e), m_name='maas_magnum')
+
+        return magnum
 
 
 class MaaSException(Exception):

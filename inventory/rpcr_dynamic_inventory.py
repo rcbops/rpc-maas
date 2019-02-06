@@ -43,6 +43,7 @@ class RPCRMaasInventory(MaasInventory):
     def __init__(self):
         # Load stackrc environment variable file
         self.load_rc_file()
+        self.load_ca_cert()
         super(RPCRMaasInventory, self).__init__()
 
     def read_input_inventory(self):
@@ -101,6 +102,10 @@ class RPCRMaasInventory(MaasInventory):
                 # OS_BAREMETAL_API_VERSION=$IRONIC_API_VERSION
                 if not v.startswith("$"):
                     os.environ[k] = v
+
+    def load_ca_cert(self):
+        # Load the CACERT bundle env variable
+        os.environ['OS_CACERT'] = '/etc/pki/tls/certs/ca-bundle.crt'
 
     def get_tripleo_plan_name(self):
         return self.undercloud_stack.name
