@@ -230,6 +230,15 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
+    - name: Install iptables security group check
+      template:
+        src: "templates/rax-maas/nova_security_group_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_security_group_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
