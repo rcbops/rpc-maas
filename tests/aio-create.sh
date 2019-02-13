@@ -17,7 +17,7 @@
 
 ## Shell Opts ----------------------------------------------------------------
 
-set -eovu
+set -exovu
 
 echo "Building an AIO"
 echo "+-------------------- AIO ENV VARS --------------------+"
@@ -34,12 +34,12 @@ export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-aio.log"
 ## Functions -----------------------------------------------------------------
 function pin_jinja {
   # Pin Jinja2 because versions >2.9 is broken w/ earlier versions of Ansible.
-  if ! grep -i 'jinja2' /opt/openstack-ansible/global-requirement-pins.txt; then
-    echo 'Jinja2==2.8' | tee -a /opt/openstack-ansible/global-requirement-pins.txt
+  if ! grep -i 'jinja2' ${OA_DIR}/global-requirement-pins.txt; then
+    echo 'Jinja2==2.8' | tee -a ${OA_DIR}/global-requirement-pins.txt
   else
-    sed -i 's|^Jinja2.*|Jinja2==2.8|g' /opt/openstack-ansible/global-requirement-pins.txt
+    sed -i 's|^Jinja2.*|Jinja2==2.8|g' ${OA_DIR}/global-requirement-pins.txt
   fi
-  sed -i 's|^Jinja2.*|Jinja2==2.8|g' /opt/openstack-ansible/requirements.txt
+  sed -i 's|^Jinja2.*|Jinja2==2.8|g' ${OA_DIR}/requirements.txt
 }
 
 function pin_galera {
@@ -130,6 +130,39 @@ nova_spicehtml5_git_repo: https://gitlab.freedesktop.org/spice/spice-html5
 EOF
 }
 
+function bootstrap_rpco {
+  # Run these outside of deploy.sh and remove to prevent overriding changes
+  sed -i 's/\(.\/scripts\/bootstrap-ansible.sh.*\)/#\1/' ${OA_DIR}/../scripts/deploy.sh
+  sed -i 's/\(.\/scripts\/bootstrap-aio.sh.*\)/#\1/' ${OA_DIR}/../scripts/deploy.sh
+  ./scripts/bootstrap-ansible.sh
+  if [[ ${RE_JOB_SCENARIO} == "rpco-mitaka" ]]; then
+    export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c ${OA_DIR}/global-requirement-pins.txt'"}
+    export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' ${OA_DIR}/playbooks/defaults/repo_packages/openstack_services.yml) -U"
+    sed -i "s@^#pip_install_upper_constraints.*@pip_install_upper_constraints: $UPPER_CONSTRAINTS_FILE@" /etc/ansible/roles/pip_install/defaults/main.yml
+  fi
+  ./scripts/bootstrap-aio.sh
+
+  # Define rpco maas users
+  cat > /etc/openstack_deploy/user_extras_secrets.yml << EOF
+---
+maas_keystone_password:
+maas_rabbitmq_password:
+maas_swift_accesscheck_password:
+rpc_support_holland_password:
+EOF
+
+  if [[ ${RE_JOB_SCENARIO} == "rpco-liberty" ]]; then
+    sed -i 's/\(apt-get -y.*\)/\1 --force-yes -o Dpkg::Options::="--force-confold"/' ${OA_DIR}/playbooks/roles/lxc_hosts/defaults/main.yml
+    sed -i -e '/# configure the horizon extensions.*/,+2d' ${OA_DIR}/../scripts/deploy.sh
+  elif [[ ${RE_JOB_SCENARIO} == "rpco-mitaka" ]]; then
+    sed -i 's/\(apt-get -y.*\)/\1 --force-yes -o Dpkg::Options::="--force-confold"/' /etc/ansible/roles/lxc_hosts/vars/ubuntu-14.04.yml
+  fi
+
+  sed -i '/run_ansible maas-get.yml.*/,+d' ${OA_DIR}/../scripts/deploy-rpc-playbooks.sh
+  sed -i 's/\(spicehtml5_git_repo\: \).*/\1https:\/\/gitlab.com\/spice\/spice-html5/' ${OA_DIR}/playbooks/defaults/repo_packages/openstack_other.yml
+  sed -i -e '/ansible-galaxy install --role-file=\/opt\/rpc-openstack\/ansible-role-requirements.yml.*/,+1d' ${OA_DIR}/../scripts/deploy.sh
+}
+
 ## Main ----------------------------------------------------------------------
 
 echo "Gate test starting
@@ -161,15 +194,42 @@ if [ ! -d "/etc/openstack_deploy" ]; then
 fi
 
 if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
-    if [ ! -d "/opt/openstack-ansible" ]; then
-      git clone https://github.com/openstack/openstack-ansible /opt/openstack-ansible
+    if [[ ${RE_JOB_SCENARIO#rpco-} == ${RE_JOB_SCENARIO} ]]; then
+      export OA_DIR="/opt/openstack-ansible"
+
+      if [ ! -d "/opt/openstack-ansible" ]; then
+        git clone https://github.com/openstack/openstack-ansible /opt/openstack-ansible
+      else
+        pushd /opt/openstack-ansible
+          git fetch --all
+        popd
+      fi
     else
-      pushd /opt/openstack-ansible
-        git fetch --all
-      popd
+      export OA_DIR="/opt/rpc-openstack/openstack-ansible"
+      export DEPLOY_AIO=yes
+      export DEPLOY_RPC=no
+      export DEPLOY_OA=yes
+      export DEPLOY_HAPROXY=yes
+      export DEPLOY_ELK=no
+      export DEPLOY_MAAS=no
+      export DEPLOY_CEPH=no
+      export DEPLOY_SWIFT=no
+      export DEPLOY_CEILOMETER=no
+      export DEPLOY_TEMPEST=no
+      export DEPLOY_MAGNUM=no
+      export DEPLOY_HARDENING=no
+      export FORKS=15
+
+      if [ ! -d "/opt/rpc-openstack" ]; then
+        git clone --recursive -b ${RE_JOB_SCENARIO#rpco-} https://github.com/rcbops/rpc-openstack /opt/rpc-openstack
+      else
+        pushd /opt/rpc-openstack
+          git fetch --all
+        popd
+      fi
     fi
 
-    pushd /opt/openstack-ansible
+    pushd ${OA_DIR}
       if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
         git checkout "97e3425871659881201106d3e7fd406dc5bd8ff3"  # Last commit of Kilo
         pin_jinja
@@ -178,6 +238,17 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
         #                  requirements file. This patch gets the role from master and puts
         #                  into place which satisfies the role requirement.
         mkdir -p /etc/ansible/roles
+
+      elif [ "${RE_JOB_SCENARIO}" == "rpco-liberty" ]; then
+        pin_jinja
+        # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
+        sed -i -e 's/0.4.4/v0.4.4/g' ${OA_DIR}/ansible-role-requirements.yml
+        # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
+        sed -i 's/\(_container\: \).*/\11/' ${OA_DIR}/etc/openstack_deploy/openstack_user_config.yml.aio
+
+        bootstrap_rpco
+        pin_galera "10.0"
+        spice_repo_fix
 
       elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
         git checkout "06d0fd344b5b06456a418745fe9937a3fbedf9b2"  # Last commit of Liberty
@@ -191,12 +262,23 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
         sed -i '/DEBIAN_FRONTEND=noninteractive apt-get install iptables-persistent/ s/install/install -y --force-yes -o Dpkg::Options::="--force-confold"/' /opt/openstack-ansible/scripts/run-playbooks.sh
         spice_repo_fix
 
+      elif [ "${RE_JOB_SCENARIO}" == "rpco-mitaka" ]; then
+        pin_jinja
+        # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
+        sed -i -e 's/0.4.4/v0.4.4/g' ${OA_DIR}/ansible-role-requirements.yml
+        # Change Affinity - only create 1 galera/rabbit/keystone/horizon and repo server for testing MaaS
+        sed -i 's/\(_container\: \).*/\11/' ${OA_DIR}/etc/openstack_deploy/openstack_user_config.yml.aio
+
+        bootstrap_rpco
+        pin_galera "10.0"
+        spice_repo_fix
+
       elif [ "${RE_JOB_SCENARIO}" == "mitaka" ]; then
         git checkout "fbafe397808ef3ee3447fe8fefa6ac7e5c6ff144"  # Last commit of Mitaka
         pin_jinja
         pin_galera "10.0"
         export OA_DIR="/opt/openstack-ansible"
-        export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c $OA_DIR/global-requirement-pins.txt'"}
+        export BOOTSTRAP_OPTS=${BOOTSTRAP_OPTS:-"pip_get_pip_options='-c ${OA_DIR}/global-requirement-pins.txt'"}
         export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
         spice_repo_fix
         # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
@@ -249,7 +331,7 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
           true
           ;;
         *)
-          echo "python-ldap<3;python_version=='2.7'" >> /opt/openstack-ansible/global-requirement-pins.txt
+          echo "python-ldap<3;python_version=='2.7'" >> ${OA_DIR}/global-requirement-pins.txt
           ;;
       esac
 
@@ -257,7 +339,13 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
       disable_security_role
 
       # Setup an AIO
-      sudo -H --preserve-env ./scripts/gate-check-commit.sh
+      if [[ ${RE_JOB_SCENARIO#rpco-} == ${RE_JOB_SCENARIO} ]]; then
+        sudo -H --preserve-env ./scripts/gate-check-commit.sh
+      else
+        pushd /opt/rpc-openstack
+        sudo -H --preserve-env ./scripts/deploy.sh
+        popd
+      fi
 
     popd
 else

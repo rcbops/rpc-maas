@@ -67,7 +67,7 @@ fi
 # gates to use the same entity
 # This will automatically work for new gates
 case $RE_JOB_SCENARIO in
-  ceph|kilo|liberty|mitaka|newton|ocata|pike)
+  ceph|kilo|*liberty|*mitaka|newton|ocata|pike)
     echo "There is no need to set maas_fqdn_extension on ${RE_JOB_SCENARIO}"
     echo | tee /tmp/maas_fqdn_extension
     ;;
@@ -81,7 +81,7 @@ esac
 # ansible that is not available in liberty and mitaka. There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
-  kilo|liberty|mitaka|ceph|osp13|rocky)
+  kilo|*liberty|*mitaka|ceph|osp13|rocky)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -290,6 +290,14 @@ maas_entity_name: "{{ ansible_hostname }}{{ maas_fqdn_extension }}"
 EOF
 }
 
+function deploy_rpco_tooling {
+  # Deploy holland
+  export RPCO_OPS_PLAYBOOK="/opt/openstack-ops/playbooks/install-holland-db-backup.yml"
+
+  git clone https://github.com/rcbops/openstack-ops /opt/openstack-ops
+  execute_ansible_playbook ${RPCO_OPS_PLAYBOOK} -e rpc_release=$(cd /opt/rpc-openstack && git describe --tags --abbrev=0)
+}
+
 ## Main ----------------------------------------------------------------------
 
 # Set gate job exit traps, this is run regardless of exit state when the job finishes.
@@ -301,9 +309,13 @@ ensure_osa_dir
 # Export additional ansible environment variables if running Kilo or Liberty
 if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
   pin_environment
-
 elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
   pin_environment
+elif [ "${RE_JOB_SCENARIO}" == "rpco-liberty" ]; then
+  pin_environment
+  deploy_rpco_tooling
+elif [ "${RE_JOB_SCENARIO}" == "rpco-mitaka" ]; then
+  deploy_rpco_tooling
 fi
 
 # Ensure the log directory exists
