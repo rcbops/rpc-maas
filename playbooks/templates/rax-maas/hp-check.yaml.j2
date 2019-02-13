@@ -67,3 +67,12 @@ alarms      :
             if (metric["hardware_processors_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "Physical Processor Error");
             }
+    hp-powersupply_status :
+        label                   : hp-powersupply--{{ inventory_hostname | quote }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (('hp-powersupply--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric["hardware_powersupply_status"] != 1) {
+                return new AlarmStatus(CRITICAL, "Physical Powersupply Error");
+            }
