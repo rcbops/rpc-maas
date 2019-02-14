@@ -20,8 +20,6 @@ physical_host: "{{ ansible_host }}"
 internal_ips: "{{ ansible_all_ipv4_addresses | ipaddr(osp_internal_netmask) | difference([internal_vip_address]) }}"
 internal_ip: "{{ internal_ips[0] }}"
 
-maas_product_dir: "/opt/rpc-maas"
-
 maas_env_product: "TripleO"
 
 maas_openrc: '/root/openrc-maas'

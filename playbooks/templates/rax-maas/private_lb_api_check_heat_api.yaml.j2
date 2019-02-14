@@ -1,6 +1,6 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "private_lb_api_check_heat_api" %}
-{% set check_name = label+'--'+maas_lb_name %}
+{% set check_name = label %}
 type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"

@@ -36,6 +36,20 @@
   user: "{{ ansible_user | default('root') }}"
   gather_facts: true
   tasks:
+    - name: Check for /etc/rhosp-release
+      stat:
+        path: /etc/rhosp-release
+      register: osp_release_file
+
+    - name: Check for /usr/bin/tripleo-ansible-inventory
+      stat:
+        path: /usr/bin/tripleo-ansible-inventory
+      register: tripleo_inventory_file
+
+    - name: Set deploy_osp fact
+      set_fact:
+        deploy_osp: (osp_release_file.stat.exists and tripleo_inventory_file.stat.exists) | bool
+
     - name: Copy RPC-O rpc-maas vars into place
       copy:
         src: "user_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"

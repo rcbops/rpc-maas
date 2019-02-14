@@ -19,10 +19,15 @@
   become: true
   gather_facts: true
   pre_tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:

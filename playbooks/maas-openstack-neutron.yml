@@ -19,10 +19,15 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -84,7 +89,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -122,7 +127,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -160,7 +165,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -177,7 +182,11 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: (neutron_plugin_type is not defined) or (neutron_plugin_type is search("lxb"))
+      when:
+        - ansible_local['maas']['general']['neutron_plugin_type'] is undefined
+        - (neutron_plugin_type is undefined) or
+          (neutron_plugin_type is search("lxb"))
+
 
   vars_files:
     - vars/main.yml
@@ -199,7 +208,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -216,7 +225,13 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: (neutron_plugin_type is defined) and (neutron_plugin_type is search("ovs"))
+      when:
+        - (
+            (ansible_local['maas']['general']['neutron_plugin_type'] is defined and
+             ansible_local['maas']['general']['neutron_plugin_type'] is search("ovs")) or
+            (neutron_plugin_type is defined and
+             neutron_plugin_type is search("ovs"))
+          )
 
   vars_files:
     - vars/main.yml
@@ -238,7 +253,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:
@@ -276,7 +291,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Set the current group
       set_fact:

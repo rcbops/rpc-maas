@@ -18,10 +18,15 @@
   gather_facts: true
   become: true
   tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
@@ -46,7 +51,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Install rabbitmq pip packages
@@ -78,7 +83,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Ensure MaaS rabbitmq user as administrator with rabbitmqctl
@@ -94,12 +99,12 @@
       no_log: True
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
-        - not (deploy_osp | bool)
+        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
 
     - name: Find rabbitmq docker container
       raw: /bin/docker ps -a -f status=running | awk '/rabbitmq/ {print $NF}'
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
       register: rabbitmq_container_name
 
     - name: Enable rabbitmq management plugin
@@ -107,7 +112,7 @@
         /bin/docker exec {{ rabbitmq_container_name.stdout | trim }} /bin/bash -c
         '/usr/sbin/rabbitmq-plugins enable rabbitmq_management'
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Ensure MaaS rabbitmq user as administrator with docker exec rabbitmqctl
       command: >
@@ -117,7 +122,7 @@
         /usr/sbin/rabbitmqctl set_permissions -p / {{ maas_rabbitmq_user }} ".*" ".*" ".*"'
       when:
         - inventory_hostname in groups['rabbitmq_all'][0]
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
       no_log: True
 
   vars_files:
@@ -140,7 +145,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Get list of vhosts

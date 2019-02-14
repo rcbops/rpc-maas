@@ -46,6 +46,7 @@ export ANSIBLE_OVERRIDES="${ANSIBLE_OVERRIDES:-false}"
 export ANSIBLE_PARAMETERS="${ANSIBLE_PARAMETERS:-false}"
 export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
+export ANSIBLE_GATHER_TIMEOUT="${ANSIBLE_GATHER_TIMEOUT:-30}"
 
 if [ ${RE_JOB_SCENARIO} = osp13 ]; then
  # Env vars prep for osp 13
@@ -109,7 +110,7 @@ echo "TEST_IDEMPOTENCE: ${TEST_IDEMPOTENCE}"
 
 function set_ansible_parameters {
   # NOTE(tonytan4ever): We always skip preflight metadata check
-  TEST_DEFAULTS="-f 10 -e maas_pre_flight_metadata_check_enabled=false -e create_entity_if_not_exists=true -e cleanup_entity=true"
+  TEST_DEFAULTS="-f 10 -e create_entity_if_not_exists=true -e cleanup_entity=true"
   ANSIBLE_CLI_PARAMETERS="${TEST_DEFAULTS:-${ANSIBLE_OVERRIDE_CLI_PARAMETERS}}"
 
   if [ "${ANSIBLE_PARAMETERS}" != false ]; then
@@ -139,10 +140,6 @@ function setup_embedded_ansible {
 
   if [ ${RE_JOB_SCENARIO} = osp13 ]; then
     ANSIBLE_INVENTORY="${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
-  fi
-
-  if [ ${RE_JOB_SCENARIO} = rocky ]; then
-    export ANSIBLE_GATHER_TIMEOUT=30
   fi
 }
 
@@ -186,9 +183,6 @@ function ensure_osa_dir {
   fi
   if [[ ! -d "/etc/openstack_deploy/conf.d" ]]; then
     mkdir -p "/etc/openstack_deploy/conf.d"
-  fi
-  if [[ "${RE_JOB_SCENARIO}" == "osp13" && ! -f "/etc/openstack_deploy/user_rpcm_${RE_JOB_SCENARIO}_vars.yml" ]]; then
-    echo -e "---\ndeploy_osp: true" > /etc/openstack_deploy/user_rpcm_${RE_JOB_SCENARIO}_vars.yml
   fi
 }
 
@@ -239,7 +233,10 @@ function get_pip {
             ;;
     esac
 
-    virtualenv --no-setuptools /opt/test-maas
+    virtualenv --no-site-packages /opt/test-maas
+    /opt/test-maas/bin/pip install pip setuptools --upgrade
+    /opt/test-maas/bin/pip install requests --upgrade
+  else
     /opt/test-maas/bin/pip install pip setuptools --upgrade
     /opt/test-maas/bin/pip install requests --upgrade
   fi

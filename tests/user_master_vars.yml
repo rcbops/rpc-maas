@@ -13,20 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-maas_excluded_alarms: []
-
-# horizon_local_check is functionally broken newton+ due to architecture changes
-# glance_registry_local_check is not used with v2+ glance endpoints
-maas_excluded_checks:
-  - horizon_local_check
-  - glance_registry_local_check
-  - glance_api_local_check
-
-maas_rally_enabled: true
-
 # NOTE(cfarquhar): The scenarios that create instances are disabled for now
 # since public cloud AIOs are unreliable in terms of performance.
-
+maas_rally_enabled: true
 maas_rally_check_overrides:
   cinder:
     enabled: false
@@ -47,17 +36,12 @@ maas_rally_check_overrides:
     extra_user_roles:
       - "swiftoperator"
 
+# Test pre-flight checks
 maas_pre_flight_check_enabled: true
 
-# Allow maas-verify to properly validate all issues
-maas_verify_registration: true
-maas_verify_status: true
+# Set test identifier
+maas_env_identifier: "test"
 
 # Disable remote.http checks because AIO endpoints will always be private
 # addresses. Private network monitoring will need to be added.
 maas_remote_check: false
-
-# Set metadata explicitly to OSA
-maas_env_product: osa
-maas_product_dir: /opt/openstack-ansible
-maas_product_osa_dir: /opt/openstack-ansible

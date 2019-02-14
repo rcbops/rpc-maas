@@ -1,6 +1,6 @@
 monitoring_id {{ maas_entity_name }}
 monitoring_token {{ maas_agent_token }}
 monitoring_upgrade {{ maas_agent_upgrade }}
-{% if maas_proxy_url is defined %}
-monitoring_proxy_url {{ maas_proxy_url }}
+{% if ansible_local['maas']['general']['maas_proxy_url'] is defined or maas_proxy_url is defined %}
+monitoring_proxy_url {{ (ansible_local['maas']['general']['maas_proxy_url'] | default(maas_proxy_url)) | bool }}
 {% endif %}

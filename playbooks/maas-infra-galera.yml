@@ -18,10 +18,15 @@
   gather_facts: true
   become: true
   tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
@@ -46,7 +51,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Check for required galera variables
       fail:
@@ -68,7 +73,7 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
-        - maas_holland_enabled
+        - (ansible_local['maas']['general']['maas_holland_enabled'] | default(maas_holland_enabled)) | bool
 
   tasks:
     - name: Drop local .my.cnf file

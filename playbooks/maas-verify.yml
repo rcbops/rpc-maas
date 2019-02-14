@@ -21,7 +21,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   vars_files:
     - vars/main.yml
@@ -37,10 +37,15 @@
   gather_facts: true
   become: true
   pre_tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Ensure log directories
@@ -64,7 +69,7 @@
         group: "root"
         mode: "0755"
       when:
-        - deploy_osp | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Create log link
       file:
@@ -72,7 +77,7 @@
         dest: "{{ working_dir_logs }}"
         state: link
       when:
-        - not (deploy_osp | bool)
+        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
 
     - name: Copy verification tool to host
       copy:
@@ -92,6 +97,10 @@
         - maas_use_api | bool
         - maas_verify_wait | bool
 
+    - name: Transpose maas_merged_excluded_checks from local facts
+      set_fact:
+        excludedchecks: "{{ ansible_local['maas']['general']['maas_merged_excluded_checks'] }}"
+
     - name: Run MaaS verify local
       command: "{{ maas_venv_bin }}/python /opt/rpc-maas-tools/rpc-maas-tool.py --logfile {{ workspace_logs }}/rpc-maas-logs.txt verify-local"
       become: true
@@ -107,7 +116,7 @@
       command: >
         {{ maas_venv_bin }}/python /opt/rpc-maas-tools/rpc-maas-tool.py --logfile {{ workspace_logs }}/rpc-maas-api-logs.txt verify-created
         --entity {{ maas_entity_name }}
-        {% for ec in maas_excluded_checks %} --excludedcheck "{{ ec }}" {% endfor %}
+        {% for ec in excludedchecks %} --excludedcheck "{{ ec }}" {% endfor %}
       become: true
       register: verify_maas
       changed_when: false

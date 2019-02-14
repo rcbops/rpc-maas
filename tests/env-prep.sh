@@ -25,7 +25,7 @@ export TESTING_HOME="${TESTING_HOME:-$HOME}"
 export TEST_DIR="$(readlink -f $(dirname ${0}))"
 export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-local-test-aio.log"
-export ANSIBLE_OVERRIDE_CLI_PARAMETERS='-e maas_pre_flight_metadata_check_enabled=false -e create_entity_if_not_exists=false -e cleanup_entity=false'
+export ANSIBLE_OVERRIDE_CLI_PARAMETERS='-e create_entity_if_not_exists=false -e cleanup_entity=false'
 
 export OSA_TESTS_CHECKOUT="b146d649e675d748a58af238c7b37138b8194f1f"
 export OSA_REQUIREMENTS_CHECKOUT="master"

@@ -1,5 +1,5 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
-{% if deploy_osp | default(False) %}
+{% if (ansible_local['maas']['general']['deploy_osp'] | bool) | default(False) %}
 {% set cinder_volume_host = item.value.host %}
 {% set backend_name = cinder_volume_host.split('@')[1] %}
 {% else %}
