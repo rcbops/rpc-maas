@@ -1,3 +1,4 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "host_bonding_iface_status_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
@@ -8,6 +9,8 @@ disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('t
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/bonding_iface_check.py"]
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
 alarms      :
 {% for interface in maas_bonding_interfaces %}
     host_bonding_iface_{{ interface }}_status :
@@ -18,5 +21,5 @@ alarms      :
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["host_bonding_iface_{{ interface }}_slave_down"] != 0) {
                 return new AlarmStatus(CRITICAL, "A bonding interface has slave(s) down");
-            } 
+            }
 {% endfor %}
