@@ -22,8 +22,6 @@ internal_ip: "{{ internal_ips[0] }}"
 
 maas_env_product: "TripleO"
 
-maas_openrc: '/root/openrc-maas'
-
 osp_internal_netmask: "{{ internal_vip_address | ipsubnet(24) }}"
 
 octavia_process_names:

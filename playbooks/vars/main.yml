@@ -245,7 +245,5 @@ openrc_clouds_yml_file_owner: "{{ ansible_user_id }}"
 openrc_clouds_yml_file_group: "{{ ansible_user_id }}"
 openrc_clouds_yml_file_mode: "0600"
 
-#
-# Enable the deployment of MaaS on OSP
-#
-deploy_osp: false
+# (NOTE:tonytan4ever) rpcr-dynamic inventory will dynamically determine
+# if deploy_osp should be true or not, so we make main agnostic

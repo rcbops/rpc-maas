@@ -136,7 +136,17 @@ class RPCRMaasInventory(MaasInventory):
                     'MAAS_DIRECTOR_NAME',
                     'director'
                 )]
+                self.inventory[group_name]['vars']['deploy_osp'] = True
+                self.inventory[group_name]['vars']['maas_stackrc'] = (
+                    '/home/stack/{plan_name}rc'.format(
+                        plan_name=self.plan_name)
+                )
+                self.inventory[group_name]['vars']['maas_openrc'] = (
+                    '/home/stack/stackrc'
+                )
             else:
+                # (NOTE:tonytan4ever): this is for old triplO style
+                # inventory scripts
                 if len(self.inventory[group_name]['hosts']) == 1 and \
                         validate_ip(input_inventory[group_name]['hosts'][0]):
                     self.inventory[group_name]['hosts'] = [group_name]
@@ -248,6 +258,8 @@ class RPCRMaasInventory(MaasInventory):
                 ['cinder_backends']) = (
                 self.cinder_backend_fact
             )
+            (self.inventory['_meta']['hostvars'][host]
+                ['deploy_osp']) = True
         self.do_host_group_mapping(input_inventory)
 
 

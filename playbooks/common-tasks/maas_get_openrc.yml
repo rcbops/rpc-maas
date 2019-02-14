@@ -33,7 +33,7 @@
     - name: Distribute openrc
       copy:
         src: "/tmp/openrc"
-        dest: "/root/openrc"
+        dest: "{{ maas_openrc | default('/root/openrc') }}"
         mode: "0640"
       when:
         - (inventory_hostname | default(ansible_host)) != groups['utility_all'][0]

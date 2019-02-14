@@ -34,6 +34,7 @@ TRIPLEO_MAPPING_GROUP = {
     'galera': ['Controller', 'controller'],
     'rsyslog_all': ['Controller', 'controller'],
     'utility_all': ['undercloud', 'Undercloud'],
+    'localhost': ['undercloud', 'Undercloud'],
 
 
     # maas openstack groups

@@ -33,14 +33,8 @@ export UPPER_CONSTRAINTS_FILE="https://git.openstack.org/cgit/openstack/requirem
 export OSA_TEST_DEPS="https://git.openstack.org/cgit/openstack/openstack-ansible-tests/plain/test-ansible-deps.txt?h=${OSA_TESTS_CHECKOUT:-master}"
 
 if [ "${RE_JOB_SCENARIO}" = "osp13" ]; then
-  > ${TEST_DIR}/RE_ENV
-  ## TODO: Add pubcloud username/api key here
-  env | grep "RE_\|PUBCLOUD_USERNAME\|PUBCLOUD_API_KEY" | while read -r match; do
-  varName=$(echo ${match} | cut -d= -f1)
-  echo "export ${varName}='${!varName}'" >> ${TEST_DIR}/RE_ENV
-  done
+  env | egrep "(RE|PUBCLOUD)_" | sed "s/^/export /g" > ${TEST_DIR}/RE_ENV
 
-  echo $'\n' > ${TEST_DIR}/RE_ENV
   echo "RE_ENV_file to set: \n"
   cat ${TEST_DIR}/RE_ENV
 
