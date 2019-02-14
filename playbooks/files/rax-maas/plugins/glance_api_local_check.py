@@ -21,8 +21,8 @@ import time
 
 from glanceclient import exc as exc
 from maas_common import get_auth_ref
-from maas_common import get_glance_api_version
 from maas_common import get_glance_client
+from maas_common import get_os_component_major_api_version
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -34,7 +34,7 @@ IMAGE_STATUSES = ['active', 'queued', 'killed']
 
 
 def check(auth_ref, args):
-    glance_api_version = get_glance_api_version()
+    glance_api_version = get_os_component_major_api_version('glance')[0]
     glance_endpoint = (
         '{protocol}://{ip}:{port}/v{version}'.format(
             ip=args.ip,
@@ -46,10 +46,9 @@ def check(auth_ref, args):
 
     try:
         if args.ip:
-            glance = get_glance_client(endpoint=glance_endpoint,
-                                       glance_api_version=glance_api_version)
+            glance = get_glance_client(endpoint=glance_endpoint)
         else:
-            glance = get_glance_client(glance_api_version=glance_api_version)
+            glance = get_glance_client()
 
         is_up = True
     except exc.HTTPException:

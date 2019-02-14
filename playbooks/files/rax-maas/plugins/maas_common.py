@@ -26,6 +26,9 @@ import sys
 import traceback
 
 from monitorstack.common import formatters
+from openstack.config import get_cloud_region
+from openstack.connection import Connection
+from openstack.exceptions import ConfigException
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -78,6 +81,42 @@ NOVA_SERVICE_TYPE_LIST = [
     'nova-scheduler'
 ]
 
+cloud = 'default'
+# (NOTE:tonytan4ever): for OSP cloud, cloud parameter needs to be None
+if os.getenv('OS_CLOUDNAME') is not None:
+    cloud = None
+
+try:
+    OSC_CONFIG = get_cloud_region(cloud=cloud)
+except ConfigException as e:
+    # (NOTE:tonytan4ever) Liberty cloud does not have 'default' config
+    if 'Cloud default was not found' in str(e):
+        OSC_CONFIG = get_cloud_region(cloud=None)
+    else:
+        raise e
+OSC_CLIENT = Connection(config=OSC_CONFIG, verify=False)
+
+
+def get_os_component_major_api_version(component_name):
+    supported_os_component_osc_mapping = {
+        'nova': 'compute',
+        'neutron': 'network',
+        'cinder': 'volume',
+        'glance': 'image',
+        'keystone': 'identity',
+        'ironic': 'baremetal_introspection',
+        'heat': 'orchestration',
+        'swfit': 'object_store'
+    }
+    if component_name not in supported_os_component_osc_mapping.keys():
+        raise NameError("Not a supported OpenStack component name: %s,"
+                        "currently supported components are: %s" %
+                        (component_name,
+                         ','.join(supported_os_component_osc_mapping.keys())))
+    return (getattr(OSC_CLIENT,
+                    supported_os_component_osc_mapping[component_name]).
+            get_api_major_version())
+
 
 try:
     from cinderclient import client as c_client
@@ -97,14 +136,14 @@ else:
         # auth each time it's called.
 
         auth_details = get_auth_details()
-        cinder = c_client.Client('2',
-                                 auth_details['OS_USERNAME'],
-                                 auth_details['OS_PASSWORD'],
-                                 auth_details['OS_TENANT_NAME'],
-                                 auth_details['OS_AUTH_URL'],
-                                 insecure=auth_details['OS_API_INSECURE'],
-                                 endpoint_type=auth_details[
-                                     'OS_ENDPOINT_TYPE'])
+        cinder = c_client.Client(
+            get_os_component_major_api_version('cinder')[0],
+            auth_details['OS_USERNAME'],
+            auth_details['OS_PASSWORD'],
+            auth_details['OS_TENANT_NAME'],
+            auth_details['OS_AUTH_URL'],
+            insecure=auth_details['OS_API_INSECURE'],
+            endpoint_type=auth_details['OS_ENDPOINT_TYPE'])
 
         try:
             # Do something just to ensure we actually have auth'd ok
@@ -129,9 +168,7 @@ except ImportError:
 else:
     def get_glance_client(token=None,
                           endpoint=None,
-                          previous_tries=0,
-                          glance_api_version=os.getenv('OS_IMAGE_API_VERSION',
-                                                       '1')
+                          previous_tries=0
                           ):
         if previous_tries > 3:
             return None
@@ -150,9 +187,10 @@ else:
                                                     get_endpoint_type(
                                                         auth_details))
 
-        glance = g_client.Client(glance_api_version,
-                                 endpoint=endpoint,
-                                 token=token)
+        glance = g_client.Client(
+            get_os_component_major_api_version('glance')[0],
+            endpoint=endpoint,
+            token=token)
 
         try:
             # We don't want to be pulling massive lists of images every time we
@@ -204,11 +242,12 @@ else:
                                                       get_endpoint_type(
                                                           auth_details))
 
-        nova = nova_client.Client('2',
-                                  auth_token=auth_token,
-                                  auth_url=auth_details['OS_AUTH_URL'],
-                                  bypass_url=bypass_url,
-                                  insecure=auth_details['OS_API_INSECURE'])
+        nova = nova_client.Client(
+            get_os_component_major_api_version('nova')[0],
+            auth_token=auth_token,
+            auth_url=auth_details['OS_AUTH_URL'],
+            bypass_url=bypass_url,
+            insecure=auth_details['OS_API_INSECURE'])
 
         try:
             flavors = nova.flavors.list()
@@ -285,8 +324,7 @@ else:
     def keystone_auth(auth_details):
         keystone = None
         try:
-            if (int(auth_details['OS_IDENTITY_API_VERSION']) == 3 or
-                    auth_details['OS_AUTH_URL'].endswith('v3')):
+            if get_os_component_major_api_version('keystone')[0] == 3:
                 keystone = k3_client.Client(
                     username=auth_details['OS_USERNAME'],
                     password=auth_details['OS_PASSWORD'],
@@ -341,11 +379,11 @@ else:
         if not auth_ref:
             auth_ref = get_auth_ref()
 
-        auth_version = auth_ref['version']
+        auth_version = get_os_component_major_api_version('keystone')[0]
         if not endpoint:
             endpoint = get_endpoint_url_for_service('identity', auth_ref,
                                                     'admin')
-        if auth_version == 'v3':
+        if auth_version == 3:
             k_client = k3_client
             if not endpoint.endswith('v3'):
                 endpoint = '%s/v3' % endpoint
@@ -401,10 +439,10 @@ else:
                                                         get_endpoint_type(
                                                             auth_details))
 
-        neutron = n_client.Client('2.0',
-                                  token=token,
-                                  endpoint_url=endpoint_url,
-                                  insecure=auth_details['OS_API_INSECURE'])
+        neutron = n_client.Client(
+            get_os_component_major_api_version('neutron')[0],
+            token=token, endpoint_url=endpoint_url,
+            insecure=auth_details['OS_API_INSECURE'])
 
         try:
             # some arbitrary command that should always have at least 1 result
@@ -463,10 +501,10 @@ else:
                                                     get_endpoint_type(
                                                         auth_details))
 
-        heat = heat_client.Client('1',
-                                  endpoint=endpoint,
-                                  token=token,
-                                  insecure=auth_details['OS_API_INSECURE'])
+        heat = heat_client.Client(
+            get_os_component_major_api_version('heat')[0],
+            endpoint=endpoint, token=token,
+            insecure=auth_details['OS_API_INSECURE'])
         try:
             heat.build_info.build_info()
         except h_exc.HTTPUnauthorized:
@@ -508,7 +546,8 @@ else:
                                                         auth_details))
 
         ironic = ironic_client.get_client(
-            '1', os_auth_token=token,
+            get_os_component_major_api_version('ironic')[0],
+            os_auth_token=token,
             ironic_url=endpoint,
             insecure=auth_details['OS_API_INSECURE'])
 
@@ -864,21 +903,3 @@ def print_output(print_telegraf=False):
                 print(STATUS)
             for metric in METRICS:
                 print(metric)
-
-
-def get_cinder_api_version():
-    auth_details = get_auth_details()
-    version = auth_details.get('OS_VOLUME_API_VERSION')
-    if not version:
-        version = os.getenv('OS_VOLUME_API_VERSION', '1')
-
-    return version
-
-
-def get_glance_api_version():
-    auth_details = get_auth_details()
-    version = auth_details.get('OS_IMAGE_API_VERSION')
-    if not version:
-        version = os.getenv('OS_IMAGE_API_VERSION', '1')
-
-    return version

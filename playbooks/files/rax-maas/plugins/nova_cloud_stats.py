@@ -21,6 +21,7 @@ import ipaddr
 from maas_common import get_auth_ref
 from maas_common import get_keystone_client
 from maas_common import get_nova_client
+from maas_common import get_os_component_major_api_version
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -64,10 +65,13 @@ stats_mapping = {
 def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     tenant_id = keystone.tenant_id
+    nova_version = '.'.join(
+        map(str, get_os_component_major_api_version('nova')))
 
     COMPUTE_ENDPOINT = (
-        '{protocol}://{ip}:8774/v2.1/{tenant_id}'
-        .format(ip=args.ip, tenant_id=tenant_id, protocol=args.protocol)
+        '{protocol}://{ip}:8774/v{version}/{tenant_id}'
+        .format(ip=args.ip, version=nova_version,
+                tenant_id=tenant_id, protocol=args.protocol)
     )
 
     try:

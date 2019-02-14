@@ -19,6 +19,7 @@ import argparse
 from maas_common import get_auth_ref
 from maas_common import get_keystone_client
 from maas_common import get_nova_client
+from maas_common import get_os_component_major_api_version
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -32,11 +33,13 @@ def check(auth_ref, args):
     keystone = get_keystone_client(auth_ref)
     auth_token = keystone.auth_token
     tenant_id = keystone.tenant_id
+    nova_version = '.'.join(
+        map(str, get_os_component_major_api_version('nova')))
 
     COMPUTE_ENDPOINT = (
-        '{protocol}://{hostname}:8774/v2.1/{tenant_id}'
+        '{protocol}://{hostname}:8774/v{version}/{tenant_id}'
         .format(protocol=args.protocol, hostname=args.hostname,
-                tenant_id=tenant_id)
+                version=nova_version, tenant_id=tenant_id)
     )
     try:
         nova = get_nova_client(auth_token=auth_token,

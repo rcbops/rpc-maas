@@ -40,6 +40,10 @@ if [ "${RE_JOB_SCENARIO}" = "osp13" ]; then
   echo "export ${varName}='${!varName}'" >> ${TEST_DIR}/RE_ENV
   done
 
+  echo $'\n' > ${TEST_DIR}/RE_ENV
+  echo "RE_ENV_file to set: \n"
+  cat ${TEST_DIR}/RE_ENV
+
   exit 0
 fi
 
