@@ -209,6 +209,7 @@
         - name: Register ceph version
           command: ceph --version
           register: maas_product_ceph_version
+          delegate_to: "{{ groups['ceph_all'][0] }}"
 
         - name: Set ceph release version fact
           ini_file:
@@ -226,7 +227,6 @@
       when:
         - not (deploy_osp | default(False) | bool)
         - groups['ceph_all'] | default([]) | length > 0
-      delegate_to: "{{ groups['ceph_all'][0] }}"
 
     - name: rhosp release block
       block:

@@ -193,7 +193,29 @@ if [ ! -d "/etc/openstack_deploy" ]; then
   mkdir -p /etc/openstack_deploy
 fi
 
-if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
+if [[ ${RE_JOB_SCENARIO} == ceph ]]; then
+  git clone https://github.com/rcbops/rpc-ceph.git /opt/rpc-ceph
+  pushd /opt/rpc-ceph
+    # Build rpc-ceph with the functional scenario, minus rpc-maas
+    TEST_RPC_MAAS="False" RE_JOB_SCENARIO="functional" ./run_tests.sh
+  popd
+
+elif [[ ${RE_JOB_SCENARIO} == osp13 ]]; then
+  git clone https://github.com/rcbops/osp-mnaio.git /opt/osp-mnaio
+  pushd /opt/osp-mnaio
+    export OSP_DEPLOY_VERSION=`echo ${RE_JOB_SCENARIO} | tr -d 'osp'`
+    export OSP_JOB_ACTION=${RE_JOB_ACTION}
+    export REDHAT_USERNAME=${RPC_OSP_REDHAT_USERNAME:-''}
+    export REDHAT_PASSWORD=${RPC_OSP_REDHAT_PASSWORD:-''}
+    export REDHAT_POOL_ID=${RPC_OSP_REDHAT_POOL_ID:-''}
+    export REDHAT_ISO_URL=${RPC_OSP_REDHAT_ISO_URL:-''}
+    export REDHAT_CONSUMER_NAME="osp-mnaio-PR-test"
+    export REDHAT_OSP_VERSION=${OSP_DEPLOY_VERSION:-'13'}
+    export REDHAT_OVERCLOUD_REGISTER="true"
+    bash ./build.sh
+  popd
+
+else
     if [[ ${RE_JOB_SCENARIO#rpco-} == ${RE_JOB_SCENARIO} ]]; then
       export OA_DIR="/opt/openstack-ansible"
 
@@ -347,19 +369,5 @@ if [[ ${RE_JOB_SCENARIO} != osp13 ]]; then
         popd
       fi
 
-    popd
-else
-    git clone https://github.com/rcbops/osp-mnaio.git /opt/osp-mnaio
-    pushd /opt/osp-mnaio
-      export OSP_DEPLOY_VERSION=`echo ${RE_JOB_SCENARIO} | tr -d 'osp'`
-      export OSP_JOB_ACTION=${RE_JOB_ACTION}
-      export REDHAT_USERNAME=${RPC_OSP_REDHAT_USERNAME:-''}
-      export REDHAT_PASSWORD=${RPC_OSP_REDHAT_PASSWORD:-''}
-      export REDHAT_POOL_ID=${RPC_OSP_REDHAT_POOL_ID:-''}
-      export REDHAT_ISO_URL=${RPC_OSP_REDHAT_ISO_URL:-''}
-      export REDHAT_CONSUMER_NAME="osp-mnaio-PR-test"
-      export REDHAT_OSP_VERSION=${OSP_DEPLOY_VERSION:-'13'}
-      export REDHAT_OVERCLOUD_REGISTER="true"
-      bash ./build.sh
     popd
 fi

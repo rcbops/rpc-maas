@@ -35,7 +35,7 @@
 
 - name: Install Linux packages
   package:
-    name: "{{ maas_distro_packages }}"
+    name: "{{ maas_distro_packages | union(maas_extra_distro_packages) }}"
     state: present
   become: yes
   retries: 5

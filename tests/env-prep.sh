@@ -39,8 +39,9 @@ if [ "${RE_JOB_SCENARIO}" = "osp13" ]; then
   cat ${TEST_DIR}/RE_ENV
 
   exit 0
+elif [[ ${RE_JOB_SCENARIO} == ceph ]]; then
+  rm -f /etc/apt/apt.conf.d/95disable-recommends
 fi
-
 
 
 ## Functions -----------------------------------------------------------------

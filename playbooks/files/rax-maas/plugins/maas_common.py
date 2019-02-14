@@ -63,6 +63,7 @@ if AUTH_DETAILS.get('OS_API_INSECURE') is True:
 
 OPENRC = '/root/openrc'
 MAASRC = '/root/maasrc'
+STACKRC = '/home/stack/stackrc'
 TOKEN_FILE = '/root/.auth_ref.json'
 
 
@@ -86,15 +87,16 @@ cloud = 'default'
 if os.getenv('OS_CLOUDNAME') is not None:
     cloud = None
 
-try:
-    OSC_CONFIG = get_cloud_region(cloud=cloud)
-except ConfigException as e:
-    # (NOTE:tonytan4ever) Liberty cloud does not have 'default' config
-    if 'Cloud default was not found' in str(e):
-        OSC_CONFIG = get_cloud_region(cloud=None)
-    else:
-        raise e
-OSC_CLIENT = Connection(config=OSC_CONFIG, verify=False)
+if os.path.exists(OPENRC) or os.path.exists(STACKRC):
+    try:
+        OSC_CONFIG = get_cloud_region(cloud=cloud)
+    except ConfigException as e:
+        # (NOTE:tonytan4ever) Liberty cloud does not have 'default' config
+        if 'Cloud default was not found' in str(e):
+            OSC_CONFIG = get_cloud_region(cloud=None)
+        else:
+            raise e
+    OSC_CLIENT = Connection(config=OSC_CONFIG, verify=False)
 
 
 def get_os_component_major_api_version(component_name):

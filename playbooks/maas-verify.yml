@@ -78,6 +78,7 @@
         state: link
       when:
         - not (ansible_local['maas']['general']['deploy_osp'] | bool)
+        - not (ansible_local['maas']['general']['maas_env_product'] == 'ceph')
 
     - name: Copy verification tool to host
       copy:

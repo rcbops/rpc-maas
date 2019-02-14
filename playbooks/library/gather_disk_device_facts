@@ -65,6 +65,12 @@ class DiskDeviceFacts(object):
                         maas_disk_util_devices.append(
                             device.parent.device_node
                         )
+        except pyudev.DeviceNotFoundByFileError:
+            self.module.exit_json(
+                changed=self.state_change,
+                ansible_facts={
+                    'maas_disk_util_devices': []
+                })
         except Exception as e:
             message = ('Disk device host fact collection failed: "%s"'
                        'on host: %s, container: %s'
