@@ -12,62 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-- name: Check for RHOSP
-  hosts: localhost
-  gather_facts: false
-  become: true
-  tasks:
-    - name: Check for /etc/rhosp-release
-      stat:
-        path: /etc/rhosp-release
-      register: osp_release_file
-
-    - name: Check for /usr/bin/tripleo-ansible-inventory
-      stat:
-        path: /usr/bin/tripleo-ansible-inventory
-      register: tripleo_inventory_file
-
-    - name: Set deploy_osp fact
-      set_fact:
-        deploy_osp: "{{ (osp_release_file.stat.exists and tripleo_inventory_file.stat.exists) | bool }}"
-
-  tags:
-    - maas-pre-flight
-
-
-- name: Verify all passwords are defined
-  hosts: localhost
-  connection: local
-  gather_facts: true
-  become: true
-  pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp | bool
-
-  tasks:
-    - name: Verify all passwords are defined
-      fail:
-        msg: >-
-          The password "{{ item.key }}" is undefined. Set this password in an
-          appropriate secrets file before continuing.
-      when:
-        - maas_pre_flight_check_enabled | bool
-        - ansible_version.full is version_compare('2.1.0.0', '>=')
-        - hostvars[inventory_hostname][item.key] is undefined
-      with_dict: "{{ maas_pw_check }}"
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-  vars:
-    maas_pw_check: "{{ lookup('file', playbook_dir + '/../tests/user_rpcm_secrets.yml') | from_yaml }}"
-  tags:
-    - maas-pre-flight
-
-
 - name: Setup local facts
   hosts: all
   gather_facts: true
@@ -102,6 +46,36 @@
   tags:
     - maas-pre-flight
 
+- name: Verify all passwords are defined
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Include OSP vars
+      include_vars: vars/maas-osp.yml
+      when:
+        - deploy_osp | default(False) | bool
+
+  tasks:
+    - name: Verify all passwords are defined
+      fail:
+        msg: >-
+          The password "{{ item.key }}" is undefined. Set this password in an
+          appropriate secrets file before continuing.
+      when:
+        - maas_pre_flight_check_enabled | bool
+        - ansible_version.full is version_compare('2.1.0.0', '>=')
+        - hostvars[inventory_hostname][item.key] is undefined
+      with_dict: "{{ maas_pw_check }}"
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  vars:
+    maas_pw_check: "{{ lookup('file', playbook_dir + '/../tests/user_rpcm_secrets.yml') | from_yaml }}"
+  tags:
+    - maas-pre-flight
 
 - name: Dynamic variable generation
   hosts: localhost
@@ -114,7 +88,7 @@
         path: "/etc/ansible/facts.d/maas.fact"
         section: "general"
         option: "deploy_osp"
-        value: "{{ deploy_osp | bool }}"
+        value: "{{ deploy_osp | default(False) | bool }}"
 
     - name: Check for /etc/openstack-release
       stat:
@@ -166,7 +140,7 @@
             - ansible_local['maas']['general']['maas_product_osa_codename'] is defined
             - ansible_local['maas']['general']['maas_product_osa_codename'] == 'kilo'
       when:
-        - not (deploy_osp | bool)
+        - not (deploy_osp | default(False) | bool)
         - osa_release_file.stat.exists | bool
 
     - name: Check for /opt/rpc-openstack
@@ -227,7 +201,7 @@
             - ansible_local['maas']['general']['maas_product_rpco_version'] is defined
             - holland_venv_detection.matched > 0
       when:
-        - not (deploy_osp | bool)
+        - not (deploy_osp | default(False) | bool)
         - rpc_dir_check.stat.exists | bool
 
     - name: ceph release block
@@ -250,15 +224,22 @@
             filter: ansible_local
             gather_subset: "!all"
       when:
-        - not (deploy_osp | bool)
+        - not (deploy_osp | default(False) | bool)
         - groups['ceph_all'] | default([]) | length > 0
       delegate_to: "{{ groups['ceph_all'][0] }}"
 
     - name: rhosp release block
       block:
+        - name: Check for /etc/rhosp-release
+          stat:
+            path: /etc/rhosp-release
+          register: osp_release_file
+
         - name: Register /etc/rhosp-release version
           shell: cat /etc/rhosp-release | tr -dc '0-9.'
           register: maas_product_osp_version
+          when:
+            - osp_release_file.stat.exists | bool
 
         - name: Set OSP release version fact
           ini_file:
@@ -285,8 +266,7 @@
             - ansible_local['maas']['general']['maas_product_osp_version'] is defined
             - ansible_local['maas']['general']['maas_product_osp_version'] is version('13.0.0', '>=')
       when:
-        - deploy_osp | bool
-        - osp_release_file.stat.exists | bool
+        - deploy_osp | default(False) | bool
 
     # NOTE(npawelek): The agents and pollers use an HTTP CONNECT method when
     # establishing connectivity to the monitoring infrastructure. Unfortunately,
@@ -354,7 +334,7 @@
           when:
             - spice_nova_console.rc != 0
       when:
-        - (deploy_osp | bool) or
+        - (deploy_osp | default(False) | bool) or
           (ansible_local['maas']['general']['maas_product_osa_version'] is defined) or
           (ansible_local['maas']['general']['maas_product_rpco_version'] is defined)
 
@@ -409,7 +389,7 @@
         option: "maas_env_product"
         value: "osa"
       when:
-        - not (deploy_osp | bool)
+        - not (deploy_osp | default(False) | bool)
         - ansible_local['maas']['general']['maas_product_osa_version'] is defined
         - ansible_local['maas']['general']['maas_product_rpco_version'] is undefined
 
@@ -420,7 +400,7 @@
         option: "maas_env_product"
         value: "rpco"
       when:
-        - not (deploy_osp | bool)
+        - not (deploy_osp | default(False) | bool)
         - ansible_local['maas']['general']['maas_product_osa_version'] is defined
         - ansible_local['maas']['general']['maas_product_rpco_version'] is defined
 
@@ -431,7 +411,7 @@
         option: "maas_env_product"
         value: "ceph"
       when:
-        - not (deploy_osp | bool)
+        - not (deploy_osp | default(False) | bool)
         - ansible_local['maas']['general']['maas_product_osa_version'] is undefined
         - ansible_local['maas']['general']['maas_product_rpco_version'] is undefined
         - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
@@ -446,7 +426,7 @@
         - ansible_local['maas']['general']['maas_product_osa_version'] is undefined
         - ansible_local['maas']['general']['maas_product_rpco_version'] is undefined
         - ansible_local['maas']['general']['maas_product_ceph_version'] is undefined
-        - deploy_osp | bool
+        - deploy_osp | default(False) | bool
 
   vars_files:
     - vars/main.yml
@@ -463,7 +443,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - deploy_osp | default(False) | bool
 
     - name: Refresh local facts
       setup:
@@ -543,7 +523,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - deploy_osp | default(False) | bool
 
   tasks:
     # For Queens/osp13 and beyond, use image api version 2 and volume api version 3
@@ -585,7 +565,7 @@
     - name: Include OSP vars
       include_vars: vars/maas-osp.yml
       when:
-        - deploy_osp | bool
+        - deploy_osp | default(False) | bool
 
   tasks:
     - include_tasks: "common-tasks/maas_get_openrc.yml"

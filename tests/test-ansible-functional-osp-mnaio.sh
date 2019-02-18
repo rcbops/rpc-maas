@@ -24,8 +24,8 @@ echo "Run Maas tests on an OSP13 Multi Node AIO (MNAIO)"
 export MNAIO_DIRECTOR='ssh -ttt -oStrictHostKeyChecking=no 192.168.24.2'
 echo "192.168.24.2 director" >> /etc/hosts
 
-export WORKING_DIR="${WORKING_DIR:-$(pwd)}"
-echo "Current directory: ${WORKING_DIR}"
+export WORKING_DIR="$(dirname $(readlink -f ${TEST_DIR}))"
+echo "Current maas working directory: ${WORKING_DIR}"
 
 # sync maas repo to director node and prep for configs
 echo "+---------------- Syncing Maas code to director --------------+"
