@@ -57,9 +57,12 @@ def container_check(thresh):
 
         with Chroot('/proc/%s/root' % int(c.init_pid)):
             for partition in psutil.disk_partitions():
-                percent_used = disk_usage(part=partition)
-                if percent_used >= thresh:
-                    return False
+                try:
+                    percent_used = disk_usage(part=partition)
+                    if percent_used >= thresh:
+                        return False
+                except OSError:
+                    pass
     else:
         return True
 

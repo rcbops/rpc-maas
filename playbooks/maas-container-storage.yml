@@ -65,7 +65,26 @@
     - always
 
 
-- name: Install checks for infra memcached
+- name: Fix mtab within containers
+  hosts: all_containers
+  gather_facts: true
+  user: "{{ ansible_user | default('root') }}"
+  become: true
+  pre_tasks:
+  tasks:
+    - name: Remove the old mtab object
+      file:
+        path: /etc/mtab
+
+    - name: Create new mtab file
+      copy:
+        src: /proc/self/mounts
+        dest: /etc/mtab
+        remote_src: true
+        mode: 0644
+
+
+- name: Install checks for infra storage local checks
   hosts: known_container_hosts
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
@@ -84,8 +103,6 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      when:
-        - ansible_distribution_version == '14.04'
       delegate_to: "{{ physical_host | default(ansible_host) }}"
 
   vars_files:
