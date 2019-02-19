@@ -50,6 +50,11 @@ def get_chassis_status(command, item):
                          'Status', 'Ok')
 
 
+def get_powersupply_status(command, item):
+    return check_command((command, '-s', 'show %s' % item),
+                         'Condition', 'Ok')
+
+
 def get_drive_status(command):
     return check_command((command, 'ctrl', 'all', 'show', 'config'),
                          'logicaldrive', ('OK)', 'OK, Encrypted)'))
@@ -87,6 +92,8 @@ def main():
     status['hardware_processors_status'] = \
         get_chassis_status('hpasmcli', 'server')
     status['hardware_memory_status'] = get_chassis_status('hpasmcli', 'dimm')
+    status['hardware_powersupply_status'] = \
+        get_powersupply_status('hpasmcli', 'powersupply')
     status['hardware_disk_status'] = get_drive_status(ssacli_bin)
     status['hardware_controller_status'] = get_controller_status(ssacli_bin)
     status['hardware_controller_cache_status'] = \

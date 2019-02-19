@@ -29,7 +29,7 @@ CHASSIS = re.compile(OM_PATTERN % {'field': '^Health', 'group_pattern': '\w+'},
                      re.MULTILINE)
 STORAGE = re.compile(OM_PATTERN % {'field': '^Status', 'group_pattern': '\w+'},
                      re.MULTILINE)
-regex = {'storage': STORAGE, 'chassis': CHASSIS}
+regex = {'storage': STORAGE, 'chassis': CHASSIS, 'pwrsupplies': STORAGE}
 
 
 def hardware_report(report_type, report_request):
@@ -106,8 +106,12 @@ def main(args):
         status_err(str(e), m_name='maas_hwvendor')
 
     status_ok(m_name='maas_hwvendor')
-    metric_bool('hardware_%s_status' % report_request,
-                all_okay(report, regex[report_type]))
+    if report_request == 'pwrsupplies':
+        metric_bool('hardware_%s_status' % report_request,
+                    all_okay(report, regex[report_request]))
+    else:
+        metric_bool('hardware_%s_status' % report_request,
+                    all_okay(report, regex[report_type]))
 
 
 if __name__ == '__main__':
