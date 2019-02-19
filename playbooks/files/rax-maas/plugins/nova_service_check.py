@@ -72,8 +72,12 @@ def check(auth_ref, args):
     for service in services:
         service_is_up = "Yes"
 
-        if service.status == 'enabled' and service.state == 'down':
+        if service.status.lower() == 'enabled' and service.state.lower() == 'down':
             service_is_up = "No"
+        elif service.status.lower() == 'disabled':
+            if service.disabled_reason:
+                if 'auto' in service.disabled_reason.lower():
+                    service_is_up = "No"
 
         if args.host:
             name = '%s_status' % service.binary
