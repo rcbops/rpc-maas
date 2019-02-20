@@ -48,18 +48,18 @@
 
     - name: Set deploy_osp fact
       set_fact:
-        deploy_osp: (osp_release_file.stat.exists and tripleo_inventory_file.stat.exists) | bool
+        deploy_osp: "{{ (osp_release_file.stat.exists and tripleo_inventory_file.stat.exists) | bool }}"
 
     - name: Copy RPC-O rpc-maas vars into place
       copy:
-        src: "user_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
-        dest: "/etc/openstack_deploy/user_rpcm_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
+        src: "user_{{ lookup('env', 'RE_JOB_SCENARIO') | default('master') }}_vars.yml"
+        dest: "/etc/openstack_deploy/user_rpcm_{{ lookup('env', 'RE_JOB_SCENARIO') | default('master') }}_vars.yml"
       when: not (deploy_osp | default(False))
 
     - name: Copy RPC-R rpc-maas vars into place
       copy:
-        src: "user_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
-        dest: "/etc/openstack_deploy/user_rpcm_{{ ansible_env.RE_JOB_SCENARIO | default('master') }}_vars.yml"
+        src: "user_{{ lookup('env', 'RE_JOB_SCENARIO') | default('master') }}_vars.yml"
+        dest: "/etc/openstack_deploy/user_rpcm_{{ lookup('env', 'RE_JOB_SCENARIO') | default('master') }}_vars.yml"
       when: (deploy_osp | default(False))
 
     - name: Copy rpc-maas secrets into place

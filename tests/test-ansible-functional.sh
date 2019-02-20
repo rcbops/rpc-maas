@@ -48,18 +48,23 @@ export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
 export ANSIBLE_GATHER_TIMEOUT="${ANSIBLE_GATHER_TIMEOUT:-30}"
 
-if [ ${RE_JOB_SCENARIO} = osp13 ]; then
- # Env vars prep for osp 13
- export ANSIBLE_HOST_KEY_CHECKING="false"
- export WORKING_DIR="/opt/rpc-maas"
- # Set ansible version for embeded ansible runtime
- export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-false}"
+if [[ ${RE_JOB_SCENARIO} == osp13 ]]; then
+  # Env vars prep for osp 13
+  export ANSIBLE_HOST_KEY_CHECKING="false"
+  export WORKING_DIR="/opt/rpc-maas"
+  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-$WORKING_DIR/inventory/rpcr_dynamic_inventory.py}"
+elif [[ ${RE_JOB_SCENARIO} == ceph ]]; then
+  # NOTE(npawelek): Ceph tests use the rpc-ceph inventory which will not match
+  # any MTC logic to append the overlay. Since the overlay is required for ceph
+  # we manually define it
+  export ANSIBLE_INVENTORY="/opt/rpc-ceph/tests/inventory,/opt/magnanimous-turbo-chainsaw/overlay-inventory.yml"
+  export ANSIBLE_OVERRIDES="/opt/rpc-ceph/tests/test-vars.yml"
 else
- # Ansible Inventory will be set to OSA
- export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
- if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
-  export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
- fi
+  # Ansible Inventory will be set to OSA
+  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
+  if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
+   export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+  fi
 fi
 
 echo "WORKING_DIR: ${WORKING_DIR}"
@@ -69,7 +74,7 @@ echo "WORKING_DIR: ${WORKING_DIR}"
 # gates to use the same entity
 # This will automatically work for new gates
 case $RE_JOB_SCENARIO in
-  ceph|kilo|*liberty|*mitaka|newton|ocata|pike)
+  kilo|*liberty|*mitaka|newton|ocata|pike)
     echo "There is no need to set maas_fqdn_extension on ${RE_JOB_SCENARIO}"
     echo | tee /tmp/maas_fqdn_extension
     ;;
@@ -137,10 +142,6 @@ function setup_embedded_ansible {
   popd
   export ANSIBLE_EMBED_BINARY="${ANSIBLE_EMBED_HOME}/bin/ansible-playbook -e \$USER_ALL_VARS"
   export ANSIBLE_BINARY="${ANSIBLE_BINARY:-$ANSIBLE_EMBED_BINARY}"
-
-  if [ ${RE_JOB_SCENARIO} = osp13 ]; then
-    ANSIBLE_INVENTORY="${WORKING_DIR}/inventory/rpcr_dynamic_inventory.py"
-  fi
 }
 
 function execute_ansible_playbook {
@@ -309,6 +310,10 @@ if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
   pin_environment
 elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
   pin_environment
+elif [[ ${RE_JOB_SCENARIO} == ceph ]]; then
+  pip install -U cryptography\>=1.5 pyOpenSSL==16.2.0 --isolated
+  sed -i '/^physical_host/ s/^/#/' /opt/rpc-ceph/tests/test-vars.yml
+  sed -i '/^maas_/ s/^/#/' /opt/rpc-ceph/tests/test-vars.yml
 elif [ "${RE_JOB_SCENARIO}" == "rpco-liberty" ]; then
   pin_environment
   deploy_rpco_tooling

@@ -19,6 +19,8 @@
   register: openrc_file_check
   delegate_to: "{{ groups['utility_all'][0] }}"
   run_once: true
+  when:
+    - ansible_local['maas']['general']['maas_env_product'] != 'ceph'
 
 - name: Get openrc
   block:
@@ -38,4 +40,5 @@
       when:
         - (inventory_hostname | default(ansible_host)) != groups['utility_all'][0]
   when:
+    - ansible_local['maas']['general']['maas_env_product'] != 'ceph'
     - openrc_file_check.stat.exists | bool
