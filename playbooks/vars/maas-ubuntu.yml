@@ -29,6 +29,11 @@ maas_distro_packages:
   - gcc
 
 #
+# Enable additional package override
+#
+maas_extra_distro_packages: []
+
+#
 # List of packages maas requires on galera hosts
 #
 maas_galera_distro_packages:

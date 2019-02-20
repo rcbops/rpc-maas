@@ -18,3 +18,10 @@ maas_env_identifier: "test"
 
 # Test pre-flight checks
 maas_pre_flight_check_enabled: true
+
+# Include extra lxc dev package in rpc-ceph gate
+maas_extra_distro_packages:
+  - lxc-dev
+
+maas_excluded_checks:
+  - rsyslogd_process_check

@@ -32,6 +32,11 @@ maas_distro_packages:
   - sysstat
 
 #
+# Enable additional package override
+#
+maas_extra_distro_packages: []
+
+#
 # MaaS poller repos
 #
 maas_repos:

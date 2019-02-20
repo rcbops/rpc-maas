@@ -17,6 +17,10 @@
   tags:
     - maas-openstack
 
+- import_playbook: maas-infra-tgtd.yml
+  tags:
+    - maas-openstack
+
 - import_playbook: maas-openstack-designate.yml
   tags:
     - maas-openstack

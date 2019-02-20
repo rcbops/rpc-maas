@@ -16,7 +16,11 @@
 
 import argparse
 import json
-import maas_common
+from maas_common import metric_bool
+from maas_common import metric
+from maas_common import MaaSException
+from maas_common import status_ok
+from maas_common import print_output
 import requests
 import subprocess
 
@@ -87,14 +91,14 @@ def get_mon_statistics(client=None, keyring=None, host=None,
     mon = [m for m in ceph_status['monmap']['mons']
            if m['name'] == host]
     mon_in = mon[0]['rank'] in ceph_status['quorum']
-    maas_common.metric_bool('mon_in_quorum', mon_in)
+    metric_bool('mon_in_quorum', mon_in)
 
 
 def get_rgw_checkup(client, keyring=None, rgw_address=None,
                     container_name=None, deploy_osp=False):
     rgw_status = get_ceph_rgw_hostcheck(rgw_address,
                                         container_name=container_name)
-    maas_common.metric('rgw_up', 'uint32', rgw_status)
+    metric('rgw_up', 'uint32', rgw_status)
 
 
 def get_osd_statistics(client=None, keyring=None, osd_ids=None,
@@ -115,11 +119,11 @@ def get_osd_statistics(client=None, keyring=None, osd_ids=None,
                 break
         else:
             msg = 'The OSD ID %s does not exist.' % osd_id
-            raise maas_common.MaaSException(msg)
+            raise MaaSException(msg)
 
         key = 'up'
         name = '_'.join((osd_ref, key))
-        maas_common.metric_bool(name, osd[key])
+        metric_bool(name, osd[key])
 
         for _osd in pg_osds_dump:
             if _osd['osd'] == osd_id:
@@ -187,7 +191,7 @@ def get_cluster_statistics(client=None, keyring=None, container_name=None,
 
     # Submit gathered metrics
     for m in metrics:
-        maas_common.metric(m['name'], m['type'], m['value'])
+        metric(m['name'], m['type'], m['value'])
 
 
 def get_args():
@@ -247,10 +251,10 @@ def main(args):
     kwargs['deploy_osp'] = args.deploy_osp
 
     get_statistics[args.subparser_name](**kwargs)
-    maas_common.status_ok(m_name='maas_ceph')
+    status_ok(m_name='maas_ceph')
 
 
 if __name__ == '__main__':
     args = get_args()
-    with maas_common.print_output(print_telegraf=args.telegraf_output):
+    with print_output(print_telegraf=args.telegraf_output):
         main(args)
