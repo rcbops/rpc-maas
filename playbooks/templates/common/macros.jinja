@@ -5,7 +5,7 @@ api
 kubernetes
 {% elif check_label.startswith('rsyslogd_process_check') %}
 logging
-{% elif check_label in ['container_storage_check', 'holland_local_check', 'maas_poller_fd_count', 'memcached_status'] or check_label.startswith('galera') or check_label.startswith('rabbitmq') %}
+{% elif check_label in ['tgtd_process_check', 'container_storage_check', 'holland_local_check', 'maas_poller_fd_count', 'memcached_status'] or check_label.startswith('galera') or check_label.startswith('rabbitmq') %}
 infrastructure
 {% elif check_label in ['conntrack_count', 'cpu_check', 'disk_utilisation', 'memory_check', 'private_ping_check', 'private_ssh_check', 'host_bonding_iface_status_check'] or check_label.startswith('filesystem') or check_label.startswith('network_throughput') %}
 host
