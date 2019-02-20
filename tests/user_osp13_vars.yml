@@ -17,7 +17,6 @@
 maas_excluded_checks:
   - 'filesystem_/var/lib/docker/overlay2'
   - 'filesystem_/var/lib/docker/containers'
-  - 'neutron_ovs_agent_check'
 
 # Test pre-flight checks
 maas_pre_flight_check_enabled: true
