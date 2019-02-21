@@ -24,12 +24,20 @@ export TEST_DIR="$(readlink -f $(dirname ${0}))"
 ## Main ----------------------------------------------------------------------
 bash -vc "${TEST_DIR}/env-prep.sh"
 
-# Build AIO
-bash -vc "${TEST_DIR}/aio-create.sh"
+# Build AIO unless loading from snapshot
+case ${RE_JOB_SCENARIO} in
+  newton-snap|pike-snap|queens-snap|rocky-snap)
+    true;;
+  *)
+    bash -vc "${TEST_DIR}/aio-create.sh";;
+esac
 
 # Run functional rpc-maas deployment
-if [ "${RE_JOB_SCENARIO}" = "osp13" ]; then
-  bash -vc "${TEST_DIR}/test-ansible-functional-osp-mnaio.sh"
-else
-  bash -vc "${TEST_DIR}/test-ansible-functional.sh"
-fi
+case ${RE_JOB_SCENARIO} in
+  osp13)
+    bash -vc "${TEST_DIR}/test-ansible-functional-osp-mnaio.sh";;
+  newton-snap|pike-snap|queens-snap|rocky-snap)
+    bash -vc "${TEST_DIR}/test-ansible-functional.sh";;
+  *)
+    bash -vc "${TEST_DIR}/test-ansible-functional.sh";;
+esac

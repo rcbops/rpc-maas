@@ -48,24 +48,29 @@ export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
 export ANSIBLE_GATHER_TIMEOUT="${ANSIBLE_GATHER_TIMEOUT:-30}"
 
-if [[ ${RE_JOB_SCENARIO} == osp13 ]]; then
-  # Env vars prep for osp 13
-  export ANSIBLE_HOST_KEY_CHECKING="false"
-  export WORKING_DIR="/opt/rpc-maas"
-  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-$WORKING_DIR/inventory/rpcr_dynamic_inventory.py}"
-elif [[ ${RE_JOB_SCENARIO} == ceph ]]; then
-  # NOTE(npawelek): Ceph tests use the rpc-ceph inventory which will not match
-  # any MTC logic to append the overlay. Since the overlay is required for ceph
-  # we manually define it
-  export ANSIBLE_INVENTORY="/opt/rpc-ceph/tests/inventory,/opt/magnanimous-turbo-chainsaw/overlay-inventory.yml"
-  export ANSIBLE_OVERRIDES="/opt/rpc-ceph/tests/test-vars.yml"
-else
-  # Ansible Inventory will be set to OSA
-  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
-  if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
-   export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
-  fi
-fi
+case ${RE_JOB_SCENARIO} in
+  osp13)
+    # Env vars prep for osp 13
+    export ANSIBLE_HOST_KEY_CHECKING="false"
+    export WORKING_DIR="/opt/rpc-maas"
+    export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-$WORKING_DIR/inventory/rpcr_dynamic_inventory.py}"
+    ;;
+  ceph)
+    # NOTE(npawelek): Ceph tests use the rpc-ceph inventory which will not match
+    # any MTC logic to append the overlay. Since the overlay is required for ceph
+    # we manually define it
+    export ANSIBLE_INVENTORY="/opt/rpc-ceph/tests/inventory,/opt/magnanimous-turbo-chainsaw/overlay-inventory.yml"
+    export ANSIBLE_OVERRIDES="/opt/rpc-ceph/tests/test-vars.yml"
+    ;;
+  *)
+    # Ansible Inventory will be set to OSA
+    export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
+    # Meant to handle queens or queens-snap
+    if [[ "${RE_JOB_SCENARIO}" == "queens"* ]]; then
+      export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+    fi
+    ;;
+esac
 
 echo "WORKING_DIR: ${WORKING_DIR}"
 
@@ -74,7 +79,7 @@ echo "WORKING_DIR: ${WORKING_DIR}"
 # gates to use the same entity
 # This will automatically work for new gates
 case $RE_JOB_SCENARIO in
-  kilo|*liberty|*mitaka|newton|ocata|pike)
+  kilo|*liberty|*mitaka|newton*|ocata|pike*)
     echo "There is no need to set maas_fqdn_extension on ${RE_JOB_SCENARIO}"
     echo | tee /tmp/maas_fqdn_extension
     ;;
@@ -88,7 +93,7 @@ esac
 # ansible that is not available in liberty and mitaka. There is no reason
 # to run it in a ceph context either.
 case $RE_JOB_SCENARIO in
-  kilo|*liberty|*mitaka|ceph|osp13|rocky)
+  kilo|*liberty|*mitaka|ceph|osp13|rocky*)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -256,7 +261,7 @@ function enable_maas_api {
   echo "END PACKAGE LIST"
 
   # NOTE(tonytan4ever): pip on newton will broken because of a mis-installed version of setuptools
-  if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
+  if [[ "${RE_JOB_SCENARIO}" == "newton"* ]]; then
     /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
   fi
 
