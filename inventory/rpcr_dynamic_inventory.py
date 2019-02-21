@@ -150,7 +150,7 @@ class RPCRMaasInventory(MaasInventory):
                 self.inventory[group_name]['vars'][
                     'external_lb_vip_address'] = self.external_lb_vip
             else:
-                # (NOTE:tonytan4ever): this is for old triplO style
+                # (NOTE:tonytan4ever): this is for old tripleO style
                 # inventory scripts
                 if len(self.inventory[group_name]['hosts']) == 1 and \
                         validate_ip(input_inventory[group_name]['hosts'][0]):
@@ -247,7 +247,6 @@ class RPCRMaasInventory(MaasInventory):
                 ['galera_root_password']) = (
                     self.galera_password
             )
-
             (self.inventory['_meta']['hostvars'][host]
                 ['internal_lb_vip_address']) = (
                 self.internal_lb_vip
@@ -262,6 +261,11 @@ class RPCRMaasInventory(MaasInventory):
             (self.inventory['_meta']['hostvars'][host]
                 ['cinder_backends']) = (
                 self.cinder_backend_fact
+            )
+            (self.inventory['_meta']['hostvars'][host]
+                ['maas_pip_container_packages']) = []
+            (self.inventory['_meta']['hostvars'][host]['physical_host']) = (
+                self.inventory['_meta']['hostvars'][host]['ansible_host']
             )
             (self.inventory['_meta']['hostvars'][host]
                 ['deploy_osp']) = True

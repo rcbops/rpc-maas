@@ -24,11 +24,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Set the current group
       set_fact:
         maas_current_group: neutron_all
@@ -86,11 +81,6 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Set the current group
       set_fact:
         maas_current_group: neutron_all
@@ -124,11 +114,6 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Set the current group
       set_fact:
         maas_current_group: neutron_all
@@ -162,11 +147,6 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Set the current group
       set_fact:
         maas_current_group: neutron_all
@@ -205,11 +185,6 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Set the current group
       set_fact:
         maas_current_group: neutron_all
@@ -250,11 +225,6 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Set the current group
       set_fact:
         maas_current_group: neutron_all
@@ -298,11 +268,6 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Set the current group
       set_fact:
         maas_current_group: neutron_all

@@ -24,11 +24,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Set the current group
       set_fact:
         maas_current_group: octavia_all
@@ -50,7 +45,7 @@
       register: octavia_project_return_rpco
       delegate_to: "{{ groups['utility_all'][0] }}"
       when:
-        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
+        - not (ansible_local.maas.general.deploy_osp | bool)
       tags:
         - skip_ansible_lint
 
@@ -58,15 +53,15 @@
       set_fact:
         octavia_project_id: "{{ octavia_project_return_rpco.stdout }}"
       when:
-        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
+        - not (ansible_local.maas.general.deploy_osp | bool)
 
     - name: Get project id (RPC-R)
-      shell: ". {{ director_openrc }} && openstack project show service -c id -f value"
+      shell: ". {{ maas_stackrc | default(maas_openrc) }} && openstack project show service -c id -f value"
       register: octavia_project_return_rpcr
       run_once: true
       delegate_to: "localhost"
       when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
+        - ansible_local.maas.general.deploy_osp | bool
       tags:
         - skip_ansible_lint
 
@@ -74,7 +69,7 @@
       set_fact:
         octavia_project_id: "{{ octavia_project_return_rpcr.stdout }}"
       when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
+        - ansible_local.maas.general.deploy_osp | bool
 
     - name: Install octavia quota check
       template:
@@ -89,24 +84,17 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
-
   environment: "{{ deployment_environment_variables | default({}) }}"
-
   tags:
     - maas-openstack-octavia
 
 
-- name: Install checks for openstack octavia-api
-  hosts: "octavia-api"
+- name: Install checks for openstack octavia_api
+  hosts: "octavia_api"
   user: "{{ ansible_user | default('root') }}"
   become: true
   gather_facts: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Set the current group
       set_fact:
         maas_current_group: octavia_all
@@ -118,20 +106,20 @@
       shell: ". {{ maas_openrc | default('/root/openrc') }} && openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer"
       delegate_to: "{{ groups['utility_all'][0] }}"
       when:
-        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
+        - not (ansible_local.maas.general.deploy_osp | bool)
       tags:
         - skip_ansible_lint
 
     - name: Add load-balancer member role (RPC-R)
       shell: |
-        . {{ director_openrc }} && \
+        . {{ maas_stackrc | default(maas_openrc) }} && \
         openstack role assignment list --project $OS_PROJECT_NAME --user $OS_USERNAME | \
         grep $(openstack role show load-balancer_observer -c id -f value) || \
         openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer
       delegate_to: "localhost"
       run_once: true
       when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
+        - ansible_local.maas.general.deploy_osp | bool
       tags:
         - skip_ansible_lint
 
@@ -172,8 +160,6 @@
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
-
   environment: "{{ deployment_environment_variables | default({}) }}"
-
   tags:
     - maas-openstack-octavia

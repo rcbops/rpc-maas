@@ -49,8 +49,4 @@
   tags:
     - maas
 
-- import_playbook: maas-managed-k8.yml
-  tags:
-    - maas
-
 - import_playbook: maas-restart.yml

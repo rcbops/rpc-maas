@@ -24,11 +24,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Verify raxmon exists in maas_venv
       stat:
         path: "{{ maas_venv }}/bin/raxmon"
@@ -81,7 +76,6 @@
       when:
         - raxmon_check.stat.exists is defined
         - raxmon_check.stat.exists
-
   vars_files:
     - vars/main.yml
     - vars/maas.yml

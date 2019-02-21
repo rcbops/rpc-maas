@@ -23,11 +23,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Create dynamic ceph osd group
       add_host:
         hostname: "{{ item }}"
@@ -47,11 +42,6 @@
   gather_facts: true
   become: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - name: Add ceph command line alias string
       set_fact:
         ceph_command: "{{ (ansible_local['maas']['general']['deploy_osp'] | bool) | ternary('docker exec ceph-mon-' ~ inventory_hostname ~ ' ceph --cluster ceph', 'ceph') }}"
