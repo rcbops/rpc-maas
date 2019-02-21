@@ -87,4 +87,12 @@ TRIPLEO_MAPPING_GROUP = {
     'swift_acc': ['swift_storage'],
     'swift_cont': ['swift_storage'],
     'swift_obj': ['swift_storage'],
+
+    # (TODO: tonytan4ver): test out all these checks, host groups
+    # and ansible variables
+    'octavia_all': ['octavia-api', ''],
+
+    # maas k8 groups:
+    "os-infra_hosts": ['mk8s_ui_all', 'mk8s_etp_all', 'mk8s_etg_all',
+                       'mk8s_auth_all']
 }

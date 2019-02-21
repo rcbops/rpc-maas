@@ -17,12 +17,7 @@ deploy_osp: true
 
 physical_host: "{{ ansible_host }}"
 
-internal_ips: "{{ ansible_all_ipv4_addresses | ipaddr(osp_internal_netmask) | difference([internal_vip_address]) }}"
-internal_ip: "{{ internal_ips[0] }}"
-
 maas_env_product: "TripleO"
-
-osp_internal_netmask: "{{ internal_vip_address | ipsubnet(24) }}"
 
 octavia_process_names:
   - octavia-api

@@ -51,12 +51,6 @@
   connection: local
   gather_facts: true
   become: true
-  pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp | default(False) | bool
-
   tasks:
     - name: Verify all passwords are defined
       fail:
@@ -442,11 +436,6 @@
   gather_facts: true
   become: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp | default(False) | bool
-
     - name: Refresh local facts
       setup:
         filter: ansible_local
@@ -521,12 +510,6 @@
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
-  pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp | default(False) | bool
-
   tasks:
     # For Queens/osp13 and beyond, use image api version 2 and volume api version 3
     - name: Override Image and Volume API versions Queens and beyond
@@ -563,12 +546,6 @@
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
-  pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - deploy_osp | default(False) | bool
-
   tasks:
     - include_tasks: "common-tasks/maas_get_openrc.yml"
     - include_tasks: "common-tasks/maas_get_maasrc.yml"

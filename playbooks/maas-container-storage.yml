@@ -46,11 +46,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
@@ -89,12 +84,6 @@
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
-  pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
   tasks:
     - name: Install local checks
       template:

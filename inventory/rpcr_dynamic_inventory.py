@@ -144,6 +144,48 @@ class RPCRMaasInventory(MaasInventory):
                 self.inventory[group_name]['vars']['maas_openrc'] = (
                     '/home/stack/stackrc'
                 )
+            # octavia group vars
+            elif group_name.lower() == 'octavia_all':
+                self.inventory[group_name]['octavia_process_names'] = [
+                    'octavia-api', 'octavia-worker'
+                    'octavia-health-manager', 'octavia-housekeeping'
+                ]
+                (self.inventory[group_name]
+                 ['octavia_process_names_sanitized']) = [
+                    'octavia-api', 'octavia-worker'
+                    'octavia-health-manager', 'octavia-housekeeping'
+                ]
+                self.inventory[group_name]['octavia_quota_names'] = [
+                    'octavia_cores_quota_usage',
+                    'octavia_instances_quota_usage',
+                    'octavia_ram_quota_usage',
+                    'octavia_server_group_quota_usage',
+                    'octavia_volume_gb_quota_usage',
+                    'octavia_num_volume_quota_usage'
+                ]
+            # mk8 group vars
+            elif group_name.lower() == 'os-infra_hosts':
+                self.inventory[group_name]['mk8s_osp_admin_token_file'] = (
+                    os.path.join(os.environ.get('HOME', ''),
+                                 '/mk8s/mk8s_auth_admin_token')
+                )
+                (self.inventory[group_name]
+                 ['maas_managed_k8_kube_config_dir']) = '/root/.k8'
+                (self.inventory[group_name]
+                 ['maas_managed_k8_kubectl_release']) = 'v1.9.1'
+                (self.inventory[group_name]
+                 ['maas_managed_k8_auth_url']) = (
+                     "http://{{ internal_vip_address }}"
+                     ":{{ mk8s_auth_port_lb }}")
+                (self.inventory[group_name]
+                 ['maas_managed_k8s_ui_process_name']) = (
+                     'kubernetes-control-panel')
+                (self.inventory[group_name]
+                 ['maas_managed_k8s_etp_process_name']) = 'etp'
+                (self.inventory[group_name]
+                 ['maas_managed_k8s_etg_process_name']) = 'etg'
+                (self.inventory[group_name]
+                 ['maas_managed_k8s_auth_process_name']) = 'kubernetes-auth'
             else:
                 # (NOTE:tonytan4ever): this is for old triplO style
                 # inventory scripts
@@ -257,6 +299,11 @@ class RPCRMaasInventory(MaasInventory):
             (self.inventory['_meta']['hostvars'][host]
                 ['cinder_backends']) = (
                 self.cinder_backend_fact
+            )
+            (self.inventory['_meta']['hostvars'][host]
+                ['maas_pip_container_packages']) = []
+            (self.inventory['_meta']['hostvars'][host]['physical_host']) = (
+                self.inventory['_meta']['hostvars'][host]['ansible_host']
             )
             (self.inventory['_meta']['hostvars'][host]
                 ['deploy_osp']) = True
