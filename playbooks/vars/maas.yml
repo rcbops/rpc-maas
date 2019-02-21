@@ -354,7 +354,6 @@ maas_pip_packages:
   - ipaddr
   - lxml
   - monitorstack
-  - netifaces
   - psutil
   - git+https://github.com/lunaryorn/pyudev.git
   - python-memcached
