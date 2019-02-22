@@ -42,7 +42,7 @@
     - always
 
 
-- name: Install checks for hosts network
+- name: Install checks for host networking
   hosts: hosts
   gather_facts: true
   become: true
@@ -71,28 +71,7 @@
       with_together:
         - "{{ maas_network_checks_list }}"
 
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-
-  environment: "{{ deployment_environment_variables | default({}) }}"
-
-  tags:
-    - maas-hosts-network
-
-
-- name: Install checks for bonding interfaces
-  hosts: hosts
-  gather_facts: true
-  become: true
-  pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
-  tasks:
-    - name: Install checks for bonding interfaces
+    - name: Install bonding interface status check
       template:
         src: "templates/rax-maas/host_bonding_iface_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/host_bonding_iface_check.yaml"
@@ -100,6 +79,14 @@
         group: "root"
         mode: "0644"
       when: maas_bonding_interfaces is defined and (maas_bonding_interfaces | length) > 0
+
+    - name: Install network statistics check
+      template:
+        src: "templates/rax-maas/network_stats_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/network_stats_check.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
 
   vars_files:
     - vars/main.yml
