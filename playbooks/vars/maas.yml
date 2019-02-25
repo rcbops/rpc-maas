@@ -463,6 +463,12 @@ maas_network_checks_list:
     tx_pct_crit: 80
 
 #
+# MaaS network statistics check error rates
+#
+maas_network_rx_error_threshold: 64
+maas_network_tx_error_threshold: 64
+
+#
 # maas_k8s_ui_scheme: https
 #
 maas_managed_k8_kube_config_dir: /root/.k8

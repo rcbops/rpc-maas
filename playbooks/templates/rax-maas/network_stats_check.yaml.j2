@@ -1,0 +1,35 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
+{% set label = "network_stats_check" %}
+{% set check_name = label+'--'+inventory_hostname %}
+type        : agent.plugin
+label       : "{{ check_name }}"
+period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
+timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
+disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+details     :
+    file    : run_plugin_in_venv.sh
+    args    : ["{{ maas_plugin_dir }}/network_stats_check.py"]
+    timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
+alarms:
+    physical_interface_rx_errors:
+        label                   : physical_interface_rx_errors--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (('physical_interface_rx_errors--'+inventory_hostname )is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (rate(metric['physical_interface_rx_errors']) > {{ maas_network_rx_error_threshold }}) {
+              return new AlarmStatus(CRITICAL, "There have been more than {{ maas_network_rx_error_threshold }} network RX errors in the last {{ maas_check_period_override[label] | default(maas_check_period) }}s.");
+            }
+            return new AlarmStatus(OK, "#{physical_interface_rx_errors} network RX errors have been detected in the last {{ maas_check_period_override[label] | default(maas_check_period) }}.");
+    physical_interface_tx_errors:
+        label                   : physical_interface_tx_errors--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (('physical_interface_tx_errors--'+inventory_hostname )is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (rate(metric['physical_interface_tx_errors']) > {{ maas_network_tx_error_threshold }}) {
+              return new AlarmStatus(CRITICAL, "There have been more than {{ maas_network_tx_error_threshold }} network TX errors in the last {{ maas_check_period_override[label] | default(maas_check_period) }}s.");
+            }
+            return new AlarmStatus(OK, "#{physical_interface_tx_errors} network TX errors have been detected in the last {{ maas_check_period_override[label] | default(maas_check_period) }}s.");
