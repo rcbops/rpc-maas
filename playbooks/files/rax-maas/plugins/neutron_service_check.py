@@ -71,7 +71,7 @@ def check(args):
         if args.host:
             name = '%s_status' % agent['binary']
         elif args.fqdn:
-            name = '%z_status' % agent['binary']
+            name = '%s_status' % agent['binary']
         else:
             name = '%s_%s_on_host_%s' % (agent['binary'],
                                          agent['id'],

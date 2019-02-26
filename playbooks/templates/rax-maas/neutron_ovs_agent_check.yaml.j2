@@ -1,6 +1,7 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "neutron_ovs_agent_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
+{% set service_host = ansible_nodename + ansible_local['maas']['general']['local_suffix'] | default('') %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -8,7 +9,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/neutron_ovs_agent_check.py"]
+    args    : ["{{ maas_plugin_dir }}/neutron_ovs_agent_check.py", "--protocol", "{{ neutron_client_protocol }}", "--host", "{{ service_host }}", "--fqdn", "{{ ansible_fqdn }}", "{{ internal_vip_address }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
@@ -19,8 +20,11 @@ alarms      :
         disabled                : {{ (('neutron_ovs_agent_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["neutron-openvswitch-agent_process_status"] != 1) {
-                return new AlarmStatus(CRITICAL, "neutron-ovs-agent down");
+            if (metric["neutron-openvswitch-agent_status"] regex ".*cannot reach API.*") {
+                return new AlarmStatus(WARNING, "neutron openvswitch-agent can't reach API");
+            }
+            if (metric["neutron-openvswitch-agent_status"] == "No") {
+                return new AlarmStatus(CRITICAL, "neutron-openvswitch-agent down");
             }
     ovsdb_server_process_status :
         label                   : ovsdb_server_process_status--{{ inventory_hostname }}
