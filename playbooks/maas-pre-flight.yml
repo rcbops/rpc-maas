@@ -138,7 +138,9 @@
           when:
             - groups['swift_all'] | default([]) | length > 0
             - ansible_local['maas']['general']['maas_product_osa_codename'] is defined
-            - ansible_local['maas']['general']['maas_product_osa_codename'] == 'kilo'
+            - ansible_local['maas']['general']['maas_product_osa_codename'] == 'kilo' or
+              ansible_local['maas']['general']['maas_product_osa_codename'] == '1andone'
+
       when:
         - not (deploy_osp | default(False) | bool)
         - osa_release_file.stat.exists | bool

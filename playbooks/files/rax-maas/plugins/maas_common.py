@@ -219,7 +219,6 @@ else:
         return glance
 
 try:
-    from novaclient import client as nova_client
     from novaclient.client import exceptions as nova_exc
 except ImportError:
     def get_nova_client(*args, **kwargs):
@@ -244,15 +243,10 @@ else:
                                                       get_endpoint_type(
                                                           auth_details))
 
-        nova = nova_client.Client(
-            get_os_component_major_api_version('nova')[0],
-            auth_token=auth_token,
-            auth_url=auth_details['OS_AUTH_URL'],
-            bypass_url=bypass_url,
-            insecure=auth_details['OS_API_INSECURE'])
+        nova = OSC_CLIENT.compute
 
         try:
-            flavors = nova.flavors.list()
+            flavors = nova.flavors()
             # Exceptions are only thrown when we try and do something
             [flavor.id for flavor in flavors]
 

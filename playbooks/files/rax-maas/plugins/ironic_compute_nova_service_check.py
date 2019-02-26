@@ -55,9 +55,9 @@ def check(auth_ref, args):
 
     # gather nova service states
     if args.host:
-        services = nova.services.list(host=args.host)
+        services = nova.services(host=args.host)
     else:
-        services = nova.services.list()
+        services = nova.services()
 
     if len(services) == 0:
         status_err("No host(s) found in the service list", m_name='maas_nova')

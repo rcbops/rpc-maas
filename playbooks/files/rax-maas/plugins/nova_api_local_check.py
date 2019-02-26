@@ -67,11 +67,11 @@ def check(auth_ref, args):
         metric_bool('client_success', True, m_name='maas_nova')
         # time something arbitrary
         start = time.time()
-        nova.services.list()
+        nova.services()
         end = time.time()
         milliseconds = (end - start) * 1000
 
-        servers = nova.servers.list(search_opts={'all_tenants': 1})
+        servers = nova.servers(all_tenants=1)
         # gather some metrics
         status_count = collections.Counter([s.status for s in servers])
 

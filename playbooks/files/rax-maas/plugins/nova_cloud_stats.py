@@ -36,22 +36,22 @@ stats_mapping = {
         'stat_name': 'count', 'unit': 'hypervisors', 'type': 'uint32'
     },
     'total_disk_space': {
-        'stat_name': 'local_gb', 'unit': 'Gigabytes', 'type': 'uint32'
+        'stat_name': 'local_disk_size', 'unit': 'Gigabytes', 'type': 'uint32'
     },
     'used_disk_space': {
-        'stat_name': 'local_gb_used', 'unit': 'Gigabytes', 'type': 'uint32'
+        'stat_name': 'local_disk_used', 'unit': 'Gigabytes', 'type': 'uint32'
     },
     'free_disk_space': {
-        'stat_name': 'free_disk_gb', 'unit': 'Gigabytes', 'type': 'uint32'
+        'stat_name': 'local_disk_free', 'unit': 'Gigabytes', 'type': 'uint32'
     },
     'total_memory': {
-        'stat_name': 'memory_mb', 'unit': 'Megabytes', 'type': 'uint32'
+        'stat_name': 'memory_size', 'unit': 'Megabytes', 'type': 'uint32'
     },
     'used_memory': {
-        'stat_name': 'memory_mb_used', 'unit': 'Megabytes', 'type': 'uint32'
+        'stat_name': 'memory_used', 'unit': 'Megabytes', 'type': 'uint32'
     },
     'free_memory': {
-        'stat_name': 'free_ram_mb', 'unit': 'Megabytes', 'type': 'uint32'
+        'stat_name': 'memory_free', 'unit': 'Megabytes', 'type': 'uint32'
     },
     'total_vcpus': {
         'stat_name': 'vcpus', 'unit': 'vcpu', 'type': 'uint32'
@@ -86,20 +86,24 @@ def check(auth_ref, args):
     else:
         metric_bool('client_success', True, m_name='maas_nova')
         # get some cloud stats
-        stats = nova.hypervisor_stats.statistics()
+        stats = [nova.get_hypervisor(i.id) for i in nova.hypervisors()]
         cloud_stats = collections.defaultdict(dict)
-        for metric_name, vals in stats_mapping.iteritems():
-            multiplier = 1
-            if metric_name == 'total_vcpus':
-                multiplier = args.cpu_allocation_ratio
-            elif metric_name == 'total_memory':
-                multiplier = args.mem_allocation_ratio
-            cloud_stats[metric_name]['value'] = \
-                (getattr(stats, vals['stat_name']) * multiplier)
-            cloud_stats[metric_name]['unit'] = \
-                vals['unit']
-            cloud_stats[metric_name]['type'] = \
-                vals['type']
+        count = 0
+        for stat in stats:
+            count += 1
+            setattr(stat, 'count', count)
+            for metric_name, vals in stats_mapping.iteritems():
+                multiplier = 1
+                if metric_name == 'total_vcpus':
+                    multiplier = args.cpu_allocation_ratio
+                elif metric_name == 'total_memory':
+                    multiplier = args.mem_allocation_ratio
+                cloud_stats[metric_name]['value'] = \
+                    (getattr(stat, vals['stat_name']) * multiplier)
+                cloud_stats[metric_name]['unit'] = \
+                    vals['unit']
+                cloud_stats[metric_name]['type'] = \
+                    vals['type']
 
     status_ok(m_name='maas_nova')
     for metric_name in cloud_stats.iterkeys():

@@ -518,8 +518,7 @@ def get_stats_from(args):
                                  deploy_osp=deploy_osp)
     elif args.recon == 'replication':
         if args.ring not in {"account", "container", "object"}:
-            status_err('no ring provided to check',
-                                   m_name='maas_swift')
+            status_err('no ring provided to check', m_name='maas_swift')
         stats = swift_replication(args.ring,
                                   swift_recon_path=args.swift_recon_path,
                                   deploy_osp=deploy_osp)
