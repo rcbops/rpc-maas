@@ -29,7 +29,9 @@ import shlex
 import subprocess
 
 import maas_common
-from maas_common import status_err, status_err_no_exit
+from maas_common import status_err
+from maas_common import status_ok
+from maas_common import status_err_no_exit
 
 
 class ParseError(maas_common.MaaSException):
@@ -56,19 +58,16 @@ def get_container_name(deploy_osp, for_ring):
     if not deploy_osp:
         # identify the container we will use for monitoring
         get_container = shlex.split(
-            'lxc-ls -1 --running ".*(swift_proxy|swift)"')
+            'lxc-ls -1 --running ".*(swift_proxy|swift)"'
+        )
 
         try:
             containers_list = subprocess.check_output(get_container)
             container = containers_list.splitlines()[0]
         except (IndexError, subprocess.CalledProcessError):
-            status_err('no running swift %s  or proxy containers found' %
-                       for_ring, m_name='maas_swift')
-
+            return False
     else:
-        get_containers = (
-            "/usr/local/bin/docker ps -f status=running"
-        )
+        get_containers = ("/usr/local/bin/docker ps -f status=running")
         containers_list = subprocess.check_output(get_containers.split())
 
         c = getcontainer('swift_proxy', containers_list)
@@ -110,17 +109,28 @@ def recon_output(for_ring, options=None, swift_recon_path=None,
     command = [os.path.join(swift_recon_path or "", 'swift-recon'), for_ring]
     command.extend(options or [])
     command_options = ' '.join(command)
-    if deploy_osp:
-        container_exec_command = 'docker exec %s' % container
-        full_command = '{container_exec_command} {command_options}'
+
+    if not container:
+        _full_command = '{command_options}'.format(
+            command_options=command_options
+        )
+    elif deploy_osp:
+        _full_command = '{container_exec_command} {command_options}'.format(
+            container_exec_command='docker exec {}'.format(
+                container
+            ),
+            command_options=command_options
+        )
     else:
-        container_exec_command = 'lxc-attach -n %s -- bash -c' % container
-        command_options = '"%s"' % command_options
-        full_command = '{container_exec_command} {command_options}'
-    full_command = shlex.split(
-        '{container_exec_command} {command_options}' .format(
-            container_exec_command=container_exec_command,
-            command_options=command_options))
+        _full_command = '{container_exec_command} {command_options}'.format(
+            container_exec_command='lxc-attach -n {} -- bash -c'.format(
+                container
+            ),
+            command_options='"{}"'.format(command_options)
+        )
+
+    full_command = shlex.split(_full_command)
+
     try:
         out = subprocess.check_output(full_command)
     except subprocess.CalledProcessError as error:
@@ -273,7 +283,7 @@ def swift_async(swift_recon_path=None, deploy_osp=False):
             break
     else:
         # If we didn't find a non-empty dict, error out
-        maas_common.status_err(
+        status_err(
             'No data could be collected about pending async operations',
             m_name='maas_swift'
         )
@@ -354,7 +364,7 @@ def swift_md5(swift_recon_path=None, deploy_osp=False):
         # If there was an error checking the md5sum, error out immediately
         if line.startswith('!!'):
             error_dict = error_re.search(line).groupdict()
-            maas_common.status_err(
+            status_err(
                 'md5 mismatch for {0} on host {1}'.format(
                     checking_dict.get('check'),
                     error_dict['address']
@@ -508,8 +518,7 @@ def get_stats_from(args):
                                  deploy_osp=deploy_osp)
     elif args.recon == 'replication':
         if args.ring not in {"account", "container", "object"}:
-            maas_common.status_err('no ring provided to check',
-                                   m_name='maas_swift')
+            status_err('no ring provided to check', m_name='maas_swift')
         stats = swift_replication(args.ring,
                                   swift_recon_path=args.swift_recon_path,
                                   deploy_osp=deploy_osp)
@@ -528,10 +537,10 @@ def main():
     try:
         stats = get_stats_from(args)
     except (ParseError, CommandNotRecognized) as e:
-        maas_common.status_err(str(e), m_name='maas_swift')
+        status_err(str(e), m_name='maas_swift')
 
     if stats:
-        maas_common.status_ok(m_name='maas_swift')
+        status_ok(m_name='maas_swift')
         print_nested_stats(stats)
 
 

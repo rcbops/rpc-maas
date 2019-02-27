@@ -521,6 +521,7 @@ maas_agent_endpoint:
   status_code:
     - 200
     - 404
+    - 503
 
 #
 # Check to ensure no 'unknown' values are rendered into metadata
@@ -563,6 +564,8 @@ maas_compat:
 # Release specific check exclusions
 #
 maas_release_excluded_checks:
+  1andone:
+    - swift_time_sync_check
   kilo:
     - swift_time_sync_check
   queens:

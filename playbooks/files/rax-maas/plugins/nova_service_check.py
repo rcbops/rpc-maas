@@ -60,9 +60,9 @@ def check(auth_ref, args):
 
     # gather nova service states
     if args.host:
-        services = nova.services.list(host=args.host)
+        services = [i for i in nova.services() if i.host == args.host]
     else:
-        services = nova.services.list()
+        services = nova.services()
 
     if len(services) == 0:
         status_err("No host(s) found in the service list", m_name='maas_nova')
@@ -76,9 +76,12 @@ def check(auth_ref, args):
             if service.state.lower() == 'down':
                 service_is_up = "No"
         elif service.status.lower() == 'disabled':
-            if service.disabled_reason:
-                if 'auto' in service.disabled_reason.lower():
-                    service_is_up = "No"
+            try:
+                if service.disabled_reason:
+                    if 'auto' in service.disabled_reason.lower():
+                        service_is_up = "No"
+            except AttributeError:
+                pass
 
         if args.host:
             name = '%s_status' % service.binary
