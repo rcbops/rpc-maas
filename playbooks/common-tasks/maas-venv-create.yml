@@ -27,7 +27,7 @@
   delay: 2
 
 - name: Create MaaS venv
-  command: "virtualenv --no-site-packages {{ target_venv | default(maas_venv) }}"
+  command: "virtualenv --no-site-packages --no-setuptools {{ target_venv | default(maas_venv) }}"
   args:
     creates: "{{ target_venv | default(maas_venv) }}/bin/python"
 
@@ -40,7 +40,7 @@
         name:
           - pip
           - setuptools
-        extra_args: "-U"
+        extra_args: "-U --isolated"
         virtualenv: "{{ target_venv | default(maas_venv) }}"
 
     - name: Ensure MaaS pip packages are installed
@@ -58,6 +58,7 @@
       delay: 2
       when:
         - not (ansible_local['maas']['general']['deploy_osp'] | bool)
+        - ansible_local['maas']['general']['maas_container_host'] | bool
 
     - name: Ensure MaaS pip packages are installed
       pip:
@@ -73,4 +74,5 @@
       retries: 5
       delay: 2
       when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
+        - ansible_local['maas']['general']['deploy_osp'] | bool or
+          not (ansible_local['maas']['general']['maas_container_host'] | bool)

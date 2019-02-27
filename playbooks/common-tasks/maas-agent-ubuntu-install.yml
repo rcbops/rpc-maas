@@ -44,9 +44,19 @@
   retries: 5
   delay: 2
 
-- name: Ensure container packages are installed
+- name: Ensure packages are installed
   package:
-    name: "{{ maas_distro_packages | union(maas_extra_distro_packages) }}"
+    name: "{{ maas_distro_packages }}"
     state: "{{ maas_package_state }}"
     update_cache: yes
     cache_valid_time: 600
+
+- name: Ensure container packages are installed
+  package:
+    name: "{{ maas_extra_distro_packages }}"
+    state: "{{ maas_package_state }}"
+    update_cache: yes
+    cache_valid_time: 600
+  when:
+    - not (ansible_local['maas']['general']['deploy_osp'] | bool)
+    - ansible_local['maas']['general']['maas_container_host'] | bool
