@@ -16,7 +16,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (inventory_hostname != groups['mons'][0] or check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname != groups['mons'][0] or check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : {{ ceph_args }}
@@ -27,7 +27,7 @@ alarms      :
     ceph_health_err :
         label                   : ceph_health_err--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('ceph_health_err--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('ceph_health_err--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["cluster_health"] == 0) {
@@ -36,7 +36,7 @@ alarms      :
     ceph_health_warn :
         label                   : ceph_health_warn--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('ceph_health_warn--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('ceph_health_warn--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["cluster_health"] == 1) {

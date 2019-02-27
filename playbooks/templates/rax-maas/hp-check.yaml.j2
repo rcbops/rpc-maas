@@ -5,7 +5,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(300) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(299) }}"
-disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/hp_monitoring.py"]
@@ -16,7 +16,7 @@ alarms      :
     hp-controller_status :
         label                   : hp-controller--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('hp-controller--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('hp-controller--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["hardware_controller_status"] != 1) {
@@ -25,7 +25,7 @@ alarms      :
     hp-controller-battery_status :
         label                   : hp-controller-battery--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('hp-controller-battery--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('hp-controller-battery--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["hardware_controller_battery_status"] != 1) {
@@ -34,7 +34,7 @@ alarms      :
     hp-controller-cache_status :
         label                   : hp-controller-cache--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('hp-controller-cache--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('hp-controller-cache--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["hardware_controller_cache_status"] != 1) {
@@ -43,7 +43,7 @@ alarms      :
     hp-disk_status :
         label                   : hp-disk--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('hp-disk--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('hp-disk--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["hardware_disk_status"] != 1) {
@@ -52,7 +52,7 @@ alarms      :
     hp-memory_status :
         label                   : hp-memory--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('hp-memory--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('hp-memory--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["hardware_memory_status"] != 1) {
@@ -61,7 +61,7 @@ alarms      :
     hp-processors_status :
         label                   : hp-processors--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('hp-processors--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('hp-processors--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["hardware_processors_status"] != 1) {
@@ -70,7 +70,7 @@ alarms      :
     hp-powersupply_status :
         label                   : hp-powersupply--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('hp-powersupply--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('hp-powersupply--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["hardware_powersupply_status"] != 1) {

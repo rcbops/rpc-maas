@@ -1,5 +1,7 @@
 import collections
 import itertools
+import os
+
 try:
     import pathlib
 except ImportError:
@@ -13,9 +15,20 @@ import jinja2.meta
 import yaml
 
 
-PLAYBOOKS_DIR = "playbooks/"
-TEMPLATES_DIR = "{root}/templates/rax-maas".format(root=PLAYBOOKS_DIR)
-VARS_DIR = "{root}/vars".format(root=PLAYBOOKS_DIR)
+PLAYBOOKS_DIR = os.path.abspath("playbooks/")
+TEMPLATES_DIR = os.path.abspath(
+    os.path.join(
+        PLAYBOOKS_DIR,
+        "templates/rax-maas"
+    )
+)
+VARS_DIR = os.path.abspath(
+    os.path.join(
+        PLAYBOOKS_DIR,
+        'vars'
+    )
+)
+
 
 # NOTE: This regex includes the outer parenthesis. This is at least
 # consistent in that we can always strip the first and last charaters
@@ -28,7 +41,7 @@ IGNORED_TEMPLATES = (
     "maas_rally.yaml.j2", # not check related
     "rally_deployment.yaml.j2", # not check related
     "clouds.yaml.j2", # not check related
-    )
+)
 
 
 class SilentUndefined(jinja2.Undefined):
@@ -108,7 +121,7 @@ class RemappingLoader(yaml.Loader):
         return mapping
 
 
-def _get_defaults(root, vars_dir=VARS_DIR):
+def _get_defaults(root=PLAYBOOKS_DIR, vars_dir=VARS_DIR):
     """Return a dictionary of variables
 
     This returns *all* variables configured for use in the
@@ -144,6 +157,10 @@ def _get_globals(config_variables):
 
     # For most names, just set the value to itself. It's mostly a placeholder.
     new_globals = {k: "<%s>" % k for k in global_names}
+    new_globals["maas_scheme"] = "http"
+    new_globals["external_lb_vip_address"] = "0.0.0.0"
+    new_globals["maas_external_hostname"] = 'test'
+    new_globals["maas_external_ip_address"] = "0.0.0.0"
 
     # These regexes get created as a part of a task when the maas playbooks
     # are run.
@@ -348,7 +365,7 @@ def _ipaddr(*args, **kwargs):
     return "ipaddr"
 
 
-def check_details(root, templates_dir=TEMPLATES_DIR):
+def _check_details(root=PLAYBOOKS_DIR, templates_dir=TEMPLATES_DIR):
     """Yield check names and a generator of their details.
 
     This yields a tuple, where the first value is the check label,
@@ -378,7 +395,7 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
                        'status': 'CRITICAL',
                        'message': 'Packet loss has occurred'}]}})
     """
-    config_variables = _get_defaults(root)
+    config_variables = _get_defaults(root=root)
 
     rax_maas_path = pathlib.Path(pathlib.PurePath(root, templates_dir))
     # Some templates inside rax_maas_path refer to
@@ -394,6 +411,7 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
         undefined=SilentUndefined)
     env.globals = _get_globals(config_variables)
     env.globals.update(lookup=_lookup)
+    env.globals.update(playbook_dir=PLAYBOOKS_DIR)
 
     # Since we're looking specifically at Ansible templates, we need to bring
     # a few things into the standard Jinja2 filters that we end up using.
@@ -427,8 +445,10 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
         # Load this with the RemappingLoader so we can catch things like
         # {{ private_ssh_port }}, which isn't wrapped in quotes,
         # and is thus unhashable as a mapping key within pyyaml.
-        rendered_yaml = yaml.load(partially_rendered_template,
-                                  Loader=RemappingLoader)
+        rendered_yaml = yaml.load(
+            partially_rendered_template,
+            Loader=RemappingLoader
+        )
 
         # TODO(briancurtin): The network_throughput related variables
         # aren't included here as that check loops over other variables
@@ -452,7 +472,7 @@ def check_details(root, templates_dir=TEMPLATES_DIR):
         yield (label, category, details)
 
 
-def categorized_check_details(root, templates_dir=TEMPLATES_DIR):
+def categorized_check_details(root=PLAYBOOKS_DIR, templates_dir=TEMPLATES_DIR):
     """Return categories and their corresponding checks
 
     This returns a dict where the keys are categories and the values
@@ -490,14 +510,18 @@ def categorized_check_details(root, templates_dir=TEMPLATES_DIR):
     }
     """
     categorized = collections.defaultdict(dict)
-    for check, category, details in list(check_details(root)):
+    for check, category, details in list(_check_details(root)):
         categorized[category][check] = details
 
     return categorized
 
 
+def setup(app):
+    pass
+
+
 def _main():
-    for category, checks in categorized_check_details("../../..").items():
+    for category, checks in categorized_check_details().items():
         print("Category: {}".format(category))
         for check, details in checks.items():
             print("\tCheck: {}".format(check))

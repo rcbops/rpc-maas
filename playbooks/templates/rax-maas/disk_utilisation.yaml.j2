@@ -1,15 +1,15 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
-{% set device_name = item.split('/')[-1] %}
+{% set device_name = item.key %}
 {% set label = "disk_utilisation_" + device_name %}
 {% set check_name = label+'--'+inventory_hostname %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(900) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(899) }}"
-disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/disk_utilisation.py", "{{ item }}"]
+    args    : ["{{ maas_plugin_dir }}/disk_utilisation.py", "{{ item.key }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(899) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
@@ -17,12 +17,12 @@ alarms      :
     percentage_disk_utilisation_{{ device_name }}:
         label                   : percentage_disk_utilisation_{{ device_name }}--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('percentage_disk_utilisation_'+device_name+'--'+inventory_hostname | quote) is match(maas_excluded_alarms_regex) or inventory_hostname in (groups['shared-infra_hosts'] | default([]))) | ternary('false', 'true') }}
+        disabled                : {{ (('percentage_disk_utilisation_'+device_name+'--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex) or inventory_hostname in (groups['shared-infra_hosts'] | default([]))) | ternary('false', 'true') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["disk_utilisation_{{ device_name }}"] > {{ maas_disk_utilisation_critical_threshold }}) {
-                return new AlarmStatus(CRITICAL, "Disk IO utilisation for {{ item }} >= {{ maas_disk_utilisation_critical_threshold }}%");
+                return new AlarmStatus(CRITICAL, "Disk IO utilisation for {{ item.key }} >= {{ maas_disk_utilisation_critical_threshold }}%");
             }
             if (metric["disk_utilisation_{{ device_name }}"] > {{ maas_disk_utilisation_warning_threshold }}) {
-                return new AlarmStatus(WARNING, "Disk IO utilisation for {{ item }} >= {{ maas_disk_utilisation_warning_threshold }}%");
+                return new AlarmStatus(WARNING, "Disk IO utilisation for {{ item.key }} >= {{ maas_disk_utilisation_warning_threshold }}%");
             }

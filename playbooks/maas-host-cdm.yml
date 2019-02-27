@@ -75,12 +75,13 @@
     - name: Install disk utilisation Checks
       template:
         src: "templates/rax-maas/disk_utilisation.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/disk_utilisation_{{ item.split('/')[-1] }}--{{ inventory_hostname }}.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/disk_utilisation_{{ item.key }}--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
-      with_items:
-        - "{{ maas_disk_util_devices }}"
+      when:
+        - item.value.partitions
+      with_dict: "{{ ansible_devices }}"
 
     - name: Install nfs system checks
       template:

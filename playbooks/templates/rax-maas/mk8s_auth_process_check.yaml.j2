@@ -5,7 +5,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/process_check_{% if inventory_hostname in groups['all_containers'] | default([]) %}container.py", "-c", "{{ inventory_hostname }}", "{% else %}host.py", "{% endif %}{{ maas_managed_k8s_auth_process_name }}"]
@@ -16,7 +16,7 @@ alarms      :
     {{ maas_managed_k8s_auth_process_name }}_process_status:
         label                   : {{ maas_managed_k8s_auth_process_name }}_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ ((maas_managed_k8s_auth_process_name+'_process_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ ((maas_managed_k8s_auth_process_name+'_process_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["{{ maas_managed_k8s_auth_process_name }}_process_status"] != 1 ) {

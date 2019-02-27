@@ -6,7 +6,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/nova_service_check.py", "--host", "{{ service_host }}", "--protocol", "{{ nova_service_check_protocol }}", "{{ internal_vip_address }}"]
@@ -17,7 +17,7 @@ alarms      :
     nova_compute_status :
         label                   : nova_compute_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('nova_compute_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('nova_compute_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["nova-compute_status"] regex ".*cannot reach API.*") {

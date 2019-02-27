@@ -5,7 +5,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(300) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(299) }}"
-disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/openmanage.py", "chassis", "processors"]
@@ -16,7 +16,7 @@ alarms      :
     openmanage-processors :
         label                   : openmanage-processors--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('openmanage-processors--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('openmanage-processors--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["hardware_processors_status"] != 1) {

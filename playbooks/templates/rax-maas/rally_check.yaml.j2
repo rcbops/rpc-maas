@@ -18,7 +18,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ period }}"
 timeout     : "{{ timeout }}"
-disabled    : "{{ (inventory_hostname not in maas_rally_primary_node or check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname not in maas_rally_primary_node or check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_rally_venv.sh
     args    : ["{{ maas_plugin_dir }}/rally_performance.py", "{{ name }}" {% if influxdb %}, "--influxdb" {% endif %}]
@@ -29,7 +29,7 @@ alarms      :
     rally_{{ name }}_total_{{ stat }}_warn :
         label                   : rally_{{ name }}_total_{{ stat }}_warn--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (("rally_{{ name }}_total_{{ stat }}_warn--{{ inventory_hostname }}") is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (("rally_{{ name }}_total_{{ stat }}_warn--{{ inventory_hostname }}") | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ alarm_consecutive_count }}
             if (metric['{{ name }}_total_{{ stat }}'] > {{ warn_threshold }}) {
@@ -38,7 +38,7 @@ alarms      :
     rally_{{ name }}_total_{{ stat }}_crit :
         label                   : rally_{{ name }}_total_{{ stat }}_crit--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (("rally_{{ name }}_total_{{ stat }}_crit--{{ inventory_hostname }}") is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (("rally_{{ name }}_total_{{ stat }}_crit--{{ inventory_hostname }}") | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ alarm_consecutive_count }}
             if (metric['{{ name }}_total_{{ stat }}'] > {{ crit_threshold }}) {
@@ -47,7 +47,7 @@ alarms      :
     rally_{{ name }}_maas_check_duration :
         label                   : rally_{{ name }}_maas_check_duration--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (("rally_{{ name }}_maas_check_duration--{{ inventory_hostname }}") is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (("rally_{{ name }}_maas_check_duration--{{ inventory_hostname }}") | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ alarm_consecutive_count }}
             if (metric["maas_check_duration"] > {{ '%0.2f' | format(duration_threshold_seconds|float) }}) {
@@ -56,7 +56,7 @@ alarms      :
     rally_{{ name }}_delayed_by_lock :
         label                   : rally_{{ name }}_delayed_by_lock--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (("rally_{{ name }}_delayed_by_lock--{{ inventory_hostname }}") is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (("rally_{{ name }}_delayed_by_lock--{{ inventory_hostname }}") | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ delayed_by_lock_threshold }}
             if (metric["delayed_by_lock"] > 0) {
@@ -65,7 +65,7 @@ alarms      :
     rally_{{ name }}_resource_cleanup :
         label                   : rally_{{ name }}_resource_cleanup--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (("rally_{{ name }}_resource_cleanup--{{ inventory_hostname }}") is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (("rally_{{ name }}_resource_cleanup--{{ inventory_hostname }}") | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ resource_cleanup_threshold }}
             if (metric["resource_cleanup"] > 0) {
@@ -75,7 +75,7 @@ alarms      :
     rally_{{ name }}_influxdb :
         label                   : rally_{{ name }}_influxdb--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (("rally_{{ name }}_influxdb--{{ inventory_hostname }}") is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (("rally_{{ name }}_influxdb--{{ inventory_hostname }}") | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ alarm_consecutive_count }}
             if (metric["influxdb_success"] != 1) {
