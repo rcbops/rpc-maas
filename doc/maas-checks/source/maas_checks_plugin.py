@@ -32,19 +32,45 @@ def _get_details(file_name, app):
                  prefix=PREFIX, file_name=file_name))
 
 
+def _mkdir_p(path):
+    """Python implementation of `mkdir -p <path>`
+    :param path: ``str``
+    """
+    try:
+        if not os.path.isdir(path):
+            os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise OSError(
+                'The provided path can not be created into a directory.'
+            )
+
+
+def _make_file(file_name):
+    if not os.path.exists(file_name):
+        _mkdir_p(path=os.path.dirname(file_name))
+        with open(file_name, 'w') as f:
+            f.write('')
+
+
 def get_category_details(category, app):
     file_name = os.path.join(app.srcdir, "stubs", category, "title.rst")
+    _make_file(file_name)
     yield from _get_details(file_name, app)
 
 
 def get_check_details(category, check, app):
     file_name = os.path.join(app.srcdir, "stubs", category, check, "title.rst")
+    _make_file(file_name)
     yield from _get_details(file_name, app)
 
 
 def get_alarm_details(category, check, alarm, app):
     file_name = os.path.join(app.srcdir, "stubs", category, check,
                              "{alarm}.rst".format(alarm=alarm))
+    _make_file(file_name)
     yield from _get_details(file_name, app)
 
 
@@ -202,3 +228,4 @@ def build_finished(app, exception):
 def setup(app):
     app.connect("builder-inited", builder_inited)
     app.connect("build-finished", build_finished)
+

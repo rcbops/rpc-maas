@@ -5,7 +5,7 @@ type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled          : "{{ (inventory_hostname != groups['swift_proxy'][0] or check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled          : "{{ (inventory_hostname != groups['swift_proxy'][0] or check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_resolver   : "IPv4"
 target_hostname   : "{{ maas_external_ip_address }}"
 details           :
@@ -18,7 +18,7 @@ alarms            :
     private_lb_api_alarm_swift_access:
         label               : private_lb_api_alarm_swift_access
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ ('private_lb_api_alarm_swift_access' is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled            : {{ ('private_lb_api_alarm_swift_access' | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria            : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric['code'] != '200') {

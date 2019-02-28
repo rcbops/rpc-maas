@@ -5,7 +5,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (inventory_hostname not in maas_swift_recon_nodes or check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (inventory_hostname not in maas_swift_recon_nodes or check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/swift-recon.py", "-t", "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}", {% if (ansible_local['maas']['general']['deploy_osp'] | bool) %}"--deploy_osp",{% endif %}"--swift-recon-path", "{{ ansible_local['maas']['general']['swift_recon_path'] | default(swift_recon_path) }}", "--ring-type", "object", "replication"]
@@ -16,7 +16,7 @@ alarms      :
     swift_object_replication_failure_check :
         label                   : swift_object_replication_failure_check--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('swift_object_replication_failure_check--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_object_replication_failure_check--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["time_failed"] > {{ maas_swift_object_replication_failure_percentage_threshold }}) {
@@ -25,7 +25,7 @@ alarms      :
     swift_object_replication_rate_check :
         label                   : swift_object_replication_rate_check--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('swift_object_replication_rate_check--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_object_replication_rate_check--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric["time_avg"]) > {{ maas_swift_object_replication_growth_rate_threshold }}) {
@@ -34,7 +34,7 @@ alarms      :
     swift_object_replication_avg_time_check :
         label                   : swift_object_replication_avg_time_check--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('swift_object_replication_avg_time_check--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('swift_object_replication_avg_time_check--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["time_avg"] > {{ maas_swift_object_replication_avg_time_threshold }}) {

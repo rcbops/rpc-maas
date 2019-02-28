@@ -11,7 +11,7 @@ type        : agent.network
 label       : "{{ check_name }}"
 period      : {{ maas_check_period| default(60) }}
 timeout     : {{ maas_check_timeout| default(30) }}
-disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details:
   target: {{ item.0.name }}
 {{ get_metadata(label).strip() }}
@@ -20,7 +20,7 @@ alarms:
     alarm-network-receive:
         label: Network receive rate on {{ item.0.name }}
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ (('Network receive rate on '+item.0.name) is match(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
+        disabled            : {{ (('Network receive rate on '+item.0.name) | regex_search(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
         criteria: |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric['rx_bytes']) > {{ rx_crit }}) {
@@ -33,7 +33,7 @@ alarms:
     alarm-network-transmit:
         label: Network transmit rate on {{ item.0.name }}
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ (('Network transmit rate on '+item.0.name) is match(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
+        disabled            : {{ (('Network transmit rate on '+item.0.name) | regex_search(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
         criteria: |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (rate(metric['tx_bytes']) > {{ tx_crit }}) {

@@ -5,7 +5,7 @@ type              : remote.tcp
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled          : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled          : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_hostname   : "{{ ansible_default_ipv4.address }}"
 details           :
   port            : {{ private_ssh_port }}
@@ -19,7 +19,7 @@ alarms            :
   Banner_Match              :
         label               : banner_match--{{ inventory_hostname | quote }}
         notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled            : {{ (('private_ssh_check--'+inventory_hostname | quote) is match(
+        disabled            : {{ (('private_ssh_check--'+inventory_hostname | quote) | regex_search(
         maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria            : |
             :set consecutiveCount=3

@@ -3,4 +3,4 @@
 label: "{{ label_name }}"
 period: "{{ maas_check_period_override[item.label] | default(maas_check_period) }}"
 timeout: "{{ maas_check_timeout_override[item.label] | default(maas_check_timeout) }}"
-disabled: "{{ (label_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') | quote }}"
+disabled: "{{ (label_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') | quote }}"

@@ -6,7 +6,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/neutron_ovs_agent_check.py", "--protocol", "{{ neutron_client_protocol }}", "--host", "{{ service_host }}", "--fqdn", "{{ ansible_fqdn }}", "{{ internal_vip_address }}"]
@@ -17,7 +17,7 @@ alarms      :
     neutron_ovs_agent_status :
         label                   : neutron_ovs_agent_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('neutron_ovs_agent_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('neutron_ovs_agent_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["neutron-openvswitch-agent_status"] regex ".*cannot reach API.*") {
@@ -29,7 +29,7 @@ alarms      :
     ovsdb_server_process_status :
         label                   : ovsdb_server_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('ovsdb_server_process_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('ovsdb_server_process_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["ovsdb-server_process_status"] != 1) {
@@ -38,7 +38,7 @@ alarms      :
     ovs_vswitchd_process_status :
         label                   : ovs_vswitchd_process_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('ovs_vswitchd_process_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('ovs_vswitchd_process_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["ovs-vswitchd_process_status"] != 1) {

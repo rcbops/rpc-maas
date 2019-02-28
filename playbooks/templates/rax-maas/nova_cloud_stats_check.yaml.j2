@@ -5,7 +5,7 @@ type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
-disabled    : "{{ (check_name is match(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
     args    : ["{{ maas_plugin_dir }}/nova_cloud_stats.py", "--cpu", "{{ maas_cloud_resource_cpu_allocation_ratio }}", "--mem", "{{ maas_cloud_resource_mem_allocation_ratio }}",  "--protocol", "{{ nova_service_check_protocol }}", "{{ internal_vip_address }}"]
@@ -16,7 +16,7 @@ alarms      :
     nova_cloud_memory_status :
         label                   : nova_cloud_memory_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('nova_cloud_memory_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
+        disabled                : {{ (('nova_cloud_memory_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (percentage(metric["cloud_resource_used_memory"], metric["cloud_resource_total_memory"]) > {{ maas_cloud_resource_critical_memory }}) {
@@ -28,7 +28,7 @@ alarms      :
     nova_cloud_disk_status :
         label                   : nova_cloud_disk_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('nova_cloud_disk_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
+        disabled                : {{ (('nova_cloud_disk_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (percentage(metric["cloud_resource_used_disk_space"], metric["cloud_resource_total_disk_space"]) > {{ maas_cloud_resource_critical_disk_space }}) {
@@ -40,7 +40,7 @@ alarms      :
     nova_cloud_vcpu_status :
         label                   : nova_cloud_vcpu_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('nova_cloud_vcpu_status--'+inventory_hostname) is match(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
+        disabled                : {{ (('nova_cloud_vcpu_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (percentage(metric["cloud_resource_used_vcpus"], metric["cloud_resource_total_vcpus"]) > {{ maas_cloud_resource_critical_vcpus }}) {
