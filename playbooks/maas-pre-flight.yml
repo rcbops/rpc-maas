@@ -511,6 +511,35 @@
     - maas-pre-flight
 
 
+- name: Check for containers on host
+  hosts: hosts
+  gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: true
+  tasks:
+    - name: local container host block
+      block:
+        - name: Generate list of container hosts
+          set_fact:
+            _known_container_hosts: |-
+              {% set _var = [] -%}
+              {% for item in groups['all_containers'] | default([]) %}
+              {%   if hostvars[item]['physical_host'] | default(false) != item %}
+              {%     set _ = _var.append(hostvars[item]['physical_host']) %}
+              {%   endif %}
+              {% endfor %}
+              {{ _var | unique }}
+
+        - name: Set container host fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_container_host"
+            value: "{{ inventory_hostname in _known_container_hosts }}"
+      when:
+        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
+
+
 #
 # maasrc generation
 # (This following section could be removed when upstream decides to include

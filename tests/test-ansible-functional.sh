@@ -234,12 +234,12 @@ function get_pip {
             ;;
     esac
 
-    virtualenv --no-site-packages /opt/test-maas
-    /opt/test-maas/bin/pip install pip setuptools --upgrade
-    /opt/test-maas/bin/pip install requests --upgrade
+    virtualenv --no-site-packages --no-setuptools /opt/test-maas
+    /opt/test-maas/bin/pip install pip setuptools --upgrade --isolated
+    /opt/test-maas/bin/pip install requests --upgrade --isolated
   else
-    /opt/test-maas/bin/pip install pip setuptools --upgrade
-    /opt/test-maas/bin/pip install requests --upgrade
+    /opt/test-maas/bin/pip install pip setuptools --upgrade --isolated
+    /opt/test-maas/bin/pip install requests --upgrade --isolated
   fi
 }
 

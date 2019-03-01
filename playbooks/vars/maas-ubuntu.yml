@@ -31,7 +31,8 @@ maas_distro_packages:
 #
 # Enable additional package override
 #
-maas_extra_distro_packages: []
+maas_extra_distro_packages:
+  - lxc-dev
 
 #
 # List of packages maas requires on galera hosts
