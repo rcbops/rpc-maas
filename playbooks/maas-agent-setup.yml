@@ -7,7 +7,7 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in witing, software
+# Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
@@ -60,6 +60,61 @@
         mode: 0600
         owner: root
         group: root
+
+    - name: deploy clouds.yaml
+      block:
+        - name: Set OSA rc file fact
+          set_fact:
+            rc_file_location: "{{ maas_openrc | default('/root/openrc') }}"
+          when:
+            - not (ansible_local['maas']['general']['deploy_osp'] | bool)
+
+        - name: Set OSP rc file fact
+          set_fact:
+            rc_file_location: "{{ maas_stackrc | default('/home/stack/stackrc') }}"
+          when:
+            - ansible_local['maas']['general']['deploy_osp'] | bool
+
+        - name: Get keystone endpoint
+          shell: |-
+            . {{ rc_file_location }}
+            openstack endpoint list --interface internal --service keystone --format value
+          register: keystone_endpoint
+          changed_when: False
+          run_once: true
+          delegate_to: "{{ groups['utility_all'][0] }}"
+
+        - name: Get admin password
+          command: "grep -w OS_PASSWORD {{ rc_file_location }}"
+          register: admin_password
+          changed_when: False
+          run_once: true
+          delegate_to: "{{ groups['utility_all'][0] }}"
+
+        - name: Set clouds.yaml facts
+          set_fact:
+            keystone_service_internalurl: "{{ (keystone_endpoint.stdout_lines[-1]).strip().split()[-1] }}"
+            keystone_service_region: "{{ (keystone_endpoint.stdout_lines[-1]).split()[1] }}"
+            openrc_os_password: "{{ (admin_password.stdout).strip().split('=')[-1] }}"
+          no_log: True
+
+        - name: Ensure OpenStack client configuration directory
+          file:
+            dest: "{{ openrc_openstack_client_config_dir_dest }}"
+            owner: "{{ openrc_openstack_client_config_dir_owner }}"
+            group: "{{ openrc_openstack_client_config_dir_group }}"
+            mode: "{{ openrc_openstack_client_config_dir_mode }}"
+            state: directory
+
+        - name: Create clouds.yaml file for OpenStack SDK Connection
+          template:
+            src: templates/rax-maas/clouds.yaml.j2
+            dest: "{{ openrc_clouds_yml_file_dest }}"
+            owner: "{{ openrc_clouds_yml_file_owner }}"
+            group: "{{ openrc_clouds_yml_file_group }}"
+            mode: "{{ openrc_clouds_yml_file_mode }}"
+      when:
+        - ansible_local['maas']['general']['maas_env_product'] != 'ceph'
 
     - name: Create plugin dir
       file:

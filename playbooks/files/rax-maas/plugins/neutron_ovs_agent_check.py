@@ -24,7 +24,7 @@ except ImportError:
     import socket
     on_lxc_container = False
 
-from maas_common import get_neutron_client
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -40,13 +40,12 @@ def check_process_statuses(container_or_host_name, container=None):
     else:
         pid = container.init_pid
 
-    # Get the processes within the neutron agent container (or a
-    # compute host).
+    # Get processes within the neutron container or baremetal host
     procs = get_processes(parent_pid=pid)
 
-    # Make a list of command lines from each PID. There's a
-    # chance that one or more PIDs may have exited already and
-    # this causes a NoSuchProcess exception.
+    # Make a list of command lines from each PID. There's a chance that
+    # one or more PIDs may have exited already which results in a
+    # NoSuchProcess exception.
     cmdlines = []
     for proc in procs:
         try:
@@ -65,9 +64,9 @@ def check_process_statuses(container_or_host_name, container=None):
                                m_name='maas_neutron')
 
     # Loop through the process names provided on the command line to
-    # see if ovsdb-server,  ovs-vswitchd, and neutron-openvswitch
+    # see if ovsdb-server, ovs-vswitchd, and neutron-openvswitch
     # exist on the system or in a container.
-    # suppress some character which throw MaaS off
+    # Suppress some character which throw MaaS off
     # ovsdb-server and ovs-vswitchd are not directly in the command
     # line parsing so we use condition
     # `process_name in x or process_name in x[0]`
@@ -86,13 +85,18 @@ def check_process_statuses(container_or_host_name, container=None):
 
 
 def check(args):
+    neutron = get_openstack_client('network')
 
-    NETWORK_ENDPOINT = '{protocol}://{hostname}:9696'.format(
-        protocol=args.protocol, hostname=args.hostname)
     try:
-        neutron = get_neutron_client(endpoint_url=NETWORK_ENDPOINT)
+        # Gather neutron agent states
+        if args.host:
+            agents = [i for i in neutron.agents(host=args.host)]
+        elif args.fqdn:
+            agents = [i for i in neutron.agents(host=args.fqdn)]
+        else:
+            agents = [i for i in neutron.agents()]
 
-    # not gathering api status metric here so catch any exception
+    # An API status metric is not gathered so catch any exception
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_neutron')
         metric('%s_status' % "neutron-openvswitch-agent",
@@ -104,88 +108,95 @@ def check(args):
     else:
         metric_bool('client_success', True, m_name='maas_neutron')
 
-    # gather neutron service states
-    if args.host:
-        agents = neutron.list_agents(host=args.host)['agents']
-    elif args.fqdn:
-        agents = neutron.list_agents(host=args.fqdn)['agents']
-    else:
-        agents = neutron.list_agents()['agents']
-
     try:
         ovs_agent = next(
             a for a in agents if 'openvswitch' in a['binary']
         )
     except StopIteration:
-        metric_bool('agents_found', False, m_name='maas_neutron')
         status_err("No host(s) found in the agents list",
                    m_name='maas_neutron')
     else:
-        metric_bool('agents_found', True, m_name='maas_neutron')
+        # Return all the things
+        status_ok(m_name='maas_neutron')
 
-    # return all the things
-    status_ok(m_name='maas_neutron')
-
-    agent_is_up = "Yes"
-    if ovs_agent['admin_state_up'] and not ovs_agent['alive']:
+        agent_is_up = "Yes"
+        if ovs_agent['is_admin_state_up'] and not ovs_agent['is_alive']:
             agent_is_up = "No"
 
-    if args.host:
-        name = '%s_status' % ovs_agent['binary']
-    elif args.fqdn:
-        name = '%s_status' % ovs_agent['binary']
-    else:
-        name = '%s_%s_on_host_%s' % (ovs_agent['binary'],
-                                     ovs_agent['id'],
-                                     ovs_agent['host'])
+        if args.host:
+            name = '%s_status' % ovs_agent['binary']
+        elif args.fqdn:
+            name = '%s_status' % ovs_agent['binary']
+        else:
+            name = '%s_%s_on_host_%s' % (ovs_agent['binary'],
+                                         ovs_agent['id'],
+                                         ovs_agent['host'])
 
-    metric(name, 'string', agent_is_up, m_name='maas_neutron')
+        metric(name, 'string', agent_is_up, m_name='maas_neutron')
 
     if on_lxc_container:
-        containers = lxc.list_containers()
-        neutron_agent_containers = []
-        for container in containers:
-            if 'neutron_agents' in container:
-                neutron_agent_containers.append(container)
+        all_containers = lxc.list_containers()
+        neutron_containers_list = []
+        neutron_agent_containers_list = []
 
-        if len(neutron_agent_containers) == 0:
-            status_err('no running neutron agents containers found',
+        # NOTE(npawelek): The neutron container architecture was
+        # refactored in recent versions removing all neutron containers
+        # with the exception of one, or even using baremetal directly.
+        # Since logic is looking for the presence of LXC, we do not need
+        # to account for baremetal here.
+        for container in all_containers:
+            if 'neutron_agents' in container:
+                neutron_agent_containers_list.append(container)
+
+            if 'neutron' in container:
+                neutron_containers_list.append(container)
+
+        if len(neutron_containers_list) == 1 and \
+                'neutron_server' in neutron_containers_list[0]:
+            valid_containers = neutron_containers_list
+        elif len(neutron_agent_containers_list) > 0:
+            valid_containers = neutron_agent_containers_list
+        else:
+            valid_containers = 0
+
+        if len(valid_containers) == 0:
+            status_err('no neutron agent or server containers found',
                        m_name='maas_neutron')
             return
 
-        for neutron_agent_container in neutron_agent_containers:
+        for container in valid_containers:
             # Get the neutron_agent_container's init PID.
             try:
-                c = lxc.Container(neutron_agent_container)
+                c = lxc.Container(container)
                 # If the container wasn't found, exit now.
                 if c.init_pid == -1:
                     metric_bool('container_success',
                                 False,
-                                m_name='maas_neutron_agent_container')
+                                m_name='maas_neutron')
                     status_err(
                         'Could not find PID for container {}'.format(
-                            neutron_agent_container
+                            container
                         ),
-                        m_name='maas_neutron_agent_container'
+                        m_name='maas_neutron'
                     )
             except (Exception, SystemError) as e:
                 metric_bool('container_success', False,
-                            m_name='maas_neutron_agent_container')
+                            m_name='maas_neutron')
                 status_err(
                     'Container lookup failed on "{}". ERROR: "{}"'
                     .format(
-                        neutron_agent_container,
+                        container,
                         e
                     ),
-                    m_name='maas_neutron_agent_container'
+                    m_name='maas_neutron'
                 )
             else:
                 metric_bool('container_success', True,
-                            m_name='maas_neutron_agent_container')
+                            m_name='maas_neutron')
 
-            # c is the lxc container instance of this
-            # neutron_agent_container
-            check_process_statuses(neutron_agent_container, c)
+                # c is the lxc container instance of this
+                # neutron_agent_container
+                check_process_statuses(container, c)
     else:
         ovs_agent_host = socket.gethostname()
         check_process_statuses(ovs_agent_host)

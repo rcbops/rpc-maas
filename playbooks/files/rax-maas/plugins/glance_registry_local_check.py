@@ -17,38 +17,30 @@
 import argparse
 
 import ipaddr
-from maas_common import get_auth_ref
-from maas_common import get_keystone_client
+from maas_common import generate_local_endpoint
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
-import requests
 from requests import exceptions as exc
 
 
-def check(auth_ref, args):
-    # We call get_keystone_client here as there is some logic within to get a
-    # new token if previous one is bad.
-    keystone = get_keystone_client(auth_ref)
-    auth_token = keystone.auth_token
-    registry_endpoint = '{protocol}://{ip}:{port}'.format(
-        protocol=args.protocol,
-        ip=args.ip,
-        port=args.port
-    )
-
-    s = requests.Session()
-
-    s.headers.update(
-        {'Content-type': 'application/json',
-         'x-auth-token': auth_token})
+def check(args):
+    glance = get_openstack_client('image')
 
     try:
-        # /images returns a list of public, non-deleted images
-        r = s.get('%s/images' % registry_endpoint, verify=False, timeout=5)
-        is_up = r.ok
+        # Remove version from returned endpoint
+        glance_endpoint = str(glance.get_endpoint().rsplit('/', 2)[0])
+        local_registry_url = generate_local_endpoint(
+            glance_endpoint, args.ip, args.port, args.protocol,
+            '/images'
+        )
+        resp = glance.session.get(local_registry_url, timeout=180)
+        milliseconds = resp.elapsed.total_seconds() * 1000
+
+        is_up = resp.status_code == 200
     except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
         metric_bool('client_success', False, m_name='maas_glance')
@@ -59,16 +51,14 @@ def check(auth_ref, args):
     status_ok(m_name='maas_glance')
     metric_bool('client_success', True, m_name='maas_glance')
     metric_bool('glance_registry_local_status', is_up, m_name='maas_glance')
-    # only want to send other metrics if api is up
+    # Only send remaining metrics if the API is up
     if is_up:
-        milliseconds = r.elapsed.total_seconds() * 1000
         metric('glance_registry_local_response_time', 'double',
                '%.3f' % milliseconds, 'ms')
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

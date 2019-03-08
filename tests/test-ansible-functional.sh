@@ -62,7 +62,7 @@ elif [[ ${RE_JOB_SCENARIO} == ceph ]]; then
 else
   # Ansible Inventory will be set to OSA
   export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
-  if [ "${RE_JOB_SCENARIO}" == "queens" ]; then
+  if [[ "${RE_JOB_SCENARIO}" == "queens" ]]; then
    export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
   fi
 fi
@@ -73,7 +73,7 @@ echo "WORKING_DIR: ${WORKING_DIR}"
 # as OSA now sets the hostname generically as 'aio1' which will cause affected
 # gates to use the same entity
 # This will automatically work for new gates
-case $RE_JOB_SCENARIO in
+case ${RE_JOB_SCENARIO} in
   kilo|*liberty|*mitaka|newton|ocata|pike)
     echo "There is no need to set maas_fqdn_extension on ${RE_JOB_SCENARIO}"
     echo | tee /tmp/maas_fqdn_extension
@@ -87,7 +87,7 @@ esac
 # The maas_rally performance monitoring requires a modern (>1.9) version of
 # ansible that is not available in liberty and mitaka. There is no reason
 # to run it in a ceph context either.
-case $RE_JOB_SCENARIO in
+case ${RE_JOB_SCENARIO} in
   kilo|*liberty|*mitaka|ceph|osp13|rocky)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
@@ -114,19 +114,18 @@ echo "TEST_IDEMPOTENCE: ${TEST_IDEMPOTENCE}"
 ## Functions -----------------------------------------------------------------
 
 function set_ansible_parameters {
-  # NOTE(tonytan4ever): We always skip preflight metadata check
   TEST_DEFAULTS="-f 10 -e create_entity_if_not_exists=true -e cleanup_entity=true"
   ANSIBLE_CLI_PARAMETERS="${TEST_DEFAULTS:-${ANSIBLE_OVERRIDE_CLI_PARAMETERS}}"
 
-  if [ "${ANSIBLE_PARAMETERS}" != false ]; then
+  if [[ "${ANSIBLE_PARAMETERS}" != false ]]; then
     ANSIBLE_CLI_PARAMETERS+=" ${ANSIBLE_PARAMETERS}"
   fi
 
-  if [ -f "${ANSIBLE_OVERRIDES}" ]; then
+  if [[ -f "${ANSIBLE_OVERRIDES}" ]]; then
     ANSIBLE_CLI_PARAMETERS+=" -e @${ANSIBLE_OVERRIDES}"
   fi
 
-  if [ -d "/etc/openstack_deploy" ]; then
+  if [[ -d "/etc/openstack_deploy" ]]; then
     ANSIBLE_CLI_PARAMETERS+=" $(for i in $(ls /etc/openstack_deploy/user_*.yml); do echo -ne "-e @$i "; done)"
   fi
 }
@@ -210,7 +209,7 @@ function get_pip {
         centos|rhel)
             # Prefer dnf over yum for CentOS.
             which dnf &>/dev/null && RHT_PKG_MGR='dnf' || RHT_PKG_MGR='yum'
-            $RHT_PKG_MGR -y install python-virtualenv \
+            ${RHT_PKG_MGR} -y install python-virtualenv \
                                     python-requests \
                                     python2-requests \
                                     python2-requestsexceptions
@@ -235,9 +234,17 @@ function get_pip {
     esac
 
     virtualenv --no-site-packages --no-setuptools /opt/test-maas
+    if [[ ! -f /opt/test-maas/bin/pip ]]; then
+        curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+        /opt/test-maas/bin/python /tmp/get-pip.py --no-setuptools --no-wheel --isolated
+    fi
     /opt/test-maas/bin/pip install pip setuptools --upgrade --isolated
     /opt/test-maas/bin/pip install requests --upgrade --isolated
   else
+    if [[ ! -f /opt/test-maas/bin/pip ]]; then
+        curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+        /opt/test-maas/bin/python /tmp/get-pip.py --no-setuptools --no-wheel --isolated
+    fi
     /opt/test-maas/bin/pip install pip setuptools --upgrade --isolated
     /opt/test-maas/bin/pip install requests --upgrade --isolated
   fi
@@ -256,21 +263,21 @@ function enable_maas_api {
   echo "END PACKAGE LIST"
 
   # NOTE(tonytan4ever): pip on newton will broken because of a mis-installed version of setuptools
-  if [ "${RE_JOB_SCENARIO}" == "newton" ]; then
+  if [[ "${RE_JOB_SCENARIO}" == "newton" ]]; then
     /opt/test-maas/bin/pip install setuptools==30.1.0 --upgrade --isolated --force-reinstall
   fi
 
   /opt/test-maas/bin/pip install -r ${WORKING_DIR}/test-requirements.txt --isolated --upgrade --force-reinstall
 
   # Collect a maas auth token for API tests
-  /opt/test-maas/bin/python $WORKING_DIR/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
+  /opt/test-maas/bin/python ${WORKING_DIR}/tests/maasutils.py --username "${PUBCLOUD_USERNAME}" \
                                                             --api-key "${PUBCLOUD_API_KEY}" \
                                                             get_token_url
 
   # We're sourcing the file so that it's not written to a collected artifact
   . ~/maas-vars.rc
 
-  # Write out the varuable file
+  # Write out the variable file
   cat > /etc/openstack_deploy/user_rpcm_use_api_variables.yml <<EOF
 ---
 # Enable the API usage
@@ -306,18 +313,18 @@ trap gate_job_exit_tasks EXIT
 ensure_osa_dir
 
 # Export additional ansible environment variables if running Kilo or Liberty
-if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
+if [[ "${RE_JOB_SCENARIO}" == "kilo" ]]; then
   pin_environment
-elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
+elif [[ "${RE_JOB_SCENARIO}" == "liberty" ]]; then
   pin_environment
 elif [[ ${RE_JOB_SCENARIO} == ceph ]]; then
   pip install -U cryptography\>=1.5 pyOpenSSL==16.2.0 --isolated
   sed -i '/^physical_host/ s/^/#/' /opt/rpc-ceph/tests/test-vars.yml
   sed -i '/^maas_/ s/^/#/' /opt/rpc-ceph/tests/test-vars.yml
-elif [ "${RE_JOB_SCENARIO}" == "rpco-liberty" ]; then
+elif [[ "${RE_JOB_SCENARIO}" == "rpco-liberty" ]]; then
   pin_environment
   deploy_rpco_tooling
-elif [ "${RE_JOB_SCENARIO}" == "rpco-mitaka" ]; then
+elif [[ "${RE_JOB_SCENARIO}" == "rpco-mitaka" ]]; then
   deploy_rpco_tooling
 fi
 
@@ -330,15 +337,15 @@ fi
 execute_ansible_playbook ${TEST_SETUP_PLAYBOOK}
 
 # Enable MaaS API testing if the cloud variables are set.
-if [ ! "${PUBCLOUD_USERNAME:-false}" = false ] && [ ! "${PUBCLOUD_API_KEY:-false}" = false ]; then
-  if [ "${RE_JOB_SCENARIO}" = "osp13" ]; then
+if [[ ! "${PUBCLOUD_USERNAME:-false}" == false ]] && [[ ! "${PUBCLOUD_API_KEY:-false}" == false ]]; then
+  if [[ "${RE_JOB_SCENARIO}" == "osp13" ]]; then
     install_director_dev_packages
   fi
   enable_maas_api
 fi
 
 # If the test for check mode is enabled, then execute it
-if [ "${TEST_CHECK_MODE}" == "true" ]; then
+if [[ "${TEST_CHECK_MODE}" == "true" ]]; then
 
   # Set the path for the output log
   export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-check.log"
@@ -356,7 +363,7 @@ execute_ansible_playbook ${TEST_PLAYBOOK}
 # If the idempotence test is enabled, then execute the
 # playbook again and verify that nothing changed/failed
 # in the output log.
-if [ "${TEST_IDEMPOTENCE}" == "true" ]; then
+if [[ "${TEST_IDEMPOTENCE}" == "true" ]]; then
 
   # Set the path for the output log
   export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-idempotence.log"

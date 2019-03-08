@@ -16,7 +16,7 @@ alarms      :
     multipathd_process_status:
         label                   : "multipathd_process_status--{{ inventory_hostname }}"
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ ('multipathd_process_status--'+inventory_hostname | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('multipathd_process_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
             if (metric["multipathd_process_status"] != 1 ) {

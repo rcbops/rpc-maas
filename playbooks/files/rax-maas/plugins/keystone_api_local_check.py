@@ -15,39 +15,32 @@
 # limitations under the License.
 
 import argparse
-import time
 
 import ipaddr
-from keystoneclient import exceptions as exc
-from maas_common import get_keystone_client
-from maas_common import get_os_component_major_api_version
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
+import requests.exceptions as exc
 
 
 def check(args):
-    identity_endpoint = '{protocol}://{ip}:{port}/'.format(
-        protocol=args.protocol,
-        port=args.port,
-        ip=args.ip
+    keystone = get_openstack_client('identity')
+
+    local_keystone_endpoint = "{}://{}:{}/v{}/services".format(
+        args.protocol, args.ip, args.port,
+        keystone.get_api_major_version()[0]
     )
-    auth_version = get_os_component_major_api_version('keystone')[0]
-    if auth_version == 2:
-        identity_endpoint += 'v2.0'
-    else:
-        identity_endpoint += 'v3'
 
     try:
-        if args.ip:
-            keystone = get_keystone_client(endpoint=identity_endpoint)
-        else:
-            keystone = get_keystone_client()
+        resp = keystone.session.get('%s' % local_keystone_endpoint,
+                                    timeout=180)
+        milliseconds = resp.elapsed.total_seconds() * 1000
 
-        is_up = True
-    except (exc.HttpServerError, exc.ClientException):
+        is_up = resp.ok
+    except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
         metric_bool('client_success', False, m_name='maas_keystone')
     # Any other exception presumably isn't an API error
@@ -56,23 +49,12 @@ def check(args):
         status_err(str(e), m_name='maas_keystone')
     else:
         metric_bool('client_success', True, m_name='maas_keystone')
-        # time something arbitrary
-        start = time.time()
-        keystone.services.list()
-        end = time.time()
-        milliseconds = (end - start) * 1000
-
         # gather some vaguely interesting metrics to return
-        if auth_version == 2:
-            project_count = len(keystone.tenants.list())
-            user_count = len(keystone.users.list())
-        else:
-            project_count = len(keystone.projects.list())
-            user_count = len(keystone.users.list(domain='Default'))
+        project_count = len([i for i in keystone.projects()])
+        user_count = len([i for i in keystone.users()])
 
     status_ok(m_name='maas_keystone')
     metric_bool('keystone_api_local_status', is_up, m_name='maas_keystone')
-    # only want to send other metrics if api is up
     if is_up:
         metric('keystone_api_local_response_time',
                'double',

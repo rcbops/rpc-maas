@@ -18,7 +18,7 @@
     src: "files/pip-constraints.txt"
     dest: "/tmp/pip-constraints.txt"
 
-- name: Install requires pip packages
+- name: Install required pip packages
   package:
     name: "{{ maas_agent_distro_packages }}"
   register: install_packages
@@ -35,6 +35,28 @@
   vars:
     ansible_python_interpreter: "{{ target_venv | default(maas_venv) }}/bin/python"
   block:
+    - name: Verify pip exists in virtualenv
+      stat:
+        path: "{{ target_venv | default(maas_venv) }}/bin/pip"
+      register: venv_pip_check
+
+    - name: get missing pip
+      block:
+        - name: Download get-pip.py
+          get_url:
+            url: https://bootstrap.pypa.io/get-pip.py
+            dest: /tmp/get-pip.py
+
+        - name: Install pip where nonexistent
+          command: >-
+            {{ ansible_python_interpreter }} /tmp/get-pip.py
+            --isolated
+            --no-setuptools
+            --no-wheel
+            {{ pip_install_options | default('') }}
+      when:
+        - venv_pip_check.stat.exists == False
+
     - name: Setup MaaS venv
       pip:
         name:
@@ -43,26 +65,27 @@
         extra_args: "-U --isolated"
         virtualenv: "{{ target_venv | default(maas_venv) }}"
 
-    - name: Ensure MaaS pip packages are installed
-      pip:
-        name: "{{ pip_package_list | default(maas_pip_container_packages | union(maas_pip_verify_packages) | union(maas_pip_packages) | union(maas_pip_openstack_packages)) }}"
-        state: "{{ pip_package_state | default(maas_pip_package_state) }}"
-        extra_args: >-
-          --isolated
-          --constraint "{{ pip_package_constraint | default('/tmp/pip-constraints.txt') }}"
-          {{ pip_install_options | default('') }}
-        virtualenv: "{{ target_venv | default(maas_venv) }}"
-      register: install_pip_packages
-      until: install_pip_packages is success
-      retries: 5
-      delay: 2
+    - name: Build pip package list
+      set_fact:
+        venv_pip_packages: "{{ pip_package_list | default(maas_pip_packages | union(maas_pip_openstack_packages) | union(maas_pip_verify_packages)) }}"
+
+    - name: Include lxc pip packages
+      set_fact:
+        venv_pip_packages: "{{ venv_pip_packages | union(maas_pip_lxc_packages) }}"
       when:
         - not (ansible_local['maas']['general']['deploy_osp'] | bool)
-        - ansible_local['maas']['general']['maas_container_host'] | bool
+        - ansible_local['maas']['general']['maas_lxc_host'] | bool
+
+    - name: Include docker pip packages
+      set_fact:
+        venv_pip_packages: "{{ venv_pip_packages | union(maas_pip_docker_packages) }}"
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+        - ansible_local['maas']['general']['maas_docker_host'] | bool
 
     - name: Ensure MaaS pip packages are installed
       pip:
-        name: "{{ pip_package_list | default(maas_pip_verify_packages | union(maas_pip_packages) | union(maas_pip_openstack_packages)) }}"
+        name: "{{ venv_pip_packages }}"
         state: "{{ pip_package_state | default(maas_pip_package_state) }}"
         extra_args: >-
           --isolated
@@ -73,6 +96,3 @@
       until: install_pip_packages is success
       retries: 5
       delay: 2
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool or
-          not (ansible_local['maas']['general']['maas_container_host'] | bool)

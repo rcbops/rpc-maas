@@ -72,7 +72,7 @@ function enable_ironic {
   fi
 
   # Beginning with queens, the key must be 'aio_lxc'
-  case $RE_JOB_SCENARIO in
+  case ${RE_JOB_SCENARIO} in
     kilo|liberty|mitaka|newton|ocata|pike)
       key="aio"
       ;;
@@ -96,7 +96,7 @@ function enable_ironic {
 }
 
 function install_ovs {
-  if [ ! -z ${use_ovs+x} ]; then
+  if [[ ! -z ${use_ovs+x} ]]; then
     sed -i 's/neutron_linuxbridge_agent/neutron_openvswitch_agent/' /opt/openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio
     echo '
 openstack_host_specific_kernel_modules:
@@ -115,7 +115,7 @@ neutron_provider_networks:
 }
 
 function add_lxc_overrides {
-  if [ ! -e /etc/openstack_deploy/user_resolvconf_fix.yml ] ; then
+  if [[ ! -e /etc/openstack_deploy/user_resolvconf_fix.yml ]]; then
     touch /etc/openstack_deploy/user_resolvconf_fix.yml
   fi
   echo '
@@ -189,7 +189,7 @@ apt-get install -y iptables util-linux apt-transport-https netbase
 
 echo 'Debug::Acquire::http "true";' > /etc/apt/apt.conf.d/99debug
 
-if [ ! -d "/etc/openstack_deploy" ]; then
+if [[ ! -d "/etc/openstack_deploy" ]]; then
   mkdir -p /etc/openstack_deploy
 fi
 
@@ -219,7 +219,7 @@ else
     if [[ ${RE_JOB_SCENARIO#rpco-} == ${RE_JOB_SCENARIO} ]]; then
       export OA_DIR="/opt/openstack-ansible"
 
-      if [ ! -d "/opt/openstack-ansible" ]; then
+      if [[ ! -d "/opt/openstack-ansible" ]]; then
         git clone https://github.com/openstack/openstack-ansible /opt/openstack-ansible
       else
         pushd /opt/openstack-ansible
@@ -242,7 +242,7 @@ else
       export DEPLOY_HARDENING=no
       export FORKS=15
 
-      if [ ! -d "/opt/rpc-openstack" ]; then
+      if [[ ! -d "/opt/rpc-openstack" ]]; then
         git clone --recursive -b ${RE_JOB_SCENARIO#rpco-} https://github.com/rcbops/rpc-openstack /opt/rpc-openstack
       else
         pushd /opt/rpc-openstack
@@ -252,7 +252,7 @@ else
     fi
 
     pushd ${OA_DIR}
-      if [ "${RE_JOB_SCENARIO}" == "kilo" ]; then
+      if [[ "${RE_JOB_SCENARIO}" == "kilo" ]]; then
         git checkout "97e3425871659881201106d3e7fd406dc5bd8ff3"  # Last commit of Kilo
         pin_jinja
         pin_galera "5.5"
@@ -261,7 +261,7 @@ else
         #                  into place which satisfies the role requirement.
         mkdir -p /etc/ansible/roles
 
-      elif [ "${RE_JOB_SCENARIO}" == "rpco-liberty" ]; then
+      elif [[ "${RE_JOB_SCENARIO}" == "rpco-liberty" ]]; then
         pin_jinja
         # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
         sed -i -e 's/0.4.4/v0.4.4/g' ${OA_DIR}/ansible-role-requirements.yml
@@ -272,7 +272,7 @@ else
         pin_galera "10.0"
         spice_repo_fix
 
-      elif [ "${RE_JOB_SCENARIO}" == "liberty" ]; then
+      elif [[ "${RE_JOB_SCENARIO}" == "liberty" ]]; then
         git checkout "06d0fd344b5b06456a418745fe9937a3fbedf9b2"  # Last commit of Liberty
         pin_jinja
         pin_galera "10.0"
@@ -284,7 +284,7 @@ else
         sed -i '/DEBIAN_FRONTEND=noninteractive apt-get install iptables-persistent/ s/install/install -y --force-yes -o Dpkg::Options::="--force-confold"/' /opt/openstack-ansible/scripts/run-playbooks.sh
         spice_repo_fix
 
-      elif [ "${RE_JOB_SCENARIO}" == "rpco-mitaka" ]; then
+      elif [[ "${RE_JOB_SCENARIO}" == "rpco-mitaka" ]]; then
         pin_jinja
         # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
         sed -i -e 's/0.4.4/v0.4.4/g' ${OA_DIR}/ansible-role-requirements.yml
@@ -295,7 +295,7 @@ else
         pin_galera "10.0"
         spice_repo_fix
 
-      elif [ "${RE_JOB_SCENARIO}" == "mitaka" ]; then
+      elif [[ "${RE_JOB_SCENARIO}" == "mitaka" ]]; then
         git checkout "fbafe397808ef3ee3447fe8fefa6ac7e5c6ff144"  # Last commit of Mitaka
         pin_jinja
         pin_galera "10.0"
@@ -304,32 +304,32 @@ else
         export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
         spice_repo_fix
         # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
-        sed -i -e 's/0.4.4/v0.4.4/g' /opt/openstack-ansible/ansible-role-requirements.yml
+        sed -i -e 's/version: 0.4.4/version: v0.4.4/g' /opt/openstack-ansible/ansible-role-requirements.yml
 
-      elif [ "${RE_JOB_SCENARIO}" == "newton" ]; then
+      elif [[ "${RE_JOB_SCENARIO}" == "newton" ]]; then
         git remote add rcbops-fork https://github.com/rcbops/openstack-ansible.git
         git fetch --all
         git checkout -b newton-fix rcbops-fork/stable/newton
         # NOTE(tonytan4ever): newton needs this to get around gating:
         # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
         add_lxc_overrides
-        if [ "${RE_JOB_IMAGE}" == "trusty" ]; then
+        if [[ "${RE_JOB_IMAGE}" == "trusty" ]]; then
           export UPPER_CONSTRAINTS_FILE="http://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?id=$(awk '/requirements_git_install_branch:/ {print $2}' playbooks/defaults/repo_packages/openstack_services.yml) -U"
         fi
 
-      elif [ "${RE_JOB_SCENARIO}" == "ocata" ]; then
+      elif [[ "${RE_JOB_SCENARIO}" == "ocata" ]]; then
         git checkout "stable/ocata"  # Branch checkout of Ocata (Current Stable)
 
-      elif [ "${RE_JOB_SCENARIO}" == "pike" ]; then
+      elif [[ "${RE_JOB_SCENARIO}" == "pike" ]]; then
         git checkout "stable/pike"  # Branch checkout of Pike (Current Stable)
         # Pin flask so it stops breaking xenial and other versions
         echo "Flask==0.12.2" >> /opt/openstack-ansible/global-requirement-pins.txt
 
-      elif [ "${RE_JOB_SCENARIO}" == "queens" ]; then
+      elif [[ "${RE_JOB_SCENARIO}" == "queens" ]]; then
         git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
 
-      elif [ "${RE_JOB_SCENARIO}" == "rocky" ]; then
+      elif [[ "${RE_JOB_SCENARIO}" == "rocky" ]]; then
         git checkout "stable/rocky"  # Branch checkout of Rocky (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
       fi
@@ -337,7 +337,7 @@ else
       # Install ovs agent if applicable
       install_ovs
 
-      # Disbale tempest on newer releases
+      # Disable tempest on newer releases
       if [[ -f "tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2" ]]; then
         sed -i 's|^tempest_install.*|tempest_install: no|g' tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2
         sed -i 's|^tempest_run.*|tempest_run: no|g' tests/roles/bootstrap-host/templates/user_variables.aio.yml.j2
@@ -348,7 +348,7 @@ else
 
       # NOTE(npawelek): Rocky requires a different version to be set, all other
       # releases work with the existing pin
-      case $RE_JOB_SCENARIO in
+      case ${RE_JOB_SCENARIO} in
         rocky)
           true
           ;;

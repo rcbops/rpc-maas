@@ -361,10 +361,16 @@ maas_pip_packages:
   - requests
 
 #
-# pip installable packages for given services used within maas
+# pip extra packages for lxc containers
 #
-maas_pip_container_packages:
+maas_pip_lxc_packages:
   - lxc-python2
+
+#
+# pip extra packages for docker containers
+#
+maas_pip_docker_packages:
+  - docker
 
 #
 # MaaS GPG keys
@@ -487,18 +493,10 @@ maas_managed_k8s_auth_process_name: auth
 # pip installable packages for given services used within maas
 #
 maas_pip_openstack_packages:
-  - python-cinderclient
-  - python-designateclient
-  - python-glanceclient
-  - python-heatclient
-  - python-ironicclient
-  - python-keystoneclient
-  - python-magnumclient
-  - python-neutronclient
-  - python-novaclient
-  - python-openstackclient
-  - python-swiftclient
+  - keystoneauth1
   - openstacksdk
+  - python-swiftclient # needed for swift playbook
+  - python-keystoneclient # needed for swiftclient authentication
 
 #
 # pip packages required for plugin functionality

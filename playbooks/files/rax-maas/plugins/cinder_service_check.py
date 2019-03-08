@@ -16,53 +16,27 @@
 
 import argparse
 
-# Technically maas_common isn't third-party but our own thing but hacking
-# consideres it third-party
-from maas_common import get_auth_ref
-from maas_common import get_keystone_client
-from maas_common import get_os_component_major_api_version
+from maas_common import get_openstack_client
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
-import requests
 from requests import exceptions as exc
 
-# NOTE(mancdaz): until https://review.openstack.org/#/c/111051/
-# lands, there is no way to pass a custom (local) endpoint to
-# cinderclient. Only way to test local is direct http. :sadface:
 
-
-def check(auth_ref, args):
-    keystone = get_keystone_client(auth_ref)
-    auth_token = keystone.auth_token
-    cinder_api_version = get_os_component_major_api_version('cinder')[0]
-
-    VOLUME_ENDPOINT = (
-        '{protocol}://{hostname}:8776/v{version}/{tenant}'.format(
-            protocol=args.protocol,
-            hostname=args.hostname,
-            tenant=keystone.tenant_id,
-            version=cinder_api_version)
-    )
-
-    s = requests.Session()
-
-    s.headers.update(
-        {'Content-type': 'application/json',
-         'x-auth-token': auth_token})
+def check(args):
+    cinder = get_openstack_client('block_storage')
+    volume_endpoint = '%s/os-services' % str(cinder.get_endpoint())
 
     try:
         # We cannot do /os-services?host=X as cinder returns a hostname of
         # X@lvm for cinder-volume binary
-        r = s.get('%s/os-services' % VOLUME_ENDPOINT, verify=False, timeout=5)
-    except (exc.ConnectionError,
-            exc.HTTPError,
-            exc.Timeout) as e:
+        resp = cinder.session.get(volume_endpoint, timeout=180)
+    except (exc.ConnectionError, exc.HTTPError, exc.Timeout) as e:
         metric_bool('client_success', False, m_name='maas_cinder')
         status_err(str(e), m_name='maas_cinder')
 
-    if not r.ok:
+    if not resp.ok:
         metric_bool('client_success', False, m_name='maas_cinder')
         status_err(
             'Could not get response from Cinder API',
@@ -71,7 +45,7 @@ def check(auth_ref, args):
     else:
         metric_bool('client_success', True, m_name='maas_cinder')
 
-    services = r.json()['services']
+    services = resp.json()['services']
 
     # We need to match against a host of X and X@lvm (or whatever backend)
     if args.host:
@@ -89,7 +63,6 @@ def check(auth_ref, args):
     status_ok(m_name='maas_cinder')
 
     if args.host:
-
         for service in services:
             service_is_up = True
             name = '%s_status' % service['binary']
@@ -113,8 +86,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

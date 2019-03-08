@@ -15,35 +15,36 @@
 # limitations under the License.
 
 import argparse
-import datetime
 
 import ipaddr
-from maas_common import get_auth_ref
-from maas_common import get_endpoint_url_for_service
+from maas_common import generate_local_endpoint
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
-import requests
+from requests import exceptions as exc
 
 
-def check(auth_ref, args):
-    DESIGNATE_ENDPOINT = '{protocol}://{ip}:9001/'.format(
-        protocol=args.protocol, ip=args.ip)
+def check(args):
+    designate = get_openstack_client('dns')
 
     try:
         if args.ip:
-            endpoint = DESIGNATE_ENDPOINT
-        else:
-            endpoint = get_endpoint_url_for_service(
-                'dns', auth_ref, 'internal')
-        # time something arbitrary
-        start = datetime.datetime.now()
-        r = requests.get(endpoint)
-        end = datetime.datetime.now()
-        api_is_up = (r.status_code == 200)
-    except (requests.HTTPError, requests.Timeout, requests.ConnectionError):
+            # Arbitrary call to /zones to ensure the local API is up
+            designate_local_endpoint = generate_local_endpoint(
+                str(designate.get_endpoint()), args.ip, args.port,
+                args.protocol, '/zones'
+            )
+            resp = designate.session.get(designate_local_endpoint, timeout=180)
+            milliseconds = resp.elapsed.total_seconds() * 1000
+        # NOTE(npawelek): At the time of converting to OpenStack SDK,
+        # DNS is not yet fully integrated. Excluding integration with
+        # the client directly until a later time.
+
+        api_is_up = resp.ok
+    except (exc.HTTPError, exc.Timeout, exc.ConnectionError):
         api_is_up = False
         metric_bool('client_success', False, m_name='maas_designate')
     # Any other exception presumably isn't an API error
@@ -52,8 +53,6 @@ def check(auth_ref, args):
         status_err(str(e), m_name='maas_designate')
     else:
         metric_bool('client_success', True, m_name='maas_designate')
-        dt = (end - start)
-        milliseconds = (dt.microseconds + dt.seconds * 10 ** 6) / 10 ** 3
 
     status_ok(m_name='maas_designate')
     metric_bool('designate_api_local_status',
@@ -67,18 +66,23 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Check Designate API against local or remote address')
-    parser.add_argument('protocol', nargs='?',
-                        help="Protocol for check (http or https)")
+
     parser.add_argument('ip', nargs='?', type=ipaddr.IPv4Address,
                         help="Check Designate API against "
                         " local or remote address")
+    parser.add_argument('--protocol',
+                        action='store',
+                        default='http',
+                        help="Protocol to run the check against")
+    parser.add_argument('--port',
+                        default="9001",
+                        help="Port the Designate service is running on.")
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,

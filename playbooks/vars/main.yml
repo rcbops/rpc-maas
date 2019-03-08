@@ -220,9 +220,15 @@ rsyslogd_process_names:
 #
 radosgw_civetweb_port: "8080"
 
+#
+# Designate template options
+#
+maas_designate_service_proto: "{{ designate_service_proto | default('http') }}"
+maas_designate_service_port: "{{ designate_service_port | default('9001') }}"
+
 
 #
-# Varibles required to populate clouds.yaml
+# Variables required to populate clouds.yaml
 #
 
 ## Endpoint types

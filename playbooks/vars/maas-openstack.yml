@@ -67,10 +67,10 @@ maas_horizon_site_name: "openstack"
 # Swift object access check
 #
 maas_swift_accesscheck_enabled: true
-maas_swift_accesscheck_container: "accesscheck"
-maas_swift_accesscheck_user_name: "accesscheck"
-maas_swift_operator_role: "swiftoperator"
-maas_swift_service_project_name: "service"
+maas_swift_accesscheck_container: "rax_maas_accesscheck"
+maas_swift_accesscheck_user_name: "rax_maas_accesscheck"
+maas_swift_operator_role: "rax_maas_swiftoperator"
+maas_swift_service_project_name: "rax_maas_service"
 
 #
 # Instruct the swift service checks to be ldap aware.

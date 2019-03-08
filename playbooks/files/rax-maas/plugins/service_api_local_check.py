@@ -17,8 +17,7 @@
 import argparse
 
 import ipaddr
-from maas_common import get_auth_ref
-from maas_common import get_keystone_client
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -31,10 +30,9 @@ def check(args):
     headers = {'Content-type': 'application/json'}
     path_options = {}
     if args.auth:
-        auth_ref = get_auth_ref()
-        keystone = get_keystone_client(auth_ref)
-        auth_token = keystone.auth_token
-        project_id = keystone.project_id
+        keystone = get_openstack_client('identity')
+        auth_token = keystone.get_token()
+        project_id = keystone.get_project_id()
         headers['auth_token'] = auth_token
         path_options['project_id'] = project_id
 
@@ -46,30 +44,28 @@ def check(args):
     path = args.path.format(path_options)
 
     s = requests.Session()
-
     s.headers.update(headers)
+
     short_name = args.name.split('_')[0]
     if path and not path.startswith('/'):
         url = '/'.join((endpoint, path))
     else:
         url = ''.join((endpoint, path))
     try:
-        r = s.get(url, verify=False, timeout=5)
-    except (exc.ConnectionError,
-            exc.HTTPError,
-            exc.Timeout):
-        up = False
+        r = s.get(url, verify=False, timeout=180)
+    except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
+        is_up = False
         metric_bool('client_success', False,
                     m_name='maas_{name}'.format(name=short_name))
     else:
-        up = True
+        is_up = True
         metric_bool('client_success', True,
                     m_name='maas_{name}'.format(name=short_name))
 
     status_ok(m_name='maas_{name}'.format(name=short_name))
-    metric_bool('{name}_api_local_status'.format(name=args.name), up)
+    metric_bool('{name}_api_local_status'.format(name=args.name), is_up)
 
-    if up and r.ok:
+    if is_up and r.ok:
         milliseconds = r.elapsed.total_seconds() * 1000
         metric('{name}_api_local_response_time'.format(name=args.name),
                'double',

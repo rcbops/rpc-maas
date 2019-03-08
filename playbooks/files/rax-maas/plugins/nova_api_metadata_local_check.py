@@ -41,7 +41,7 @@ def check(args):
         # an instance ID and other headers
         versions = s.get('%s/' % metadata_endpoint,
                          verify=False,
-                         timeout=5)
+                         timeout=180)
         milliseconds = versions.elapsed.total_seconds() * 1000
         if not versions.ok or '1.0' not in versions.content.splitlines():
             is_up = False

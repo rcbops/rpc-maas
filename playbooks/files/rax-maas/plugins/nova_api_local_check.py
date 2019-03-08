@@ -16,47 +16,31 @@
 
 import argparse
 import collections
-import time
 
 import ipaddr
-from maas_common import get_auth_ref
-from maas_common import get_keystone_client
-from maas_common import get_nova_client
-from maas_common import get_os_component_major_api_version
+from maas_common import generate_local_endpoint
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
-from novaclient.client import exceptions as exc
+from requests import exceptions as exc
 
-SERVER_STATUSES = ['ACTIVE', 'STOPPED', 'ERROR']
+SERVER_STATUSES = ['ACTIVE', 'SHUTOFF', 'ERROR', 'PAUSED', 'SUSPENDED']
 
 
-def check(auth_ref, args):
-    keystone = get_keystone_client(auth_ref)
-    tenant_id = keystone.tenant_id
-    nova_version = '.'.join(
-        map(str, get_os_component_major_api_version('nova')))
-
-    compute_endpoint = (
-        '{protocol}://{ip}:{port}/v{api_version}/{tenant_id}'.format(
-            ip=args.ip,
-            tenant_id=tenant_id,
-            protocol=args.protocol,
-            port=args.port,
-            api_version=nova_version
-        )
-    )
+def check(args):
+    nova = get_openstack_client('compute')
 
     try:
-        if args.ip:
-            nova = get_nova_client(bypass_url=compute_endpoint)
-        else:
-            nova = get_nova_client()
+        local_endpoint = generate_local_endpoint(
+            str(nova.get_endpoint()), args.ip, args.port, args.protocol,
+            '/servers/detail?all_tenants=True'
+        )
+        resp = nova.session.get(local_endpoint, timeout=180)
 
-        is_up = True
-    except exc.ClientException:
+    except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
         metric_bool('client_success', False, m_name='maas_nova')
     # Any other exception presumably isn't an API error
@@ -64,16 +48,14 @@ def check(auth_ref, args):
         metric_bool('client_success', False, m_name='maas_nova')
         status_err(str(e), m_name='maas_nova')
     else:
+        is_up = resp.ok
         metric_bool('client_success', True, m_name='maas_nova')
-        # time something arbitrary
-        start = time.time()
-        nova.services()
-        end = time.time()
-        milliseconds = (end - start) * 1000
-
-        servers = nova.servers(all_tenants=1)
+        milliseconds = resp.elapsed.total_seconds() * 1000
+        servers = resp.json()['servers']
         # gather some metrics
-        status_count = collections.Counter([s.status for s in servers])
+        status_count = collections.Counter(
+            [s['status'] for s in servers]
+        )
 
     status_ok(m_name='maas_nova')
     metric_bool('nova_api_local_status', is_up, m_name='maas_nova')
@@ -90,8 +72,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

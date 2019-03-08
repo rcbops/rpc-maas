@@ -79,10 +79,27 @@ TRIPLEO_MAPPING_GROUP = {
     # horizon
     'horizon_all': ['horizon'],
 
-    # horizon
-    'swfit_all': ['swift_proxy', 'swift_storage'],
-    # skip swift_proxy because swift_proxy already exists in tripleo
+    # NOTE(npawelek): These mappings are not confirmed yet. We're not
+    # currently deploying ironic to customers due to RFEs around multi
+    # tenancy. When this functionality is needed, we'll need to define
+    # all the groupings properly.
     #
+    # ironic
+    # 'ironic_all': ['ironic_api', 'ironic_compute', 'ironic_conductor'],
+    # 'ironic_api': ['ironic_api'],
+    # 'ironic_conductor': ['ironic_conductor'],
+    # 'ironic_compute': ['ironic_compute'],
+
+    # NOTE(npawelek): These mappings are not confirmed yet.
+    # 'designate_all': ['designate_all'],
+    # 'octavia_all': [
+    #     'octavia_api', 'octavia_health_manager', 'octavia_housekeeping',
+    #     'octavia_worker'
+    # ],
+    # 'octavia_api': ['octavia_api'],
+
+    # skip swift_proxy because swift_proxy already exists in tripleo
+    'swift_all': ['swift_proxy', 'swift_storage'],
     'swift_hosts': ['swift_storage'],
     'swift_acc': ['swift_storage'],
     'swift_cont': ['swift_storage'],
