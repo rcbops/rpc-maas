@@ -15,22 +15,73 @@
 # limitations under the License.
 
 import argparse
+import ctypes
 import errno
+import os
+import subprocess
+import tempfile
+
 try:
     import lxc
     lxc_module_active = True
 except ImportError:
     lxc_module_active = False
     pass
+from pyroute2 import netns
 
 import maas_common
-import os
-import subprocess
-import tempfile
+
+
+METRICS = {
+    'nf_conntrack_count': {
+        'path': '/proc/sys/net/netfilter/nf_conntrack_count',
+        'value': 0
+    },
+    'nf_conntrack_max': {
+        'path': '/proc/sys/net/netfilter/nf_conntrack_max',
+        'value': 0
+    }
+}
 
 
 class MissingModuleError(maas_common.MaaSException):
     pass
+
+
+class NsEnter(object):
+    def __init__(self, pid, ns_type, proc='/proc'):
+        self.libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
+        self.target_fileno = os.open(
+            os.sep.join([proc, str(pid), 'ns', ns_type]), os.O_RDONLY
+        )
+
+        self.parent_fileno = os.open(
+            os.sep.join([proc, 'self', 'ns', ns_type]), os.O_RDONLY
+        )
+
+    def enter(self):
+        return self.libc.setns(self.target_fileno, 0)
+
+    def __enter__(self):
+        return self.enter()
+
+    def exit(self):
+        self.libc.setns(self.parent_fileno, 0)
+
+    def __exit__(self, type, value, tb):
+        return self.exit()
+
+
+class NetNsExec(object):
+
+    def __init__(self, ns):
+        self.ns = ns
+
+    def __enter__(self):
+        return netns.pushns(newns=self.ns)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return netns.popns()
 
 
 def parse_args():
@@ -48,120 +99,52 @@ def parse_args():
 def get_value(path):
     try:
         with open(path) as f:
-            value = f.read()
+            value = int(f.read().strip())
     except IOError as e:
         if e.errno == errno.ENOENT:
             msg = ('Unable to read "%s", the appropriate kernel module is '
                    'probably not loaded.' % path)
             raise MissingModuleError(msg)
-
-    return value.strip()
-
-
-def get_metrics():
-    metrics = {
-        'nf_conntrack_count': {
-            'path': '/proc/sys/net/netfilter/nf_conntrack_count'},
-        'nf_conntrack_max': {
-            'path': '/proc/sys/net/netfilter/nf_conntrack_max'}}
-
-    # Retrieve root namespace count
-    for data in metrics.viewvalues():
-        data['value'] = get_value(data['path'])
-
-    # Retrieve conntrack count per namespace
-    # and report the namespace with the highest count.
-    # This is necessary to limit the number of metrics to report to MAAS,
-    # as we can not report a metric per namespace, which by nature are
-    # also volatile.
-    try:
-        namespaces = os.listdir('/var/run/netns')
-        nscount = 0
-        for ns in namespaces:
-            ps = subprocess.check_output(['ip', 'netns', 'exec',
-                                          ns, 'cat',
-                                          '/proc/sys/net/netfilter/'
-                                          'nf_conntrack_count'])
-            nscount = int(ps.strip(os.linesep))
-
-        if nscount > metrics['nf_conntrack_count']['value']:
-            metrics['nf_conntrack_count']['value'] = nscount
-    except OSError:
-        pass
-
-    return metrics
+    else:
+        return value
 
 
-def get_metrics_lxc_container(container_name=''):
+def get_metrics(netns_list=None):
+    """Return Metrics for contract values.
 
-    # Return 0 values if we can't determine current state
-    # from a container
-    metrics = {
-        'nf_conntrack_count': {'value': 0},
-        'nf_conntrack_max': {'value': 0}}
+    This function will return the highest value of "nf_conntrack_count" from
+    all available namespaces.
 
+    :returns: ``dict``
+    """
+    for key in METRICS.keys():
+        METRICS[key]['value'] = get_value(METRICS[key]['path'])
+
+    ns_count = [METRICS['nf_conntrack_count']['value']]
+    for ns in netns_list or netns.listnetns():
+        with NetNsExec(ns=ns):
+            ns_count.append(
+                get_value(
+                    path='/proc/sys/net/netfilter/nf_conntrack_count'
+                )
+            )
+
+    METRICS['nf_conntrack_count']['value'] = max(ns_count)
+
+    return METRICS
+
+
+def get_metrics_lxc_container(container_name):
     # Create lxc container object
     cont = lxc.Container(container_name)
+    container_pid = int(cont.init_pid)
+    if not (container_pid > 1 and cont.running and cont.state == "RUNNING"):
+        raise maas_common.MaaSException(
+            'Container %s not in running state' % cont.name
+        )
 
-    if not (cont.init_pid > 1 and
-            cont.running and
-            cont.state == "RUNNING"):
-        raise maas_common.MaaSException('Container %s not in running state' %
-                                        cont.name)
-
-    # Check if container is even running
-    try:
-        with tempfile.TemporaryFile() as tmpfile:
-            # Retrieve root namespace count
-            if cont.attach_wait(lxc.attach_run_command,
-                                ['cat',
-                                 '/proc/sys/net/netfilter/nf_conntrack_count',
-                                 '/proc/sys/net/netfilter/nf_conntrack_max'],
-                                stdout=tmpfile,
-                                stderr=tempfile.TemporaryFile()) > -1:
-
-                tmpfile.seek(0)
-                output = tmpfile.read()
-                metrics = {
-                    'nf_conntrack_count': {'value': output.split('\n')[0]},
-                    'nf_conntrack_max': {'value': output.split('\n')[1]}}
-
-        # Retrieve conntrack count per namespace
-        # and report the namespace with the highest count.
-        # This is necessary to limit the number of metrics to report to MAAS,
-        # as we can not report a metric per namespace, which by nature are
-        # also volatile.
-        with tempfile.TemporaryFile() as nsfile:
-            if cont.attach_wait(lxc.attach_run_command,
-                                ['ls',
-                                 '-1',
-                                 '/var/run/netns'],
-                                stdout=nsfile,
-                                stderr=tempfile.TemporaryFile()) > -1:
-                nsfile.seek(0)
-
-                for line in nsfile.readlines():
-                    ns = line.strip(os.linesep)
-                    nscountfile = tempfile.TemporaryFile()
-
-                    if cont.attach_wait(lxc.attach_run_command,
-                                        ['ip', 'netns', 'exec',
-                                         ns, 'cat',
-                                         '/proc/sys/net/netfilter/'
-                                         'nf_conntrack_count'],
-                                        stdout=nscountfile,
-                                        stderr=tempfile.TemporaryFile()) > -1:
-
-                        nscountfile.seek(0)
-                        nscount = int(nscountfile.read().strip(os.linesep))
-
-                        if nscount > metrics['nf_conntrack_count']['value']:
-                            metrics['nf_conntrack_count']['value'] = nscount
-
-        return metrics
-
-    except maas_common.MaaSException as e:
-        maas_common.status_err(str(e), m_name='maas_conntrack')
+    with NsEnter(pid=container_pid, ns_type='net'):
+        return get_metrics()
 
 
 def main():
@@ -170,9 +153,10 @@ def main():
             metrics = get_metrics()
         else:
             if not lxc_module_active:
-                raise maas_common.MaaSException('Container monitoring '
-                                                'requested but lxc-python '
-                                                'pip module not installed.')
+                raise maas_common.MaaSException(
+                    'Container monitoring requested but failed. Check lxc-python'
+                    'pip module not installed within the plugin execution path.'
+                )
             metrics = get_metrics_lxc_container(args.container)
 
     except maas_common.MaaSException as e:
