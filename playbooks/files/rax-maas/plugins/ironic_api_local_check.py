@@ -15,55 +15,42 @@
 # limitations under the License.
 
 import argparse
-import time
 
 import ipaddr
-from ironicclient import exc
-from maas_common import get_auth_ref
-from maas_common import get_ironic_client
-from maas_common import get_os_component_major_api_version
+from maas_common import generate_local_endpoint
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
+from requests import exceptions as exc
 
 
-def check(auth_ref, args):
-    ironic_version = get_os_component_major_api_version('ironic')[0]
-    ironic_endpoint = ('{protocol}://{ip}:{port}/v{version}'.format(
-        ip=args.ip,
-        protocol=args.protocol,
-        version=ironic_version,
-        port=args.port
-    ))
+def check(args):
+    ironic = get_openstack_client('baremetal')
 
     try:
-        if args.ip:
-            ironic = get_ironic_client(endpoint=ironic_endpoint)
-        else:
-            ironic = get_ironic_client()
+        ironic_local_endpoint = generate_local_endpoint(
+            str(ironic.get_endpoint()), args.ip, args.port,
+            args.protocol, '/nodes'
+        )
+        resp = ironic.session.get(ironic_local_endpoint)
 
-        is_up = True
-
-    except exc.ClientException:
+    except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
     # Any other exception presumably isn't an API error
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_ironic')
         status_err(str(e), m_name='maas_ironic')
     else:
+        is_up = resp.status_code == 200
+        milliseconds = resp.elapsed.total_seconds() * 1000
         metric_bool('client_success', True, m_name='maas_ironic')
-        # time something arbitrary
-        start = time.time()
-        ironic.node.list()
-        end = time.time()
-        milliseconds = (end - start) * 1000
 
     status_ok(m_name='maas_ironic')
     metric_bool('ironic_api_local_status', is_up, m_name='maas_ironic')
     if is_up:
-        # only want to send other metrics if api is up
         metric('ironic_api_local_response_time',
                'double',
                '%.3f' % milliseconds,
@@ -71,8 +58,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

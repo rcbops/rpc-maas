@@ -32,11 +32,11 @@ def check(args):
         # return good check on any valid response
         start = datetime.datetime.now()
         message = dns.message.make_query("example.org", "A")
-        answer = dns.query.udp(message, timeout=5, where=args.ip, port=5354)
+        answer = dns.query.udp(message, timeout=10, where=args.ip, port=5354)
         end = datetime.datetime.now()
         # int of return code
-        mdns_is_up = (answer.rcode() <= 16)
-    except (dns.exception.Timeout):
+        mdns_is_up = answer.rcode() <= 16
+    except dns.exception.Timeout:
         mdns_is_up = False
         metric_bool('client_success', False, m_name='maas_designate')
     except Exception as e:

@@ -17,58 +17,44 @@
 import argparse
 import collections
 import ipaddr
-# Technically maas_common isn't third-party but our own thing but hacking
-# consideres it third-party
-from maas_common import get_auth_ref
-from maas_common import get_keystone_client
-from maas_common import get_os_component_major_api_version
+
+from maas_common import generate_local_endpoint
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
-import requests
 from requests import exceptions as exc
 
 VOLUME_STATUSES = ['available', 'in-use', 'error']
 
 
-def check(auth_ref, args):
-    keystone = get_keystone_client(auth_ref)
-    auth_token = keystone.auth_token
-    cinder_api_version = get_os_component_major_api_version('cinder')[0]
-    volume_endpoint = ('{protocol}://{ip}:{port}/v{version}/{tenant}'.format(
-        ip=args.ip,
-        tenant=keystone.tenant_id,
-        protocol=args.protocol,
-        port=args.port,
-        version=cinder_api_version
-    ))
-
-    s = requests.Session()
-
-    s.headers.update(
-        {'Content-type': 'application/json',
-         'x-auth-token': auth_token})
+def check(args):
+    cinder = get_openstack_client('block_storage')
 
     try:
-        vol = s.get('%s/volumes/detail' % volume_endpoint,
-                    verify=False,
-                    timeout=5)
-        milliseconds = vol.elapsed.total_seconds() * 1000
-        snap = s.get('%s/snapshots/detail' % volume_endpoint,
-                     verify=False,
-                     timeout=5)
-        is_up = vol.ok and snap.ok
-    except (exc.ConnectionError,
-            exc.HTTPError,
-            exc.Timeout) as e:
+        local_vol_url = generate_local_endpoint(
+            str(cinder.get_endpoint()), args.ip, args.port,
+            args.protocol, '/volumes/detail'
+        )
+        vol = cinder.session.get(local_vol_url, timeout=180)
+
+        local_snap_url = generate_local_endpoint(
+            str(cinder.get_endpoint()), args.ip, args.port,
+            args.protocol, '/snapshots/detail'
+        )
+        snap = cinder.session.get(local_snap_url, timeout=180)
+
+    except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
         metric_bool('client_success', False, m_name='maas_cinder')
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_cinder')
         status_err(str(e), m_name='maas_cinder')
     else:
+        is_up = vol.ok and snap.ok
+        milliseconds = vol.elapsed.total_seconds() * 1000
         metric_bool('client_success', True, m_name='maas_cinder')
         # gather some metrics
         vol_statuses = [v['status'] for v in vol.json()['volumes']]
@@ -100,8 +86,8 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check Cinder API against"

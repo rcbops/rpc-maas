@@ -1,6 +1,7 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
-{% set label = "ironic_capacity_check" %}
+{% set label = "neutron_metadata_proxy_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
+{% set service_host = ansible_nodename + ansible_local['maas']['general']['local_suffix'] | default('') %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -8,17 +9,17 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/ironic_capacity_check.py"]
+    args    : ["{{ maas_plugin_dir }}/neutron_metadata_proxy_check.py"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
 alarms      :
-    ironic_capacity :
-        label                   : ironic_capacity--{{ inventory_hostname }}
+    neutron-metadata-proxy_status :
+        label                   : neutron-metadata-proxy_status--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('ironic_capacity--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('false', 'true') }}
+        disabled                : {{ (('neutron-metadata-proxy_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (percentage(metric["ironic_up_nodes_count"] , metric["ironic_total_nodes_count"]) <= {{ maas_capacity_percent_critical_threshold }}) {
-                return new AlarmStatus(CRITICAL, "Bare-metal capacity has dropped to <= {{ maas_capacity_percent_critical_threshold }}%");
+            if (metric["neutron-metadata-proxy_status"] != 1) {
+                return new AlarmStatus(CRITICAL, "The neutron metadata proxy is unavailable in one or more namespaces.");
             }

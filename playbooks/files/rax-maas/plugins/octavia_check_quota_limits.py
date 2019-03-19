@@ -17,26 +17,19 @@ from __future__ import division
 
 import argparse
 
-from maas_common import get_auth_ref
-from maas_common import get_endpoint_url_for_service
-from maas_common import get_keystone_client
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
-import requests
+from requests import exceptions as exc
 
 
-def check(auth_ref, args):
-    keystone = get_keystone_client(auth_ref)
-    auth_token = keystone.auth_token
+def check(args):
+    nova = get_openstack_client('compute')
+    cinder = get_openstack_client('block_storage')
 
-    s = requests.Session()
-
-    s.headers.update(
-        {'Content-type': 'application/json',
-         'x-auth-token': auth_token})
     try:
         if args.tenant_id:
             params = {'tenant_id': args.tenant_id,
@@ -44,68 +37,62 @@ def check(auth_ref, args):
         else:
             params = {}
 
-        compute_endpoint = get_endpoint_url_for_service(
-            'compute', auth_ref, 'internal')
+        compute_url = '%s/limits' % str(nova.get_endpoint())
+        compute_resp = nova.session.get(compute_url, params=params,
+                                        timeout=180)
 
-        volume_endpoint = get_endpoint_url_for_service(
-            'volumev2', auth_ref, 'internal')
+        volume_url = '%s/limits' % str(cinder.get_endpoint())
+        volume_resp = cinder.session.get(volume_url, params=params,
+                                         timeout=180)
 
-        r = s.get('%s/limits' % compute_endpoint, params=params,
-                  verify=False,
-                  timeout=5)
-
-        if (r.status_code != 200):
+        if compute_resp.status_code != 200:
             raise Exception("Nova returned status code %s" % str(
-                r.status_code))
-        nova = r.json()['limits']['absolute']
+                compute_resp.status_code))
+        nova_limits = compute_resp.json()['limits']['absolute']
 
-        r = s.get('%s/limits' % volume_endpoint, params=params,
-                  verify=False,
-                  timeout=5)
-
-        if (r.status_code != 200):
-            raise Exception(
-                "Volume returned status code %s" % str(r.status_code))
-        volume = r.json()['limits']['absolute']
+        if volume_resp.status_code != 200:
+            raise Exception("Volume returned status code %s" % str(
+                volume_resp.status_code))
+        volume_limits = volume_resp.json()['limits']['absolute']
 
         metric_bool('client_success', True, m_name='maas_octavia')
         status_ok(m_name='maas_octavia')
         metric('octavia_cores_quota_usage',
                'double',
                '%.3f' % (
-                   max(0, nova['totalCoresUsed'] / nova[
+                   max(0, nova_limits['totalCoresUsed'] / nova_limits[
                        'maxTotalCores'] * 100)),
                '%')
         metric('octavia_instances_quota_usage',
                'double',
-               '%.3f' % (max(0, nova['totalInstancesUsed'] / nova[
-                   'maxTotalInstances'] * 100)),
+               '%.3f' % (max(0, nova_limits['totalInstancesUsed'] /
+                             nova_limits['maxTotalInstances'] * 100)),
                '%')
         metric('octavia_ram_quota_usage',
                'double',
                '%.3f' % (
-                   max(0, nova['totalRAMUsed'] / nova[
+                   max(0, nova_limits['totalRAMUsed'] / nova_limits[
                        'maxTotalRAMSize'] * 100)),
                '%')
         metric('octavia_server_group_quota_usage',
                'double',
-               '%.3f' % (max(0, nova['totalServerGroupsUsed'] / nova[
-                   'maxServerGroups'] * 100)),
+               '%.3f' % (max(0, nova_limits['totalServerGroupsUsed'] /
+                             nova_limits['maxServerGroups'] * 100)),
                '%')
         metric('octavia_volume_gb_quota_usage',
                'double',
-               '%.3f' % (max(0, volume['totalGigabytesUsed'] / volume[
-                   'maxTotalVolumeGigabytes'] * 100)),
+               '%.3f' % (max(0, volume_limits['totalGigabytesUsed'] /
+                             volume_limits['maxTotalVolumeGigabytes'] * 100)),
                '%')
         metric('octavia_num_volume_quota_usage',
                'double',
-               '%.3f' % (max(0, volume['totalVolumesUsed'] / volume[
-                   'maxTotalVolumes'] * 100)),
+               '%.3f' % (max(0, volume_limits['totalVolumesUsed'] /
+                             volume_limits['maxTotalVolumes'] * 100)),
                '%')
 
         # Neutron got it's limit support in Pike...
 
-    except (requests.HTTPError, requests.Timeout, requests.ConnectionError):
+    except (exc.HTTPError, exc.Timeout, exc.ConnectionError):
         metric_bool('client_success', False, m_name='maas_octavia')
     # Any other exception presumably isn't an API error
     except Exception as e:
@@ -118,8 +105,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

@@ -15,66 +15,56 @@
 # limitations under the License.
 
 import argparse
-import time
 
 import ipaddr
-from maas_common import get_neutron_client
+from maas_common import generate_local_endpoint
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
-from neutronclient.client import exceptions as exc
+from requests import exceptions as exc
 
 
 def check(args):
+    neutron = get_openstack_client('network')
 
-    network_endpoint = '{protocol}://{ip}:{port}'.format(
-        ip=args.ip,
-        protocol=args.protocol,
-        port=args.port
-    )
-
-    is_up = False
     try:
-        if args.ip:
-            neutron = get_neutron_client(endpoint_url=network_endpoint)
-        else:
-            neutron = get_neutron_client()
+        neutron_local_endpoint = generate_local_endpoint(
+            str(neutron.get_endpoint()), args.ip, args.port,
+            args.protocol, '/agents'
+        )
+        resp = neutron.session.get(neutron_local_endpoint, timeout=180)
 
-        is_up = True
-    # if we get a NeutronClientException don't bother sending any other metric
-    # The API IS DOWN
-    except exc.NeutronClientException:
+    except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
+        is_up = False
         metric_bool('client_success', False, m_name='maas_neutron')
     # Any other exception presumably isn't an API error
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_neutron')
         status_err(str(e), m_name='maas_neutron')
     else:
+        is_up = True
+        milliseconds = resp.elapsed.total_seconds() * 1000
         metric_bool('client_success', True, m_name='maas_neutron')
-        # time something arbitrary
-        start = time.time()
-        neutron.list_agents()
-        end = time.time()
-        milliseconds = (end - start) * 1000
 
-        # gather some metrics
-        networks = len(neutron.list_networks()['networks'])
-        agents = len(neutron.list_agents()['agents'])
-        routers = len(neutron.list_routers()['routers'])
-        subnets = len(neutron.list_subnets()['subnets'])
+        # Gather a few metrics
+        agents = len(resp.json()['agents'])
+        networks = len([i for i in neutron.networks()])
+        routers = len([i for i in neutron.routers()])
+        subnets = len([i for i in neutron.subnets()])
 
     status_ok(m_name='maas_neutron')
     metric_bool('neutron_api_local_status', is_up, m_name='maas_neutron')
-    # only want to send other metrics if api is up
+    # Only send metrics if the API is up
     if is_up:
         metric('neutron_api_local_response_time',
                'double',
                '%.3f' % milliseconds,
                'ms')
-        metric('neutron_networks', 'uint32', networks, 'networks')
         metric('neutron_agents', 'uint32', agents, 'agents')
+        metric('neutron_networks', 'uint32', networks, 'networks')
         metric('neutron_routers', 'uint32', routers, 'agents')
         metric('neutron_subnets', 'uint32', subnets, 'subnets')
 

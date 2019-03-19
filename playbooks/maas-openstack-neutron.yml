@@ -262,7 +262,7 @@
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
-    - name: Install neutron metadata agent checks
+    - name: Install neutron metadata agent check
       template:
         src: "templates/rax-maas/neutron_metadata_agent_check.yaml.j2"
         dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_metadata_agent_check--{{ inventory_hostname }}.yaml"
@@ -270,6 +270,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+
+# TODO(npawelek): This doesn't appear to be consistently implemented, will re-add later
+#    - name: Install neutron metadata proxy check
+#      template:
+#        src: "templates/rax-maas/neutron_metadata_proxy_check.yaml.j2"
+#        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_metadata_proxy_check--{{ inventory_hostname }}.yaml"
+#        owner: "root"
+#        group: "root"
+#        mode: "0644"
+#      delegate_to: "{{ physical_host | default(ansible_host) }}"
 
   vars_files:
     - vars/main.yml

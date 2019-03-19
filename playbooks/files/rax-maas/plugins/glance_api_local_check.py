@@ -17,41 +17,31 @@
 import argparse
 import collections
 import ipaddr
-import time
 
-from glanceclient import exc as exc
-from maas_common import get_auth_ref
-from maas_common import get_glance_client
-from maas_common import get_os_component_major_api_version
+from maas_common import generate_local_endpoint
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
+from requests import exceptions as exc
 
 
 IMAGE_STATUSES = ['active', 'queued', 'killed']
 
 
-def check(auth_ref, args):
-    glance_api_version = get_os_component_major_api_version('glance')[0]
-    glance_endpoint = (
-        '{protocol}://{ip}:{port}/v{version}'.format(
-            ip=args.ip,
-            protocol=args.protocol,
-            port=args.port,
-            version=glance_api_version
-        )
-    )
+def check(args):
+    glance = get_openstack_client('image')
 
     try:
-        if args.ip:
-            glance = get_glance_client(endpoint=glance_endpoint)
-        else:
-            glance = get_glance_client()
+        local_image_url = generate_local_endpoint(
+            str(glance.get_endpoint()), args.ip, args.port,
+            args.protocol, '/images'
+        )
+        resp = glance.session.get(local_image_url, timeout=180)
 
-        is_up = True
-    except exc.HTTPException:
+    except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
         metric_bool('client_success', False, m_name='maas_glance')
     # Any other exception presumably isn't an API error
@@ -59,15 +49,12 @@ def check(auth_ref, args):
         metric_bool('client_success', False, m_name='maas_glance')
         status_err(str(e), m_name='maas_glance')
     else:
+        is_up = resp.ok
+        milliseconds = resp.elapsed.total_seconds() * 1000
         metric_bool('client_success', True, m_name='maas_glance')
-        # time something arbitrary
-        start = time.time()
-        glance.images.list(search_opts={'all_tenants': 1})
-        end = time.time()
-        milliseconds = (end - start) * 1000
-        # gather some metrics
-        images = glance.images.list(search_opts={'all_tenants': 1})
-        status_count = collections.Counter([s.status for s in images])
+
+        images = resp.json()['images']
+        status_count = collections.Counter([i['status'] for i in images])
 
     status_ok(m_name='maas_glance')
     metric_bool('glance_api_local_status', is_up, m_name='maas_glance')
@@ -86,8 +73,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

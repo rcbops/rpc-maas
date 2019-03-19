@@ -18,10 +18,7 @@ import argparse
 import collections
 
 import ipaddr
-from maas_common import get_auth_ref
-from maas_common import get_keystone_client
-from maas_common import get_nova_client
-from maas_common import get_os_component_major_api_version
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -62,23 +59,9 @@ stats_mapping = {
 }
 
 
-def check(auth_ref, args):
-    keystone = get_keystone_client(auth_ref)
-    tenant_id = keystone.tenant_id
-    nova_version = '.'.join(
-        map(str, get_os_component_major_api_version('nova')))
-
-    COMPUTE_ENDPOINT = (
-        '{protocol}://{ip}:8774/v{version}/{tenant_id}'
-        .format(ip=args.ip, version=nova_version,
-                tenant_id=tenant_id, protocol=args.protocol)
-    )
-
+def check(args):
     try:
-        if args.ip:
-            nova = get_nova_client(bypass_url=COMPUTE_ENDPOINT)
-        else:
-            nova = get_nova_client()
+        nova = get_openstack_client('compute')
 
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_nova')
@@ -114,8 +97,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

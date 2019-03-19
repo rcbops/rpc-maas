@@ -16,14 +16,16 @@
 
 import argparse
 
-import psutil
-
-from maas_common import get_auth_ref
 from maas_common import metric_bool
 from maas_common import print_output
+import psutil
 
 
-def check(auth_ref, args):
+def check(args):
+
+    # NOTE(npawelek): API calls for conductor status are only available
+    # in ironic v1.49 and onward. Instead, we look for the process
+    # directly until it becomes available within the API.
     name = "ironic-conductor_status"
     for proc in psutil.process_iter():
         if 'ironic-conducto' in proc.name():
@@ -34,8 +36,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

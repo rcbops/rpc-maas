@@ -45,10 +45,6 @@
   tags:
     - maas-openstack
 
-- import_playbook: maas-openstack-magnum.yml
-  tags:
-    - maas-openstack
-
 - import_playbook: maas-openstack-neutron.yml
   tags:
     - maas-openstack

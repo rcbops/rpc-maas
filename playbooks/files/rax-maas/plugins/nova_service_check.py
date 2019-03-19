@@ -16,10 +16,7 @@
 
 import argparse
 
-from maas_common import get_auth_ref
-from maas_common import get_keystone_client
-from maas_common import get_nova_client
-from maas_common import get_os_component_major_api_version
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -29,21 +26,14 @@ from maas_common import status_ok
 from maas_common import NOVA_SERVICE_TYPE_LIST
 
 
-def check(auth_ref, args):
-    keystone = get_keystone_client(auth_ref)
-    auth_token = keystone.auth_token
-    tenant_id = keystone.tenant_id
-    nova_version = '.'.join(
-        map(str, get_os_component_major_api_version('nova')))
+def check(args):
+    nova = get_openstack_client('compute')
 
-    COMPUTE_ENDPOINT = (
-        '{protocol}://{hostname}:8774/v{version}/{tenant_id}'
-        .format(protocol=args.protocol, hostname=args.hostname,
-                version=nova_version, tenant_id=tenant_id)
-    )
     try:
-        nova = get_nova_client(auth_token=auth_token,
-                               bypass_url=COMPUTE_ENDPOINT)
+        if args.host:
+            services = [i for i in nova.services() if i.host == args.host]
+        else:
+            services = [i for i in nova.services()]
 
     # not gathering api status metric here so catch any exception
     except Exception as e:
@@ -57,12 +47,6 @@ def check(auth_ref, args):
         return
     else:
         metric_bool('client_success', True, m_name='maas_nova')
-
-    # gather nova service states
-    if args.host:
-        services = [i for i in nova.services() if i.host == args.host]
-    else:
-        services = nova.services()
 
     if len(services) == 0:
         status_err("No host(s) found in the service list", m_name='maas_nova')
@@ -92,8 +76,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

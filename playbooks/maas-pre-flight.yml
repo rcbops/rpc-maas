@@ -517,9 +517,9 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   tasks:
-    - name: local container host block
+    - name: OSA container host block
       block:
-        - name: Generate list of container hosts
+        - name: Generate list of OSA container hosts
           set_fact:
             _known_container_hosts: |-
               {% set _var = [] -%}
@@ -530,61 +530,29 @@
               {% endfor %}
               {{ _var | unique }}
 
-        - name: Set container host fact
+        - name: Set OSA container host fact
           ini_file:
             path: "/etc/ansible/facts.d/maas.fact"
             section: "general"
-            option: "maas_container_host"
+            option: "maas_lxc_host"
             value: "{{ inventory_hostname in _known_container_hosts }}"
       when:
         - not (ansible_local['maas']['general']['deploy_osp'] | bool)
 
+    - name: OSP container host block
+      block:
+        - name: Check for docker containers
+          shell: docker ps | grep -v ^CONTAINER | wc -l
+          register: docker_check
 
-#
-# maasrc generation
-# (This following section could be removed when upstream decides to include
-# OS_IMAGE_API_VERSION and OS_VOLUME_API_VERSION in openrc
-#
-- name: Generate maasrc
-  hosts: utility_all
-  gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
-  become: true
-  pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
+        - name: Set docker container host fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_docker_host"
+            value: "{{ (docker_check.stdout | int) > 0 }}"
       when:
-        - deploy_osp | default(False) | bool
-
-  tasks:
-    # For Queens/osp13 and beyond, use image api version 2 and volume api version 3
-    - name: Override Image and Volume API versions Queens and beyond
-      set_fact:
-        os_image_api_version: '2'
-        os_volume_api_version: '3'
-      when:
-        - ansible_version.full is version('2.0.0', '>=')
-        - (
-            (ansible_local['maas']['general']['maas_product_osa_version'] is defined) and
-            (ansible_local['maas']['general']['maas_product_osa_version'] | regex_search('[0-9]+.[0-9]+.[0-9]+')) and
-            (ansible_local['maas']['general']['maas_product_osa_version'] is version('17.0.0', '>='))
-          ) or
-          (ansible_local['maas']['general']['deploy_osp'] | bool)
-
-    - name: Generate maasrc file
-      template:
-        src: "templates/rax-maas/maasrc.j2"
-        dest: "/root/maasrc"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-  tags:
-    - maas-pre-flight
-  environment: "{{ deployment_environment_variables | default({}) }}"
+        - ansible_local['maas']['general']['deploy_osp'] | bool
 
 
 - name: Distribute openstack rc files
@@ -600,7 +568,6 @@
 
   tasks:
     - include_tasks: "common-tasks/maas_get_openrc.yml"
-    - include_tasks: "common-tasks/maas_get_maasrc.yml"
 
   vars_files:
     - vars/main.yml

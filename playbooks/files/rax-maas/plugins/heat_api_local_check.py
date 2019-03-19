@@ -15,42 +15,29 @@
 # limitations under the License.
 
 import argparse
-import time
 
-from heatclient import exc
 import ipaddr
-from maas_common import get_auth_ref
-from maas_common import get_heat_client
-from maas_common import get_keystone_client
-from maas_common import get_os_component_major_api_version
+from maas_common import generate_local_endpoint
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
 from maas_common import status_ok
+from requests import exceptions as exc
 
 
-def check(auth_ref, args):
-    keystone = get_keystone_client(auth_ref)
-    tenant_id = keystone.tenant_id
-    heat_version = get_os_component_major_api_version('heat')[0]
-
-    heat_endpoint = ('{protocol}://{ip}:{port}/v{version}/{tenant}'.format(
-        ip=args.ip,
-        tenant=tenant_id,
-        version=heat_version,
-        protocol=args.protocol,
-        port=args.port
-    ))
+def check(args):
+    heat = get_openstack_client('orchestration')
 
     try:
-        if args.ip:
-            heat = get_heat_client(endpoint=heat_endpoint)
-        else:
-            heat = get_heat_client()
+        local_heat_endpoint = generate_local_endpoint(
+            str(heat.get_endpoint()), args.ip, args.port,
+            args.protocol, '/build_info'
+        )
+        resp = heat.session.get(local_heat_endpoint)
 
-        is_up = True
-    except exc.HTTPException as e:
+    except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
         metric_bool('client_success', False, m_name='maas_heat')
     # Any other exception presumably isn't an API error
@@ -58,12 +45,9 @@ def check(auth_ref, args):
         metric_bool('client_success', False, m_name='maas_heat')
         status_err(str(e), m_name='maas_heat')
     else:
+        is_up = True
+        milliseconds = resp.elapsed.total_seconds() * 1000
         metric_bool('client_success', True, m_name='maas_heat')
-        # time something arbitrary
-        start = time.time()
-        heat.build_info.build_info()
-        end = time.time()
-        milliseconds = (end - start) * 1000
 
     status_ok(m_name='maas_heat')
     metric_bool('heat_api_local_status', is_up, m_name='maas_heat')
@@ -76,8 +60,7 @@ def check(auth_ref, args):
 
 
 def main(args):
-    auth_ref = get_auth_ref()
-    check(auth_ref, args)
+    check(args)
 
 
 if __name__ == "__main__":

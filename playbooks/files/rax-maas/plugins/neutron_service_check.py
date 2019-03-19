@@ -16,7 +16,7 @@
 
 import argparse
 
-from maas_common import get_neutron_client
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -27,13 +27,17 @@ from maas_common import NEUTRON_AGENT_TYPE_LIST
 
 
 def check(args):
+    neutron = get_openstack_client('network')
 
-    NETWORK_ENDPOINT = '{protocol}://{hostname}:9696'.format(
-        protocol=args.protocol, hostname=args.hostname)
     try:
-        neutron = get_neutron_client(endpoint_url=NETWORK_ENDPOINT)
+        if args.host:
+            agents = [i for i in neutron.agents(host=args.host)]
+        elif args.fqdn:
+            agents = [i for i in neutron.agents(host=args.fqdn)]
+        else:
+            agents = [i for i in neutron.agents()]
 
-    # not gathering api status metric here so catch any exception
+    # An API status metric is not gathered so catch any exception
     except Exception as e:
         metric_bool('client_success', False, m_name='maas_neutron')
         for neutron_agent_type in NEUTRON_AGENT_TYPE_LIST:
@@ -46,26 +50,15 @@ def check(args):
     else:
         metric_bool('client_success', True, m_name='maas_neutron')
 
-    # gather neutron service states
-    if args.host:
-        agents = neutron.list_agents(host=args.host)['agents']
-    elif args.fqdn:
-        agents = neutron.list_agents(host=args.fqdn)['agents']
-    else:
-        agents = neutron.list_agents()['agents']
-
     if len(agents) == 0:
-        metric_bool('agents_found', False, m_name='maas_neutron')
         status_err("No host(s) found in the agents list",
                    m_name='maas_neutron')
-    else:
-        metric_bool('agents_found', True, m_name='maas_neutron')
 
-    # return all the things
+    # Return all the things
     status_ok(m_name='maas_neutron')
     for agent in agents:
         agent_is_up = "Yes"
-        if agent['admin_state_up'] and not agent['alive']:
+        if agent['is_admin_state_up'] and not agent['is_alive']:
             agent_is_up = "No"
 
         if args.host:

@@ -59,4 +59,4 @@
     cache_valid_time: 600
   when:
     - not (ansible_local['maas']['general']['deploy_osp'] | bool)
-    - ansible_local['maas']['general']['maas_container_host'] | bool
+    - ansible_local['maas']['general']['maas_lxc_host'] | bool

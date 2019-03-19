@@ -86,7 +86,7 @@ def get_metrics():
 
         if nscount > metrics['nf_conntrack_count']['value']:
             metrics['nf_conntrack_count']['value'] = nscount
-    except (OSError):
+    except OSError:
         pass
 
     return metrics

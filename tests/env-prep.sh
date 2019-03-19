@@ -32,7 +32,7 @@ export OSA_REQUIREMENTS_CHECKOUT="master"
 export UPPER_CONSTRAINTS_FILE="https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=${OSA_REQUIREMENTS_CHECKOUT:-master}"
 export OSA_TEST_DEPS="https://git.openstack.org/cgit/openstack/openstack-ansible-tests/plain/test-ansible-deps.txt?h=${OSA_TESTS_CHECKOUT:-master}"
 
-if [ "${RE_JOB_SCENARIO}" = "osp13" ]; then
+if [[ ${RE_JOB_SCENARIO} = osp13 ]]; then
   env | egrep "(RE|PUBCLOUD)_" | sed "s/^/export /g" > ${TEST_DIR}/RE_ENV
 
   echo "RE_ENV_file to set: \n"
@@ -60,26 +60,26 @@ function ssh_key_create {
   key_file="${key_path}/id_rsa"
 
   # Ensure that the .ssh directory exists and has the right mode
-  if [ ! -d ${key_path} ]; then
+  if [[ ! -d ${key_path} ]]; then
     mkdir -p ${key_path}
     chmod 700 ${key_path}
   fi
 
   # Ensure a full keypair exists
-  if [ ! -f "${key_file}" -o ! -f "${key_file}.pub" ]; then
+  if [[ ! -f "${key_file}" ]] || [[ ! -f "${key_file}.pub" ]]; then
 
-    # Regenrate public key if private key exists
-    if [ -f "${key_file}" ]; then
+    # Regenerate public key if private key exists
+    if [[ -f "${key_file}" ]]; then
       ssh-keygen -f ${key_file} -y > ${key_file}.pub
     fi
 
     # Delete public key if private key missing
-    if [ ! -f "${key_file}" ]; then
+    if [[ ! -f "${key_file}" ]]; then
       rm -f ${key_file}.pub
     fi
 
     # Regenerate keypair if both keys missing
-    if [ ! -f "${key_file}" -a ! -f "${key_file}.pub" ]; then
+    if [[ ! -f "${key_file}" ]] && [[ ! -f "${key_file}.pub" ]]; then
       ssh-keygen -t rsa -f ${key_file} -N ''
     fi
 
@@ -101,10 +101,8 @@ ssh_key_create
 
 case ${DISTRO_ID} in
     centos|rhel)
-        $RHT_PKG_MGR -y install \
-          python-virtualenv iptables python-devel
-        $RHT_PKG_MGR -y groupinstall \
-          "Development Tools"
+        $RHT_PKG_MGR -y install python-virtualenv iptables python-devel
+        $RHT_PKG_MGR -y groupinstall "Development Tools"
         ;;
     ubuntu)
         apt-get update
@@ -112,8 +110,7 @@ case ${DISTRO_ID} in
           python-virtualenv iptables util-linux apt-transport-https netbase build-essential python-dev
         ;;
     opensuse*)
-        zypper -n install -l \
-          python-virtualenv iptables
+        zypper -n install -l python-virtualenv iptables
         # Leap ships with python3.4 which is not supported by ansible and as
         # such we are using python2
         # See https://github.com/ansible/ansible/issues/24180

@@ -9,22 +9,12 @@ ipaddr==2.1.11
 lxml==3.6.4
 lxc-python2==0.1
 psutil==5.2.2
-
-### TO BE REPLACED BY MONITORSTACK
-python-cinderclient==1.9.0
-python-glanceclient==2.5.0
-python-heatclient==1.5.1
-python-ironicclient==1.15.0
-python-keystoneclient==3.5.1
-python-magnumclient==2.3.1
-python-neutronclient==6.0.0
-python-novaclient==6.0.1
-python-openstackclient==3.2.1
-### TO BE REPLACED BY MONITORSTACK
+openstacksdk==0.25.0
+keystoneauth1==3.12.0
 
 ### General dependencies
 python-memcached==1.58
 PyYAML==3.12
-rackspace-monitoring-cli==0.7.2
+rackspace-monitoring-cli>=0.7.2
 requests==2.14.2
 waxeye==0.8.1

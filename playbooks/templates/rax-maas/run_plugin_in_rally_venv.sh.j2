@@ -4,15 +4,8 @@ if [[ -f {{ maas_openrc | default('~/openrc') }} ]]; then
   source {{ maas_openrc | default('~/openrc') }}
 fi
 
-if [[ -f {{ maas_maasrc | default('~/maasrc') }} ]]; then
-  source {{ maas_maasrc | default('~/maasrc') }}
-fi
-
 if [[ -f {{ maas_environment | default('/etc/environment') }} ]]; then
   source {{ maas_environment | default('/etc/environment') }}
 fi
-
-# NOTE(cloudnull): Hard coded because this was never addressed upstream
-export OS_API_INSECURE={{ maas_os_api_insecure | default('True') }}
 
 {{ maas_rally_venv_bin }}/python "$@"

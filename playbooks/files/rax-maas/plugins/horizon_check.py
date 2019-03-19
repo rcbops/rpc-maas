@@ -56,7 +56,7 @@ def check(args):
     try:
         r = s.get('%s:%s' % (HORIZON_URL, HORIZON_PORT),
                   verify=False,
-                  timeout=5)
+                  timeout=180)
     except (exc.ConnectionError,
             exc.HTTPError,
             exc.Timeout) as e:

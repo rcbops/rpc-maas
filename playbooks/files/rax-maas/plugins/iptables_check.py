@@ -14,8 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import subprocess
 
+from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
@@ -24,55 +26,62 @@ from maas_common import status
 
 
 def main():
+    nova = get_openstack_client('compute')
+
     iptables_exist = False
-    bridge_params = ["bridge-nf-call-arptables", "bridge-nf-call-ip6tables",
-                     "bridge-nf-call-iptables"]
     bridge_sysctl = False
+    bridge_params = ["bridge-nf-call-arptables",
+                     "bridge-nf-call-ip6tables",
+                     "bridge-nf-call-iptables"]
     bridge_param_metrics = {}
 
-    # Check if there are instances on this host. If not, we don't care and
-    # just pass the check
+    # Check for active instances on the host. If none are found, simply
+    # force the check to pass.
+    #
+    # A power_state of 1 means the instance is 'running'
     try:
-        instances = subprocess.check_output(["virsh", "list"]).split('\n')
+        instances = [i for i in nova.servers(host=args.host)
+                     if i.power_state == 1 and
+                     i.vm_state == 'active']
     except Exception as e:
         status("error", str(e), force_print=False)
-    instancesRunning = False
-    for instance in instances:
-        if "running" in instance:
-            instancesRunning = True
 
-    # No instances running, force a successful check run
-    if instancesRunning is False:
-        iptables_exist = True
-        bridge_sysctl = True
-        for param in bridge_params:
-            bridge_param_metrics[param] = "1"
-
-    # There are instances on this host. Verify appropriate sysctl settings and
-    # iptables rules
     else:
-        try:
+        if len(instances) > 0:
+            instances_running = True
+        else:
+            instances_running = False
+
+        # No instances are active so force the metrics to pass
+        if instances_running is False:
+            iptables_exist = True
             bridge_sysctl = True
             for param in bridge_params:
-                bridge_param_metrics[param] = str(subprocess.check_output(
-                    ['cat', '/proc/sys/net/bridge/' + param])).rstrip('\n')
-                if bridge_param_metrics[param] != "1":
-                    bridge_sysctl = False
-        except Exception as e:
-            status('error', str(e), force_print=False)
+                bridge_param_metrics[param] = "1"
+        else:
+            try:
+                bridge_sysctl = True
+                for param in bridge_params:
+                    bridge_param_metrics[param] = str(
+                        subprocess.check_output(
+                            ['cat', '/proc/sys/net/bridge/' + param])
+                    ).rstrip('\n')
+                    if bridge_param_metrics[param] != "1":
+                        bridge_sysctl = False
+            except Exception as e:
+                status('error', str(e), force_print=False)
 
-    # Check that iptables rules are in place
-    iptables_rules = ''
-    try:
-        iptables_rules = str(subprocess.check_output(
-            ['iptables-save'])).split('\n')
-    except Exception as e:
-        status('error', str(e), force_print=False)
+            # Check if iptables rules are in place
+            iptables_rules = ''
+            try:
+                iptables_rules = str(subprocess.check_output(
+                    ['iptables-save'])).split('\n')
+            except Exception as e:
+                status('error', str(e), force_print=False)
 
-    iptables_exist = False
-    for rule in iptables_rules:
-        if "DROP" in rule:
-            iptables_exist = True
+            for rule in iptables_rules:
+                if "DROP" in rule:
+                    iptables_exist = True
 
     if bridge_sysctl is True and iptables_exist is True:
         metric_bool('iptables_status', True, m_name='iptables_active')
@@ -89,5 +98,16 @@ def main():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Ensure that security groups are being actively '
+                    'enforced on a hypervisor.')
+    parser.add_argument('host', nargs='?',
+                        type=str,
+                        help='Compute host to filter')
+    parser.add_argument('--telegraf-output',
+                        action='store_true',
+                        default=False,
+                        help='Set the output format to telegraf')
+    args = parser.parse_args()
     with print_output(print_telegraf=False):
         main()
