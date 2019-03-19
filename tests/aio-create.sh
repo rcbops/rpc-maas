@@ -130,6 +130,39 @@ nova_spicehtml5_git_repo: https://gitlab.freedesktop.org/spice/spice-html5
 EOF
 }
 
+function update_kernel_extra {
+    case ${RE_JOB_SCENARIO} in
+      liberty)
+        KERNEL_STRING="\"{% if hostvars[inventory_hostname]['ansible_kernel'] | version_compare('3.13.0-166', '>=') %}linux-modules-extra-{{ ansible_kernel }}{% else %}linux-image-extra-{{ ansible_kernel }}{% endif %}\""
+        if [[ -n $(egrep -Rl linux-image-extra /opt/openstack-ansible/ 2> /dev/null) ]]; then
+            sed -i "s/- linux-image-extra.*/- ${KERNEL_STRING}/g" $(egrep -Rl linux-image-extra /opt/openstack-ansible/ 2> /dev/null)
+        fi
+        ;;
+      mitaka|newton)
+        if [[ ${RE_JOB_IMAGE} == trusty ]]; then
+            KERNEL_STRING="\\\\\"{% if hostvars[inventory_hostname]['ansible_kernel'] | version_compare('3.13.0-166', '>=') %}linux-modules-extra-{{ ansible_kernel }}{% else %}linux-image-extra-{{ ansible_kernel }}{% endif %}\\\\\""
+            if [[ -n $(egrep -Rl linux-image-extra /etc/ansible/roles /opt/openstack-ansible 2> /dev/null) ]]; then
+                SED_CMD="sed -i \"s/- linux-image-extra.*/- ${KERNEL_STRING}/g\" \$(egrep -Rl linux-image-extra /etc/ansible/roles /opt/openstack-ansible 2> /dev/null)"
+                sed -i "/# Bootstrap an AIO/i ${SED_CMD}" ${OA_DIR}/scripts/gate-check-commit.sh
+            fi
+        elif [[ ${RE_JOB_IMAGE} == xenial ]]; then
+            KERNEL_STRING="\\\\\"{% if hostvars[inventory_hostname]['ansible_kernel'] | version_compare('4.4.0-143', '>=') %}linux-modules-extra-{{ ansible_kernel }}{% else %}linux-image-extra-{{ ansible_kernel }}{% endif %}\\\\\""
+            if [[ -n $(egrep -Rl linux-image-extra /etc/ansible/roles /opt/openstack-ansible 2> /dev/null) ]]; then
+                SED_CMD="sed -i \"s/- linux-image-extra.*/- ${KERNEL_STRING}/g\" \$(egrep -Rl linux-image-extra /etc/ansible/roles /opt/openstack-ansible 2> /dev/null)"
+                sed -i "/# Bootstrap an AIO/i ${SED_CMD}" ${OA_DIR}/scripts/gate-check-commit.sh
+            fi
+            if [[ -n $(egrep -Rl linux-modules-extra /opt/openstack-ansible/tests 2> /dev/null) ]]; then
+                SED_CMD="sed -i \"s/- linux-modules-extra.*/- ${KERNEL_STRING}/g\" \$(egrep -Rl linux-modules-extra /opt/openstack-ansible/tests 2> /dev/null)"
+                sed -i "/# Bootstrap an AIO/i ${SED_CMD}" ${OA_DIR}/scripts/gate-check-commit.sh
+            fi
+        fi
+        ;;
+      *)
+        true
+        ;;
+    esac
+}
+
 function bootstrap_rpco {
   # Run these outside of deploy.sh and remove to prevent overriding changes
   sed -i 's/\(.\/scripts\/bootstrap-ansible.sh.*\)/#\1/' ${OA_DIR}/../scripts/deploy.sh
@@ -254,6 +287,7 @@ else
     pushd ${OA_DIR}
       if [[ "${RE_JOB_SCENARIO}" == "kilo" ]]; then
         git checkout "97e3425871659881201106d3e7fd406dc5bd8ff3"  # Last commit of Kilo
+        update_kernel_extra
         pin_jinja
         pin_galera "5.5"
         # NOTE(cloudnull): In kilo we had a broken version of the ssh plugin listed in the role
@@ -262,6 +296,7 @@ else
         mkdir -p /etc/ansible/roles
 
       elif [[ "${RE_JOB_SCENARIO}" == "rpco-liberty" ]]; then
+        update_kernel_extra
         pin_jinja
         # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
         sed -i -e 's/0.4.4/v0.4.4/g' ${OA_DIR}/ansible-role-requirements.yml
@@ -274,6 +309,7 @@ else
 
       elif [[ "${RE_JOB_SCENARIO}" == "liberty" ]]; then
         git checkout "06d0fd344b5b06456a418745fe9937a3fbedf9b2"  # Last commit of Liberty
+        update_kernel_extra
         pin_jinja
         pin_galera "10.0"
         # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
@@ -285,6 +321,7 @@ else
         spice_repo_fix
 
       elif [[ "${RE_JOB_SCENARIO}" == "rpco-mitaka" ]]; then
+        update_kernel_extra
         pin_jinja
         # NOTE(tonytan4ever): temporary workaround to get around sshd versioning issue
         sed -i -e 's/0.4.4/v0.4.4/g' ${OA_DIR}/ansible-role-requirements.yml
@@ -297,6 +334,7 @@ else
 
       elif [[ "${RE_JOB_SCENARIO}" == "mitaka" ]]; then
         git checkout "fbafe397808ef3ee3447fe8fefa6ac7e5c6ff144"  # Last commit of Mitaka
+        update_kernel_extra
         pin_jinja
         pin_galera "10.0"
         export OA_DIR="/opt/openstack-ansible"
@@ -310,6 +348,7 @@ else
         git remote add rcbops-fork https://github.com/rcbops/openstack-ansible.git
         git fetch --all
         git checkout -b newton-fix rcbops-fork/stable/newton
+        update_kernel_extra
         # NOTE(tonytan4ever): newton needs this to get around gating:
         # https://rackspace.slack.com/archives/CAD5VFMHU/p1525445460000172
         add_lxc_overrides
