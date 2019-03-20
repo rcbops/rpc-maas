@@ -345,9 +345,7 @@
         path: "/etc/ansible/facts.d/maas.fact"
         section: "general"
         option: "maas_monitor_cinder_backup"
-        value: true
-      when:
-        - ((groups['swift_all'] | default([])) | length) > 0
+        value: "{{ maas_monitor_cinder_backup }}"
 
     - name: Merge maas_excluded_checks
       set_fact:
@@ -433,6 +431,7 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+    - vars/maas-openstack.yml
   tags:
     - maas-pre-flight
 
