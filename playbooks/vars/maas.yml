@@ -248,12 +248,6 @@ maas_ssl_check: false
 maas_remote_check: true
 
 #
-# maas_keystone_user: The keystone user to use/create to allow monitoring plugins to query
-#                     OpenStack APIs.
-#
-maas_keystone_user: maas
-
-#
 # maas_agent_upgrade: Allow for automatic MaaS agent upgrades
 #
 #
