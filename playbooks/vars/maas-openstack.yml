@@ -36,7 +36,7 @@ maas_horizon_scheme: https
 #  the service. Set this to "false" to disable it regardless of the detected
 #  config.
 #
-maas_monitor_cinder_backup: "{{ ansible_local['maas']['general']['maas_monitor_cinder_backup'] | default(false) }}"
+maas_monitor_cinder_backup: "{{ cinder_service_backup_program_enabled | default(ansible_local['maas']['general']['maas_monitor_cinder_backup'] | default(false)) }}"
 maas_cinder_volumes_vg_warning_threshold: 80.0
 maas_cinder_volumes_vg_critical_threshold: 90.0
 
