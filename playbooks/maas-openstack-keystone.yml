@@ -35,33 +35,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - name: Create keystone user for monitoring
-      shell: |
-        . /root/openrc
-        if ! {{ maas_venv_bin }}/openstack user show "{{ maas_keystone_user }}"; then
-        MAAS_ID=$({{ maas_venv_bin }}/openstack user create \
-                            --domain default \
-                            --password "{{ maas_keystone_password }}" \
-                            "{{ maas_keystone_user }}" | grep -w id | awk '{print $4}')
-        sleep 1
-        {{ maas_venv_bin }}/openstack role add \
-                        --project admin \
-                        --user "${MAAS_ID}" \
-                        admin
-        exit 3
-        fi
-      args:
-        executable: "/bin/bash"
-      changed_when:
-        - mon_user.rc == 3
-      failed_when:
-        - mon_user.rc not in [0, 3]
-      register: mon_user
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      no_log: True
-      when:
-        - inventory_hostname in groups['keystone_all'][0]
-
   tasks:
     - name: Install keystone api checks
       template:

@@ -178,7 +178,6 @@ function bootstrap_rpco {
   # Define rpco maas users
   cat > /etc/openstack_deploy/user_extras_secrets.yml << EOF
 ---
-maas_keystone_password:
 maas_rabbitmq_password:
 maas_swift_accesscheck_password:
 rpc_support_holland_password:
