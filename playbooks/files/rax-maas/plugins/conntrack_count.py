@@ -18,8 +18,6 @@ import argparse
 import ctypes
 import errno
 import os
-import subprocess
-import tempfile
 
 try:
     import lxc
@@ -154,8 +152,9 @@ def main():
         else:
             if not lxc_module_active:
                 raise maas_common.MaaSException(
-                    'Container monitoring requested but failed. Check lxc-python'
-                    'pip module not installed within the plugin execution path.'
+                    'Container monitoring requested but failed. Check'
+                    'lxc-python pip module not installed within the plugin'
+                    'execution path.'
                 )
             metrics = get_metrics_lxc_container(args.container)
 
