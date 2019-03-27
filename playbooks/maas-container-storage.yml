@@ -70,7 +70,6 @@
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
-  pre_tasks:
   tasks:
     - name: Remove the old mtab object
       file:
@@ -83,6 +82,27 @@
         remote_src: true
         mode: 0644
 
+    - name: add mtab service
+      block:
+        - name: Create mtab oneshot service
+          template:
+            src: templates/rax-maas/mtab_systemd_oneshot.j2
+            dest: /etc/systemd/system/mtab-oneshot.service
+            owner: root
+            group: root
+            mode: 0664
+
+        - name: Enable mtab oneshot service
+          systemd:
+            name: mtab-oneshot.service
+            daemon_reload: true
+            enabled: true
+      when:
+        - hostvars[inventory_hostname]['ansible_distribution'] | lower == 'ubuntu'
+        - hostvars[inventory_hostname]['ansible_distribution_major_version'] is version_compare('16', '>=')
+
+  tags:
+    - maas-container-storage
 
 - name: Install checks for infra storage local checks
   hosts: known_container_hosts

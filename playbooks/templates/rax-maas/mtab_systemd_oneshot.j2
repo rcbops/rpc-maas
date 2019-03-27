@@ -1,0 +1,11 @@
+[Unit]
+Description=MaaS service to unlink /etc/mtab
+After=syslog.target network.target
+
+[Service]
+Type=oneshot
+ExecStart=-/usr/bin/unlink /etc/mtab
+ExecStart=/bin/cp /proc/self/mounts /etc/mtab
+
+[Install]
+WantedBy=multi-user.target
