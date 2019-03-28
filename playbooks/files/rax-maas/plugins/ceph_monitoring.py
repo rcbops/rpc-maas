@@ -199,14 +199,10 @@ def get_args():
     parser.add_argument('--name',
                         required=True,
                         help='Ceph client name')
-    # add deploy_osp arg
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        '--' + 'deploy_osp', nargs='?', default=False, const=True,
-        type=bool)
-    group.add_argument('--no' + 'deploy_osp', dest='deploy_osp',
-                       action='store_false')
-
+    parser.add_argument('--deploy_osp',
+                        action='store_true',
+                        default=False,
+                        help='Option for extending into OSP environments')
     parser.add_argument('--keyring',
                         required=True,
                         help='Ceph client keyring')
