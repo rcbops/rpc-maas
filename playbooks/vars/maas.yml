@@ -287,7 +287,7 @@ maas_holland_venv_enabled: "{{ ansible_local['maas']['general']['maas_holland_ve
 #
 # maas_holland_venv_bin: Set the path to the holland venv
 #
-maas_holland_venv_bin: "/openstack/venvs/holland-{{ ansible_local['maas']['general']['maas_product_rpco_version'] | default(rpc_release) }}/bin"
+maas_holland_venv_bin: "/openstack/venvs/holland-{{ ansible_local['maas']['general']['maas_product_osa_version'] | default(rpc_release) }}/bin"
 
 #
 # MaaS mysql check options

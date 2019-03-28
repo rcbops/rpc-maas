@@ -176,7 +176,7 @@
         - name: Determine if holland is deployed in a venv
           find:
             paths: /openstack/venvs
-            patterns: "holland-{{ ansible_local['maas']['general']['maas_product_rpco_version'] }}"
+            patterns: "holland-{{ ansible_local['maas']['general']['maas_product_osa_version'] }}"
             file_type: directory
           register: holland_venv_detection
           delegate_to: "{{ groups['galera_all'][0] }}"
