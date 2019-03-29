@@ -42,3 +42,13 @@
     mode: "0644"
   tags:
     - maas-hosts-vendor-dell
+
+- name: Install openmanage powersupply checks
+  template:
+    src: "templates/rax-maas/openmanage-powersupply.yaml.j2"
+    dest: "/etc/rackspace-monitoring-agent.conf.d/openmanage-powersupply--{{ inventory_hostname }}.yaml"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  tags:
+    - maas-hosts-vendor-dell
