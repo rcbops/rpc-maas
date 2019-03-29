@@ -554,9 +554,9 @@ maas_compat:
     horizon_service_port: '80'
 
 #
-# Release specific check exclusions
+# Release specific check exclusions for OSA
 #
-maas_release_excluded_checks:
+maas_osa_release_excluded_checks:
   1andone:
     - swift_time_sync_check
   kilo:
@@ -565,3 +565,11 @@ maas_release_excluded_checks:
     - glance_registry_local_check
   rocky:
     - glance_registry_local_check
+
+#
+# Release specific check exclusions for OSP
+#
+maas_osp_release_excluded_checks:
+  queens:
+    - filesystem_/var/lib/docker/overlay2
+    - filesystem_/var/lib/docker/containers
