@@ -62,7 +62,9 @@
         name:
           - pip
           - setuptools
-        extra_args: "-U --isolated"
+        extra_args: >-
+          -U --isolated
+          {{ pip_install_options | default('') }}
         virtualenv: "{{ target_venv | default(maas_venv) }}"
 
     - name: Build pip package list
