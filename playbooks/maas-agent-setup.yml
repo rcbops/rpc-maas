@@ -78,7 +78,7 @@
         - name: Get keystone endpoint
           shell: |-
             . {{ rc_file_location }}
-            openstack endpoint list --interface internal --service keystone --format value
+            openstack endpoint list --interface {{ openrc_clouds_yml_interface | default('internal') }} --service keystone --format csv
           register: keystone_endpoint
           changed_when: False
           run_once: true
@@ -93,8 +93,8 @@
 
         - name: Set clouds.yaml facts
           set_fact:
-            keystone_service_internalurl: "{{ (keystone_endpoint.stdout_lines[-1]).strip().split()[-1] }}"
-            keystone_service_region: "{{ (keystone_endpoint.stdout_lines[-1]).split()[1] }}"
+            keystone_service_internalurl: "{{ (keystone_endpoint.stdout_lines[-1]).split(',')[-1].strip('\"') }}"
+            keystone_service_region: "{{ (keystone_endpoint.stdout_lines[-1]).split(',')[1].strip('\"') }}"
             openrc_os_password: "{{ (admin_password.stdout).strip().split('=')[-1] }}"
           no_log: True
 
