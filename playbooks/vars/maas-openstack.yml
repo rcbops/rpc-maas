@@ -32,7 +32,7 @@ maas_horizon_scheme: https
 
 #
 # The Cinder backup monitor can be turned on or off based on provided config.
-#  By default this will be enabeled should hosts be setup and configured for
+#  By default this will be enabled should hosts be setup and configured for
 #  the service. Set this to "false" to disable it regardless of the detected
 #  config.
 #

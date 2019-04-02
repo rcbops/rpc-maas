@@ -59,12 +59,22 @@ raxmon:
   venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
 
 raxmon:
+  cmd: create_private_zone
+  entity: controller1
+  venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
+
+raxmon:
   cmd: delete_agent_token
   entity: controller1
   venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
 
 raxmon:
   cmd: delete_entity
+  entity: controller1
+  venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
+
+raxmon:
+  cmd: delete_private_zone
   entity: controller1
   venv_bin: /openstack/venvs/maas-r14.1.0rc1/bin/
 """
@@ -155,6 +165,45 @@ def create_agent_token(module, conn, entity):
         module.fail_json(msg=msg)
 
 
+def create_private_zone(module, conn, entity):
+    private_zones = [z for z in conn.list_monitoring_zones()
+                     if z.label == entity]
+
+    # Create zone if one doesnt exist
+    if len(private_zones) == 0:
+        module.exit_json(
+            changed=True,
+            id=conn.create_monitoring_zone(label=entity).id
+        )
+    # Exit if the zone already exists
+    elif len(private_zones) == 1:
+        module.exit_json(
+            changed=False,
+            id=private_zones[0].id
+        )
+
+
+def delete_private_zone(module, conn, entity):
+    private_zones = [z for z in conn.list_monitoring_zones()
+                     if z.label == entity]
+    msg = ''
+
+    if len(private_zones) > 0:
+        for zone in private_zones:
+            try:
+                conn.delete_monitoring_zone(zone)
+            except Exception as e:
+                msg += "Deleting private zone for %s failed. Reason: %s" % (
+                    zone.label,
+                    str(e.message)
+                )
+
+    if len(msg) > 0:
+        module.fail_json(msg=msg)
+    else:
+        module.exit_json(changed=True)
+
+
 def delete_agent_token(module, conn, entity):
     agent_tokens = _get_agent_tokens(conn, entity)
     msg = ''
@@ -162,7 +211,10 @@ def delete_agent_token(module, conn, entity):
         try:
             conn.delete_agent_token(token)
         except Exception as e:
-            msg += "Deleting agent token for %s failed. Reason: %s" % (token.label, str(e.message))
+            msg += "Deleting agent token for %s failed. Reason: %s" % (
+                token.label,
+                str(e.message)
+            )
     if len(msg) > 0:
         module.fail_json(msg=msg)
     else:
@@ -176,7 +228,10 @@ def delete_entity(module, conn, entity):
         try:
             conn.delete_entity(entity)
         except Exception as e:
-            msg += "Deleting entity: %s failed. Reason: %s" % (entity.label, str(e.message))
+            msg += "Deleting entity: %s failed. Reason: %s" % (
+                entity.label,
+                str(e.message)
+            )
     if len(msg) > 0:
         module.fail_json(msg=msg)
     else:
@@ -188,6 +243,7 @@ def main():
         argument_spec=dict(
             cmd=dict(
                 choices=['assign_agent_to_entity', 'create_agent_token',
+                         'create_private_zone', 'delete_private_zone',
                          'delete_agent_token', 'delete_entity'],
                 required=True
             ),
@@ -229,10 +285,14 @@ def main():
                                module.params['create_entity_if_not_exists'])
     elif module.params['cmd'] == 'create_agent_token':
         create_agent_token(module, conn, module.params['entity'])
+    elif module.params['cmd'] == 'create_private_zone':
+        create_private_zone(module, conn, module.params['entity'])
     elif module.params['cmd'] == 'delete_agent_token':
         delete_agent_token(module, conn, module.params['entity'])
     elif module.params['cmd'] == 'delete_entity':
         delete_entity(module, conn, module.params['entity'])
+    elif module.params['cmd'] == 'delete_private_zone':
+        delete_private_zone(module, conn, module.params['entity'])
 
 
 if __name__ == '__main__':

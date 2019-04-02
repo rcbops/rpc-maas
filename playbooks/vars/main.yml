@@ -226,19 +226,18 @@ radosgw_civetweb_port: "8080"
 maas_designate_service_proto: "{{ designate_service_proto | default('http') }}"
 maas_designate_service_port: "{{ designate_service_port | default('9001') }}"
 
-
 #
 # Variables required to populate clouds.yaml
 #
 
 ## Endpoint types
-openrc_clouds_yml_interface: internal
+openrc_clouds_yml_interface: "{{ ansible_local.maas.general.keystone_service_interface | default('admin') }}"
 
 ## Default credentials
 openrc_os_username: admin
 openrc_os_tenant_name: admin
-openrc_os_auth_url: "{{ keystone_service_internalurl }}"
-openrc_region_name: "{{ keystone_service_region | default('RegionOne') }}"
+openrc_os_auth_url: "{{ ansible_local.maas.general.keystone_service_url }}"
+openrc_region_name: "{{ ansible_local.maas.general.keystone_service_region | default('RegionOne') }}"
 
 ## Create clouds.yml file
 openrc_os_domain_name: Default

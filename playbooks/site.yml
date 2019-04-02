@@ -21,6 +21,10 @@
   tags:
     - maas
 
+- import_playbook: maas-sdk-integration.yml
+  tags:
+    - maas
+
 - import_playbook: maas-poller-all.yml
   tags:
     - maas

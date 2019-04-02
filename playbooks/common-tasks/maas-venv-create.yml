@@ -26,10 +26,19 @@
   retries: 5
   delay: 2
 
-- name: Create MaaS venv
+- name: Create MaaS venv (--no-site-packages)
   command: "virtualenv --no-site-packages --no-setuptools {{ target_venv | default(maas_venv) }}"
   args:
     creates: "{{ target_venv | default(maas_venv) }}/bin/python"
+  when:
+    - not ansible_local['maas']['general']['deploy_osp'] | bool
+
+- name: Create MaaS venv (--system-site-packages)
+  command: "virtualenv --system-site-packages --no-setuptools {{ target_venv | default(maas_venv) }}"
+  args:
+    creates: "{{ target_venv | default(maas_venv) }}/bin/python"
+  when:
+    - ansible_local['maas']['general']['deploy_osp'] | bool
 
 - name: Create MaaS virtualenv
   vars:

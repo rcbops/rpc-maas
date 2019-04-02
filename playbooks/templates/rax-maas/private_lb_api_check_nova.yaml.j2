@@ -1,15 +1,18 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "private_lb_api_check_nova" %}
 {% set check_name = label %}
+{% set nova_api_url = ansible_local.maas.api.nova_public_url | default(ansible_local.maas.api.nova_internal_url) %}
+{% set nova_api_ip = ansible_local.maas.api.nova_public_ip | default(ansible_local.maas.api.nova_internal_ip) %}
+{% set nova_fallback_url = (maas_nova_scheme | default(maas_scheme)) + '://' + maas_external_hostname + ':8774/' %}
 type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
 disabled          : "{{ (inventory_hostname != groups['nova_api_os_compute'][0] or check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_resolver   : "IPv4"
-target_hostname   : "{{ maas_external_ip_address }}"
+target_hostname   : "{{ nova_api_ip | default(maas_external_ip_address) }}"
 details           :
-    url           : "{{ maas_nova_scheme | default(maas_scheme) }}://{{ maas_external_hostname }}:8774"
+    url           : "{{ nova_api_url | default(nova_fallback_url) }}"
 monitoring_zones_poll:
   - "{{ maas_private_monitoring_zone }}"
 {{ get_metadata(label).strip() }}

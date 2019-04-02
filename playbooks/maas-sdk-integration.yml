@@ -1,0 +1,269 @@
+---
+# Copyright 2019, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Define OpenStack SDK configuration
+  hosts: localhost
+  gather_facts: false
+  become: true
+  pre_tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
+  tasks:
+    - name: deploy clouds.yaml
+      block:
+        - name: Set OSA rc file fact
+          set_fact:
+            rc_file_location: "{{ maas_openrc | default('/root/openrc') }}"
+          when:
+            - not (ansible_local.maas.general.deploy_osp | bool)
+
+        - name: Set OSP rc file fact
+          set_fact:
+            rc_file_location: "{{ maas_stackrc | default('/home/stack/stackrc') }}"
+          when:
+            - ansible_local.maas.general.deploy_osp | bool
+
+        - name: Get keystone endpoints
+          shell: |-
+            . {{ rc_file_location }}
+            openstack endpoint list --service keystone --format csv --quote none | egrep -v "^ID|URL$"
+          register: keystone_endpoint_data
+          changed_when: False
+          run_once: True
+          delegate_to: "{{ groups['utility_all'][0] }}"
+
+        - name: Obtain a v3 keystone endpoint
+          validate_endpoints:
+            endpoints: "{{ keystone_endpoint_data.stdout_lines }}"
+          register: v3_endpoint
+
+        - name: Get admin password
+          command: "grep -w OS_PASSWORD {{ rc_file_location }}"
+          register: admin_password
+          changed_when: False
+          run_once: True
+          delegate_to: "{{ groups['utility_all'][0] }}"
+
+        - name: Set clouds.yaml facts
+          set_fact:
+            keystone_service_url: "{{ v3_endpoint.ansible_facts.auth_url }}"
+            keystone_service_region: "{{ v3_endpoint.ansible_facts.region }}"
+            keystone_service_interface: "{{ v3_endpoint.ansible_facts.interface }}"
+            openrc_os_password: "{{ (admin_password.stdout).strip().split('=')[-1] }}"
+          no_log: True
+
+        - name: Set local facts for clouds.yaml
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "{{ item[0] }}"
+            value: "{{ item[1] }}"
+          loop:
+            - [ "keystone_service_url", "{{ keystone_service_url }}" ]
+            - [ "keystone_service_region", "{{ keystone_service_region }}" ]
+            - [ "keystone_service_interface", "{{ keystone_service_interface }}" ]
+
+        - name: Refresh local facts
+          setup:
+            filter: ansible_local
+            gather_subset: "!all"
+
+        - name: Ensure OpenStack client configuration directory
+          file:
+            dest: "{{ openrc_openstack_client_config_dir_dest }}"
+            owner: "{{ openrc_openstack_client_config_dir_owner }}"
+            group: "{{ openrc_openstack_client_config_dir_group }}"
+            mode: "{{ openrc_openstack_client_config_dir_mode }}"
+            state: directory
+
+        - name: Create clouds.yaml file for OpenStack SDK Connection
+          template:
+            src: templates/rax-maas/clouds.yaml.j2
+            dest: "{{ openrc_clouds_yml_file_dest }}"
+            owner: "{{ openrc_clouds_yml_file_owner }}"
+            group: "{{ openrc_clouds_yml_file_group }}"
+            mode: "{{ openrc_clouds_yml_file_mode }}"
+      when:
+        - ansible_local.maas.general.maas_env_product != 'ceph'
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
+  tags:
+    - maas-sdk-integration
+
+
+- name: Distribute clouds.yaml to hosts
+  hosts: hosts
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Ensure OpenStack client configuration directory
+      file:
+        dest: "{{ openrc_openstack_client_config_dir_dest }}"
+        owner: "{{ openrc_openstack_client_config_dir_owner }}"
+        group: "{{ openrc_openstack_client_config_dir_group }}"
+        mode: "{{ openrc_openstack_client_config_dir_mode }}"
+        state: directory
+
+    - name: Copy clouds.yaml
+      copy:
+        src: "{{ openrc_clouds_yml_file_dest }}"
+        dest: "{{ openrc_clouds_yml_file_dest }}"
+        owner: "{{ openrc_clouds_yml_file_owner }}"
+        group: "{{ openrc_clouds_yml_file_group }}"
+        mode: "{{ openrc_clouds_yml_file_mode }}"
+      when:
+        - ansible_local.maas.general.maas_env_product != 'ceph'
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
+  tags:
+    - maas-sdk-integration
+
+
+- name: OpenStack service catalog discovery
+  hosts: localhost
+  gather_facts: false
+  become: true
+  vars:
+    ansible_python_interpreter: "{{ target_venv | default(maas_venv) }}/bin/python"
+  tasks:
+    - name: Determine endpoint components
+      service_discovery:
+        raxdc: "{{ maas_raxdc | bool }}"
+        internal_vip: "{{ internal_lb_vip_address }}"
+        external_vip: "{{ external_lb_vip_address }}"
+      register: discovery
+      when:
+        - ansible_local.maas.general.maas_env_product != 'ceph'
+
+    - name: perform openstack service discovery
+      block:
+        - name: Set local facts for API check templates
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "api"
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+          with_dict: "{{ discovery.ansible_facts.api_endpoints }}"
+
+        - name: Set local fact for maas_external_hostname
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "api"
+            option: "maas_external_hostname"
+            value: "{{ discovery.ansible_facts.maas_external_hostname }}"
+
+        - name: Set local fact for maas_external_ip_address
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "api"
+            option: "maas_external_ip_address"
+            value: "{{ discovery.ansible_facts.maas_external_ip_address }}"
+
+        - name: Set local fact for SSL certificate expiry check
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_ssl_check"
+            value: "{{ discovery.ansible_facts.cert_expiry | bool }}"
+
+        - name: Set local facts for SSL certificates
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "api"
+            option: "maas_ssl_expiry_list"
+            value: "{{ discovery.ansible_facts.cert_expiry_list }}"
+          when:
+            - discovery.ansible_facts.cert_expiry | bool
+
+        - name: Set local fact for PNM
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_private_monitoring_enabled"
+            value: "{{ discovery.ansible_facts.pnm | bool }}"
+
+        - name: Refresh local facts
+          setup:
+            filter: ansible_local
+            gather_subset: "!all"
+
+        - name: Ensure private monitoring zone exists
+          raxmon:
+            cmd: create_private_zone
+            entity: "{{ maas_env_identifier }}"
+            venv_bin: "{{ maas_venv_bin }}"
+          register: private_zone
+          when:
+            - maas_private_monitoring_enabled | bool
+            - maas_use_api | bool
+
+        - name: Set private monitoring zone fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_private_monitoring_zone"
+            value: "{{ private_zone.id }}"
+          when:
+            - maas_private_monitoring_enabled | bool
+            - maas_use_api | bool
+            - private_zone is success
+      when:
+        - ansible_local.maas.general.maas_env_product != 'ceph'
+        - discovery is success
+
+  vars_files:
+    - vars/maas.yml
+  environment: "{{ deployment_environment_variables | default({}) }}"
+  tags:
+    - maas-sdk-integration
+
+
+- name: Distribute local facts
+  hosts: all
+  gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: true
+  tasks:
+    - name: Distribute local facts
+      copy:
+        src: /etc/ansible/facts.d/maas.fact
+        dest: /etc/ansible/facts.d/maas.fact
+        owner: root
+        group: root
+
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+  tags:
+    - maas-sdk-integration
+
+
+- name: Check for containers on host
+  hosts: hosts
+  gather_facts: false
+  user: "{{ ansible_user | default('root') }}"
+  become: true
+  tasks:
+    - include_tasks: "common-tasks/maas-container-facts.yml"
+  tags:
+    - maas-sdk-integration

@@ -69,18 +69,24 @@ fi
 
 echo "WORKING_DIR: ${WORKING_DIR}"
 
-# NOTE: Create an artifact to make a unique entity for queens+ gates. This is required
+# NOTE: Create artifacts to make a unique entity for queens+ gates. This is required
 # as OSA now sets the hostname generically as 'aio1' which will cause affected
 # gates to use the same entity
-# This will automatically work for new gates
 case ${RE_JOB_SCENARIO} in
   kilo|*liberty|*mitaka|newton|ocata|pike)
     echo "There is no need to set maas_fqdn_extension on ${RE_JOB_SCENARIO}"
     echo | tee /tmp/maas_fqdn_extension
+    # Create unique env identifier for PNM
+    echo $(< /dev/urandom tr -dc '[:alnum:]' | head -c${1:-16}) | tee /tmp/maas_env_identifier
     ;;
   *)
-    echo "Create a 16 character unique string to set as maas_fqdn_extension"
-    echo $(< /dev/urandom tr -dc '[:alnum:]' | head -c${1:-16} | sed 's/^/./') | tee /tmp/maas_fqdn_extension
+    if [[ ! -f /tmp/maas_fqdn_extension ]]; then
+        echo "Create a 16 character unique string to set as maas_fqdn_extension"
+        echo $(< /dev/urandom tr -dc '[:alnum:]' | head -c${1:-16} | sed 's/^/./') | tee /tmp/maas_fqdn_extension
+        # Copy unique identifier to env identifier for PNM
+        cp /tmp/maas_fqdn_extension /tmp/maas_env_identifier
+        sed -i 's/^.//' /tmp/maas_env_identifier
+    fi
     ;;
 esac
 

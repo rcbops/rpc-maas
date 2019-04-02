@@ -17,13 +17,13 @@
 maas_excluded_checks:
   - 'filesystem_/var/lib/docker/overlay2'
   - 'filesystem_/var/lib/docker/containers'
+  - 'private_lb_api_check_horizon'
 
 # Test pre-flight checks
 maas_pre_flight_check_enabled: true
 
 # Set test identifier
-maas_env_identifier: "test"
+maas_env_identifier: "{{ lookup('file', '/tmp/maas_env_identifier', errors='ignore') | default('') }}"
 
-# Disable remote.http checks because AIO endpoints will always be private
-# addresses. Private network monitoring will need to be added.
-maas_remote_check: false
+# Set raxdc identifier
+maas_raxdc: false

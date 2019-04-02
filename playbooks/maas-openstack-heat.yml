@@ -35,8 +35,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-
-
   tasks:
     - name: Install heat api checks
       template:
@@ -98,8 +96,6 @@
         maas_current_group: heat_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
-
-
 
   tasks:
     - name: Install heat api cfn checks

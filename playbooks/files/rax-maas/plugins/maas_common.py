@@ -115,7 +115,7 @@ def get_sdk_credentials(sdk_conn):
     try:
         sdk_conn.session
         if os.stat(PICKLE_FILE):
-            with open(PICKLE_FILE) as f:
+            with open(PICKLE_FILE, "rb") as f:
                 sdk_auth_ref = pickle.load(f)
 
             if sdk_auth_ref:
@@ -143,7 +143,7 @@ def validate_sdk_token(sdk_conn, sdk_auth_ref=None, token=None):
     [i.id for i in sdk_conn.identity.services()]
     new_token = sdk_conn.identity.get_token()
     if token is not new_token or sdk_auth_ref is None:
-        with open(PICKLE_FILE, 'w') as f:
+        with open(PICKLE_FILE, 'wb') as f:
             pickle.dump(sdk_conn.session.auth.auth_ref, f)
 
 
