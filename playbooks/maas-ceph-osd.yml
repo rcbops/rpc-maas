@@ -36,7 +36,7 @@
 - import_playbook: maas-ceph-raxmon.yml
 
 
-- name: Install checks for ceph mons
+- name: Install checks for ceph osds
   hosts: osds
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
@@ -68,23 +68,53 @@
         - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
+    - name: Identify all deployed OSD check templates
+      find:
+        paths: /etc/rackspace-monitoring-agent.conf.d
+        patterns: "ceph_osd_[0-9]*"
+      register: osd_templates
+
+    - name: Define list of deployed OSD IDs
+      set_fact:
+        deployed_osds_list: "{{ deployed_osds_list | default([]) }} + [{{ item.path.split('_')[2] | int }}]"
+      with_items:
+        - "{{ osd_templates.files }}"
+
     - name: Discover Ceph facts
       ceph_osd_host_facts:
         hostname: "{{ ansible_hostname }}"
         container_name: "{{ container_name | default(inventory_hostname) }}"
         deploy_osp: "{{ ansible_local['maas']['general']['deploy_osp'] | bool }}"
+        deployed_osd_list: "{{ deployed_osds_list | default([]) }}"
       tags:
         - always
 
   post_tasks:
+    - name: Remove legacy osd_stats_check template
+      file:
+        path: "/etc/rackspace-monitoring-agent.conf.d/ceph_osd_stats.yaml--{{ inventory_hostname }}.yaml"
+        state: absent
+
+    - name: Remove osd_stats_check with stale OSD IDs
+      file:
+        path: "/etc/rackspace-monitoring-agent.conf.d/ceph_osd_{{ item | string }}_stats.yaml--{{ inventory_hostname }}.yaml"
+        state: absent
+      with_items:
+        - "{{ stale_osd_list }}"
+      when:
+        - stale_osd_list is defined
+        - stale_osd_list | length > 0
+
     - name: Install local osd checks
       template:
         src: "templates/rax-maas/ceph_osd_stats.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/ceph_osd_stats.yaml--{{ inventory_hostname }}.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/ceph_osd_{{ item }}_stats.yaml--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - "{{ ceph_osd_list }}"
 
   vars_files:
     - vars/main.yml

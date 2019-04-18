@@ -66,20 +66,13 @@ def get_ceph_status(client, keyring, fmt='json', container_name=None,
                          deploy_osp=deploy_osp)
 
 
-def get_ceph_pg_dump_osds(client, keyring, fmt='json', container_name=None,
-                          deploy_osp=False):
-    return check_command(('ceph', '--format', fmt, '--name', client,
-                          '--keyring', keyring, 'pg', 'dump', 'osds'),
-                         container_name=container_name,
-                         deploy_osp=deploy_osp)
-
-
-def get_ceph_osd_dump(client, keyring, fmt='json', container_name=None,
-                      deploy_osp=False):
-    return check_command(('ceph', '--format', fmt, '--name', client,
-                          '--keyring', keyring, 'osd', 'dump'),
-                         container_name=container_name,
-                         deploy_osp=deploy_osp)
+def get_local_osd_info(osd_ref, fmt='json', container_name=None,
+                       deploy_osp=False):
+    return check_command(
+        ('ceph', '--format', fmt, 'daemon', osd_ref, 'status'),
+        container_name=container_name,
+        deploy_osp=deploy_osp
+    )
 
 
 def get_mon_statistics(client=None, keyring=None, host=None,
@@ -101,34 +94,20 @@ def get_rgw_checkup(client, keyring=None, rgw_address=None,
     metric('rgw_up', 'uint32', rgw_status)
 
 
-def get_osd_statistics(client=None, keyring=None, osd_ids=None,
+def get_osd_statistics(client=None, keyring=None, osd_id=None,
                        container_name=None, deploy_osp=False):
-    osd_dump = get_ceph_osd_dump(client=client,
-                                 keyring=keyring,
-                                 container_name=container_name,
-                                 deploy_osp=deploy_osp)
-    pg_osds_dump = get_ceph_pg_dump_osds(client=client,
-                                         keyring=keyring,
-                                         container_name=container_name,
-                                         deploy_osp=deploy_osp)
-    for osd_id in osd_ids:
-        osd_ref = 'osd.%s' % osd_id
-        for _osd in osd_dump['osds']:
-            if _osd['osd'] == osd_id:
-                osd = _osd
-                break
-        else:
-            msg = 'The OSD ID %s does not exist.' % osd_id
-            raise MaaSException(msg)
-
-        key = 'up'
-        name = '_'.join((osd_ref, key))
-        metric_bool(name, osd[key])
-
-        for _osd in pg_osds_dump:
-            if _osd['osd'] == osd_id:
-                osd = _osd
-                break
+    osd_ref = "osd.%s" % osd_id
+    try:
+        osd_info = get_local_osd_info(
+            osd_ref, container_name=container_name, deploy_osp=deploy_osp
+        )
+    except Exception:
+        msg = 'The OSD ID %s does not exist.' % osd_id
+        raise MaaSException(msg)
+    else:
+        state = 1 if osd_info.get('state', '') == 'active' else 0
+        metric_name = '_'.join((osd_ref, 'up'))
+        metric_bool(metric_name, state)
 
 
 def get_cluster_statistics(client=None, keyring=None, container_name=None,
@@ -217,8 +196,8 @@ def get_args():
     parser_mon.add_argument('--host', required=True, help='Mon hostname')
 
     parser_osd = subparsers.add_parser('osd')
-    parser_osd.add_argument('--osd_ids', required=True,
-                            help='Space separated list of OSD IDs')
+    parser_osd.add_argument('--osd_id', required=True, type=str,
+                            help='A single OSD ID')
     parser_rgw = subparsers.add_parser('rgw')
     parser_rgw.add_argument('--rgw_address', required=True,
                             help='RGW address in form proto://ip_addr:port/')
@@ -237,7 +216,7 @@ def main(args):
                       'osd': get_osd_statistics}
     kwargs = {'client': args.name, 'keyring': args.keyring}
     if args.subparser_name == 'osd':
-        kwargs['osd_ids'] = [int(i) for i in args.osd_ids.split(' ')]
+        kwargs['osd_id'] = args.osd_id
     if args.subparser_name == 'mon':
         kwargs['host'] = args.host
     if args.subparser_name == 'rgw':

@@ -1,5 +1,6 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
-{% set label = "ceph_osd_stats" %}
+{% set item_string = item | string %}
+{% set label = "ceph_osd_" + item_string + "_stats" %}
 {% set check_name = label+'--'+inventory_hostname %}
 {% set ceph_args = [maas_plugin_dir + "/ceph_monitoring.py", "--name", "client.raxmon", "--keyring", "/etc/ceph/ceph.client.raxmon.keyring"] %}
 {% if maas_rpc_legacy_ceph | bool %}
@@ -8,11 +9,10 @@
 {% if (ansible_local['maas']['general']['deploy_osp'] | bool) %}
 {% set _ = ceph_args.extend(["--deploy_osp"]) %}
 {% endif %}
-{% set _ = ceph_args.extend(["osd", "--osd_ids"]) %}
-{% set _ = ceph_args.append(ceph_osd_list | default([]) | join(' ')) %}
+{% set _ = ceph_args.extend(["osd", "--osd_id"]) %}
+{% set _ = ceph_args.append(item_string | default('')) %}
 {% set _ceph_args = ceph_args | to_yaml(width=1000) %}
 {% set ceph_args = _ceph_args %}
-
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
@@ -25,14 +25,12 @@ details     :
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
 alarms      :
-{% for osd_id in ceph_osd_list %}
-    ceph_warn_osd.{{ osd_id }} :
-        label                   : ceph_warn_osd.{{ osd_id }}--{{ inventory_hostname }}
+    ceph_warn_osd.{{ item_string }}:
+        label                   : ceph_warn_osd.{{ item_string }}--{{ inventory_hostname }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('ceph_warn_osd.'+osd_id | string+'--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('ceph_warn_osd.' + item_string + '--' + inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["osd.{{ osd_id }}_up"] == 0) {
+            if (metric["osd.{{ item_string }}_up"] == 0) {
                 return new AlarmStatus(CRITICAL, "Ceph osd error.");
             }
-{% endfor %}
