@@ -56,7 +56,7 @@
     - name: Install conntrack count checks
       template:
         src: "templates/rax-maas/conntrack_count.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/conntrack_count--{{ inventory_hostname }}.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/container_conntrack_count--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
