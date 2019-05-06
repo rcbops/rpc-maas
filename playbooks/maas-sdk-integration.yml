@@ -188,7 +188,7 @@
         - name: Set local facts for SSL certificates
           ini_file:
             path: "/etc/ansible/facts.d/maas.fact"
-            section: "api"
+            section: "general"
             option: "maas_ssl_expiry_list"
             value: "{{ discovery.ansible_facts.cert_expiry_list }}"
           when:
