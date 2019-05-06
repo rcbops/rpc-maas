@@ -144,6 +144,11 @@ class RPCRMaasInventory(MaasInventory):
                 self.inventory[group_name]['vars']['maas_openrc'] = (
                     '/home/stack/stackrc'
                 )
+                # Add overcloud VIPs to director for use with service_discovery
+                self.inventory[group_name]['vars'][
+                    'internal_lb_vip_address'] = self.internal_lb_vip
+                self.inventory[group_name]['vars'][
+                    'external_lb_vip_address'] = self.external_lb_vip
             else:
                 # (NOTE:tonytan4ever): this is for old triplO style
                 # inventory scripts

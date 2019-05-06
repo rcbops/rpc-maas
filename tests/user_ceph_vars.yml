@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Set test identifier
-maas_env_identifier: "test"
+maas_env_identifier: "{{ lookup('file', '/tmp/maas_env_identifier', errors='ignore') | default('') }}"
 
 # Test pre-flight checks
 maas_pre_flight_check_enabled: true
@@ -25,3 +25,6 @@ maas_extra_distro_packages:
 
 maas_excluded_checks:
   - rsyslogd_process_check
+
+# Set raxdc identifier
+maas_raxdc: false

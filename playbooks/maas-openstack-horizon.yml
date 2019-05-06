@@ -69,29 +69,42 @@
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 
+    - name: Define list for SSL certificate expiry
+      set_fact:
+        dynamic_cert_list: "{{ ansible_local.maas.general.maas_ssl_expiry_list }}"
+      when:
+        - maas_ssl_check | bool
+        - ansible_local.maas.general.maas_ssl_expiry_list is defined
+
     - name: Install lb-ssl check
       template:
         src: "templates/rax-maas/lb_ssl_cert_expiry_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_ssl_cert_expiry_check.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_ssl_cert_expiry_check_{{ item['cert_url'].split('/')[2].split(':')[0] }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - "{{ dynamic_cert_list }}"
       when:
         - maas_ssl_check | bool
+        - dynamic_cert_list is defined
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
     - name: Install private lb-ssl check
       template:
         src: "templates/rax-maas/private_lb_ssl_cert_expiry_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_ssl_cert_expiry_check.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_ssl_cert_expiry_check_{{ item['cert_url'].split('/')[2].split(':')[0] }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - "{{ dynamic_cert_list }}"
       when:
         - maas_ssl_check | bool
+        - dynamic_cert_list is defined
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 

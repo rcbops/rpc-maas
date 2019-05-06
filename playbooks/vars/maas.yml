@@ -42,6 +42,16 @@ maas_venv: "/openstack/venvs/maas-{{ maas_release }}"
 maas_venv_bin: "{{ maas_venv }}/bin"
 
 #
+# Boolean variable which must be set by the deployer. This identifies whether a
+# deployment is located within a Rackspace or Customer data center. Certain
+# dynamic variable logic changes depending on this value.
+#
+# maas_raxdc: True  (RDC)
+# maas_raxdc: False (CDC)
+#
+maas_raxdc: "{{ ansible_local.maas.general.maas_raxdc }}"
+
+#
 # maas_fqdn_extension: Sets the fully-qualified domain name (FQDN) extension that will be appended
 #                      to the short names for hosts that are specified in rpc_user_config. This
 #                      avoids the need to specify extremely long container names.
@@ -122,8 +132,7 @@ maas_notification_plan_override: {}
 #
 # maas_external_ip_address:
 #
-maas_external_ip_address: "{{ external_lb_vip_address }}"
-
+maas_external_ip_address: "{{ ansible_local.maas.api.maas_external_ip_address }}"
 
 #
 # maas_external_hostname: The hostname to use when constructing URLs for remote
@@ -134,7 +143,7 @@ maas_external_ip_address: "{{ external_lb_vip_address }}"
 #         not externally resolvable, which requires different values for MaaS's
 #         `url` and `target_hostname` settings.
 #
-maas_external_hostname: "{{ maas_external_ip_address }}"
+maas_external_hostname: "{{ ansible_local.maas.api.maas_external_hostname }}"
 
 #
 # maas_alarm_local_consecutive_count: The number of consecutive failures before an alert is
@@ -212,25 +221,19 @@ maas_monitoring_zones:
 #                                  rackspace-monitoring-poller will be
 #                                  installed and configured.
 #
-maas_private_monitoring_enabled: false
+maas_private_monitoring_enabled: "{{ ansible_local.maas.general.maas_private_monitoring_enabled | default(false) }}"
 
 #
 # maas_private_monitoring_zone: Specifies the private zone for use with
 #                               rackspace-monitoring-poller.
 #
-maas_private_monitoring_zone:
+maas_private_monitoring_zone: "{{ ansible_local.maas.general.maas_private_monitoring_zone }}"
 
 #
 # host_check: This flag indicates if the host-related hardware monitoring checks and alarms should
 #             be deployed.
 #
-maas_host_check: false
-
-#
-# lb_name: Defines the entity name of the load balancing device against which the remote MaaS
-#          checks and alarms are configured.
-#
-maas_lb_name: 'unspecified_lb'
+maas_host_check: "{{ ansible_local.maas.general.maas_host_check | default(false) }}"
 
 #
 # maas_scheme: The scheme (http/https) to use when creating remote.http checks.
@@ -240,7 +243,7 @@ maas_scheme: http
 #
 # ssl_check: This flag indicates if the ssl-related checks and alarms should be deployed.
 #
-maas_ssl_check: false
+maas_ssl_check: "{{ ansible_local.maas.general.maas_ssl_check | default(false) }}"
 
 #
 # remote_check: This flag indicates if the remote.http checks and alarms should be deployed.
@@ -354,6 +357,7 @@ maas_pip_packages:
   - python-memcached
   - rackspace-monitoring-cli
   - requests
+  - netaddr
 
 #
 # pip extra packages for lxc containers

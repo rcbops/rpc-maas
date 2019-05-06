@@ -34,7 +34,7 @@ def check(args):
         if args.ip:
             octavia_local_endpoint = generate_local_endpoint(
                 str(octavia.get_endpoint()), args.ip, args.port,
-                args.protocol, '?limit=1'
+                args.protocol, '/lbaas/loadbalancers?limit=1'
             )
             resp = octavia.session.get(octavia_local_endpoint, timeout=180)
 

@@ -1,0 +1,44 @@
+---
+# Copyright 2019, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: OSA container host block
+  block:
+    - name: Register known container hosts from local fact
+      set_fact:
+        known_container_hosts: "{{ ansible_local.maas.general.known_container_hosts }}"
+
+    - name: Set OSA container host fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_lxc_host"
+        value: "{{ inventory_hostname in known_container_hosts }}"
+  when:
+    - not (ansible_local['maas']['general']['deploy_osp'] | bool)
+
+- name: OSP container host block
+  block:
+    - name: Check for docker containers
+      shell: docker ps | grep -v ^CONTAINER | wc -l
+      register: docker_check
+
+    - name: Set docker container host fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_docker_host"
+        value: "{{ (docker_check.stdout | int) > 0 }}"
+  when:
+    - ansible_local['maas']['general']['deploy_osp'] | bool

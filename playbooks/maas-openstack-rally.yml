@@ -164,29 +164,15 @@
         group: "root"
         mode: "0750"
 
-    - name: Get keystone endpoint
-      shell: |-
-        . /root/openrc
-        {{ maas_rally_venv_bin }}/openstack endpoint list --interface internal --service keystone --format value
-      register: keystone_endpoint
-      changed_when: False
-      run_once: true
-
     - name: Get admin password
       command: grep -w OS_PASSWORD /root/openrc
       register: admin_password
       changed_when: False
       run_once: true
 
-    - name: Set keystone endpoint fact
-      set_fact:
-        keystone_service_internalurl: "{{ (keystone_endpoint.stdout_lines[-1]).strip().split()[-1] }}"
-        service_regkeystone_service_regionion: "{{ (keystone_endpoint.stdout_lines[-1]).strip().split()[2] }}"
-        openrc_os_password: "{{ (admin_password.stdout).strip().split('=')[-1] }}"
-
     - name: Set keystone endpoint insecure fact
       set_fact:
-        keystone_service_adminuri_insecure: "{{ 'https' in keystone_service_internalurl }}"
+        keystone_service_adminuri_insecure: "{{ 'https' in ansible_local.maas.general.keystone_service_url }}"
 
     - name: Write rally configuration file
       template:
@@ -195,22 +181,6 @@
         owner: "root"
         group: "root"
         mode: "0600"
-
-    - name: Ensure OpenStack client configuration directory
-      file:
-        dest: "{{ openrc_openstack_client_config_dir_dest }}"
-        owner: "{{ openrc_openstack_client_config_dir_owner }}"
-        group: "{{ openrc_openstack_client_config_dir_group }}"
-        mode: "{{ openrc_openstack_client_config_dir_mode }}"
-        state: directory
-
-    - name: Create clouds.yaml file
-      template:
-        src: templates/rax-maas/clouds.yaml.j2
-        dest: "{{ openrc_clouds_yml_file_dest }}"
-        owner: "{{ openrc_clouds_yml_file_owner }}"
-        group: "{{ openrc_clouds_yml_file_group }}"
-        mode: "{{ openrc_clouds_yml_file_mode }}"
 
   vars_files:
     - vars/main.yml

@@ -74,6 +74,7 @@
     - name: Remove the old mtab object
       file:
         path: /etc/mtab
+      ignore_errors: yes
 
     - name: Create new mtab file
       copy:

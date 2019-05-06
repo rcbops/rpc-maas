@@ -1,15 +1,18 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "lb_api_check_neutron" %}
 {% set check_name = label %}
+{% set neutron_api_url = ansible_local.maas.api.neutron_public_url | default(ansible_local.maas.api.neutron_internal_url) %}
+{% set neutron_api_ip = ansible_local.maas.api.neutron_public_ip | default(ansible_local.maas.api.neutron_internal_ip) %}
+{% set neutron_fallback_url = (maas_neutron_scheme | default(maas_scheme)) + '://' + maas_external_hostname + ':9696/' %}
 type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
 disabled          : "{{ (inventory_hostname != groups['neutron_server'][0] or check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_resolver   : "IPv4"
-target_hostname   : "{{ maas_external_ip_address }}"
+target_hostname   : "{{ neutron_api_ip | default(maas_external_ip_address) }}"
 details           :
-    url           : "{{ maas_neutron_scheme | default(maas_scheme)}}://{{ maas_external_hostname }}:9696/"
+    url           : "{{ neutron_api_url | default(neutron_fallback_url) }}"
 monitoring_zones_poll:
 {% for zone in maas_monitoring_zones %}
   - {{ zone }}

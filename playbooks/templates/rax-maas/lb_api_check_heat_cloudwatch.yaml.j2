@@ -1,15 +1,18 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "lb_api_check_heat_cloudwatch" %}
 {% set check_name = label %}
+{% set heatcw_api_url = ansible_local.maas.api.heat_public_url | default(ansible_local.maas.api.heat_internal_url) %}
+{% set heatcw_api_ip = ansible_local.maas.api.heat_public_ip | default(ansible_local.maas.api.heat_internal_ip) %}
+{% set heatcw_fallback_url = (maas_heat_cloudwatch_scheme | default(maas_scheme)) + '://' + maas_external_hostname + ':8003/' %}
 type              : remote.http
 label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
 disabled          : "{{ (inventory_hostname != groups['heat_api_cloudwatch'][0] or check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 target_resolver   : "IPv4"
-target_hostname   : "{{ maas_external_ip_address }}"
+target_hostname   : "{{ heatcw_api_ip | default(maas_external_ip_address) }}"
 details           :
-    url           : "{{ maas_heat_cloudwatch_scheme | default(maas_scheme)}}://{{ maas_external_hostname }}:8003"
+    url           : "{{ heatcw_api_url | default(heatcw_fallback_url) }}"
 monitoring_zones_poll:
 {% for zone in maas_monitoring_zones %}
   - {{ zone }}

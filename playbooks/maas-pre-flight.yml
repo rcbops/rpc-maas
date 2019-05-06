@@ -34,9 +34,12 @@
     - name: Initialize local facts
       ini_file:
         dest: "/etc/ansible/facts.d/maas.fact"
-        section: "general"
+        section: "{{ item }}"
         option: cacheable
         value: true
+      with_items:
+        - "general"
+        - "api"
 
     - name: Refresh local facts
       setup:
@@ -83,6 +86,13 @@
   gather_facts: false
   become: true
   pre_tasks:
+    - name: Set maas_raxdc fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_raxdc"
+        value: "{{ maas_raxdc | bool }}"
+
     - name: Set persistent deploy_osp fact
       ini_file:
         path: "/etc/ansible/facts.d/maas.fact"
@@ -270,6 +280,15 @@
       when:
         - deploy_osp | default(False) | bool
 
+    - name: Set maas_host_check fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_host_check"
+        value: "{{ ansible_local.maas.general.maas_raxdc | bool }}"
+      when:
+        - ansible_local.maas.general.maas_raxdc is defined
+
     # NOTE(npawelek): The agents and pollers use an HTTP CONNECT method when
     # establishing connectivity to the monitoring infrastructure. Unfortunately,
     # testing this methodology will not work due to a bug in the ansible uri
@@ -375,6 +394,28 @@
         section: "general"
         option: "maas_merged_excluded_alarms"
         value: "{{ tmp_alarms_merge }}"
+
+    - name: build OSA container hosts fact
+      block:
+        - name: Generate list of OSA container hosts
+          set_fact:
+            _known_container_hosts: |-
+              {% set _var = [] -%}
+              {% for item in groups['all_containers'] | default([]) %}
+              {%   if hostvars[item]['physical_host'] | default(false) != item %}
+              {%     set _ = _var.append(hostvars[item]['physical_host']) %}
+              {%   endif %}
+              {% endfor %}
+              {{ _var | unique }}
+
+        - name: Set local fact for known_container_hosts
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "known_container_hosts"
+            value: "{{ _known_container_hosts }}"
+      when:
+        - not (ansible_local.maas.general.deploy_osp | bool)
 
   tasks:
     - name: Refresh local facts
@@ -516,42 +557,7 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   tasks:
-    - name: OSA container host block
-      block:
-        - name: Generate list of OSA container hosts
-          set_fact:
-            _known_container_hosts: |-
-              {% set _var = [] -%}
-              {% for item in groups['all_containers'] | default([]) %}
-              {%   if hostvars[item]['physical_host'] | default(false) != item %}
-              {%     set _ = _var.append(hostvars[item]['physical_host']) %}
-              {%   endif %}
-              {% endfor %}
-              {{ _var | unique }}
-
-        - name: Set OSA container host fact
-          ini_file:
-            path: "/etc/ansible/facts.d/maas.fact"
-            section: "general"
-            option: "maas_lxc_host"
-            value: "{{ inventory_hostname in _known_container_hosts }}"
-      when:
-        - not (ansible_local['maas']['general']['deploy_osp'] | bool)
-
-    - name: OSP container host block
-      block:
-        - name: Check for docker containers
-          shell: docker ps | grep -v ^CONTAINER | wc -l
-          register: docker_check
-
-        - name: Set docker container host fact
-          ini_file:
-            path: "/etc/ansible/facts.d/maas.fact"
-            section: "general"
-            option: "maas_docker_host"
-            value: "{{ (docker_check.stdout | int) > 0 }}"
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
+    - include_tasks: "common-tasks/maas-container-facts.yml"
 
 
 - name: Distribute openstack rc files

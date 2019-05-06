@@ -13,11 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Gather facts
+- name: Clean up MaaS resources for gating tests
   hosts: hosts
   gather_facts: true
+  user: "{{ ansible_user | default('root') }}"
   become: true
-  tasks:
+  pre_tasks:
     - name: Refresh local facts
       setup:
         filter: ansible_local
@@ -28,54 +29,99 @@
       when:
         - ansible_local['maas']['general']['deploy_osp'] | bool
 
+    - name: Verify raxmon exists in maas_venv
+      stat:
+        path: "{{ maas_venv }}/bin/raxmon"
+      register: raxmon_check
+
+  tasks:
+    - name: clean up maas resources when maas_venv exists
+      block:
+        - name: Delete all check and alarm resources
+          file:
+            state: absent
+            path: /etc/rackspace-monitoring-agent.conf.d
+
+        - name: Restart rackspace-monitoring-agent
+          service:
+            name: rackspace-monitoring-agent
+            state: restarted
+          ignore_errors: true
+
+        - name: Wait 30 seconds for resource removal
+          pause:
+            seconds: 30
+
+        - name: Run RAXMON
+          vars:
+            ansible_python_interpreter: "{{ maas_venv }}/bin/python"
+          block:
+            - name: Delete gating agent token
+              raxmon:
+                cmd: delete_agent_token
+                entity: "{{ maas_entity_name }}"
+                venv_bin: "{{ maas_venv_bin }}"
+
+            # NOTE(npawelek) In the case of the entity being the same as the cloud
+            # server name, the entity deletion command will fail via raxmon in the next
+            # task. As a result, failed_when has been designed to exclude this specific
+            # message because the cloud server deletion process will delete the entity
+            # automatically.
+            - name: Delete gating entity
+              raxmon:
+                cmd: delete_entity
+                entity: "{{ maas_entity_name }}"
+                venv_bin: "{{ maas_venv_bin }}"
+              ignore_errors: yes
+              register: delete_entity_results
+              failed_when:
+                - delete_entity_results.failed == true
+                - delete_entity_results.msg is defined
+                - "'Rackspace Cloud Server entities may not be deleted' not in delete_entity_results.msg"
+      when:
+        - raxmon_check.stat.exists is defined
+        - raxmon_check.stat.exists
+
   vars_files:
     - vars/main.yml
     - vars/maas.yml
-
+  environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - always
 
-
-- name: Clean up MaaS resources for gating tests
-  hosts: hosts
+- name: Clean up MaaS poller resources for gating tests
+  hosts: shared-infra_hosts
   gather_facts: true
   user: "{{ ansible_user | default('root') }}"
   become: true
-  pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
   tasks:
-    - name: Run RAXMON
-      vars:
-        ansible_python_interpreter: "{{ maas_venv }}/bin/python"
+    - name: poller cleanup block
       block:
-        - name: Delete gating agent token
-          raxmon:
-            cmd: delete_agent_token
-            entity: "{{ maas_entity_name }}"
-            venv_bin: "{{ maas_venv_bin }}"
+        - name: Stop rackspace-monitoring-poller
+          service:
+            name: rackspace-monitoring-poller
+            state: stopped
+          ignore_errors: true
 
-        # NOTE(npawelek) In the case of the entity being the same as the cloud
-        # server name, the entity deletion command will fail via raxmon in the next
-        # task. As a result, failed_when has been designed to exclude this specific
-        # message because the cloud server deletion process will delete the entity
-        # automatically.
-        - name: Delete gating entity
+        - name: Delete private monitoring zone
           raxmon:
-            cmd: delete_entity
-            entity: "{{ maas_entity_name }}"
+            cmd: delete_private_zone
+            entity: "{{ maas_env_identifier }}"
             venv_bin: "{{ maas_venv_bin }}"
-          register: delete_entity_results
-          failed_when:
-            - delete_entity_results.failed == true
-            - delete_entity_results.msg is defined
-            - "'Rackspace Cloud Server entities may not be deleted' not in delete_entity_results.msg"
+          register: delete_zone
+          until: delete_zone is success
+          retries: 6
+          delay: 30
+          when:
+            - maas_private_monitoring_enabled | bool
+            - inventory_hostname == groups['shared-infra_hosts'][0]
+      when:
+        - raxmon_check.stat.exists is defined
+        - raxmon_check.stat.exists
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
-
   environment: "{{ deployment_environment_variables | default({}) }}"
+  tags:
+    - always
