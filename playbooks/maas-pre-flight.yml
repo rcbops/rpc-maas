@@ -247,6 +247,12 @@
             path: /etc/rhosp-release
           register: osp_release_file
 
+        - name: Register /etc/rhosp-release codename
+          shell: awk -F"[()]" '{print $2}' /etc/rhosp-release
+          register: maas_product_osp_codename
+          when:
+            - osp_release_file.stat.exists | bool
+
         - name: Register /etc/rhosp-release version
           shell: cat /etc/rhosp-release | tr -dc '0-9.'
           register: maas_product_osp_version
@@ -261,6 +267,15 @@
             value: "{{ maas_product_osp_version.stdout }}"
           when:
             - maas_product_osp_version.changed | bool
+
+        - name: Set OSP release codename fact
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "general"
+            option: "maas_product_osp_codename"
+            value: "{{ maas_product_osp_codename.stdout | lower }}"
+          when:
+            - maas_product_osp_codename.changed | bool
 
         - name: Refresh local facts
           setup:
@@ -370,12 +385,21 @@
       set_fact:
         tmp_checks_merge: "{{ maas_excluded_checks }}"
 
-    - name: Merge maas_release_excluded_checks
+    - name: Merge maas_osa_release_excluded_checks
       set_fact:
-        tmp_checks_merge: "{{ tmp_checks_merge | union(maas_release_excluded_checks[ansible_local['maas']['general']['maas_product_osa_codename']]) }}"
+        tmp_checks_merge: "{{ tmp_checks_merge | union(maas_osa_release_excluded_checks[ansible_local['maas']['general']['maas_product_osa_codename']]) }}"
       when:
+        - not (deploy_osp | default(False) | bool)
         - ansible_local['maas']['general']['maas_product_osa_codename'] is defined
-        - maas_release_excluded_checks[ansible_local['maas']['general']['maas_product_osa_codename']] is defined
+        - maas_osa_release_excluded_checks[ansible_local['maas']['general']['maas_product_osa_codename']] is defined
+
+    - name: Merge maas_osp_release_excluded_checks
+      set_fact:
+        tmp_checks_merge: "{{ tmp_checks_merge | union(maas_osp_release_excluded_checks[ansible_local['maas']['general']['maas_product_osp_codename']]) }}"
+      when:
+        - deploy_osp | default(False) | bool
+        - ansible_local['maas']['general']['maas_product_osp_codename'] is defined
+        - maas_osp_release_excluded_checks[ansible_local['maas']['general']['maas_product_osp_codename']] is defined
 
     - name: Set maas_merged_excluded_checks fact
       ini_file:
