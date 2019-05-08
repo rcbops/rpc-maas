@@ -53,6 +53,11 @@
       when:
         - ansible_local['maas']['general']['deploy_osp'] | bool
 
+    - name: Remove legacy container conntrack check
+      file:
+        path: "/etc/rackspace-monitoring-agent.conf.d/conntrack_count--{{ inventory_hostname }}.yaml"
+        state: absent
+
     - name: Install conntrack count checks
       template:
         src: "templates/rax-maas/conntrack_count.yaml.j2"

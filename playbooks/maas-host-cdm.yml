@@ -52,17 +52,18 @@
       when:
         - ansible_local['maas']['general']['deploy_osp'] | bool
 
-    - name: Remove legacy disk utilisation checks
-      file:
-        path: "/etc/rackspace-monitoring-agent.conf.d/disk_utilisation--{{ inventory_hostname }}.yaml"
-        state: absent
+    - name: Find legacy CDM checks
+      find:
+        paths: /etc/rackspace-monitoring-agent.conf.d
+        patterns: "filebeat*,disk_utilisation--*"
+      register: remove_files
 
-    - name: Remove legacy filebeat checks
+    - name: Remove legacy CDM checks
       file:
-        path: "{{ item }}"
+        path: "{{ item.path }}"
         state: absent
-      with_fileglob:
-        - "/etc/rackspace-monitoring-agent.conf.d/filebeat*"
+      with_items:
+        - "{{ remove_files.files }}"
 
   tasks:
     - name: Discover disk device facts

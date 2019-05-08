@@ -76,6 +76,13 @@
         - maas_ssl_check | bool
         - ansible_local.maas.general.maas_ssl_expiry_list is defined
 
+    - name: Remove legacy ssl expiry check
+      file:
+        path: "/etc/rackspace-monitoring-agent.conf.d/lb_ssl_cert_expiry_check.yaml"
+        state: absent
+      when:
+        - dynamic_cert_list is defined
+
     - name: Install lb-ssl check
       template:
         src: "templates/rax-maas/lb_ssl_cert_expiry_check.yaml.j2"
