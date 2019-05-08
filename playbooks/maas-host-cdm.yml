@@ -52,12 +52,12 @@
       when:
         - ansible_local['maas']['general']['deploy_osp'] | bool
 
-    - name: Remove legacy filebeat checks
+    - name: Remove legacy disk utilisation checks
       file:
         path: "/etc/rackspace-monitoring-agent.conf.d/disk_utilisation--{{ inventory_hostname }}.yaml"
         state: absent
 
-    - name: Remove legacy disk utilisation checks
+    - name: Remove legacy filebeat checks
       file:
         path: "{{ item }}"
         state: absent
