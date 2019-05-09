@@ -24,10 +24,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Set the current group
-      set_fact:
-        maas_current_group: glance_all
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -81,10 +77,6 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
-    - name: Set the current group
-      set_fact:
-        maas_current_group: glance_all
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -96,13 +88,10 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-
   vars_files:
     - vars/main.yml
     - vars/maas.yml
     - vars/maas-openstack.yml
-
   environment: "{{ deployment_environment_variables | default({}) }}"
-
   tags:
     - maas-openstack-glance

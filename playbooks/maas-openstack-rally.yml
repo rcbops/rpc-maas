@@ -45,10 +45,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Set the current group
-      set_fact:
-        maas_current_group: rally_all
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Safety check - ensure maas_rally is enabled
@@ -128,10 +124,6 @@
       when:
         - not (maas_rally_enabled | bool)
 
-    - name: Set the current group
-      set_fact:
-        maas_current_group: rally_all
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Create rally constraint file
@@ -190,10 +182,6 @@
       meta: end_play
       when:
         - not (maas_rally_enabled | bool)
-
-    - name: Set the current group
-      set_fact:
-        maas_current_group: rally_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
@@ -627,10 +615,6 @@
       meta: end_play
       when:
         - not (maas_rally_enabled | bool)
-
-    - name: Set the current group
-      set_fact:
-        maas_current_group: rally_all
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 

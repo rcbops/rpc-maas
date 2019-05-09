@@ -25,10 +25,6 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - name: Set the current group
-      set_fact:
-        maas_current_group: hosts
-
   vars_files:
     - vars/main.yml
     - vars/maas.yml

@@ -24,10 +24,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Set the current group
-      set_fact:
-        maas_current_group: heat_all
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -81,10 +77,6 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
-    - name: Set the current group
-      set_fact:
-        maas_current_group: heat_all
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -138,10 +130,6 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
-    - name: Set the current group
-      set_fact:
-        maas_current_group: heat_all
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
