@@ -12,25 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-- name: Gather facts
-  hosts: swift_all
-  gather_facts: true
-  become: true
-  tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
-  vars_files:
-    - vars/main.yml
-    - vars/maas.yml
-
-  tags:
-    - always
-
-
 - name: Verify MaaS
   hosts: hosts
   user: "{{ ansible_user | default('root') }}"
@@ -41,11 +22,6 @@
       setup:
         filter: ansible_local
         gather_subset: "!all"
-
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
 
   tasks:
     - name: Ensure log directories

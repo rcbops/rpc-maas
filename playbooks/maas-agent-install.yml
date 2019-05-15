@@ -23,11 +23,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
@@ -47,10 +42,6 @@
   gather_facts: true
   become: true
   pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Include distro install tasks
       include_tasks: "common-tasks/maas-agent-{{ ansible_distribution | lower }}-install.yml"

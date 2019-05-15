@@ -34,7 +34,7 @@
 
         - name: Set OSP rc file fact
           set_fact:
-            rc_file_location: "{{ maas_stackrc | default('/home/stack/stackrc') }}"
+            rc_file_location: "{{ maas_stackrc | default(maas_openrc) }}"
           when:
             - ansible_local.maas.general.deploy_osp | bool
 

@@ -1,8 +1,6 @@
 {% macro get_check_category(check_label) %}
 {% if check_label.startswith('lb_') or check_label.startswith('private_lb_') %}
 api
-{% elif check_label.startswith('managed_k8') %}
-kubernetes
 {% elif check_label.startswith('rsyslogd_process_check') %}
 logging
 {% elif check_label in ['multipathd_process_check', 'tgtd_process_check', 'container_storage_check', 'holland_local_check', 'maas_poller_fd_count', 'memcached_status'] or check_label.startswith('galera') or check_label.startswith('rabbitmq') %}

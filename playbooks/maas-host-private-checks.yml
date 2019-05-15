@@ -23,11 +23,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
     - name: Set the current group
@@ -46,12 +41,6 @@
   hosts: hosts
   gather_facts: true
   become: true
-  pre_tasks:
-    - name: Include OSP vars
-      include_vars: vars/maas-osp.yml
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
-
   tasks:
     - name: Install private ping and SSH checks
       template:

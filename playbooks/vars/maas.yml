@@ -474,21 +474,6 @@ maas_network_rx_error_threshold: 64
 maas_network_tx_error_threshold: 64
 
 #
-# maas_k8s_ui_scheme: https
-#
-maas_managed_k8_kube_config_dir: /root/.k8
-maas_managed_k8_kubectl_release: v1.9.1
-maas_managed_k8_auth_url: "http://{{ internal_vip_address }}:{{ mk8s_auth_port_lb }}"
-
-#
-# maas_k8s processes checks
-#
-maas_managed_k8s_ui_process_name: controlpanel
-maas_managed_k8s_etp_process_name: etp
-maas_managed_k8s_etg_process_name: etg
-maas_managed_k8s_auth_process_name: auth
-
-#
 # pip installable packages for given services used within maas
 #
 maas_pip_openstack_packages:

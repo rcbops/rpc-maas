@@ -134,17 +134,30 @@ maas_nova_console_ports:
 
 maas_nova_console_port: "{{ maas_nova_console_ports[maas_nova_console_type] }}"
 
+# Octavia variables
 octavia_process_names:
-  - uwsgi
-  - octavia-worker
-  - octavia-health-manager
-  - octavia-housekeeping
+  osa:
+    - uwsgi
+    - octavia-worker
+    - octavia-health-manager
+    - octavia-housekeeping
+  osp:
+    - octavia-api
+    - octavia-worker
+    - octavia-health-manager
+    - octavia-housekeeping
 
 octavia_process_names_sanitized:
-  - uwsgi
-  - octavia-workerlog
-  - octavia-health-manager
-  - octavia-housekeeping
+  osa:
+    - uwsgi
+    - octavia-workerlog
+    - octavia-health-manager
+    - octavia-housekeeping
+  osp:
+    - octavia-api
+    - octavia-worker
+    - octavia-health-manager
+    - octavia-housekeeping
 
 octavia_quota_names:
   - octavia_cores_quota_usage
@@ -154,6 +167,7 @@ octavia_quota_names:
   - octavia_volume_gb_quota_usage
   - octavia_num_volume_quota_usage
 
+# Designate variables
 designate_process_names:
   - designate-sink
   - designate-worker
