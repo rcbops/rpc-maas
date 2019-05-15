@@ -60,11 +60,9 @@ elif [[ ${RE_JOB_SCENARIO} == ceph ]]; then
   export ANSIBLE_INVENTORY="/opt/rpc-ceph/tests/inventory,/opt/magnanimous-turbo-chainsaw/overlay-inventory.yml"
   export ANSIBLE_OVERRIDES="/opt/rpc-ceph/tests/test-vars.yml"
 else
-  # Ansible Inventory will be set to OSA
+  # Ansible inventory will be retained from definition in aio-create.sh
+  # or be set to legacy OSA default.
   export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/playbooks/inventory}"
-  if [[ "${RE_JOB_SCENARIO}" == "queens" ]]; then
-   export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
-  fi
 fi
 
 echo "WORKING_DIR: ${WORKING_DIR}"
@@ -94,7 +92,7 @@ esac
 # ansible that is not available in liberty and mitaka. There is no reason
 # to run it in a ceph context either.
 case ${RE_JOB_SCENARIO} in
-  kilo|*liberty|*mitaka|ceph|osp13|rocky)
+  kilo|*liberty|*mitaka|ceph|osp13|rocky|stein)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)

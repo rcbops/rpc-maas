@@ -370,6 +370,10 @@ else
       elif [[ "${RE_JOB_SCENARIO}" == "rocky" ]]; then
         git checkout "stable/rocky"  # Branch checkout of Rocky (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+
+      elif [[ "${RE_JOB_SCENARIO}" == "stein" ]]; then
+        git checkout "stable/stein"  # Branch checkout of Stein (Current Stable)
+        export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
       fi
 
       # Install ovs agent if applicable
@@ -387,7 +391,7 @@ else
       # NOTE(npawelek): Rocky requires a different version to be set, all other
       # releases work with the existing pin
       case ${RE_JOB_SCENARIO} in
-        rocky)
+        rocky|stein)
           true
           ;;
         *)
