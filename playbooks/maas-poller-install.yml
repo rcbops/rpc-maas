@@ -23,10 +23,6 @@
         filter: ansible_local
         gather_subset: "!all"
 
-    - name: Set the current group
-      set_fact:
-        maas_current_group: shared-infra_hosts
-
   vars_files:
     - vars/main.yml
     - vars/maas.yml
