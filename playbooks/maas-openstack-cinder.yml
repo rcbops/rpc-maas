@@ -151,6 +151,18 @@
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
+    - name: rbd:volumes block
+      block:
+        - name: Lookup cinder.conf
+          set_fact:
+            cinder_conf: "{{ lookup('file', '/etc/cinder/cinder.conf') }}"
+
+        - name: Check for hard-coded rbd:volumes backend name in cinder.conf
+          set_fact:
+            rbd_cinder_backend: "{{ ('rbd:volumes' in cinder_conf) | ternary('true', 'false') | bool }}"
+      when:
+        - not (ansible_local.maas.general.deploy_osp | bool)
+
   tasks:
     - name: Install cinder volume checks
       template:
