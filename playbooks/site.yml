@@ -49,4 +49,10 @@
   tags:
     - maas
 
+- import_playbook: maas-remove-old-templates.yml
+  tags:
+    - maas
+
 - import_playbook: maas-restart.yml
+  tags:
+    - maas
