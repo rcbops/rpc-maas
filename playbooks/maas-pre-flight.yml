@@ -94,6 +94,13 @@
         option: "deploy_osp"
         value: "{{ deploy_osp | default(False) | bool }}"
 
+    - name: Define deployment date for metadata and template removal
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "deploy_date"
+        value: "{{ '%Y-%m-%d %H:%M:%S' | strftime }}"
+
     - name: Check for /etc/openstack-release
       stat:
         path: /etc/openstack-release

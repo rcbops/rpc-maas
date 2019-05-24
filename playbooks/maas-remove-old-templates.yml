@@ -1,0 +1,64 @@
+---
+# Copyright 2019, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Find and move templates older than deployment date
+  hosts: hosts
+  gather_facts: true
+  become: true
+  vars:
+    - confd_dir: /etc/rackspace-monitoring-agent.conf.d
+    - backup_dir: /etc/rackspace-monitoring-agent.conf.d/backup_templates
+  tasks:
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
+    - name: Reference deployment date
+      debug:
+        msg: "{{ ansible_local.maas.general.deploy_date }}"
+
+    - name: Set age fact ((current date/time - deploy date/time) + 8 hours)
+      set_fact:
+        find_age: "{{ ((('%Y-%m-%d %H:%M:%S' | strftime | to_datetime()) - (ansible_local.maas.general.deploy_date | to_datetime())).total_seconds() + 28800) | int }}s"
+
+    - name: Locate templates older than age fact
+      find:
+        paths: "{{ confd_dir }}"
+        recurse: no
+        file_type: file
+        age: "{{ find_age }}"
+        age_stamp: mtime
+        patterns: "*.yaml,*.bak,*.old"
+        excludes: "rally*.yaml"
+      register: templates
+
+    - name: backup templates block
+      block:
+        - name: Create backup directory
+          file:
+            path: "{{ backup_dir }}"
+            state: directory
+            owner: root
+            group: root
+            mode: 0755
+
+        - name: Move old templates to backup directory
+          command: "mv {{ item.path }} {{ backup_dir }}/"
+          with_items:
+            - "{{ templates.files }}"
+      when:
+        - templates.matched is defined
+        - templates.matched > 0
