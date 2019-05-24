@@ -72,7 +72,7 @@
         - maas_private_monitoring_zone is defined
 
     - name: Start maas poller
-      include_tasks: common-tasks/maas_poller_start.yml
+      include_tasks: common-tasks/maas-poller-start.yml
 
   vars_files:
     - vars/main.yml
