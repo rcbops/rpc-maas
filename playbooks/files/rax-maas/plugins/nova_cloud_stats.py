@@ -17,7 +17,6 @@
 import argparse
 import collections
 
-import ipaddr
 from maas_common import get_openstack_client
 from maas_common import metric
 from maas_common import metric_bool
@@ -118,8 +117,8 @@ if __name__ == "__main__":
                         dest='mem_allocation_ratio',
                         help='mem allocation ratio')
     parser.add_argument('ip', nargs='?',
-                        type=ipaddr.IPv4Address,
-                        help='Nova API IP address')
+                        type=str,
+                        help='Nova API hostname or IP address')
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,

@@ -17,7 +17,6 @@
 import argparse
 import re
 
-import ipaddr
 from lxml import html
 from maas_common import get_auth_details
 from maas_common import metric
@@ -126,8 +125,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Check horizon dashboard')
     parser.add_argument('ip',
-                        type=ipaddr.IPv4Address,
-                        help='horizon dashboard IP address')
+                        type=str,
+                        help='Horizon hostname or IP address')
     parser.add_argument('site_name_regexp',
                         type=str,
                         default='openstack dashboard',

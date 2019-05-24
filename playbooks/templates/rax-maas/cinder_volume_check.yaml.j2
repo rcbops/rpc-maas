@@ -2,6 +2,9 @@
 {% if (ansible_local['maas']['general']['deploy_osp'] | bool) | default(False) %}
 {% set cinder_volume_host = item.value.host %}
 {% set backend_name = cinder_volume_host.split('@')[1] %}
+{% elif (rbd_cinder_backend | default(False) | bool) %}
+{% set cinder_volume_host = 'rbd:volumes@' + item.value.volume_backend_name %}
+{% set backend_name = item.value.volume_backend_name %}
 {% else %}
 {% set cinder_volume_host = ansible_nodename %}
 {% set backend_name = item.key %}
