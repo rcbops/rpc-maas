@@ -35,12 +35,33 @@ EXAMPLES = """
 """
 
 
+def discover_stale_osds(current_ids, deployed_ids):
+    """
+    Compares currently deployed OSD IDs to active OSD IDs.
+
+    Args:
+        current_ids (list): List generated from gather_facts method.
+        deployed_ids (list): List defined from search of existing MaaS check
+            templates. This is registered when the Ansible module is executed.
+
+    Returns:
+         stale_ids (list): List of OSD IDs that are not current. These are
+            intended to be returned by the module and removed in a follow-up
+            task.
+
+    """
+    # NOTE (npawelek): current_ids must be last
+    stale_ids = list(set(deployed_ids) - set(current_ids))
+    return stale_ids
+
+
 class OSDHostFacts(object):
     def __init__(self, module):
         self.state_change = False
         self.module = module
 
-    def gather_facts(self, hostname, container_name, deploy_osp=False):
+    def gather_facts(self, hostname, container_name, deployed_osd_list,
+                     deploy_osp=False):
         """Get information about OSDs."""
         ceph_command_string = "ceph"
         if deploy_osp:
@@ -65,9 +86,14 @@ class OSDHostFacts(object):
                 if _osd['name'] == hostname:
                     osd_ids = _osd['children']
             facts = osd_ids
+            stale_osd_list = discover_stale_osds(facts, deployed_osd_list)
             self.module.exit_json(
                 changed=self.state_change,
-                ansible_facts={'ceph_osd_list': facts})
+                ansible_facts={
+                    'ceph_osd_list': facts,
+                    'stale_osd_list': stale_osd_list
+                }
+            )
 
 
 def main():
@@ -83,6 +109,10 @@ def main():
                 required=False,
                 default=False,
                 type='bool'
+            ),
+            deployed_osd_list=dict(
+                required=True,
+                type='list'
             )
         ),
         supports_check_mode=False
@@ -91,7 +121,9 @@ def main():
     osd_host_facts.gather_facts(
         hostname=module.params.get('hostname'),
         container_name=module.params.get('container_name'),
-        deploy_osp=module.params.get('deploy_osp', False))
+        deploy_osp=module.params.get('deploy_osp', False),
+        deployed_osd_list=module.params.get('deployed_osd_list')
+    )
 
 
 if __name__ == '__main__':
