@@ -25,4 +25,4 @@
   service:
     name: rackspace-monitoring-poller
     state: started
-    enabled: yes 
+    enabled: yes

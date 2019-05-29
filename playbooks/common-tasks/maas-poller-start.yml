@@ -13,23 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Start poller 14.04
+- name: Start poller (upstart)
   when:
     - maas_private_monitoring_enabled | bool
     - maas_private_monitoring_zone is defined
     - ansible_distribution_version == "14.04"
-  include_tasks: common-tasks/maas_poller_start_1404.yml
+  include_tasks: "common-tasks/maas-poller-start-{{ ansible_distribution_version | replace('.', '') }}.yml"
 
-- name: Start poller 16.04
+- name: Start poller (systemd)
   when:
+    - ansible_distribution_version != "14.04"
     - maas_private_monitoring_enabled | bool
     - maas_private_monitoring_zone is defined
-    - ansible_distribution_version == "16.04"
-  include_tasks: common-tasks/maas_poller_start_1604.yml
-
-- name: Start poller readhat
-  when:
-    - maas_private_monitoring_enabled  | bool
-    - maas_private_monitoring_zone is defined
-    - ansible_distribution | lower == "redhat"
-  include_tasks: common-tasks/maas_poller_start_redhat.yml
+    - ansible_service_mgr == "systemd"
+  include_tasks: "common-tasks/maas-poller-start-{{ ansible_service_mgr }}.yml"
