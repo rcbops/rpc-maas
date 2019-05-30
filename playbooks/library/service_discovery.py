@@ -96,13 +96,18 @@ class ServiceDiscovery(object):
             catalog = self.conn.service_catalog
 
             items = ['protocol', 'port', 'address']
+            invalid_chars = '-_'
             for service in catalog:
+                # NOTE(npawelek): Sanitize the service catalog name to remove
+                # dashes and underscores
+                service_name = service['name']
+                for c in invalid_chars:
+                    service_name = service_name.replace(c, '')
                 for endpoint in service['endpoints']:
                     url = urlparse(endpoint.get('url'))
                     for item in items:
-                        # NOTE(npawelek): dashes do not work in local facts
                         key_name = "%s_%s_%s" % (
-                            service['name'].replace('-', ''),
+                            service_name,
                             endpoint['interface'],
                             item)
                         if item == 'protocol':
