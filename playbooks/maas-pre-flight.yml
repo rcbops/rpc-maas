@@ -305,34 +305,13 @@
       when:
         - ansible_local.maas.general.maas_raxdc is defined
 
-    # NOTE(npawelek): The agents and pollers use an HTTP CONNECT method when
-    # establishing connectivity to the monitoring infrastructure. This will
-    # typically result in a 404 response.
     - name: maas_proxy_url block
       block:
         - name: Test direct http connectivity to agent endpoint
-          uri:
-            url: "{{ maas_agent_endpoint.url }}"
-            validate_certs: "{{ maas_agent_endpoint.validate_certs }}"
-            timeout: 5
-            status_code: "{{ maas_agent_endpoint.status_code }}"
-          environment:
-            no_proxy: "{{ deployment_environment_variables.no_proxy }}"
-          when:
-            - deployment_environment_variables.no_proxy is defined
+          shell: "echo Q | openssl s_client -connect {{ maas_agent_endpoint }}"
 
       rescue:
-        - name: Test proxy http connectivity to agent endpoint
-          uri:
-            url: "{{ maas_agent_endpoint.url }}"
-            validate_certs: "{{ maas_agent_endpoint.validate_certs }}"
-            timeout: 5
-            status_code: "{{ maas_agent_endpoint.status_code }}"
-          environment:
-            http_proxy: "{{ deployment_environment_variables.http_proxy }}"
-            https_proxy: "{{ deployment_environment_variables.https_proxy | default(deployment_environment_variables.http_proxy) }}"
-
-        - name: Set maas_proxy_url fact
+        - name: (fallback) Set maas_proxy_url fact
           ini_file:
             path: "/etc/ansible/facts.d/maas.fact"
             section: "general"
