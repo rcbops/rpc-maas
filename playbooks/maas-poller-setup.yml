@@ -40,7 +40,7 @@
   tasks:
     - name: Generate MaaS poller config
       template:
-        src: "templates/rax-maas/rackspace-monitoring-poller.cfg"
+        src: "templates/rax-maas/rackspace-monitoring-poller.cfg.j2"
         dest: /etc/rackspace-monitoring-poller.cfg
         mode: 0600
         owner: root

@@ -25,25 +25,10 @@
         gather_subset: "!all"
 
   tasks:
-    - name: Restart rackspace-monitoring-poller (systemd)
-      service:
-        name: rackspace-monitoring-poller.service
-        state: restarted
-        sleep: 10
-      register: _maas_poller_restart
-      until: _maas_poller_restart is success
-      retries: 3
-      delay: 2
-      when:
-        - maas_private_monitoring_enabled | bool
-        - (physical_host | default(inventory_hostname)) in groups['shared-infra_hosts']
-        - ansible_distribution_version == "16.04" or (ansible_distribution | lower == "redhat")
-
-    - name: Restart rackspace-monitoring-poller (upstart)
+    - name: Restart rackspace-monitoring-poller
       service:
         name: rackspace-monitoring-poller
         state: restarted
-        sleep: 10
       register: _maas_poller_restart
       until: _maas_poller_restart is success
       retries: 3
@@ -51,7 +36,6 @@
       when:
         - maas_private_monitoring_enabled | bool
         - (physical_host | default(inventory_hostname)) in groups['shared-infra_hosts']
-        - ansible_distribution_version == "14.04"
 
     - name: Restart rackspace-monitoring-agent
       service:

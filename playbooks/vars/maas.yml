@@ -495,15 +495,9 @@ maas_pip_rally_packages:
   - rally
 
 #
-# agent endpoint A record
+# agent endpoint TLS location
 #
-maas_agent_endpoint:
-  url: "https://agent-endpoint-ord.monitoring.api.rackspacecloud.com"
-  validate_certs: false
-  status_code:
-    - 200
-    - 404
-    - 503
+maas_agent_endpoint: "agent-endpoint-ord.monitoring.api.rackspacecloud.com:443"
 
 #
 # Check to ensure no 'unknown' values are rendered into metadata
