@@ -71,6 +71,7 @@ class ServiceDiscovery(object):
         self.api_endpoints = dict()
         self.maas_external_hostname = ''
         self.maas_external_ip_address = ''
+        self.use_public = False
 
     def build_sdk_connection(self):
         """
@@ -159,8 +160,14 @@ class ServiceDiscovery(object):
         else:
             self.validate_endpoints(['public', 'internal'])
 
+            # No CDC private endpoints found. Must validate public endpoints.
+            if len(self.api_endpoints) == 0:
+                self.use_public = True
+                self.validate_endpoints(['public', 'internal'],
+                                        use_public=self.use_public)
+
         # Set generic fallback vip depending on PNM
-        if self.pnm:
+        if self.pnm and self.use_public is False:
             if self.internal_vip.replace('.', '').isdigit():
                 self.maas_external_hostname = self.internal_vip
                 self.maas_external_ip_address = self.internal_vip
@@ -189,7 +196,7 @@ class ServiceDiscovery(object):
             }
         )
 
-    def validate_endpoints(self, interface_list):
+    def validate_endpoints(self, interface_list, use_public=False):
         """
         Determine whether the endpoint is natively usable or requires
         additional overrides for the target URL and IP. This will run against
@@ -209,8 +216,11 @@ class ServiceDiscovery(object):
                         is_private = self.validate_private_ip(value)
 
                         if is_private is False and self.raxdc is False:
-                            pass
-
+                            if use_public is True:
+                                self.pnm = True
+                                self.service_specific_overrides(key, value)
+                            else:
+                                pass
                         elif is_private:
                             self.pnm = True
                             self.service_specific_overrides(key, value)
@@ -232,7 +242,13 @@ class ServiceDiscovery(object):
                         # Skip if public endpoints have public addresses
                         # which likely aren't accessible from PNM poller
                         if is_private is False and self.raxdc is False:
-                            pass
+                            if use_public is True:
+                                self.pnm = True
+                                self.service_specific_overrides(key,
+                                                                value,
+                                                                url_ip)
+                            else:
+                                pass
 
                         # Enable PNM and configure associated api facts
                         elif is_private:
