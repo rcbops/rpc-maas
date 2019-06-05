@@ -24,9 +24,8 @@
 
 - name: Ensure galera packages are installed
   apt:
-    pkg: "{{ item }}"
+    name: "{{ maas_galera_distro_packages }}"
     state: "{{ maas_package_state }}"
     update_cache: yes
     cache_valid_time: 600
   delegate_to: "{{ physical_host | default(ansible_host) }}"
-  with_items: "{{ maas_galera_distro_packages }}"

@@ -26,15 +26,33 @@
   retries: 5
   delay: 2
 
+- name: Check for pip.conf
+  stat:
+    path: /root/.pip/pip.conf
+  register: pip_conf
+
+# NOTE(npawelek): The use of index-url deployed with OSA prevents
+# building an isolated virtualenv due to missing packages. Temporarily
+# comment this value to create the MaaS virualenv with PyPI, then
+# uncomment it upon completion.
+- name: Temporarily comment pip.conf index-url
+  replace:
+    path: /root/.pip/pip.conf
+    regexp: '^index-url'
+    replace: '#index-url'
+  when:
+    - pip_conf.stat.exists is defined
+    - pip_conf.stat.exists | bool
+
 - name: Create MaaS venv (--no-site-packages)
-  command: "virtualenv --no-site-packages --no-setuptools {{ target_venv | default(maas_venv) }}"
+  command: "virtualenv --no-site-packages {{ target_venv | default(maas_venv) }}"
   args:
     creates: "{{ target_venv | default(maas_venv) }}/bin/python"
   when:
     - not ansible_local['maas']['general']['deploy_osp'] | bool
 
 - name: Create MaaS venv (--system-site-packages)
-  command: "virtualenv --system-site-packages --no-setuptools {{ target_venv | default(maas_venv) }}"
+  command: "virtualenv --system-site-packages {{ target_venv | default(maas_venv) }}"
   args:
     creates: "{{ target_venv | default(maas_venv) }}/bin/python"
   when:
@@ -60,7 +78,6 @@
           command: >-
             {{ ansible_python_interpreter }} /tmp/get-pip.py
             --isolated
-            --no-setuptools
             --no-wheel
             {{ pip_install_options | default('') }}
       when:
@@ -107,3 +124,12 @@
       until: install_pip_packages is success
       retries: 5
       delay: 2
+
+- name: Revert pip.conf index-url
+  replace:
+    path: /root/.pip/pip.conf
+    regexp: '^#index-url'
+    replace: 'index-url'
+  when:
+    - pip_conf.stat.exists is defined
+    - pip_conf.stat.exists | bool
