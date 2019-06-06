@@ -40,6 +40,7 @@
       with_items:
         - "general"
         - "api"
+        - "cinder"
 
     - name: Refresh local facts
       setup:
