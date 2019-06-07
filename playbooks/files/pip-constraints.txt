@@ -3,18 +3,18 @@ git+https://github.com/openstack/monitorstack@master#egg=monitorstack
 
 ### Requirements for RAX-MaaS
 apache-libcloud<2.0.0
-cryptography==2.1
-httplib2==0.9.2
-ipaddr==2.1.11
-lxml==3.6.4
-lxc-python2==0.1
-psutil==5.2.2
-openstacksdk==0.25.0
-keystoneauth1==3.12.0
+cryptography
+httplib2
+ipaddr
+lxml
+lxc-python2
+psutil
+openstacksdk
+keystoneauth1
 
 ### General dependencies
-python-memcached==1.58
-PyYAML==3.12
+python-memcached
+PyYAML==3.13
 rackspace-monitoring-cli>=0.7.2
-requests==2.14.2
-waxeye==0.8.1
+requests
+waxeye
