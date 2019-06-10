@@ -238,7 +238,6 @@
             filter: ansible_local
             gather_subset: "!all"
       when:
-        - not (deploy_osp | default(False) | bool)
         - groups['ceph_all'] | default([]) | length > 0
 
     - name: rhosp release block
@@ -452,6 +451,17 @@
         - ansible_local['maas']['general']['maas_product_osa_version'] is defined
         - ansible_local['maas']['general']['maas_product_rpco_version'] is defined
 
+    - name: Set RHOSP product metadata fact
+      ini_file:
+        path: "/etc/ansible/facts.d/maas.fact"
+        section: "general"
+        option: "maas_env_product"
+        value: "osp"
+      when:
+        - ansible_local['maas']['general']['maas_product_osa_version'] is undefined
+        - ansible_local['maas']['general']['maas_product_rpco_version'] is undefined
+        - deploy_osp | default(False) | bool
+
     - name: Set ceph product metadata fact
       ini_file:
         path: "/etc/ansible/facts.d/maas.fact"
@@ -463,18 +473,6 @@
         - ansible_local['maas']['general']['maas_product_osa_version'] is undefined
         - ansible_local['maas']['general']['maas_product_rpco_version'] is undefined
         - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
-
-    - name: Set RHOSP product metadata fact
-      ini_file:
-        path: "/etc/ansible/facts.d/maas.fact"
-        section: "general"
-        option: "maas_env_product"
-        value: "osp"
-      when:
-        - ansible_local['maas']['general']['maas_product_osa_version'] is undefined
-        - ansible_local['maas']['general']['maas_product_rpco_version'] is undefined
-        - ansible_local['maas']['general']['maas_product_ceph_version'] is undefined
-        - deploy_osp | default(False) | bool
 
   vars_files:
     - vars/main.yml

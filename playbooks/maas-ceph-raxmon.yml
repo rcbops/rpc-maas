@@ -41,10 +41,14 @@
   hosts: maas_mon_hosts
   gather_facts: true
   become: true
+  vars:
+    maas_auth: "auth caps client.raxmon mon 'allow r'"
+    maas_mgr_auth: "auth caps client.raxmon mon 'allow r' mgr 'allow *'"
   pre_tasks:
-    - name: Add ceph command line alias string
+    - name: Add ceph variable facts
       set_fact:
-        ceph_command: "{{ (ansible_local['maas']['general']['deploy_osp'] | bool) | ternary('docker exec ceph-mon-' ~ inventory_hostname ~ ' ceph --cluster ceph', 'ceph') }}"
+        ceph_command: "{{ (ansible_local.maas.general.deploy_osp | bool) | ternary('docker exec ceph-mon-' ~ inventory_hostname ~ ' ceph --cluster ceph', 'ceph') }}"
+        ceph_auth_parameters: "{{ (ansible_local.maas.general.maas_product_ceph_version is version('12.0.0', '<') | bool) | ternary(maas_auth, maas_mgr_auth) }}"
 
     - name: Create ceph monitoring client
       command: "{{ ceph_command }} auth get-or-create client.raxmon"
@@ -52,8 +56,8 @@
       tags:
         - skip_ansible_lint
 
-    - name: Add mgr auth for client.raxmon
-      command: "{{ ceph_command }} auth caps client.raxmon mon 'allow r' mgr 'allow *'"
+    - name: Add auth for client.raxmon
+      command: "{{ ceph_command }} {{ ceph_auth_parameters }}"
       tags:
         - skip_ansible_lint
 
@@ -70,3 +74,4 @@
   tags:
     - maas-ceph
     - always
+
