@@ -39,6 +39,7 @@ logs/*
 .Spotlight-V100
 .Trashes
 .idea
+.vscode
 .tox
 *.sublime*
 *.egg-info
