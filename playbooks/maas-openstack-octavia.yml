@@ -85,7 +85,7 @@
     - maas-openstack-octavia
 
 
-- name: Install checks for openstack octavia_api
+- name: Install checks for openstack octavia API
   hosts: "octavia_api"
   user: "{{ ansible_user | default('root') }}"
   become: true

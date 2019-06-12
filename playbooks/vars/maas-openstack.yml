@@ -147,18 +147,6 @@ octavia_process_names:
     - octavia-health-manager
     - octavia-housekeeping
 
-octavia_process_names_sanitized:
-  osa:
-    - uwsgi
-    - octavia-workerlog
-    - octavia-health-manager
-    - octavia-housekeeping
-  osp:
-    - octavia-api
-    - octavia-worker
-    - octavia-health-manager
-    - octavia-housekeeping
-
 octavia_quota_names:
   - octavia_cores_quota_usage
   - octavia_instances_quota_usage
