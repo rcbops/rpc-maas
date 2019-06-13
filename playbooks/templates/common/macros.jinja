@@ -22,12 +22,21 @@ metadata:
 {% if ansible_local['maas']['general']['maas_env_product'] is defined and ansible_local['maas']['general']['maas_env_product'] == 'rpco' %}
   product_version: "{{ ansible_local['maas']['general']['maas_product_rpco_version'] | default('unknown') }}"
   osa_version: "{{ ansible_local['maas']['general']['maas_product_osa_version'] | default('unknown') }}"
+{% if ansible_local['maas']['general']['maas_product_ceph_version'] is defined %}
+  ceph_version: "{{ ansible_local['maas']['general']['maas_product_ceph_version'] | default('unknown') }}"
+{% endif %}
 {% elif ansible_local['maas']['general']['maas_env_product'] is defined and ansible_local['maas']['general']['maas_env_product'] == 'osa' %}
   osa_version: "{{ ansible_local['maas']['general']['maas_product_osa_version'] | default('unknown') }}"
-{% elif ansible_local['maas']['general']['maas_env_product'] is defined and ansible_local['maas']['general']['maas_env_product'] == 'ceph' %}
-  product_version: "{{ ansible_local['maas']['general']['maas_product_ceph_version'] | default('unknown') }}"
+{% if ansible_local['maas']['general']['maas_product_ceph_version'] is defined %}
+  ceph_version: "{{ ansible_local['maas']['general']['maas_product_ceph_version'] | default('unknown') }}"
+{% endif %}
 {% elif ansible_local['maas']['general']['maas_env_product'] is defined and ansible_local['maas']['general']['maas_env_product'] == 'osp' %}
   product_version: "{{ ansible_local['maas']['general']['maas_product_osp_version'] | default('unknown') }}"
+{% if ansible_local['maas']['general']['maas_product_ceph_version'] is defined %}
+  ceph_version: "{{ ansible_local['maas']['general']['maas_product_ceph_version'] | default('unknown') }}"
+{% endif %}
+{% elif ansible_local['maas']['general']['maas_env_product'] is defined and ansible_local['maas']['general']['maas_env_product'] == 'ceph' %}
+  product_version: "{{ ansible_local['maas']['general']['maas_product_ceph_version'] | default('unknown') }}"
 {% endif %}
   rpc_maas_version: "{{ lookup('pipe', 'cd ' + playbook_dir + ' && git describe --tags --abbrev=0') }}"
   rpc_maas_deploy_date: "{{ ansible_local.maas.general.deploy_date }}"

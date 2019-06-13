@@ -19,6 +19,7 @@
     keyserver: "{{ maas_keys.keyserver | default(omit) }}"
     url: "{{ maas_keys.url | default(omit) }}"
     state: "{{ maas_keys.state }}"
+    validate_certs: "{{ maas_apt_validate_certs }}"
   register: add_repo_keys
   until: add_repo_keys is success
   retries: 3
@@ -30,6 +31,7 @@
     state: "{{ maas_repos.main.state }}"
     filename: "{{ maas_repos.main.filename | default(omit) }}"
     update_cache: yes
+    validate_certs: "{{ maas_apt_validate_certs }}"
   register: add_repos
   until: add_repos is success
   retries: 5

@@ -41,11 +41,9 @@ maas_galera_distro_packages:
   - mariadb-client
 
 #
-# MaaS GPG keys
+# Apt module certificate verification
 #
-maas_keys:
-  url: "https://monitoring.api.rackspacecloud.com/pki/agent/linux.asc"
-  state: "present"
+maas_apt_validate_certs: True
 
 #
 # MaaS poller repos

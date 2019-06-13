@@ -223,11 +223,12 @@ class RpcMaasAgentConfig(object):
         """Read all config files in agentconfdpath"""
         self.checks = {}
         for path in os.listdir(self.agentconfdpath):
-            check = self._parse_config_file(
-                os.path.join(self.agentconfdpath, path)
-            )
-            if not str2bool(check.get('disabled')):
-                self.checks[check['label']] = check
+            if path.endswith('.yaml'):
+                check = self._parse_config_file(
+                    os.path.join(self.agentconfdpath, path)
+                )
+                if not str2bool(check.get('disabled')):
+                    self.checks[check['label']] = check
         else:
             return self.checks
 
