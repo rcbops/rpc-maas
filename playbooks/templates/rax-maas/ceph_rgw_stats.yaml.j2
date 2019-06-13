@@ -12,7 +12,7 @@
 {%   set _rgw_interface_name = 'ansible_' + (hostvars[inventory_hostname]['radosgw_interface'] | replace('-', '_')) %}
 {%   set _rgw_listen_addr = hostvars[inventory_hostname][_rgw_interface_name]['ipv4']['address'] %}
 {% endif %}
-{% set _ = ceph_args.extend(["rgw", "--rgw_address", ceph_radosgw_protocol + "://" + _rgw_listen_addr | default(ansible_host) + ":" + radosgw_civetweb_port | string ]) %}
+{% set _ = ceph_args.extend(["rgw", "--rgw_address", ceph_radosgw_protocol + "://" + _rgw_listen_addr | default(radosgw_address | default(ansible_host)) + ":" + radosgw_civetweb_port | string ]) %}
 {% set _ceph_args = ceph_args | to_yaml(width=1000) %}
 {% set ceph_args = _ceph_args %}
 
