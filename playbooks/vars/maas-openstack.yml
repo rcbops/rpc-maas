@@ -155,6 +155,10 @@ octavia_quota_names:
   - octavia_volume_gb_quota_usage
   - octavia_num_volume_quota_usage
 
+octavia_observer_role_name: load-balancer_observer
+octavia_project: admin
+octavia_user: admin
+
 # Designate variables
 designate_process_names:
   - designate-sink

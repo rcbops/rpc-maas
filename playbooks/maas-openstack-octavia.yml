@@ -27,6 +27,31 @@
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
+    - name: Set OSA rc file fact
+      set_fact:
+        rc_file_location: "{{ maas_openrc | default('/root/openrc') }}"
+      when:
+        - not (ansible_local.maas.general.deploy_osp | bool)
+
+    - name: Set OSP rc file fact
+      set_fact:
+        rc_file_location: "{{ maas_stackrc | default(maas_openrc) }}"
+      when:
+        - ansible_local.maas.general.deploy_osp | bool
+
+    - name: Get Octavia project ID
+      shell: |-
+        . {{ rc_file_location }}
+        openstack project show service -c id -f value
+      register: octavia_project_return
+      delegate_to: "{{ groups['utility_all'][0] }}"
+      tags:
+        - skip_ansible_lint
+
+    - name: Set Octavia project ID
+      set_fact:
+        octavia_project_id: "{{ octavia_project_return.stdout }}"
+
     - name: Install octavia process check
       template:
         src: "templates/rax-maas/octavia_process_check.yaml.j2"
@@ -35,37 +60,6 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-
-    - name: Get project id (RPC-O)
-      shell: ". {{ maas_openrc | default('/root/openrc') }} && openstack project list --user octavia -c ID -f value"
-      register: octavia_project_return_rpco
-      delegate_to: "{{ groups['utility_all'][0] }}"
-      when:
-        - not (ansible_local.maas.general.deploy_osp | bool)
-      tags:
-        - skip_ansible_lint
-
-    - name: Set project id when rpc-o
-      set_fact:
-        octavia_project_id: "{{ octavia_project_return_rpco.stdout }}"
-      when:
-        - not (ansible_local.maas.general.deploy_osp | bool)
-
-    - name: Get project id (RPC-R)
-      shell: ". {{ maas_stackrc | default(maas_openrc) }} && openstack project show service -c id -f value"
-      register: octavia_project_return_rpcr
-      run_once: true
-      delegate_to: "localhost"
-      when:
-        - ansible_local.maas.general.deploy_osp | bool
-      tags:
-        - skip_ansible_lint
-
-    - name: Set project id when rpc-r
-      set_fact:
-        octavia_project_id: "{{ octavia_project_return_rpcr.stdout }}"
-      when:
-        - ansible_local.maas.general.deploy_osp | bool
 
     - name: Install octavia quota check
       template:
@@ -86,34 +80,26 @@
 
 
 - name: Install checks for openstack octavia API
-  hosts: "octavia_api"
+  hosts: "octavia-api"
   user: "{{ ansible_user | default('root') }}"
   become: true
   gather_facts: true
+  vars:
+    ansible_python_interpreter: "{{ target_venv | default(maas_venv) }}/bin/python"
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
-    - name: Add load-balancer member role (RPC-O)
-      shell: ". {{ maas_openrc | default('/root/openrc') }} && openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer"
-      delegate_to: "{{ groups['utility_all'][0] }}"
-      when:
-        - not (ansible_local.maas.general.deploy_osp | bool)
-      tags:
-        - skip_ansible_lint
-
-    - name: Add load-balancer member role (RPC-R)
-      shell: |
-        . {{ maas_stackrc | default(maas_openrc) }} && \
-        openstack role assignment list --project $OS_PROJECT_NAME --user $OS_USERNAME | \
-        grep $(openstack role show load-balancer_observer -c id -f value) || \
-        openstack role add --project $OS_PROJECT_NAME --user $OS_USERNAME load-balancer_observer
-      delegate_to: "localhost"
+    - name: Ensure Octavia observer member role assignment
+      os_user_role:
+        cloud: default
+        interface: internal
+        role: "{{ octavia_observer_role_name }}"
+        project: "{{ octavia_project }}"
+        user: "{{ octavia_user }}"
+        state: present
+      delegate_to: localhost
       run_once: true
-      when:
-        - ansible_local.maas.general.deploy_osp | bool
-      tags:
-        - skip_ansible_lint
 
     - name: Install octavia api checks
       template:
