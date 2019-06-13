@@ -16,7 +16,7 @@
 from socket import gaierror, gethostbyname
 from urlparse import urlparse
 
-from ansible.module_utils.basic import *  # noqa: ignore=H303
+from ansible.module_utils.basic import AnsibleModule  # noqa: ignore=H303
 from keystoneauth1.exceptions import MissingRequiredOptions
 import netaddr
 from openstack import connect
@@ -72,6 +72,10 @@ class ServiceDiscovery(object):
         self.maas_external_hostname = ''
         self.maas_external_ip_address = ''
         self.use_public = False
+        self.cinder_backends = {
+            "local": list(),
+            "shared": list()
+        }
 
     def build_sdk_connection(self):
         """
@@ -183,18 +187,6 @@ class ServiceDiscovery(object):
                 vip_ip = self.get_url_ip_address(self.external_vip)
                 self.maas_external_hostname = self.external_vip
                 self.maas_external_ip_address = vip_ip
-
-        self.module.exit_json(
-            changed=False,
-            ansible_facts={
-                'cert_expiry': self.cert_expiry,
-                'cert_expiry_list': self.cert_expiry_list,
-                'pnm': self.pnm,
-                'api_endpoints': self.api_endpoints,
-                'maas_external_hostname': self.maas_external_hostname,
-                'maas_external_ip_address': self.maas_external_ip_address
-            }
-        )
 
     def validate_endpoints(self, interface_list, use_public=False):
         """
@@ -359,6 +351,48 @@ class ServiceDiscovery(object):
 
         self.api_endpoints[key] = "%s://%s:%s/" % (protocol, address, port)
 
+    def get_cinder_backends(self):
+        """Discovers hosts for local and/or shared block storage backend pools.
+
+        Queries the OpenStack Block Storage API to identify all backend
+        pools. Using the volume backend name (everything after #), hosts
+        are split into local and/or shared volume backends. This will
+        provide dynamic cinder-volume hosts for any nomenclature.
+
+        Returns:
+            A dict mapping of volume hosts within local and/or shared backends.
+            For example:
+
+            {
+                'local': [
+                    'infra02@midtier',
+                    'infra01@midtier',
+                    'infra03@midtier',
+                    'infra03@ceph',
+                    'infra01@ceph',
+                    'infra02@ceph'
+                ],
+                'shared': []
+            }
+        """
+        cinder = self.conn.block_storage
+
+        backend_pools = [str(bp.name) for bp in cinder.backend_pools()]
+        backend_names = [i.split('#')[-1] for i in backend_pools]
+        unique_backend_names = set(backend_names)
+        unique_backend_counts = dict()
+
+        for name in unique_backend_names:
+            unique_backend_counts[name] = backend_names.count(name)
+
+        for pool in backend_pools:
+            host, backend_name = pool.split('#')
+
+            if unique_backend_counts[backend_name] == 1:
+                self.cinder_backends['shared'].append(host)
+            else:
+                self.cinder_backends['local'].append(host)
+
 
 def main():
     module = AnsibleModule(
@@ -373,6 +407,21 @@ def main():
     discovery = ServiceDiscovery(module)
     discovery.parse_service_catalog()
     discovery.generate_facts()
+    discovery.get_cinder_backends()
+
+    module.exit_json(
+        changed=False,
+        ansible_facts={
+            'cert_expiry': discovery.cert_expiry,
+            'cert_expiry_list': discovery.cert_expiry_list,
+            'pnm': discovery.pnm,
+            'api_endpoints': discovery.api_endpoints,
+            'maas_external_hostname': discovery.maas_external_hostname,
+            'maas_external_ip_address': discovery.maas_external_ip_address,
+            'maas_cinder_local_backends': discovery.cinder_backends['local'],
+            'maas_cinder_shared_backends': discovery.cinder_backends['shared']
+        }
+    )
 
 
 if __name__ == '__main__':

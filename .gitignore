@@ -41,6 +41,7 @@ logs/*
 .idea
 .vscode
 .tox
+.vscode
 *.sublime*
 *.egg-info
 Icon?
@@ -73,5 +74,4 @@ tests/*.retry
 # Eclipse artifacts
 .project
 .pydevproject
-openstack-ansible-ops
 *.retry

@@ -226,6 +226,16 @@
             - maas_private_monitoring_enabled | bool
             - maas_use_api | bool
             - private_zone is success
+
+        - name: Set cinder backend host facts
+          ini_file:
+            path: "/etc/ansible/facts.d/maas.fact"
+            section: "cinder"
+            option: "{{ item.name }}"
+            value: "{{ item.value }}"
+          with_items:
+            - { name: local_backends, value: "{{ maas_cinder_local_backends }}" }
+            - { name: shared_backends, value: "{{ maas_cinder_shared_backends }}" }
       when:
         - ansible_local.maas.general.maas_env_product != 'ceph'
         - discovery is success

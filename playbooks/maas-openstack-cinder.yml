@@ -151,30 +151,37 @@
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
-    - name: rbd:volumes block
-      block:
-        - name: Lookup cinder.conf
-          set_fact:
-            cinder_conf: "{{ lookup('file', '/etc/cinder/cinder.conf') }}"
-
-        - name: Check for hard-coded rbd:volumes backend name in cinder.conf
-          set_fact:
-            rbd_cinder_backend: "{{ ('rbd:volumes' in cinder_conf) | ternary('true', 'false') | bool }}"
-      when:
-        - not (ansible_local.maas.general.deploy_osp | bool)
+    - name: Set cinder backend facts
+      set_fact:
+        maas_cinder_local_backends: "{{ ansible_local.maas.cinder.local_backends | default([]) }}"
+        maas_cinder_shared_backends: "{{ ansible_local.maas.cinder.shared_backends | default([]) }}"
 
   tasks:
-    - name: Install cinder volume checks
+    - name: Install cinder volume local checks
       template:
         src: "templates/rax-maas/cinder_volume_check.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_volume_{{ item.key }}_check--{{ inventory_hostname }}.yaml"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_volume_{{ item.split('@')[-1] }}_check--{{ inventory_hostname }}.yaml"
         owner: "root"
         group: "root"
         mode: "0644"
-      with_dict: "{{ cinder_backends | default({}) }}"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - "{{ maas_cinder_local_backends }}"
       when:
-        - "'volume_driver' in cinder_backends[item.key]"
+        - item.split('@')[0] in inventory_hostname
+
+    - name: Install cinder volume shared checks
+      template:
+        src: "templates/rax-maas/cinder_volume_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_volume_{{ item.split('@')[-1] }}_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      with_items:
+        - "{{ maas_cinder_shared_backends }}"
+      when:
+        - inventory_hostname == groups['cinder_volume'][0]
 
     - name: Install cinder vg checks
       template:
