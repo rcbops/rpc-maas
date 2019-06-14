@@ -147,18 +147,6 @@ octavia_process_names:
     - octavia-health-manager
     - octavia-housekeeping
 
-octavia_process_names_sanitized:
-  osa:
-    - uwsgi
-    - octavia-workerlog
-    - octavia-health-manager
-    - octavia-housekeeping
-  osp:
-    - octavia-api
-    - octavia-worker
-    - octavia-health-manager
-    - octavia-housekeeping
-
 octavia_quota_names:
   - octavia_cores_quota_usage
   - octavia_instances_quota_usage
@@ -166,6 +154,10 @@ octavia_quota_names:
   - octavia_server_group_quota_usage
   - octavia_volume_gb_quota_usage
   - octavia_num_volume_quota_usage
+
+octavia_observer_role_name: load-balancer_observer
+octavia_project: admin
+octavia_user: admin
 
 # Designate variables
 designate_process_names:

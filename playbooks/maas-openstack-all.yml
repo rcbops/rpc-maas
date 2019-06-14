@@ -53,9 +53,9 @@
   tags:
     - maas-openstack
 
-#- import_playbook: maas-openstack-octavia.yml
-#  tags:
-#    - maas-openstack
+- import_playbook: maas-openstack-octavia.yml
+  tags:
+    - maas-openstack
 
 - import_playbook: maas-openstack-swift.yml
   tags:
