@@ -38,5 +38,5 @@ alarms      :
                 return new AlarmStatus(CRITICAL, "Ceph rgw error.");
             }
             if (metric["rgw_up"] == 1) {
-                return new AlarmStatus(WARNING, "Ceph rgw warning.");
+                return new AlarmStatus(CRITICAL, "Ceph rgw warning.");
             }

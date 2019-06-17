@@ -2,3 +2,9 @@ ansible>=2.4
 Jinja2>=2.9
 PyYAML>=3.12
 pathlib2>=2.3.0
+sphinx==1.8.5
+sphinx_rtd_theme>=0.1.9
+sphinxcontrib-spelling
+sphinxcontrib-versioning
+chios
+doc8
