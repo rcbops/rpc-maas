@@ -109,5 +109,5 @@ if __name__ == '__main__':
                         default=False,
                         help='Set the output format to telegraf')
     args = parser.parse_args()
-    with print_output(print_telegraf=False):
+    with print_output(print_telegraf=args.telegraf_output):
         main()
