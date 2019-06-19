@@ -23,6 +23,14 @@
         filter: ansible_local
         gather_subset: "!all"
 
+    - name: Drop .raxrc file
+      template:
+        src: "templates/rax-maas/raxrc.j2"
+        dest: /root/.raxrc
+        mode: 0600
+        owner: root
+        group: root
+
   tasks:
     - name: Ensure log directories
       file:
