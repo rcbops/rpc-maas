@@ -399,7 +399,8 @@ def main():
         argument_spec=dict(
             raxdc=dict(required=True, type='bool'),
             internal_vip=dict(required=True),
-            external_vip=dict(required=True)
+            external_vip=dict(required=True),
+            cinder_discovery=dict(required=True, type='bool')
         ),
         supports_check_mode=False
     )
@@ -407,7 +408,8 @@ def main():
     discovery = ServiceDiscovery(module)
     discovery.parse_service_catalog()
     discovery.generate_facts()
-    discovery.get_cinder_backends()
+    if module.params.get('cinder_discovery') is True:
+        discovery.get_cinder_backends()
 
     module.exit_json(
         changed=False,
