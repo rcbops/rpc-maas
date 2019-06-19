@@ -150,6 +150,7 @@
         raxdc: "{{ maas_raxdc | bool }}"
         internal_vip: "{{ internal_lb_vip_address }}"
         external_vip: "{{ external_lb_vip_address }}"
+        cinder_discovery: "{{ (groups['cinder_all'] | default([])) | length > 0 }}"
       register: discovery
       when:
         - ansible_local.maas.general.maas_env_product != 'ceph'
