@@ -67,7 +67,7 @@ def get_container_name(deploy_osp, for_ring):
         except (IndexError, subprocess.CalledProcessError):
             return False
     else:
-        get_containers = ("/usr/local/bin/docker ps -f status=running")
+        get_containers = ("docker ps -f status=running")
         containers_list = subprocess.check_output(get_containers.split())
 
         c = getcontainer('swift_proxy', containers_list)

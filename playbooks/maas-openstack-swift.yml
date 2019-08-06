@@ -57,7 +57,7 @@
       set_fact:
         storage_address: "{{ storage_ip }}"
         openstack_release: ""
-        swift_recon_path: "/bin"
+        swift_recon_path: "/usr/bin"
       when:
         - ansible_local['maas']['general']['deploy_osp'] | bool
         - inventory_hostname in groups['swift_proxy']
@@ -66,7 +66,7 @@
       set_fact:
         storage_address: "{{ storage_mgmt_ip }}"
         openstack_release: ""
-        swift_recon_path: "/bin"
+        swift_recon_path: "/usr/bin"
       when:
         - ansible_local['maas']['general']['deploy_osp'] | bool
         - inventory_hostname in groups['swift_hosts']
@@ -203,9 +203,11 @@
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
-    - name: Set the swift release
+    - name: Set the swift release (OSA)
       set_fact:
         swift_release: "{{ ansible_local['maas']['general']['maas_product_osa_version'] }}"
+      when:
+        - ansible_local.maas.general.maas_product_osa_version is defined
 
     - name: Set recon nodes fact
       set_fact:
