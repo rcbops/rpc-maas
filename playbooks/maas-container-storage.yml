@@ -62,20 +62,21 @@
   user: "{{ ansible_user | default('root') }}"
   become: true
   tasks:
-    - name: Remove the old mtab object
-      file:
-        path: /etc/mtab
-      ignore_errors: yes
-
-    - name: Create new mtab file
-      copy:
-        src: /proc/self/mounts
-        dest: /etc/mtab
-        remote_src: true
-        mode: 0644
-
     - name: add mtab service
       block:
+        - name: Remove the old mtab object
+          file:
+            path: /etc/mtab
+            state: absent
+          ignore_errors: yes
+
+        - name: Create new mtab file
+          copy:
+            src: /proc/self/mounts
+            dest: /etc/mtab
+            remote_src: true
+            mode: 0644
+
         - name: Create mtab oneshot service
           template:
             src: templates/rax-maas/mtab_systemd_oneshot.j2
