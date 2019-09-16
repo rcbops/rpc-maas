@@ -127,6 +127,7 @@
           shell: ss -lt | grep -c 127.0.0.1:15672
           register: rabbit_local
           delegate_to: "{{ groups['rabbitmq_all'][0] }}"
+          failed_when: rabbit_local.rc >= 2
 
         - name: Set rabbitmq management to local address
           set_fact:
