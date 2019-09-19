@@ -358,6 +358,7 @@ maas_pip_packages:
   - rackspace-monitoring-cli
   - requests
   - netaddr
+  - ipaddress
 
 #
 # pip extra packages for lxc containers

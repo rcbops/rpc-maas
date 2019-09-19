@@ -30,6 +30,8 @@ maas_distro_packages:
   - libselinux-python
   - rackspace-monitoring-agent
   - sysstat
+  - ipmitool
+  - dmidecode
 
 #
 # Enable additional package override

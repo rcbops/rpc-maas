@@ -18,7 +18,9 @@ import argparse
 import os
 import subprocess
 
+from ipaddress import ip_address
 import maas_common
+import requests
 
 
 class BadOutputError(maas_common.MaaSException):
@@ -43,6 +45,41 @@ def check_command(command, startswith, endswith):
     except Exception:
         pass
     return status
+
+
+def get_ilo_address(command, startswith):
+    output = subprocess.check_output(command)
+    lines = output.split('\n')
+    for line in lines:
+        line = line.strip()
+        if line.startswith(startswith):
+            try:
+                ip = line.split(':')[1].strip()
+                ip_address(unicode(ip))
+            except ValueError:
+                maas_common.status_err("Unable to detect valid IP address.")
+    return ip
+
+
+def get_health_status_from_ilo(addr, s):
+    try:
+        url = "https://%s/rest/v1/Systems/1" % addr
+        r = s.get(url, verify=False, timeout=10)
+    except requests.exceptions.ConnectTimeout:
+        maas_common.status_err("Timeout connecting to iLO address: %s" % url)
+    else:
+        if r.ok:
+            return r.json().get('Oem').get('Hpe').get('AggregateHealthStatus')
+        if r.status_code == 401:
+            maas_common.status_err('Invalid iLO credentials. Unable to obtain '
+                                   'component health status.')
+
+
+def parse_component_health(component):
+    if component['Status']['Health'] == 'OK':
+        return 1
+    else:
+        return 0
 
 
 def get_chassis_status(command, item):
@@ -89,11 +126,36 @@ def main():
                                    m_name='hp_monitoring')
 
     status = {}
-    status['hardware_processors_status'] = \
-        get_chassis_status('hpasmcli', 'server')
-    status['hardware_memory_status'] = get_chassis_status('hpasmcli', 'dimm')
-    status['hardware_powersupply_status'] = \
-        get_powersupply_status('hpasmcli', 'powersupply')
+    gen10_check = check_command(('dmidecode', '--type', 'system'),
+                                'Product Name:', 'Gen10')
+    if bool(gen10_check):
+        ilo_address = get_ilo_address(('ipmitool', 'lan', 'print'),
+                                      'IP Address   ')
+
+        # Set requests headers and auth
+        s = requests.Session()
+        s.headers.update({"Content-type": "application/json"})
+        user, password = args.ilo_credentials.split(':')
+        s.auth = (user, password)
+
+        # Gather health output from iLO API
+        health_status = get_health_status_from_ilo(ilo_address, s)
+
+        # Parse output
+        status['hardware_processors_status'] = \
+            parse_component_health(health_status['Processors'])
+        status['hardware_memory_status'] = \
+            parse_component_health(health_status['Memory'])
+        status['hardware_powersupply_status'] = \
+            parse_component_health(health_status['PowerSupplies'])
+    else:
+        status['hardware_processors_status'] = \
+            get_hpasmcli_status('hpasmcli', 'server')
+        status['hardware_memory_status'] = \
+            get_hpasmcli_status('hpasmcli', 'dimm')
+        status['hardware_powersupply_status'] = \
+            get_powersupply_status('hpasmcli', 'powersupply')
+
     status['hardware_disk_status'] = get_drive_status(ssacli_bin)
     status['hardware_controller_status'] = get_controller_status(ssacli_bin)
     status['hardware_controller_cache_status'] = \
@@ -112,6 +174,10 @@ if __name__ == '__main__':
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+    parser.add_argument('--ilo-credentials',
+                        action='store',
+                        default='root:calvincalvin',
+                        help='iLO credentials')
     args = parser.parse_args()
     with maas_common.print_output(print_telegraf=args.telegraf_output):
         main()

@@ -27,6 +27,8 @@ maas_distro_packages:
   - rackspace-monitoring-agent
   - python-dev
   - gcc
+  - ipmitool
+  - dmidecode
 
 #
 # Enable additional package override

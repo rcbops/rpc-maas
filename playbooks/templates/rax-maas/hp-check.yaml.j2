@@ -8,7 +8,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(299) }}"
 disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/hp_monitoring.py"]
+    args    : ["{{ maas_plugin_dir }}/hp_monitoring.py"{% if maas_ilo_credentials is defined %}, "--ilo-credentials", "{{ maas_ilo_credentials }}" {% endif %}]
     timeout : {{ (maas_check_timeout_override[label] | default(299) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}
