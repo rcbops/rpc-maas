@@ -1,5 +1,5 @@
 ### Monitorstack plugin framework
-git+https://github.com/openstack/monitorstack@master#egg=monitorstack
+git+https://opendev.org/x/monitorstack@master#egg=monitorstack
 
 ### Requirements for RAX-MaaS
 apache-libcloud<2.0.0
