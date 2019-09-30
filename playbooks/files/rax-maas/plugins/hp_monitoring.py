@@ -150,9 +150,9 @@ def main():
             parse_component_health(health_status['PowerSupplies'])
     else:
         status['hardware_processors_status'] = \
-            get_hpasmcli_status('hpasmcli', 'server')
+            get_chassis_status('hpasmcli', 'server')
         status['hardware_memory_status'] = \
-            get_hpasmcli_status('hpasmcli', 'dimm')
+            get_chassis_status('hpasmcli', 'dimm')
         status['hardware_powersupply_status'] = \
             get_powersupply_status('hpasmcli', 'powersupply')
 
