@@ -33,3 +33,13 @@ alarms:
               return new AlarmStatus(CRITICAL, "There have been more than {{ maas_network_tx_error_threshold }} network TX errors in the last {{ maas_check_period_override[label] | default(maas_check_period) }}s.");
             }
             return new AlarmStatus(OK, "#{physical_interface_tx_errors} network TX errors have been detected in the last {{ maas_check_period_override[label] | default(maas_check_period) }}s.");
+    softnet_stats:
+        label                   : softnet_stats--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (('softnet_stats--'+inventory_hostname )| regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount=1
+            if (rate(metric['softnet_stats']) > {{ maas_softnet_stats_threshold }}) {
+              return new AlarmStatus(CRITICAL, "#{softnet_stats} softnet drops were detected over the last {{ maas_check_period_override[label] | default(maas_check_period) }}s. Contact OPCNetEng to investigate.");
+            }
+            return new AlarmStatus(OK, "#{softnet_stats} softnet drops were detected over the last {{ maas_check_period_override[label] | default(maas_check_period) }}s.");
