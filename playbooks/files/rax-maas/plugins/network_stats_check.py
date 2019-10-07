@@ -33,9 +33,18 @@ def physical_interface_errors():
         if d not in vnet_devices:
             for e in 'rx_errors', 'tx_errors':
                 filepath = '/sys/class/net/%s/statistics/%s' % (d, e)
-                with open(filepath) as f:
+                with open(filepath, 'r') as f:
                     totals[e] += int(f.read())
+                    f.close()
     return totals
+
+
+def get_softnet_stats():
+    softnet_stats = 0
+    with open('/proc/net/softnet_stat', 'r') as f:
+        for line in f:
+            softnet_stats += int(line.split()[1], 16)
+    return softnet_stats
 
 
 if __name__ == '__main__':
@@ -49,9 +58,11 @@ if __name__ == '__main__':
     with print_output(print_telegraf=args.telegraf_output):
         try:
             totals = physical_interface_errors()
+            softnet_stats = get_softnet_stats()
         except Exception as e:
             status_err(e, m_name='maas_network_stats')
         else:
             status_ok(m_name='maas_network_stats')
             for k, v in totals.items():
                 metric('physical_interface_%s' % k, 'int64', v)
+            metric('softnet_stats', 'int64', softnet_stats)
