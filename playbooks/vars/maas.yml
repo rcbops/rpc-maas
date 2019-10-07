@@ -473,6 +473,7 @@ maas_network_checks_list:
 #
 maas_network_rx_error_threshold: 64
 maas_network_tx_error_threshold: 64
+maas_softnet_stats_threshold: 0
 
 #
 # pip installable packages for given services used within maas
