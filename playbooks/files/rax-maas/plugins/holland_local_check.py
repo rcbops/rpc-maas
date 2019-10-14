@@ -15,6 +15,7 @@
 # limitations under the License.
 import argparse
 import datetime
+import os
 import shlex
 import subprocess
 
@@ -39,8 +40,8 @@ def run_command(arg):
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Check holland backup completion')
-    parser.add_argument('galera_container_name',
-                        help='Name of the Galera container running holland')
+    parser.add_argument('galera_hostname',
+                        help='Name of the Galera host running holland')
     parser.add_argument('holland_binary', nargs='?',
                         help='Absolute path to the holland binary',
                         default='/usr/local/bin/holland')
@@ -58,16 +59,24 @@ def print_metrics(name, size):
     metric('holland_backup_size', 'double', size, 'Megabytes')
 
 
-def container_holland_lb_check(container, binary, backupset):
+def holland_lb_check(hostname, binary, backupset):
     backupsets = []
+    container_present = True
 
-    # Call holland directly inside container
-    retcode, output, err = run_command('lxc-attach -n %s -- %s lb' %
-                                       (container, binary))
+    try:
+        lxc_cgroup_stat = os.stat('/sys/fs/cgroup/pids/lxc/' + hostname)
+    except OSError:
+        container_present = False
+
+    if container_present:
+        retcode, output, err = run_command('lxc-attach -n %s -- %s lb' %
+                                           (hostname, binary))
+    else:
+        retcode, output, err = run_command('%s lb' % binary)
 
     if retcode > 0:
-            status_err('Could not list holland backupsets: %s' % (err),
-                       m_name='maas_holland')
+        status_err('Could not list holland backupsets: %s' % (err),
+                   m_name='maas_holland')
 
     for line in output.split():
         if backupset + '/' in line:
@@ -75,10 +84,16 @@ def container_holland_lb_check(container, binary, backupset):
             disksize = 0
 
             # Determine size of the backup
-            retcode, output, err = \
-                run_command('lxc-attach -n %s -- '
-                            'du -ks /var/backup/holland_backups/%s/%s' %
-                            (container, backupset, backupname))
+            if container_present:
+                retcode, output, err = \
+                    run_command('lxc-attach -n %s -- '
+                                'du -ks /var/backup/holland_backups/%s/%s' %
+                                (hostname, backupset, backupname))
+            else:
+                retcode, output, err = \
+                    run_command('du -ks /var/backup/holland_backups/%s/%s' %
+                                (backupset, backupname))
+
             if retcode == 0:
                 disksize = output.split()[0]
 
@@ -89,7 +104,7 @@ def container_holland_lb_check(container, binary, backupset):
 
 
 def main():
-    galera_container = args.galera_container_name
+    galera_hostname = args.galera_hostname
     holland_bin = args.holland_binary
     holland_bs = args.holland_backupset
 
@@ -99,7 +114,7 @@ def main():
 
     # Get completed Holland backup set
     backupsets = \
-        container_holland_lb_check(galera_container, holland_bin, holland_bs)
+        holland_lb_check(galera_hostname, holland_bin, holland_bs)
 
     if len([backup for backup in backupsets
             if yesterday or today in backup[0]]) > 0:
@@ -111,7 +126,8 @@ def main():
                    % (yesterday, today), m_name='maas_holland')
 
     # Print metric about last backup
-    print_metrics('holland_backup_size', float(backupsets[-1][1]) / 1024)
+    print_metrics('holland_backup_size',
+                  "{0:.1f}".format(float(backupsets[-1][1]) / 1024))
 
 
 if __name__ == '__main__':
