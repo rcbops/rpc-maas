@@ -57,15 +57,17 @@
 
     - name: Get the first osd container
       raw: /bin/docker ps -a -f status=running | awk '/ceph-osd/ {print $NF}' | head -1
-      when:
-        - ansible_local['maas']['general']['deploy_osp'] | bool
       register: osd_container_name
+      when:
+        - ansible_local.maas.general.deploy_osp | bool
+        - not ansible_local.maas.general.maas_osp_ceph_standalone | bool
 
     - name: Set container name for osp template
       set_fact:
         container_name: "{{ osd_container_name.stdout | trim }}"
       when:
         - ansible_local['maas']['general']['deploy_osp'] | bool
+        - not ansible_local.maas.general.maas_osp_ceph_standalone | bool
 
   tasks:
     - name: Identify all deployed OSD check templates
@@ -85,6 +87,7 @@
         hostname: "{{ ansible_hostname }}"
         container_name: "{{ container_name | default(inventory_hostname) }}"
         deploy_osp: "{{ ansible_local['maas']['general']['deploy_osp'] | bool }}"
+        osp_standalone: "{{ ansible_local.maas.general.maas_osp_ceph_standalone | default(True) | bool }}"
         deployed_osd_list: "{{ deployed_osds_list | default([]) }}"
       tags:
         - always
