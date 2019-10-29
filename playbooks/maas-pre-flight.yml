@@ -308,7 +308,7 @@
     - name: maas_proxy_url block
       block:
         - name: Test direct http connectivity to agent endpoint
-          shell: "echo Q | openssl s_client -connect {{ maas_agent_endpoint }}"
+          shell: "timeout 60 bash -c 'echo Q | openssl s_client -connect {{ maas_agent_endpoint }}'"
 
       rescue:
         - name: (fallback) Set maas_proxy_url fact
