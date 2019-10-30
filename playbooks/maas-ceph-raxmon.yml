@@ -47,7 +47,7 @@
   pre_tasks:
     - name: Add ceph variable facts
       set_fact:
-        ceph_command: "{{ (ansible_local.maas.general.deploy_osp | bool) | ternary('docker exec ceph-mon-' ~ inventory_hostname ~ ' ceph --cluster ceph', 'ceph') }}"
+        ceph_command: "{{ ((ansible_local.maas.general.deploy_osp | bool) and not (ansible_local.maas.general.maas_osp_ceph_standalone | default(False) | bool)) | ternary('docker exec ceph-mon-' ~ inventory_hostname ~ ' ceph --cluster ceph', 'ceph') }}"
         ceph_auth_parameters: "{{ (ansible_local.maas.general.maas_product_ceph_version is version('12.0.0', '<') | bool) | ternary(maas_auth, maas_mgr_auth) }}"
 
     - name: Create ceph monitoring client
@@ -74,4 +74,3 @@
   tags:
     - maas-ceph
     - always
-

@@ -61,10 +61,10 @@ class OSDHostFacts(object):
         self.module = module
 
     def gather_facts(self, hostname, container_name, deployed_osd_list,
-                     deploy_osp=False):
+                     deploy_osp=False, osp_standalone=False):
         """Get information about OSDs."""
         ceph_command_string = "ceph"
-        if deploy_osp:
+        if deploy_osp and osp_standalone == False:
             ceph_command_string = (
                 "sudo docker exec {container_name} ceph "
                 "--cluster ceph").format(container_name=container_name)
@@ -110,6 +110,11 @@ def main():
                 default=False,
                 type='bool'
             ),
+            osp_standalone=dict(
+                required=False,
+                default=False,
+                type='bool'
+            ),
             deployed_osd_list=dict(
                 required=True,
                 type='list'
@@ -122,6 +127,7 @@ def main():
         hostname=module.params.get('hostname'),
         container_name=module.params.get('container_name'),
         deploy_osp=module.params.get('deploy_osp', False),
+        osp_standalone=module.params.get('osp_standalone', False),
         deployed_osd_list=module.params.get('deployed_osd_list')
     )
 
