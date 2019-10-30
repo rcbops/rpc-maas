@@ -40,10 +40,13 @@ def physical_interface_errors():
 
 
 def get_softnet_stats():
-    softnet_stats = 0
+    softnet_stats = dict()
+    softnet_stats['packet_drop'] = 0
+    softnet_stats['time_squeeze'] = 0
     with open('/proc/net/softnet_stat', 'r') as f:
         for line in f:
-            softnet_stats += int(line.split()[1], 16)
+            softnet_stats['packet_drop'] += int(line.split()[1], 16)
+            softnet_stats['time_squeeze'] += int(line.split()[2], 16)
     return softnet_stats
 
 
@@ -65,4 +68,5 @@ if __name__ == '__main__':
             status_ok(m_name='maas_network_stats')
             for k, v in totals.items():
                 metric('physical_interface_%s' % k, 'int64', v)
-            metric('softnet_stats', 'int64', softnet_stats)
+            for k, v in softnet_stats.items():
+                metric('softnet_stats_%s' % k, 'int64', v)
