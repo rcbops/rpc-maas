@@ -9,7 +9,7 @@ ipaddr
 lxml
 lxc-python2
 psutil
-openstacksdk
+openstacksdk==0.37.0
 keystoneauth1
 
 ### General dependencies
