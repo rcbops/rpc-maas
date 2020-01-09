@@ -142,7 +142,7 @@ octavia_process_names:
     - octavia-health-manager
     - octavia-housekeeping
   osp:
-    - octavia-api
+    - octavia_wsgi
     - octavia-worker
     - octavia-health-manager
     - octavia-housekeeping
