@@ -31,15 +31,8 @@
     path: /root/.pip/pip.conf
   register: pip_conf
 
-# NOTE(npawelek): The use of index-url deployed with OSA prevents
-# building an isolated virtualenv due to missing packages. Temporarily
-# comment this value to create the MaaS virualenv with PyPI, then
-# uncomment it upon completion.
-- name: Temporarily comment pip.conf index-url
-  replace:
-    path: /root/.pip/pip.conf
-    regexp: '^index-url'
-    replace: '#index-url'
+- name: Temporarily move pip.conf
+  command: mv /root/.pip/pip.conf /root/.pip/pip.conf.bak_maas
   when:
     - pip_conf.stat.exists is defined
     - pip_conf.stat.exists | bool
@@ -87,7 +80,7 @@
       pip:
         name:
           - pip
-          - setuptools
+          - setuptools<45
         extra_args: >-
           -U --isolated
           {{ pip_install_options | default('') }}
@@ -124,12 +117,14 @@
       until: install_pip_packages is success
       retries: 5
       delay: 2
+  always:
+    - name: Check for moved pip.conf
+      stat:
+        path: /root/.pip/pip.conf.bak_maas
+      register: pip_conf_temp
 
-- name: Revert pip.conf index-url
-  replace:
-    path: /root/.pip/pip.conf
-    regexp: '^#index-url'
-    replace: 'index-url'
-  when:
-    - pip_conf.stat.exists is defined
-    - pip_conf.stat.exists | bool
+    - name: Return pip.conf to original location
+      command: mv /root/.pip/pip.conf.bak_maas /root/.pip/pip.conf
+      when:
+        - pip_conf_temp.stat.exists is defined
+        - pip_conf_temp.stat.exists | bool
