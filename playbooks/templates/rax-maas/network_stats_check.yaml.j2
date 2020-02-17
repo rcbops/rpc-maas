@@ -42,4 +42,4 @@ alarms:
             if (rate(metric['softnet_stats_packet_drop']) > {{ maas_softnet_stats_packet_drop_threshold }}) {
               return new AlarmStatus(CRITICAL, "Softnet packet drop was detected over the last {{ maas_check_period_override[label] | default(maas_check_period) }}s. More information around tuning can be found at https://rax.io/packet_drops.");
             }
-            return new AlarmStatus(OK, "Softnet packet drop was detected over the last {{ maas_check_period_override[label] | default(maas_check_period) }}s.");
+            return new AlarmStatus(OK, "No softnet packet drop was detected over the last {{ maas_check_period_override[label] | default(maas_check_period) }}s.");
