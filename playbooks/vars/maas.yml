@@ -553,6 +553,9 @@ maas_osa_release_excluded_checks:
   stein:
     - glance_registry_local_check
     - nova_consoleauth_check
+  train:
+    - glance_registry_local_check
+    - nova_consoleauth_check
 
 #
 # Release specific check exclusions for OSP

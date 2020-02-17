@@ -44,7 +44,3 @@ maas_env_identifier: "{{ lookup('file', '/tmp/maas_env_identifier', errors='igno
 
 # Set raxdc identifier
 maas_raxdc: false
-
-maas_excluded_checks:
-- glance_registry_local_check
-- nova_consoleauth_check
