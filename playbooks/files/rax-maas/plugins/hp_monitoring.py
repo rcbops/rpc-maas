@@ -36,8 +36,9 @@ def check_command(command, startswith, endswith):
         for line in lines:
             line = line.strip()
             if line.startswith(startswith):
-                matches = True
-                if not line.endswith(endswith):
+                if line.endswith(endswith):
+                    matches = True
+                else:
                     break
         else:
             if matches:
@@ -92,9 +93,14 @@ def get_powersupply_status(command, item):
                          'Condition', 'Ok')
 
 
-def get_drive_status(command):
+def get_logicaldrive_status(command):
     return check_command((command, 'ctrl', 'all', 'show', 'config'),
                          'logicaldrive', ('OK)', 'OK, Encrypted)'))
+
+
+def get_physicaldrive_status(command):
+    return check_command((command, 'ctrl', 'all', 'show', 'config'),
+                         'physicaldrive', ('OK)', 'OK, Encrypted)'))
 
 
 def get_controller_status(command):
@@ -156,7 +162,10 @@ def main():
         status['hardware_powersupply_status'] = \
             get_powersupply_status('hpasmcli', 'powersupply')
 
-    status['hardware_disk_status'] = get_drive_status(ssacli_bin)
+    status['hardware_logicaldrive_status'] = \
+        get_logicaldrive_status(ssacli_bin)
+    status['hardware_physicaldrive_status'] = \
+        get_physicaldrive_status(ssacli_bin)
     status['hardware_controller_status'] = get_controller_status(ssacli_bin)
     status['hardware_controller_cache_status'] = \
         get_controller_cache_status(ssacli_bin)

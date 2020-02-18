@@ -40,14 +40,23 @@ alarms      :
             if (metric["hardware_controller_cache_status"] != 1) {
                 return new AlarmStatus(CRITICAL, "Hardware Controller Cache Error");
             }
-    hp-disk_status :
-        label                   : hp-disk--{{ inventory_hostname | quote }}
+    hp-logicaldrive_status :
+        label                   : hp-logicaldrive--{{ inventory_hostname | quote }}
         notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
-        disabled                : {{ (('hp-disk--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        disabled                : {{ (('hp-logicaldrive--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
         criteria                : |
             :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
-            if (metric["hardware_disk_status"] != 1) {
-                return new AlarmStatus(CRITICAL, "Physical Disk Error");
+            if (metric["hardware_logicaldrive_status"] != 1) {
+                return new AlarmStatus(CRITICAL, "A logical RAID volume is reporting a non-healthy value");
+            }
+    hp-physicaldrive_status :
+        label                   : hp-physicaldrive--{{ inventory_hostname | quote }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (('hp-physicaldrive--'+inventory_hostname | quote) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric["hardware_physicaldrive_status"] != 1) {
+                return new AlarmStatus(CRITICAL, "A physical drive is reporting a non-healthy value");
             }
     hp-memory_status :
         label                   : hp-memory--{{ inventory_hostname | quote }}
