@@ -25,7 +25,7 @@ Submitting Bugs
 ---------------
 
 Please submit all bugs to the rpc-maas repository:
-https://github.com/rcbops/rpc-maas/issues
+https://jira.rax.io/browse/RPCOS
 
 
 Local Testing
