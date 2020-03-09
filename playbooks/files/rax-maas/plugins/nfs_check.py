@@ -54,7 +54,7 @@ def nfs_export_check():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Disk utilisation checks')
+    parser = argparse.ArgumentParser(description='NFS exports check')
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,
@@ -76,14 +76,10 @@ if __name__ == '__main__':
         metric_bool('nfs_all_online', status, m_name='nfs_check')
 
         for key, value in nfs_system_check.items():
-            # Generate a metric for the number of exports seen from a server.
-            metric('nfs_{}_exports'.format(key),
-                   'uint32',
-                   value['exports'],
-                   'exports',
-                   m_name='nfs_check')
-
-            # Generate a metric for the given online or offline state.
-            metric_bool('nfs_{}_online'.format(key),
-                        value['online'],
-                        m_name='nfs_check')
+            # NOTE(npawelek): Generate a metric for offline exports only, which
+            # will provide insight into specific volumes that are down while
+            # limiting the risk of exporting too many metrics per check (50).
+            if value['online'] is False:
+                metric_bool('nfs_{}_online'.format(key),
+                            value['online'],
+                            m_name='nfs_check')
