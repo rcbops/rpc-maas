@@ -168,7 +168,7 @@
       with_items:
         - "{{ maas_cinder_local_backends }}"
       when:
-        - item.split('@')[0] in inventory_hostname
+        - (item.split('@')[0] | replace('-', '_')) in (inventory_hostname | replace('-', '_'))
 
     - name: Install cinder volume shared checks
       template:
