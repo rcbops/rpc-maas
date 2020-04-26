@@ -552,3 +552,6 @@ maas_rally_influxdb_measurement_name: performance
 # If you override this, be sure to include the environment tag
 maas_rally_influxdb_tags:
   environment: "{{ maas_rally_influxdb_environment_name }}"
+
+# Set the cinder_ceph_client role default
+cinder_ceph_client: cinder
