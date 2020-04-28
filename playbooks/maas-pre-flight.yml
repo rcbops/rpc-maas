@@ -51,7 +51,7 @@
     - maas-pre-flight
 
 - name: Verify all passwords are defined
-  hosts: localhost
+  hosts: "{{ maas_discovery_host | default('localhost') }}"
   connection: local
   gather_facts: true
   become: true
@@ -76,7 +76,7 @@
     - maas-pre-flight
 
 - name: Dynamic variable generation
-  hosts: localhost
+  hosts: "{{ maas_discovery_host | default('localhost') }}"
   connection: local
   gather_facts: false
   become: true
@@ -511,7 +511,7 @@
 
 
 - name: Verify metadata variables
-  hosts: localhost
+  hosts: "{{ maas_discovery_host | default('localhost') }}"
   gather_facts: true
   become: true
   pre_tasks:

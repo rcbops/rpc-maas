@@ -564,3 +564,8 @@ maas_osp_release_excluded_checks:
   queens:
     - filesystem_/var/lib/docker/overlay2
     - filesystem_/var/lib/docker/containers
+
+#
+# Allow override to specify different discovery host for fact gathering
+#
+maas_discovery_host: localhost
