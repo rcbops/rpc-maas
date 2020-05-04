@@ -81,7 +81,7 @@ if __name__ == '__main__':
             # limiting the risk of exporting too many metrics per check (50).
             if value['online'] is False:
                 # NOTE(npawelek): Dashes are not valid in metric names
-                santized_key = key.replace('-', '_')
-                metric_bool('nfs_{}_online'.format(santized_key),
+                sanitized_key = key.replace('-', '_')
+                metric_bool('nfs_{}_online'.format(sanitized_key),
                             value['online'],
                             m_name='nfs_check')
