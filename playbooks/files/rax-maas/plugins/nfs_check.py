@@ -80,6 +80,8 @@ if __name__ == '__main__':
             # will provide insight into specific volumes that are down while
             # limiting the risk of exporting too many metrics per check (50).
             if value['online'] is False:
-                metric_bool('nfs_{}_online'.format(key),
+                # NOTE(npawelek): Dashes are not valid in metric names
+                santized_key = key.replace('-', '_')
+                metric_bool('nfs_{}_online'.format(santized_key),
                             value['online'],
                             m_name='nfs_check')
