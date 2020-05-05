@@ -58,7 +58,6 @@
     - maas-openstack
 
 - import_playbook: maas-openstack-swift.yml
-  when: not (deploy_osp | bool)
   tags:
     - maas-openstack
 

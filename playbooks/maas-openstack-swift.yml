@@ -23,6 +23,17 @@
         filter: ansible_local
         gather_subset: "!all"
 
+    - name: Safety Check - Do not run on OSP
+      debug:
+        msg: "Swift playbooks are non-functional on OSP. Skipping..."
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
+    - name: Exit
+      meta: end_play
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
