@@ -105,9 +105,19 @@ case ${DISTRO_ID} in
         $RHT_PKG_MGR -y groupinstall "Development Tools"
         ;;
     ubuntu)
-        apt-get update
-        DEBIAN_FRONTEND=noninteractive apt-get -y install \
-          python-virtualenv iptables util-linux apt-transport-https netbase build-essential python-dev
+        case ${DISTRO_VERSION_ID} in
+            20.04)
+                add-apt-repository universe
+                apt-get update
+                DEBIAN_FRONTEND=noninteractive apt-get -y install \
+                    iptables util-linux apt-transport-https netbase build-essential python2 python2-dev virtualenv
+                ;;
+            *)
+                apt-get update
+                DEBIAN_FRONTEND=noninteractive apt-get -y install \
+                    iptables util-linux apt-transport-https netbase build-essential python-dev python-virtualenv
+                ;;
+        esac
         ;;
     opensuse*)
         zypper -n install -l python-virtualenv iptables
@@ -119,5 +129,9 @@ case ${DISTRO_ID} in
 esac
 
 # Create rpc-maas venv for testing
-PYTHON_BIN="$(which python)"
+if [[ -z $(which python) ]]; then
+    PYTHON_BIN=$(which python2)
+else
+    PYTHON_BIN=$(which python)
+fi
 virtualenv --python="${PYTHON_EXEC_PATH:-${PYTHON_BIN}}" /opt/test-maas
