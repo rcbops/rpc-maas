@@ -15,6 +15,12 @@
 # limitations under the License.
 import argparse
 import datetime
+try:
+    import lxc
+    lxc_module_active = True
+except ImportError:
+    lxc_module_active = False
+    pass
 import os
 import shlex
 import subprocess
@@ -63,12 +69,7 @@ def holland_lb_check(hostname, binary, backupset):
     backupsets = []
     container_present = True
 
-    try:
-        lxc_cgroup_stat = os.stat('/sys/fs/cgroup/pids/lxc/' + hostname)
-    except OSError:
-        container_present = False
-
-    if container_present:
+    if lxc_module_active:
         retcode, output, err = run_command('lxc-attach -n %s -- %s lb' %
                                            (hostname, binary))
     else:
