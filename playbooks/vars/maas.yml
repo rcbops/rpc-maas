@@ -359,6 +359,7 @@ maas_pip_packages:
   - requests
   - netaddr
   - ipaddress
+  - contextlib2
 
 #
 # pip extra packages for lxc containers
