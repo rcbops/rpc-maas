@@ -19,7 +19,7 @@
 set -eovu
 
 ## Vars ----------------------------------------------------------------------
-export RE_JOB_SCENARIO="${RE_JOB_SCENARIO:-master}"
+export RE_JOB_SCENARIO="${RE_JOB_SCENARIO:-stein}"
 export RE_JOB_ACTION="${RE_JOB_ACTION:-deploy}"
 export TESTING_HOME="${TESTING_HOME:-$HOME}"
 export TEST_DIR="$(readlink -f $(dirname ${0}))"
@@ -27,10 +27,10 @@ export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-local-test-aio.log"
 export ANSIBLE_OVERRIDE_CLI_PARAMETERS='-e create_entity_if_not_exists=false -e cleanup_entity=false'
 
-export OSA_TESTS_CHECKOUT="b146d649e675d748a58af238c7b37138b8194f1f"
-export OSA_REQUIREMENTS_CHECKOUT="master"
-export UPPER_CONSTRAINTS_FILE="https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=${OSA_REQUIREMENTS_CHECKOUT:-master}"
-export OSA_TEST_DEPS="https://git.openstack.org/cgit/openstack/openstack-ansible-tests/plain/test-ansible-deps.txt?h=${OSA_TESTS_CHECKOUT:-master}"
+export OSA_TESTS_CHECKOUT="b9a565570f224a5b812b70d75bdf6a623436767f"
+export OSA_REQUIREMENTS_CHECKOUT="stable/stein"
+export UPPER_CONSTRAINTS_FILE="https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=${OSA_REQUIREMENTS_CHECKOUT}"
+export OSA_TEST_DEPS="https://git.openstack.org/cgit/openstack/openstack-ansible-tests/plain/test-ansible-deps.txt?h=${OSA_TESTS_CHECKOUT}"
 
 if [[ ${RE_JOB_SCENARIO} = osp13 ]]; then
   env | egrep "(RE|PUBCLOUD)_" | sed "s/^/export /g" > ${TEST_DIR}/RE_ENV

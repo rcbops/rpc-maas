@@ -26,7 +26,7 @@ echo "+-------------------- AIO ENV VARS --------------------+"
 
 ## Vars ----------------------------------------------------------------------
 
-export RE_JOB_SCENARIO="${RE_JOB_SCENARIO:-master}"
+export RE_JOB_SCENARIO="${RE_JOB_SCENARIO:-stein}"
 export TESTING_HOME="${TESTING_HOME:-$HOME}"
 export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-aio.log"
