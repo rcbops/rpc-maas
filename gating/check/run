@@ -23,10 +23,11 @@ echo "+-------------------- START ENV VARS --------------------+"
 export FUNCTIONAL_TEST=${FUNCTIONAL_TEST:-true}
 export RE_JOB_SCENARIO=${RE_JOB_SCENARIO:-"undefined"}
 export RE_JOB_ACTION=${RE_JOB_ACTION:-"undefined"}
+export DEBIAN_FRONTEND=noninteractive
 
 # Install python2 for Ubuntu 16.04 and CentOS 7
 if which apt-get; then
-    sudo apt-get update && sudo apt-get install -y python
+    sudo apt-get update && sudo --preserve-env apt-get install -y python
 fi
 
 if which yum; then

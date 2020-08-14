@@ -482,7 +482,7 @@ maas_softnet_stats_packet_drop_threshold: 0
 maas_pip_openstack_packages:
   - keystoneauth1
   - openstacksdk
-  - python-swiftclient # needed for swift playbook
+  - python-swiftclient==3.5.0 # needed for swift playbook
   - python-keystoneclient # needed for swiftclient authentication
 
 #
@@ -493,7 +493,7 @@ maas_pip_rally_packages:
   - keystoneauth1
   - monitorstack
   - numpy
-  - openstacksdk
+  - openstacksdk==0.37.0
   - pymysql
   - rally
 

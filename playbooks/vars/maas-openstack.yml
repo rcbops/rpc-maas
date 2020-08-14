@@ -374,7 +374,7 @@ maas_rally_venv_bin: "{{ maas_rally_venv }}/bin"
 # Repo and commit/tag/branch for rally
 #
 maas_rally_git_repo: "https://github.com/openstack/rally"
-maas_rally_git_version: "stable/0.9"
+maas_rally_git_version: "0.9.2"
 
 #
 # Set the pip package state, defaults to present

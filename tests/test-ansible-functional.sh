@@ -237,7 +237,7 @@ function get_pip {
             ;;
     esac
 
-    virtualenv --no-site-packages --no-setuptools /opt/test-maas
+    virtualenv --no-setuptools /opt/test-maas
     if [[ ! -f /opt/test-maas/bin/pip ]]; then
         curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
         /opt/test-maas/bin/python /tmp/get-pip.py --no-setuptools --no-wheel --isolated

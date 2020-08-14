@@ -58,6 +58,23 @@ galera_apt_percona_xtrabackup_url: "http://repo.percona.com/apt"
 EOF
 }
 
+function pin_eventlet_wheel {
+
+  # shan5464: eventlet 0.20.0 conflicts with the six
+  #           module. 0.19.0 meets all queens requirements
+
+  # Create the configuration dir if it's not present
+  if [[ ! -d "/etc/openstack_deploy" ]]; then
+    mkdir -p /etc/openstack_deploy
+  fi
+
+  cat <<EOF > /etc/openstack_deploy/user_pin_eventlet.yml
+---
+repo_build_upper_constraints_overrides:
+  - eventlet==0.19.0
+EOF
+}
+
 function disable_security_role {
   # NOTE(cloudnull): The security role is tested elsewhere, there's no need to run it here.
   if [[ ! -d "/etc/openstack_deploy" ]]; then
@@ -366,6 +383,7 @@ else
       elif [[ "${RE_JOB_SCENARIO}" == "queens" ]]; then
         git checkout "stable/queens"  # Branch checkout of Queens (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
+        pin_eventlet_wheel
 
       elif [[ "${RE_JOB_SCENARIO}" == "rocky" ]]; then
         git checkout "stable/rocky"  # Branch checkout of Rocky (Current Stable)

@@ -37,8 +37,8 @@
     - pip_conf.stat.exists is defined
     - pip_conf.stat.exists | bool
 
-- name: Create MaaS venv (--no-site-packages)
-  command: "virtualenv --no-site-packages {{ target_venv | default(maas_venv) }}"
+- name: Create MaaS venv
+  command: "virtualenv {{ target_venv | default(maas_venv) }}"
   args:
     creates: "{{ target_venv | default(maas_venv) }}/bin/python"
   when:
