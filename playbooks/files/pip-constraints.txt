@@ -11,6 +11,7 @@ lxc-python2
 psutil
 openstacksdk==0.37.0
 keystoneauth1
+diskcache==4.1.0
 
 ### General dependencies
 python-memcached

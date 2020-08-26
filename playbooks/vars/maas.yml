@@ -360,6 +360,7 @@ maas_pip_packages:
   - netaddr
   - ipaddress
   - contextlib2
+  - diskcache
 
 #
 # pip extra packages for lxc containers
@@ -496,6 +497,7 @@ maas_pip_rally_packages:
   - openstacksdk==0.37.0
   - pymysql
   - rally
+  - diskcache
 
 #
 # agent endpoint TLS location
