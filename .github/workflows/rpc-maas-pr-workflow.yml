@@ -7,8 +7,8 @@ on:
 
 env:
   # Global env vars used on all jobs
-  REPO_URL: 'https://github.com/shannonmitchell/rpc-maas.git'
-  #REPO_URL: 'https://github.com/rcbops/rpc-maas'
+  #REPO_URL: 'https://github.com/shannonmitchell/rpc-maas.git'
+  REPO_URL: 'https://github.com/rcbops/rpc-maas'
   OS_CLOUD: 'phobos'
   FLAVOR: 'vm-osa-aio'
   NETWORK: 'ironic'
