@@ -42,6 +42,7 @@
       include_tasks: "common-tasks/maas-host-vendor-{{ ansible_system_vendor.split()[0] | lower }}.yml"
       when:
         - maas_host_check | bool
+        - ansible_virtualization_role != "guest"
 
   vars_files:
     - vars/main.yml
