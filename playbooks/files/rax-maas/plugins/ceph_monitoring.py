@@ -120,11 +120,16 @@ def get_cluster_statistics(client=None, keyring=None, container_name=None,
                                   deploy_osp=deploy_osp)
     # Get overall cluster health
     # For luminous+ this is the ceph_status.health.status
-    ceph_health_status = ceph_status['health']['status']
+
+    try:
+      ceph_health_status = ceph_status['health']['overall_status']
+    except KeyError:
+      ceph_health_status = ceph_status['health']['status']
+
     metrics.append({
-        'name': 'cluster_health',
-        'type': 'uint32',
-        'value': STATUSES[ceph_health_status]})
+    'name': 'cluster_health',
+    'type': 'uint32',
+    'value': STATUSES[ceph_health_status]})
 
     # Collect epochs for the mon and osd maps
     metrics.append({'name': "monmap_epoch",
