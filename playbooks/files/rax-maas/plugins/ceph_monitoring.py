@@ -120,10 +120,7 @@ def get_cluster_statistics(client=None, keyring=None, container_name=None,
                                   deploy_osp=deploy_osp)
     # Get overall cluster health
     # For luminous+ this is the ceph_status.health.status
-    # For < Luminous this is the ceph_status.health.overall_status
-    ceph_health_status = ceph_status['health']['overall_status']
-    if 'status' in ceph_status['health']:
-        ceph_health_status = ceph_status['health']['status']
+    ceph_health_status = ceph_status['health']['status']
     metrics.append({
         'name': 'cluster_health',
         'type': 'uint32',
