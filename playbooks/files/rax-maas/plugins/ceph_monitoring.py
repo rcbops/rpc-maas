@@ -126,10 +126,9 @@ def get_cluster_statistics(client=None, keyring=None, container_name=None,
     except KeyError:
       ceph_health_status = ceph_status['health']['status']
 
-    metrics.append({
-    'name': 'cluster_health',
-    'type': 'uint32',
-    'value': STATUSES[ceph_health_status]})
+    metrics.append({'name': 'cluster_health',
+                    'type': 'uint32',
+                    'value': STATUSES[ceph_health_status]})
 
     # Collect epochs for the mon and osd maps
     metrics.append({'name': "monmap_epoch",
