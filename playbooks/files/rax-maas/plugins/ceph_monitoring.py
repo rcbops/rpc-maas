@@ -26,6 +26,7 @@ import subprocess
 
 
 STATUSES = {'HEALTH_OK': 2, 'HEALTH_WARN': 1, 'HEALTH_ERR': 0}
+IGNORE_CHECKS = ['OSDMAP_FLAGS', 'OBJECT_MISPLACED']
 
 
 def check_command(command, container_name=None, deploy_osp=False):
@@ -130,6 +131,16 @@ def get_cluster_statistics(client=None, keyring=None, container_name=None,
         ceph_health_status = ceph_status['health']['overall_status']
     if 'status' in ceph_status['health']:
         ceph_health_status = ceph_status['health']['status']
+
+    # Ignore checks. Quick fix from ceph admin request.
+    if ceph_health_status != 'HEALTH_OK':
+        ignore = True
+        for curcheck in ceph_status['health']['checks']:
+            if curcheck not in IGNORE_CHECKS:
+              ignore = False
+              break
+        if ignore:
+             ceph_health_status = 'HEALTH_OK'
 
     metrics.append({
         'name': 'cluster_health',
