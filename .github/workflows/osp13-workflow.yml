@@ -1,0 +1,36 @@
+name: rpc-maas-osp13-pr-workflow
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+      - gitactiontest
+
+env:
+  # Global env vars used on all jobs
+  REPO_URL: 'https://github.com/shannonmitchell/rpc-maas.git'
+  #REPO_URL: 'https://github.com/rcbops/rpc-maas'
+  #RE_JOB_BRANCH: 'gitactiontest'
+  RE_JOB_BRANCH: ${{ github.event.pull_request.head.sha }}
+
+jobs:
+  osp13:
+    runs-on: osp13
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+      - name: Check out the repo on the runner's workspace
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Start the run
+        run: |
+          cd /home/dci/dci_osp_automation/
+          echo ansible-playbook -i inventory/lab.yml install-rpc-maas.yaml -e @/etc/dci-openstack-agent/settings.yml -e @/etc/dci-openstack-agent/theforeman-dci-vars.yml -e "pubcloud_username=${PUBCLOUD_USERNAME}" -e "pubcloud_api_key=${PUBCLOUD_API_KEY}" -e "pubcloud_tenant_id=${PUBCLOUD_TENANT_ID}" -e "maas_fqdn_extension=.{{ domain_name }}" -e "maas_env_identifier=dciosp13test" -e "notification_plan_id=nprOpgwRjA"
+        env:
+          PUBCLOUD_USERNAME: "${{ secrets.PUBCLOUD_USERNAME }}"
+          PUBCLOUD_API_KEY: "${{ secrets.PUBCLOUD_API_KEY }}"
+          PUBCLOUD_TENANT_ID: "${{ secrets.PUBCLOUD_TENANT_ID }}"
+
