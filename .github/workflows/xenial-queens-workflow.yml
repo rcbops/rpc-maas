@@ -1,4 +1,4 @@
-name: rpc-maas-pr-workflow
+name: xenial-queens-workflow
 on:
   workflow_dispatch:
   pull_request:
@@ -25,8 +25,13 @@ env:
 
 jobs:
   xenial-queens:
-    runs-on: self-hosted
+    runs-on: rpc-maas-aio
     steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.5.0
+      with:
+        access_token: ${{ github.token }}
+
     - name: Check out the repo on the runner's workspace
       uses: actions/checkout@v2
       with:
@@ -58,39 +63,4 @@ jobs:
         set -x
         source /home/rpc-maas-runner/openstackclient_venv/bin/activate
         openstack --os-cloud "${OS_CLOUD}" server delete rpc-maas-xenial-queens-${{ github.run_id }}-${{ github.run_number }} --wait
-
-  bionic-train:
-    runs-on: self-hosted
-    steps:
-    - name: Check out the repo on the runner's workspace
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-       
-    - name: Create testing VM 
-      run: |
-        #!/bin/bash
-        set -x
-        source /home/rpc-maas-runner/openstackclient_venv/bin/activate
-        openstack --os-cloud "${OS_CLOUD}" server create --flavor "${FLAVOR}" --image "Ubuntu 18.04" --network "${NETWORK}" --key-name "${KEY_NAME}" rpc-maas-bionic-train-${{ github.run_id }}-${{ github.run_number }} --wait
-
-
-    - name: Run script to kick off testing on remote machine
-      run: gating/github_action_scripts/start_remote_tests.sh
-      env:
-        IMAGE_USER: "ubuntu"
-        RE_JOB_SCENARIO: "train"
-        RE_JOB_IMAGE: "bionic"
-        RE_JOB_ACTION: "deploy"
-        JOB_NAME: "bionic-train"
-        PUBCLOUD_USERNAME: "${{ secrets.PUBCLOUD_USERNAME }}"
-        PUBCLOUD_API_KEY: "${{ secrets.PUBCLOUD_API_KEY }}"
-        PUBCLOUD_TENANT_ID: "${{ secrets.PUBCLOUD_TENANT_ID }}"
-
-    - name: Delete testing VM
-      run: |
-        #!/bin/bash
-        set -x
-        source /home/rpc-maas-runner/openstackclient_venv/bin/activate
-        openstack --os-cloud "${OS_CLOUD}" server delete rpc-maas-bionic-train-${{ github.run_id }}-${{ github.run_number }} --wait
 
