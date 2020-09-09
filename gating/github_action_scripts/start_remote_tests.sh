@@ -3,7 +3,7 @@
 # set -x
 
 # give some time for cloud-init to do its thing
-sleep 40 
+sleep 40
 
 source ~/openstackclient_venv/bin/activate
 
