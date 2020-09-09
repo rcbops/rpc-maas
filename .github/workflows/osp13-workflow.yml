@@ -4,13 +4,10 @@ on:
   pull_request:
     branches:
       - master
-      - gitactiontest
 
 env:
   # Global env vars used on all jobs
-  REPO_URL: 'https://github.com/shannonmitchell/rpc-maas.git'
-  #REPO_URL: 'https://github.com/rcbops/rpc-maas'
-  #RE_JOB_BRANCH: 'gitactiontest'
+  REPO_URL: 'https://github.com/rcbops/rpc-maas'
   RE_JOB_BRANCH: ${{ github.event.pull_request.head.sha }}
 
 jobs:

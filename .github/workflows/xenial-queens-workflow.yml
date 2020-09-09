@@ -7,13 +7,11 @@ on:
 
 env:
   # Global env vars used on all jobs
-  #REPO_URL: 'https://github.com/shannonmitchell/rpc-maas.git'
   REPO_URL: 'https://github.com/rcbops/rpc-maas'
   OS_CLOUD: 'phobos'
   FLAVOR: 'vm-osa-aio'
   NETWORK: 'ironic'
   KEY_NAME: 'rpc-maas-runner'
-  #RE_JOB_BRANCH: 'gitactiontest'
   RE_JOB_BRANCH: ${{ github.event.pull_request.head.sha }}
 
 # Per-Job env var info:
