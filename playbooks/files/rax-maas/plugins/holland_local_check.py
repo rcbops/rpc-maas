@@ -64,7 +64,7 @@ def holland_lb_check(hostname, binary, backupset):
     container_present = True
 
     try:
-        lxc_cgroup_stat = os.stat('/sys/fs/cgroup/pids/lxc/' + hostname)
+        os.stat('/sys/fs/cgroup/pids/lxc/' + hostname)
     except OSError:
         container_present = False
 

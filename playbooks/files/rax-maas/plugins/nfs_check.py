@@ -18,7 +18,6 @@ import argparse
 import shlex
 import subprocess
 
-from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 from maas_common import status_err
