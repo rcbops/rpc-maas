@@ -64,7 +64,7 @@ class OSDHostFacts(object):
                      deploy_osp=False, osp_standalone=False):
         """Get information about OSDs."""
         ceph_command_string = "ceph"
-        if deploy_osp and osp_standalone == False:
+        if deploy_osp and not osp_standalone:
             ceph_command_string = (
                 "sudo docker exec {container_name} ceph "
                 "--cluster ceph").format(container_name=container_name)
