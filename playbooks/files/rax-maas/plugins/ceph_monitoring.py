@@ -28,6 +28,90 @@ import subprocess
 STATUSES = {'HEALTH_OK': 2, 'HEALTH_WARN': 1, 'HEALTH_ERR': 0}
 IGNORE_CHECKS = ['OSDMAP_FLAGS', 'OBJECT_MISPLACED']
 
+# See https://docs.ceph.com/docs/master/rados/operations/health-checks
+# for details on each. We had to break these down into sections as each
+# check has a max of 50 allowed metrics.
+DETAILED_CHECKS = {
+    'mon': [
+        'MON_DOWN',
+        'MON_CLOCK_SKEW',
+        'MON_MSGR2_NOT_ENABLED',
+        'MON_DISK_LOW',
+        'MON_DISK_CRIT',
+        'MON_DISK_BIG',
+    ],
+    'mgr': [
+        'MGR_DOWN',
+        'MGR_MODULE_DEPENDENCY',
+        'MGR_MODULE_ERROR',
+    ],
+    'osds': [
+        'OSD_DOWN',
+        'OSD_DOWN',
+        'OSD_HOST_DOWN',
+        'OSD_ROOT_DOWN',
+        'OSD_ORPHAN',
+        'OSD_OUT_OF_ORDER_FULL',
+        'OSD_FULL',
+        'OSD_BACKFILLFULL',
+        'OSD_NEARFULL',
+        'OSDMAP_FLAGS',
+        'OSD_FLAGS',
+        'OLD_CRUSH_TUNABLES',
+        'OLD_CRUSH_STRAW_CALC_VERSION',
+        'CACHE_POOL_NO_HIT_SET'
+        'OSD_NO_SORTBITWISE',
+        'BLUEFS_SPILLOVER',
+        'BLUEFS_AVAILABLE_SPACE',
+        'BLUEFS_LOW_SPACE',
+        'BLUESTORE_FRAGMENTATION',
+        'BLUESTORE_LEGACY_STATFS',
+        'BLUESTORE_NO_PER_POOL_OMAP',
+        'BLUESTORE_DISK_SIZE_MISMATCH',
+        'BLUESTORE_NO_COMPRESSION',
+        'BLUESTORE_SPURIOUS_READ_ERRORS',
+    ],
+    'device_health': [
+        'DEVICE_HEALTH',
+        'DEVICE_HEALTH_IN_USE',
+        'DEVICE_HEALTH_TOOMANY',
+    ],
+    'data_health': [
+        'PG_AVAILABILITY',
+        'PG_DEGRADED',
+        'PG_RECOVERY_FULL',
+        'PG_BACKFILL_FULL',
+        'PG_DAMAGED',
+        'OSD_SCRUB_ERRORS',
+        'LARGE_OMAP_OBJECTS',
+        'CACHE_POOL_NEAR_FULL',
+        'TOO_FEW_PGS',
+        'POOL_PG_NUM_NOT_POWER_OF_TWO',
+        'POOL_TOO_FEW_PGS',
+        'TOO_MANY_PGS',
+        'POOL_TARGET_SIZE_BYTES_OVERCOMMITTED',
+        'POOL_HAS_TARGET_SIZE_BYTES_AND_RATIO',
+        'TOO_FEW_OSDS',
+        'SMALLER_PGP_NUM',
+        'MANY_OBJECTS_PER_PG',
+        'POOL_APP_NOT_ENABLED',
+        'POOL_FULL',
+        'POOL_NEAR_FULL',
+        'OBJECT_MISPLACED',
+        'OBJECT_UNFOUND',
+        'SLOW_OPS',
+        'PG_NOT_SCRUBBED',
+        'PG_NOT_DEEP_SCRUBBED',
+        'PG_SLOW_SNAP_TRIMMING',
+    ],
+    'misc': [
+        'RECENT_CRASH',
+        'TELEMETRY_CHANGED',
+        'AUTH_BAD_CAPS',
+        'OSD_NO_DOWN_OUT_INTERVAL',
+    ],
+}
+
 
 def check_command(command, container_name=None, deploy_osp=False):
     if container_name:
@@ -88,6 +172,32 @@ def get_mon_statistics(client=None, keyring=None, host=None,
     metric_bool('mon_in_quorum', mon_in)
 
 
+def get_health_checks(client=None, keyring=None, section=None,
+                      container_name=None, deploy_osp=False):
+    metrics = []
+
+    ceph_status = get_ceph_status(client=client,
+                                  keyring=keyring,
+                                  container_name=container_name,
+                                  deploy_osp=deploy_osp)
+
+    # Go through the detailed health checks and generate metrics
+    # for each based on the given section
+    for curcheck in DETAILED_CHECKS[section]:
+        if curcheck in ceph_status['health']['checks']:
+            metrics.append({'name': curcheck,
+                            'type': 'uint32',
+                            'value': STATUSES[curcheck['severity']]})
+        else:
+            metrics.append({'name': curcheck,
+                            'type': 'uint32',
+                            'value': STATUSES['HEALTH_OK']})
+
+    # Submit gathered metrics
+    for m in metrics:
+        metric(m['name'], m['type'], m['value'])
+
+
 def get_rgw_checkup(client, keyring=None, rgw_address=None,
                     container_name=None, deploy_osp=False):
     rgw_status = get_ceph_rgw_hostcheck(rgw_address,
@@ -137,10 +247,10 @@ def get_cluster_statistics(client=None, keyring=None, container_name=None,
         ignore = True
         for curcheck in ceph_status['health']['checks']:
             if curcheck not in IGNORE_CHECKS:
-              ignore = False
-              break
+                ignore = False
+                break
         if ignore:
-             ceph_health_status = 'HEALTH_OK'
+            ceph_health_status = 'HEALTH_OK'
 
     metrics.append({
         'name': 'cluster_health',
@@ -223,6 +333,14 @@ def get_args():
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
+
+    parser_mon = subparsers.add_parser('health_checks')
+    # From https://docs.ceph.com/docs/master/rados/operations/health-checks
+    parser_mon.add_argument('--section',
+                            required=True,
+                            help='(mon,mgr,osds,device_health,data_health \
+                            or misc)')
+
     subparsers.add_parser('cluster')
     return parser.parse_args()
 
@@ -231,7 +349,8 @@ def main(args):
     get_statistics = {'cluster': get_cluster_statistics,
                       'mon': get_mon_statistics,
                       'rgw': get_rgw_checkup,
-                      'osd': get_osd_statistics}
+                      'osd': get_osd_statistics,
+                      'health_checks': get_health_checks}
     kwargs = {'client': args.name, 'keyring': args.keyring}
     if args.subparser_name == 'osd':
         kwargs['osd_id'] = args.osd_id
@@ -239,6 +358,8 @@ def main(args):
         kwargs['host'] = args.host
     if args.subparser_name == 'rgw':
         kwargs['rgw_address'] = args.rgw_address
+    if args.subparser_name == 'health_checks':
+        kwargs['section'] = args.section
 
     kwargs['container_name'] = args.container_name
     kwargs['deploy_osp'] = args.deploy_osp
