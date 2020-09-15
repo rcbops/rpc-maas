@@ -185,9 +185,10 @@ def get_health_checks(client=None, keyring=None, section=None,
     # for each based on the given section
     for curcheck in DETAILED_CHECKS[section]:
         if curcheck in ceph_status['health']['checks']:
+            severity = ceph_status['health']['checks'][curcheck]['severity']
             metrics.append({'name': curcheck,
                             'type': 'uint32',
-                            'value': STATUSES[curcheck['severity']]})
+                            'value': STATUSES[severity]})
         else:
             metrics.append({'name': curcheck,
                             'type': 'uint32',
