@@ -80,10 +80,17 @@
       with_items:
         - ceph_mon_stats
         - ceph_cluster_stats
+        - ceph_health_checks_mon
+        - ceph_health_checks_mgr
+        - ceph_health_checks_osds
+        - ceph_health_checks_device_health
+        - ceph_health_checks_data_health
+        - ceph_health_checks_misc
 
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+    - vars/maas-ceph.yml
 
   environment: "{{ deployment_environment_variables | default({}) }}"
 
