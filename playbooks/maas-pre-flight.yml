@@ -77,7 +77,7 @@
 
 - name: Dynamic variable generation
   hosts: localhost
-  connection: local
+  #connection: local
   gather_facts: false
   become: true
   pre_tasks:
@@ -221,9 +221,15 @@
     - name: ceph release block
       block:
         - name: Register ceph version
-          command: ceph --version
+          shell: |
+              #!/bin/bash
+              set -x
+              hostname
+              export CONTAINER=$(podman ps --format '{{ '{{' }}.Names{{ '}}' }}' | grep ceph-mon-controller)
+              echo "container:  $CONTAINER"
+              podman exec $CONTAINER ceph --version
           register: maas_product_ceph_version
-          delegate_to: "{{ groups['ceph_all'][0] }}"
+          delegate_to: "{{ groups['ceph_mon'][0] }}"
 
         - name: Set ceph release version fact
           ini_file:
@@ -349,40 +355,42 @@
         - deployment_environment_variables.http_proxy is defined
         - deployment_environment_variables.http_proxy != 'none://none:none'
 
-    - name: nova console detection
-      block:
-        - name: Check for spice nova_console_type
-          shell: ss -lt | grep -c 6082
-          register: spice_nova_console
-          delegate_to: "{{ groups['nova_console'][0] }}"
-          failed_when: spice_nova_console.rc >= 2
-
-        - name: Set spice maas_nova_console_type fact
-          ini_file:
-            path: "/etc/ansible/facts.d/maas.fact"
-            section: "general"
-            option: "maas_nova_console_type"
-            value: "spice"
-          when: spice_nova_console.rc == 0
-
-        - name: Check for novnc nova_console_type
-          shell: ss -lt | grep -c 6080
-          register: novnc_nova_console
-          when: spice_nova_console.rc != 0
-          delegate_to: "{{ groups['nova_console'][0] }}"
-
-        - name: Set novnc maas_nova_console_type fact
-          ini_file:
-            path: "/etc/ansible/facts.d/maas.fact"
-            section: "general"
-            option: "maas_nova_console_type"
-            value: "novnc"
-          when:
-            - spice_nova_console.rc != 0
-      when:
-        - (deploy_osp | default(False) | bool) or
-          (ansible_local['maas']['general']['maas_product_osa_version'] is defined) or
-          (ansible_local['maas']['general']['maas_product_rpco_version'] is defined)
+# Need to look into OSP16 and the nova console as its missing
+#    - name: nova console detection
+#      block:
+#        - name: Check for spice nova_console_type
+#          shell: ss -lt | grep -c 6082
+#          register: spice_nova_console
+#          delegate_to: "{{ groups['nova_console'][0] }}"
+#          failed_when: spice_nova_console.rc >= 2
+#          when: '"nova_console" in groups'
+#
+#        - name: Set spice maas_nova_console_type fact
+#          ini_file:
+#            path: "/etc/ansible/facts.d/maas.fact"
+#            section: "general"
+#            option: "maas_nova_console_type"
+#            value: "spice"
+#          when: spice_nova_console.rc == 0
+#
+#        - name: Check for novnc nova_console_type
+#          shell: ss -lt | grep -c 6080
+#          register: novnc_nova_console
+#          when: spice_nova_console.rc != 0
+#          delegate_to: "{{ groups['nova_console'][0] }}"
+#
+#        - name: Set novnc maas_nova_console_type fact
+#          ini_file:
+#            path: "/etc/ansible/facts.d/maas.fact"
+#            section: "general"
+#            option: "maas_nova_console_type"
+#            value: "novnc"
+#          when:
+#            - spice_nova_console.rc != 0
+#      when:
+#        - (deploy_osp | default(False) | bool) or
+#          (ansible_local['maas']['general']['maas_product_osa_version'] is defined) or
+#          (ansible_local['maas']['general']['maas_product_rpco_version'] is defined)
 
     - name: Set maas_monitor_cinder_backup fact
       ini_file:
