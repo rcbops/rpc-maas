@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # need to maake this file executable
 # Copyright 2018, Rackspace US, Inc.
 #
@@ -20,6 +20,7 @@ import os
 import re
 import socket
 import sys
+import openstack
 
 from heatclient import client as heat_client
 from openstack.connection import Connection
@@ -54,18 +55,19 @@ class RPCRMaasInventory(MaasInventory):
         os_password = os.environ.get('OS_PASSWORD')
         os_auth_token = os.environ.get('OS_AUTH_TOKEN')
         os_cacert = os.environ.get('OS_CACERT')
+        os_user_domain_name = os.environ.get('OS_USER_DOMAIN_NAME')
+        os_compute_api_version = os.environ.get('OS_COMPUTE_API_VERSION')
         ansible_ssh_user = os.environ.get('ANSIBLE_SSH_USER', 'heat-admin')
-        self.osc_conn = Connection()
+
+        self.osc_conn = openstack.connect()
+
         self.undercloud_stack = next(self.osc_conn.orchestration.stacks())
         self.plan_name = (os.environ.get('TRIPLEO_PLAN_NAME') or
                           os.environ.get('STACK_NAME_NAME') or
                           self.get_tripleo_plan_name())
-        session = get_auth_session(auth_url,
-                                   os_username,
-                                   os_project_name,
-                                   os_password,
-                                   os_auth_token,
-                                   os_cacert)
+
+        #session = get_auth_session(auth_variables),
+        session = self.osc_conn.session
         heat_api_version = (
             self.osc_conn.orchestration.get_api_major_version()[0])
         self.hclient = heat_client.Client(heat_api_version,
@@ -79,6 +81,7 @@ class RPCRMaasInventory(MaasInventory):
             username=os_username,
             ansible_ssh_user=ansible_ssh_user,
             plan_name=self.plan_name)
+
         return inventory.list()
 
     def load_rc_file(self, stack_name='stack'):
@@ -184,7 +187,7 @@ class RPCRMaasInventory(MaasInventory):
 
         # load overcloud env and osc
         self.load_rc_file(stack_name=self.plan_name)
-        tmp_osc_conn = Connection()
+        tmp_osc_conn = openstack.connect()
 
         # get cinder_backend_volume fact
         self.cinder_backend_fact = {
@@ -230,10 +233,16 @@ class RPCRMaasInventory(MaasInventory):
         self.generate_env_specific_variables()
         self.inventory['_meta'] = copy.deepcopy(input_inventory['_meta'])
         for host in self.inventory['_meta']['hostvars']:
-            (self.inventory['_meta']['hostvars'][host][
-                'container_address']) = (
-                self.inventory['_meta']['hostvars'][host]['internal_api_ip']
-            )
+            if 'internal_api_ip' in self.inventory['_meta']['hostvars'][host]:
+                (self.inventory['_meta']['hostvars'][host][
+                    'container_address']) = (
+                    self.inventory['_meta']['hostvars'][host]['internal_api_ip']
+                )
+            else:
+                (self.inventory['_meta']['hostvars'][host][
+                    'container_address']) = (
+                    self.inventory['_meta']['hostvars'][host]['ctlplane_ip']
+                )
             self.inventory['_meta']['hostvars'][host]['ansible_user'] = (
                 'heat-admin')
             (self.inventory['_meta']['hostvars'][host]['ansible_become']) = (
