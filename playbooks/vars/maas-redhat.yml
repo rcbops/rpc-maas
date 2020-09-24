@@ -23,11 +23,11 @@ maas_distro_packages:
   - gcc
   - gcc-c++
   - nc
-  - python2
-  - python2-devel
+  - python3
+  - python3-devel
   - openssl-devel
   - libffi-devel
-  - libselinux-python
+  - python3-libselinux
   - rackspace-monitoring-agent
   - sysstat
   - ipmitool
@@ -62,4 +62,4 @@ maas_poller_distro_packages:
 # Distro packages needed to be installed for rabbitmq monitoring
 #
 maas_rabbitmq_distro_packages:
-  - python-httplib2
+  - python3-httplib2

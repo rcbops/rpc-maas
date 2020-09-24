@@ -38,14 +38,14 @@
     - pip_conf.stat.exists | bool
 
 - name: Create MaaS venv
-  command: "virtualenv {{ target_venv | default(maas_venv) }}"
+  command: "virtualenv-3 {{ target_venv | default(maas_venv) }}"
   args:
     creates: "{{ target_venv | default(maas_venv) }}/bin/python"
   when:
     - not ansible_local['maas']['general']['deploy_osp'] | bool
 
 - name: Create MaaS venv (--system-site-packages)
-  command: "virtualenv --system-site-packages {{ target_venv | default(maas_venv) }}"
+  command: "virtualenv-3 --system-site-packages {{ target_venv | default(maas_venv) }}"
   args:
     creates: "{{ target_venv | default(maas_venv) }}/bin/python"
   when:
@@ -88,7 +88,8 @@
 
     - name: Build pip package list
       set_fact:
-        venv_pip_packages: "{{ pip_package_list | default(maas_pip_packages | union(maas_pip_openstack_packages) | union(maas_pip_verify_packages)) }}"
+        venv_pip_packages: "{{ pip_package_list | default(maas_pip_packages) }}"
+        #venv_pip_packages: "{{ pip_package_list | default(maas_pip_packages | union(maas_pip_openstack_packages) | union(maas_pip_verify_packages)) }}"
 
     - name: Include lxc pip packages
       set_fact:

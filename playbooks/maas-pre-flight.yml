@@ -240,8 +240,8 @@
           when:
             - maas_product_ceph_version.changed | bool
 
-        - name: Check for Docker command
-          command: docker --version
+        - name: Check for Podman command
+          command: podman --version
           ignore_errors: true
           changed_when: false
           register: docker_check
@@ -250,7 +250,7 @@
             - deploy_osp | default(False) | bool
 
         - name: Check for OSP standalone ceph
-          command: docker container list -q --filter status=running --filter name=ceph-mon
+          command: podman container list -q --filter status=running --filter name=ceph-mon
           register: maas_osp_ceph_container
           delegate_to: "{{ groups['ceph_all'][0] }}"
           changed_when: false
@@ -263,7 +263,7 @@
             path: "/etc/ansible/facts.d/maas.fact"
             section: "general"
             option: "maas_osp_ceph_standalone"
-            value: "{{ maas_osp_ceph_container.stdout != '' | default(True) | ternary(True, False) | bool }}"
+            value: "{{ (maas_osp_ceph_container.stdout != '') | ternary(False, True) }}"
           when:
             - deploy_osp | default(False) | bool
 

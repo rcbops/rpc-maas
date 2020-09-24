@@ -17,11 +17,12 @@ if [ ! -d /root/ansible_venv ]; then
     # Set up the python virtual env
     virtualenv-3 /root/ansible_venv --system-site-packages
 
-    # Install required packages
-    . /root/ansible_venv/bin/activate
-    pip install -r ./osp16-requirements.txt
-    deactivate
 fi
+
+# Install required packages
+. /root/ansible_venv/bin/activate
+pip install -r ./osp16-requirements.txt
+deactivate
 
 # Generate a token(non core testing when we have the vars set)
 if [[ "$PUBCLOUD_USERNAME" != "" ]] && [[ "$PUBCLOUD_API_KEY" != "" ]] && [[ "$PUBCLOUD_TENANT_ID" != "" ]]; then
@@ -41,6 +42,6 @@ fi
 echo "Example Playbook Usage Post Configuration:
 cd /opt/rpc-maas/
 . /root/ansible_venv/bin/activate
-ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml  playbooks/sit.
+ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml  playbooks/site.yml
 deactivate
 "

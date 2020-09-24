@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from socket import gaierror, gethostbyname
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: ignore=H303
 from keystoneauth1.exceptions import MissingRequiredOptions

@@ -40,17 +40,25 @@
 - name: Install checks for ceph mons
   hosts: mons
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: '{{ ansible_ssh_user | default("root") }}'
   become: true
   pre_tasks:
+
     - name: Write Ceph monitoring client key to file
       copy:
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Write Ceph monitoring client key to file
+      copy:
+        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
+        dest: "/etc/ceph/ceph.client.raxmon.keyring"
+      when: 'physical_host == ansible_host'
 
     - name: Get the first mon container
-      raw: /bin/docker ps -a -f status=running | awk '/ceph-mon/ {print $NF}' | head -1
+      shell: podman ps --format '{{ '{{' }}.Names{{ '}}' }}' | grep ceph-mon
       when:
         - ansible_local['maas']['general']['deploy_osp'] | bool
       register: mon_container_name
@@ -86,6 +94,25 @@
         - ceph_health_checks_device_health
         - ceph_health_checks_data_health
         - ceph_health_checks_misc
+      when: 'physical_host != ansible_host'
+
+    - name: Install local mons checks
+      template:
+        src: "templates/rax-maas/{{ item }}.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item }}.yaml--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_items:
+        - ceph_mon_stats
+        - ceph_cluster_stats
+        - ceph_health_checks_mon
+        - ceph_health_checks_mgr
+        - ceph_health_checks_osds
+        - ceph_health_checks_device_health
+        - ceph_health_checks_data_health
+        - ceph_health_checks_misc
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml

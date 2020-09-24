@@ -80,8 +80,9 @@
 
         - name: Refresh local facts
           setup:
-            filter: ansible_local
-            gather_subset: "!all"
+            # SLM: commented out. next task needs ansible_env.HOME
+            #filter: ansible_local
+            #gather_subset: "!all"
 
         - name: Ensure OpenStack client configuration directory
           file:

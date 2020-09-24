@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright 2017, Rackspace US, Inc.
 #
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ConfigParser
+import configparser
 
 from ansible.module_utils.basic import *  # noqa: ignore=H303
 
@@ -97,14 +97,14 @@ def _get_agent_tokens(conn, entity):
 
 
 def _get_conn(get_driver, provider_cls, raxmon_cfg):
-    cfg = ConfigParser.RawConfigParser()
+    cfg = configparser.RawConfigParser()
     cfg.read(raxmon_cfg)
     driver = get_driver(provider_cls.RACKSPACE)
     try:
         user = cfg.get('credentials', 'username')
         api_key = cfg.get('credentials', 'api_key')
         conn = driver(user, api_key)
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+    except (configparser.NoSectionError, configparser.NoOptionError):
         url = cfg.get('api', 'url')
         token = cfg.get('api', 'token')
         conn = driver(None, None, ex_force_base_url=url,
@@ -259,7 +259,8 @@ def main():
 
     if module.params['venv_bin']:
         activate_this = '%s/activate_this.py' % (module.params['venv_bin'])
-        execfile(activate_this, dict(__file__=activate_this))
+        exec(open(activate_this).read(), dict(__file__=activate_this))
+        
 
     # We place these imports after we activate the virtualenv to ensure we're
     # importing the correct libraries
@@ -269,7 +270,7 @@ def main():
 
     # Provide the ability to enable or disable SSL certificate verification
     # with raxmon
-    cfg = ConfigParser.RawConfigParser()
+    cfg = configparser.RawConfigParser()
     cfg.read(module.params['raxmon_cfg'])
     verify_ssl = cfg.get('ssl', 'verify')
     if verify_ssl == 'true':

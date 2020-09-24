@@ -13,46 +13,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- import_playbook: maas-pre-flight.yml
-  tags:
-    - maas
+#- import_playbook: maas-pre-flight.yml
+#  tags:
+#    - maas
 
 - import_playbook: maas-agent-all.yml
   tags:
     - maas
 
-- import_playbook: maas-sdk-integration.yml
-  tags:
-    - maas
+#- import_playbook: maas-sdk-integration.yml
+#  tags:
+#    - maas
 
-- import_playbook: maas-poller-all.yml
-  tags:
-    - maas
+#- import_playbook: maas-poller-all.yml
+#  tags:
+#    - maas
 
-- import_playbook: maas-ceph-all.yml
-  tags:
-    - maas
+#- import_playbook: maas-ceph-all.yml
+#  tags:
+#    - maas
 
-- import_playbook: maas-host-all.yml
-  tags:
-    - maas
-
-- import_playbook: maas-infra-all.yml
-  tags:
-    - maas
-
-- import_playbook: maas-container-all.yml
-  tags:
-    - maas
-
-- import_playbook: maas-openstack-all.yml
-  tags:
-    - maas
-
-- import_playbook: maas-remove-old-templates.yml
-  tags:
-    - maas
-
-- import_playbook: maas-restart.yml
-  tags:
-    - maas
+#- import_playbook: maas-host-all.yml
+#  tags:
+#    - maas
+#
+#- import_playbook: maas-infra-all.yml
+#  tags:
+#    - maas
+#
+#- import_playbook: maas-container-all.yml
+#  tags:
+#    - maas
+#
+#- import_playbook: maas-openstack-all.yml
+#  tags:
+#    - maas
+#
+#- import_playbook: maas-remove-old-templates.yml
+#  tags:
+#    - maas
+#
+#- import_playbook: maas-restart.yml
+#  tags:
+#    - maas

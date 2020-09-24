@@ -27,6 +27,8 @@
       add_host:
         hostname: "{{ item }}"
         groups: "maas_mon_hosts"
+        ansible_host: "{{ hostvars[groups['mons'][0]]['ansible_host'] }}"
+        ansible_user: "{{ hostvars[groups['mons'][0]]['ansible_user'] }}"
       with_items: "{{ groups['mons'][0] }}"
 
   vars_files:
@@ -47,7 +49,7 @@
   pre_tasks:
     - name: Add ceph variable facts
       set_fact:
-        ceph_command: "{{ ((ansible_local.maas.general.deploy_osp | bool) and not (ansible_local.maas.general.maas_osp_ceph_standalone | default(False) | bool)) | ternary('docker exec ceph-mon-' ~ inventory_hostname ~ ' ceph --cluster ceph', 'ceph') }}"
+        ceph_command: "{{ ((ansible_local.maas.general.deploy_osp | bool) and not (ansible_local.maas.general.maas_osp_ceph_standalone | default(False) | bool)) | ternary('podman exec ceph-mon-' ~ inventory_hostname ~ ' ceph --cluster ceph', 'ceph') }}"
         ceph_auth_parameters: "{{ (ansible_local.maas.general.maas_product_ceph_version is version('12.0.0', '<') | bool) | ternary(maas_auth, maas_mgr_auth) }}"
 
     - name: Create ceph monitoring client
