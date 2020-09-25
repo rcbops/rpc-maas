@@ -132,7 +132,7 @@ def _get_connection_metrics(session, metrics, protocol, host, port):
                                                             host, port))
 
     max_chans = max(chain(connection['channels'] for connection in response
-                    if 'channels' in connection), '0')
+                    if 'channels' in connection))
     for k in CONNECTIONS_METRICS:
         metrics[k] = {'value': max_chans, 'unit': CONNECTIONS_METRICS[k]}
 

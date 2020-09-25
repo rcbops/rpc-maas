@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ class DiskDeviceFacts(object):
 
         if venv_bin is not None:
             activate_this = '%s/activate_this.py' % (venv_bin)
-            execfile(activate_this, dict(__file__=activate_this))
+            exec(open(activate_this).read(), dict(__file__=activate_this))
 
         # We place these imports after we activate the virtualenv to ensure
         # we're importing the correct libraries

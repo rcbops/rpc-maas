@@ -21,9 +21,9 @@
   tags:
     - maas
 
-#- import_playbook: maas-sdk-integration.yml
-#  tags:
-#    - maas
+- import_playbook: maas-sdk-integration.yml
+  tags:
+    - maas
 
 #- import_playbook: maas-poller-all.yml
 #  tags:
@@ -36,15 +36,15 @@
 #- import_playbook: maas-host-all.yml
 #  tags:
 #    - maas
-#
+
 #- import_playbook: maas-infra-all.yml
 #  tags:
 #    - maas
-#
-#- import_playbook: maas-container-all.yml
-#  tags:
-#    - maas
-#
+
+- import_playbook: maas-container-all.yml
+  tags:
+    - maas
+
 #- import_playbook: maas-openstack-all.yml
 #  tags:
 #    - maas

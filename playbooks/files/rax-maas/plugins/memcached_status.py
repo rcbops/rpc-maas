@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2014, Rackspace US, Inc.
 #
@@ -61,7 +61,7 @@ def main(args):
     status_ok(m_name='maas_memcached')
     metric_bool('memcache_api_local_status', is_up, m_name='maas_memcached')
     if is_up:
-        for m, u in MEMCACHE_METRICS.iteritems():
+        for m, u in iter(MEMCACHE_METRICS.items()):
             metric('memcache_%s' % m, 'uint64', stats[m], u)
 
 

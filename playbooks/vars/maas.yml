@@ -347,16 +347,16 @@ maas_pip_verify_packages:
 maas_pip_packages:
    - rackspace-monitoring
    - monitorstack
+   - pyroute2
+   - ipaddr
+   - python-memcached
 #   - rackspace-monitoring-cli
 #  - apache-libcloud
 #  - cryptography
 #  - dnspython
-#  - ipaddr
 #  - lxml
 #  - psutil
 #  - git+https://github.com/lunaryorn/pyudev.git
-#  - pyroute2
-#  - python-memcached
 #  - rackspace-monitoring-cli
 #  - requests
 #  - netaddr
