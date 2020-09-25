@@ -117,30 +117,22 @@ DETAILED_CHECKS = {
 
 def check_command(command, container_name=None, deploy_osp=False):
     if container_name:
-        container_command = ['lxc-attach',
-                             '-n',
-                             container_name,
-                             '--',
-                             'bash',
-                             '-c']
-        container_command.append("{}".format(' '.join(command)))
 
-    if deploy_osp:
-        # Get the pod name
-        podinfo_command = ['podman',
-                           'ps',
-                           '--format',
-                           '"{{.Names}}"',
-                           '--filter',
-                           'name=ceph-mon']
-        podname = subprocess.check_output(podinfo_command,
-                                          stderr=subprocess.STDOUT)
+        if deploy_osp:
+            # Get the pod name
+    
+            container_command = ['/usr/bin/podman',
+                                 'exec',
+                                 container_name]
+       
+        else:
+            container_command = ['lxc-attach',
+                                 '-n',
+                                 container_name,
+                                 '--',
+                                 'bash',
+                                 '-c']
 
-        podname = podname.decode().strip().strip('\"')
-
-        container_command = ['/usr/bin/podman',
-                             'exec',
-                             podname]
         container_command.extend(command)
         command = [str(i) for i in container_command]
 
@@ -164,15 +156,9 @@ def get_ceph_rgw_hostcheck(rgw_address, container_name=None):
 def get_ceph_status(client, keyring, fmt='json', container_name=None,
                     deploy_osp=False):
 
-    if deploy_osp:
-        return check_command(('ceph', '--format', fmt, 'status'),
-                             container_name=container_name,
-                             deploy_osp=deploy_osp)
-    else:
-        return check_command(('ceph', '--format', fmt, '--name', client,
-                             '--keyring', keyring, 'status'),
-                             container_name=container_name,
-                             deploy_osp=deploy_osp)
+    return check_command(('ceph', '--format', fmt, 'status'),
+                         container_name=container_name,
+                         deploy_osp=deploy_osp)
 
 
 def get_local_osd_info(osd_ref, fmt='json', container_name=None,

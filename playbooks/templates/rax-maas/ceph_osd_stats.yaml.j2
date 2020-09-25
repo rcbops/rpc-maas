@@ -7,7 +7,7 @@
 {% set _ = ceph_args.extend(["--container-name", container_name]) %}
 {% endif %}
 {% if (ansible_local['maas']['general']['deploy_osp'] | bool) %}
-{% set _ = ceph_args.extend(["--deploy_osp"]) %}
+{% set _ = ceph_args.extend(["--deploy_osp", "--container-name", "ceph-osd-"+item_string]) %}
 {% endif %}
 {% set _ = ceph_args.extend(["osd", "--osd_id"]) %}
 {% set _ = ceph_args.append(item_string | default('')) %}

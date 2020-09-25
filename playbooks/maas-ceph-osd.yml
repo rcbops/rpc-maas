@@ -39,7 +39,7 @@
 - name: Install checks for ceph osds
   hosts: osds
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - name: Write Ceph monitoring client key to file
@@ -47,6 +47,13 @@
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Write Ceph monitoring client key to file
+      copy:
+        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
+        dest: "/etc/ceph/ceph.client.raxmon.keyring"
+      when: 'physical_host == ansible_host'
 
     - name: Write Ceph monitoring client key to file within legacy rpc hosts
       copy:
@@ -56,7 +63,7 @@
         - maas_rpc_legacy_ceph | bool
 
     - name: Get the first osd container
-      raw: /bin/docker ps -a -f status=running | awk '/ceph-osd/ {print $NF}' | head -1
+      shell: podman ps --format '{{ '{{' }}.Names{{ '}}' }}' --filter name=ceph-osd | head -n 1
       register: osd_container_name
       when:
         - ansible_local.maas.general.deploy_osp | bool
@@ -118,6 +125,18 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       with_items:
         - "{{ ceph_osd_list }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install local osd checks
+      template:
+        src: "templates/rax-maas/ceph_osd_stats.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/ceph_osd_{{ item }}_stats.yaml--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_items:
+        - "{{ ceph_osd_list }}"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml

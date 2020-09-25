@@ -17,10 +17,10 @@
   tags:
     - maas-ceph
 
-#- import_playbook: maas-ceph-osd.yml
-#  tags:
-#    - maas-ceph
+- import_playbook: maas-ceph-osd.yml
+  tags:
+    - maas-ceph
 
-#- import_playbook: maas-ceph-rgw.yml
-#  tags:
-#    - maas-ceph
+- import_playbook: maas-ceph-rgw.yml
+  tags:
+    - maas-ceph

@@ -58,7 +58,7 @@
       when: 'physical_host == ansible_host'
 
     - name: Get the first mon container
-      shell: podman ps --format '{{ '{{' }}.Names{{ '}}' }}' | grep ceph-mon
+      shell: podman ps --format '{{ '{{' }}.Names{{ '}}' }}' --filter name=ceph-mon
       when:
         - ansible_local['maas']['general']['deploy_osp'] | bool
       register: mon_container_name

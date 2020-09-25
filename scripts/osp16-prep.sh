@@ -32,6 +32,14 @@ if [[ "$PUBCLOUD_USERNAME" != "" ]] && [[ "$PUBCLOUD_API_KEY" != "" ]] && [[ "$P
         --api-key "${PUBCLOUD_API_KEY}" \
         get_token_url
     deactivate
+
+    # Update the token if vars file exists
+    if [ -e /home/stack/user_maas_variables.yml ]; then
+        echo "Refreshing the maas_auth_token in /home/stack/user_maas_variables.yml"
+        . /root/maas-vars.rc
+        sed -i -e "s/^maas_auth_token:.*/maas_auth_token: \"${MAAS_AUTH_TOKEN}\"/g" /home/stack/user_maas_variables.yml
+    fi
+    
 fi
 
 # Bomb if the /home/stack/user_maas_variables.yml doesn't exist.
