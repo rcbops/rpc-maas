@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2014, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -161,7 +161,7 @@ def get_openstack_client(component):
 
 
 def generate_local_endpoint(endpoint, ip, port, protocol, extend=None):
-    from urlparse import urlparse
+    from urllib.parse import urlparse
 
     # Remove trailing slash
     endpoint = endpoint.rstrip('/')

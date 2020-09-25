@@ -16,7 +16,7 @@
 - name: Install checks for openstack cinder-api
   hosts: cinder_api
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - name: Refresh local facts
@@ -27,6 +27,7 @@
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
+
     - name: Install cinder api checks
       template:
         src: "templates/rax-maas/cinder_api_local_check.yaml.j2"
@@ -35,6 +36,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install cinder api checks
+      template:
+        src: "templates/rax-maas/cinder_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install cinder lb checks
       template:
@@ -45,6 +56,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install cinder lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_cinder.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_cinder.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
@@ -57,6 +81,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install cinder private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_cinder.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_cinder.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 
@@ -74,7 +111,7 @@
 - name: Install checks for openstack cinder-api
   hosts: cinder_scheduler
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -88,6 +125,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install cinder api checks
+      template:
+        src: "templates/rax-maas/cinder_scheduler_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_scheduler_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
@@ -103,7 +150,7 @@
 - name: Install checks for openstack cinder-backup
   hosts: cinder_backup
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -130,6 +177,18 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - ansible_local['maas']['general']['maas_monitor_cinder_backup'] | bool
+
+    - name: Install cinder backup checks
+      template:
+        src: "templates/rax-maas/cinder_backup_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_backup_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - ansible_local['maas']['general']['maas_monitor_cinder_backup'] | bool
 
   vars_files:
@@ -146,7 +205,7 @@
 - name: Install checks for openstack cinder-volume
   hosts: cinder_volume
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -168,6 +227,20 @@
       with_items:
         - "{{ maas_cinder_local_backends }}"
       when:
+        - 'physical_host != ansible_host'
+        - (item.split('@')[0] | replace('-', '_')) in (inventory_hostname | replace('-', '_'))
+
+    - name: Install cinder volume local checks
+      template:
+        src: "templates/rax-maas/cinder_volume_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_volume_{{ item.split('@')[-1] }}_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_items:
+        - "{{ maas_cinder_local_backends }}"
+      when:
+        - 'physical_host == ansible_host'
         - (item.split('@')[0] | replace('-', '_')) in (inventory_hostname | replace('-', '_'))
 
     - name: Install cinder volume shared checks
@@ -181,6 +254,20 @@
       with_items:
         - "{{ maas_cinder_shared_backends }}"
       when:
+        - 'physical_host != ansible_host'
+        - inventory_hostname == groups['cinder_volume'][0]
+
+    - name: Install cinder volume shared checks
+      template:
+        src: "templates/rax-maas/cinder_volume_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_volume_{{ item.split('@')[-1] }}_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_items:
+        - "{{ maas_cinder_shared_backends }}"
+      when:
+        - 'physical_host == ansible_host'
         - inventory_hostname == groups['cinder_volume'][0]
 
     - name: Install cinder vg checks
@@ -193,6 +280,19 @@
       with_dict: "{{ cinder_backends | default({}) }}"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - "'volume_group' in cinder_backends[item.key]"
+
+    - name: Install cinder vg checks
+      template:
+        src: "templates/rax-maas/cinder_vg_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_vg_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_dict: "{{ cinder_backends | default({}) }}"
+      when:
+        - 'physical_host == ansible_host'
         - "'volume_group' in cinder_backends[item.key]"
 
   vars_files:
