@@ -16,7 +16,7 @@
 - name: Install checks for openstack horizon
   hosts: horizon
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - name: Refresh local facts
@@ -35,6 +35,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install horizon checks
+      template:
+        src: "templates/rax-maas/horizon_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/horizon_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: install horizon lb checks
       template:
@@ -45,6 +55,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: install horizon lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_horizon.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_horizon.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
@@ -57,6 +80,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: install horizon private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_horizon.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_horizon.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 
@@ -85,6 +121,23 @@
       with_items:
         - "{{ dynamic_cert_list }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_ssl_check | bool
+        - dynamic_cert_list is defined
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install lb-ssl check
+      template:
+        src: "templates/rax-maas/lb_ssl_cert_expiry_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_ssl_cert_expiry_check_{{ item['cert_url'].split('/')[2].split(':')[0] }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_items:
+        - "{{ dynamic_cert_list }}"
+      when:
+        - 'physical_host == ansible_host'
         - maas_ssl_check | bool
         - dynamic_cert_list is defined
         - maas_remote_check | bool
@@ -101,6 +154,23 @@
       with_items:
         - "{{ dynamic_cert_list }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_ssl_check | bool
+        - dynamic_cert_list is defined
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install private lb-ssl check
+      template:
+        src: "templates/rax-maas/private_lb_ssl_cert_expiry_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_ssl_cert_expiry_check_{{ item['cert_url'].split('/')[2].split(':')[0] }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_items:
+        - "{{ dynamic_cert_list }}"
+      when:
+        - 'physical_host == ansible_host'
         - maas_ssl_check | bool
         - dynamic_cert_list is defined
         - maas_private_monitoring_enabled

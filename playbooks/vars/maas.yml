@@ -336,9 +336,9 @@ maas_percent_used_critical_threshold: 85
 # pip installable packages for verifying maas deployment
 #
 maas_pip_verify_packages:
+  - waxeye
 #  - futures
 #  - pyyaml
-#  - waxeye
 
 
 #

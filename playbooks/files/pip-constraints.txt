@@ -1,6 +1,9 @@
 ### Monitorstack plugin framework
 git+https://opendev.org/x/monitorstack@master#egg=monitorstack
 
+### maas-verify
+git+https://github.com/waxeye-org/waxeye.git@master#subdirectory=src/python&egg=waxeye
+
 ### Requirements for RAX-MaaS
 #apache-libcloud<2.0.0
 #cryptography

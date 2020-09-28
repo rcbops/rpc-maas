@@ -15,7 +15,7 @@
 
 - name: Install checks for octavia
   hosts: "octavia_all"
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   gather_facts: true
   pre_tasks:
@@ -60,6 +60,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install octavia process check
+      template:
+        src: "templates/rax-maas/octavia_process_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/octavia_process_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install octavia quota check
       template:
@@ -69,6 +79,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install octavia quota check
+      template:
+        src: "templates/rax-maas/octavia_quota_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/octavia_quota_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
@@ -81,7 +101,7 @@
 
 - name: Install checks for openstack octavia API
   hosts: "octavia-api"
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   gather_facts: true
   vars:
@@ -109,6 +129,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install octavia api checks
+      template:
+        src: "templates/rax-maas/octavia_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/octavia_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install octavia lb checks
       template:
@@ -119,6 +149,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install octavia lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_octavia.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_octavia.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
@@ -131,6 +174,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install octavia private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_octavia.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_octavia.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 

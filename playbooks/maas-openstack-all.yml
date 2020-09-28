@@ -17,50 +17,50 @@
   tags:
     - maas-openstack
 
-#- import_playbook: maas-infra-tgtd.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-designate.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-glance.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-heat.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-horizon.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-ironic.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-keystone.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-neutron.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-nova.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-octavia.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-openstack-swift.yml
-#  tags:
-#    - maas-openstack
-#
-#- import_playbook: maas-infra-multipathd.yml
-#  tags:
-#    - maas-openstack
+- import_playbook: maas-infra-tgtd.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-designate.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-glance.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-heat.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-horizon.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-ironic.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-keystone.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-neutron.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-nova.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-octavia.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-openstack-swift.yml
+  tags:
+    - maas-openstack
+
+- import_playbook: maas-infra-multipathd.yml
+  tags:
+    - maas-openstack

@@ -13,33 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#- import_playbook: maas-pre-flight.yml
-#  tags:
-#    - maas
+- import_playbook: maas-pre-flight.yml
+  tags:
+    - maas
 
 - import_playbook: maas-agent-all.yml
   tags:
     - maas
 
-#- import_playbook: maas-sdk-integration.yml
-#  tags:
-#    - maas
+- import_playbook: maas-sdk-integration.yml
+  tags:
+    - maas
 
-#- import_playbook: maas-poller-all.yml
-#  tags:
-#    - maas
+- import_playbook: maas-poller-all.yml
+  tags:
+    - maas
 
-#- import_playbook: maas-ceph-all.yml
-#  tags:
-#    - maas
+- import_playbook: maas-ceph-all.yml
+  tags:
+    - maas
 
-#- import_playbook: maas-host-all.yml
-#  tags:
-#    - maas
+- import_playbook: maas-host-all.yml
+  tags:
+    - maas
 
-#- import_playbook: maas-infra-all.yml
-#  tags:
-#    - maas
+- import_playbook: maas-infra-all.yml
+  tags:
+    - maas
 
 # Maintainer only created lxc-python2.
 # We will need to move to maybe lxc-python3 and
@@ -54,10 +54,10 @@
   tags:
     - maas
 
-#- import_playbook: maas-remove-old-templates.yml
-#  tags:
-#    - maas
-#
-#- import_playbook: maas-restart.yml
-#  tags:
-#    - maas
+- import_playbook: maas-remove-old-templates.yml
+  tags:
+    - maas
+
+- import_playbook: maas-restart.yml
+  tags:
+    - maas

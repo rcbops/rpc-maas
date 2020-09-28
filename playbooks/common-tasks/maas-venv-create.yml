@@ -88,7 +88,7 @@
 
     - name: Build pip package list
       set_fact:
-        venv_pip_packages: "{{ pip_package_list | default(maas_pip_packages) }}"
+        venv_pip_packages: "{{ pip_package_list | default(maas_pip_packages) | union(maas_pip_verify_packages) }}"
         #venv_pip_packages: "{{ pip_package_list | default(maas_pip_packages | union(maas_pip_openstack_packages) | union(maas_pip_verify_packages)) }}"
 
     - name: Include lxc pip packages
