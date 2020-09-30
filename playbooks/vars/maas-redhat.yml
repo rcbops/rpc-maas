@@ -47,7 +47,8 @@ maas_repos:
     state: "present"
     enabled: "yes"
   poller:
-    repo: "http://stable.poller.packages.cloudmonitoring.rackspace.com/redhat-{{ ansible_distribution_major_version | lower }}-x86_64/"
+    #repo: "http://stable.poller.packages.cloudmonitoring.rackspace.com/redhat-{{ ansible_distribution_major_version | lower }}-x86_64/"
+    repo: "http://stable.poller.packages.cloudmonitoring.rackspace.com/redhat-7-x86_64/"
     state: "present"
     enabled: "yes"
 

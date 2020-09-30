@@ -31,7 +31,7 @@ def check_command(command, startswith, endswith):
     status = 0
     try:
         output = subprocess.check_output(command)
-        lines = output.split('\n')
+        lines = output.decode().split('\n')
         matches = False
         for line in lines:
             line = line.strip()
@@ -173,7 +173,7 @@ def main():
         get_controller_battery_status(ssacli_bin)
 
     maas_common.status_ok(m_name='maas_hwvendor')
-    for name, value in status.viewitems():
+    for name, value in status.items():
         maas_common.metric_bool(name, value, m_name='maas_hwvendor')
 
 

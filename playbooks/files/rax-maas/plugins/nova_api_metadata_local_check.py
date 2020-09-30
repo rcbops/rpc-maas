@@ -43,7 +43,7 @@ def check(args):
                          verify=False,
                          timeout=180)
         milliseconds = versions.elapsed.total_seconds() * 1000
-        if not versions.ok or '1.0' not in versions.content.splitlines():
+        if not versions.ok or '1.0' not in versions.content.decode().splitlines():
             is_up = False
     except (exc.ConnectionError, exc.HTTPError, exc.Timeout) as e:
         is_up = False
