@@ -27,8 +27,6 @@
       add_host:
         hostname: "{{ item }}"
         groups: "maas_mon_hosts"
-        ansible_host: "{{ hostvars[groups['mons'][0]]['ansible_host'] }}"
-        ansible_user: "{{ hostvars[groups['mons'][0]]['ansible_user'] }}"
       with_items: "{{ groups['mons'][0] }}"
 
   vars_files:

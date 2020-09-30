@@ -39,7 +39,6 @@ if [[ "$PUBCLOUD_USERNAME" != "" ]] && [[ "$PUBCLOUD_API_KEY" != "" ]] && [[ "$P
         . /root/maas-vars.rc
         sed -i -e "s/^maas_auth_token:.*/maas_auth_token: \"${MAAS_AUTH_TOKEN}\"/g" /home/stack/user_maas_variables.yml
     fi
-    
 fi
 
 # Bomb if the /home/stack/user_maas_variables.yml doesn't exist.

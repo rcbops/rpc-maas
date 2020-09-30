@@ -53,6 +53,11 @@ if [[ ${RE_JOB_SCENARIO} == osp13 ]]; then
   export ANSIBLE_HOST_KEY_CHECKING="false"
   export WORKING_DIR="/opt/rpc-maas"
   export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-$WORKING_DIR/inventory/rpcr_dynamic_inventory.py}"
+if [[ ${RE_JOB_SCENARIO} == osp16 ]]; then
+  # Env vars prep for osp 16
+  export ANSIBLE_HOST_KEY_CHECKING="false"
+  export WORKING_DIR="/opt/rpc-maas"
+  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-$WORKING_DIR/inventory/rpcr_dynamic_inventory.py}"
 elif [[ ${RE_JOB_SCENARIO} == ceph ]]; then
   # NOTE(npawelek): Ceph tests use the rpc-ceph inventory which will not match
   # any MTC logic to append the overlay. Since the overlay is required for ceph
@@ -92,7 +97,7 @@ esac
 # ansible that is not available in liberty and mitaka. There is no reason
 # to run it in a ceph context either.
 case ${RE_JOB_SCENARIO} in
-  kilo|*liberty|*mitaka|ceph|osp13|rocky|stein)
+  kilo|*liberty|*mitaka|ceph|osp13|osp16|rocky|stein)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -192,7 +197,7 @@ function ensure_osa_dir {
 
 function install_director_dev_packages {
   # virtualenv will be installed in enable_maas_api with pip.
-  yum install -y iptables python-devel
+  yum install -y iptables python3-devel
   yum groupinstall -y "Development Tools"
 }
 
@@ -343,6 +348,9 @@ execute_ansible_playbook ${TEST_SETUP_PLAYBOOK}
 # Enable MaaS API testing if the cloud variables are set.
 if [[ ! "${PUBCLOUD_USERNAME:-false}" == false ]] && [[ ! "${PUBCLOUD_API_KEY:-false}" == false ]]; then
   if [[ "${RE_JOB_SCENARIO}" == "osp13" ]]; then
+    install_director_dev_packages
+  fi
+  if [[ "${RE_JOB_SCENARIO}" == "osp16" ]]; then
     install_director_dev_packages
   fi
   enable_maas_api

@@ -154,14 +154,14 @@ def stat_regexp_generator(data):
     Where data above is the value of the ``data`` parameter passed to the
     function.
     """
-    expression = """\s+low:\s+(?P<low>\d+),     # parse out the low result
+    expression = r"""\s+low:\s+(?P<low>\d+),     # parse out the low result
                     \s+high:\s+(?P<high>\d+),   # parse out the high result
                     \s+avg:\s+(?P<avg>\d+.\d+), # you get the idea now
                     \s+total:\s+(?P<total>\d+),
                     \s+Failed:\s+(?P<failed>\d+.\d+%),
                     \s+no_result:\s+(?P<no_result>\d+),
                     \s+reported:\s+(?P<reported>\d+)"""
-    return re.compile('\[' + data + '\]' + expression, re.VERBOSE)
+    return re.compile(r'\[' + data + r'\]' + expression, re.VERBOSE)
 
 
 def _parse_into_dict(line, parsed_by):
@@ -320,7 +320,7 @@ def swift_quarantine(swift_recon_path=None, deploy_osp=False):
 
     :returns: Dictionary of objects, accounts, and containers.
     """
-    regexp = stat_regexp_generator('quarantined_(?P<ring>\w+)')
+    regexp = stat_regexp_generator(r'quarantined_(?P<ring>\w+)')
     quarantined_dicts = recon_stats_dicts('-q', [], '[quarantined_',
                                           regexp,
                                           swift_recon_path=swift_recon_path,
@@ -344,10 +344,10 @@ def swift_md5(swift_recon_path=None, deploy_osp=False):
 
     :returns: Dictioanry
     """
-    check_re = re.compile('Checking\s+(?P<check>[^\s]+)\s+md5sums?')
-    error_re = re.compile('https?://(?P<address>[^:]+):\d+')
+    check_re = re.compile(r'Checking\s+(?P<check>[^\s]+)\s+md5sums?')
+    error_re = re.compile(r'https?://(?P<address>[^:]+):\d+')
     result_re = re.compile(
-        '(?P<success>\d+)/(?P<total>\d+)[^\d]+(?P<errors>\d+).*'
+        r'(?P<success>\d+)/(?P<total>\d+)[^\d]+(?P<errors>\d+).*'
     )
     # We need to pass --md5 as a string here
     output = recon_output('--md5', swift_recon_path=swift_recon_path,
@@ -391,10 +391,10 @@ def swift_time(swift_recon_path=None, deploy_osp=False):
 
     :returns: Dictionary
     """
-    check_re = re.compile('Checking\s+(?P<check>[^\s]+)?')
-    time_re = re.compile('by\s(?P<time_differ>[^\s]+)\ssec')
+    check_re = re.compile(r'Checking\s+(?P<check>[^\s]+)?')
+    time_re = re.compile(r'by\s(?P<time_differ>[^\s]+)\ssec')
     result_re = re.compile(
-        '(?P<success>\d+)/(?P<total>\d+)[^\d]+(?P<errors>\d+).*'
+        r'(?P<success>\d+)/(?P<total>\d+)[^\d]+(?P<errors>\d+).*'
     )
     # We need to pass --time as a string here
     output = recon_output('--time', swift_recon_path=swift_recon_path,

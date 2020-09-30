@@ -435,7 +435,7 @@ def main():
     if args.influxdb:
         try:
             send_metrics_to_influxdb(plugin_config, logger)
-        except:
+        except Exception:
             metric('influxdb_success', 'uint32', 0)
         else:
             metric('influxdb_success', 'uint32', 1)

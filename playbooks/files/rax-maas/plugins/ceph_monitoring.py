@@ -119,8 +119,6 @@ def check_command(command, container_name=None, deploy_osp=False):
     if container_name:
 
         if deploy_osp:
-            # Get the pod name
-    
             container_command = ['/usr/bin/podman',
                                  'exec',
                                  container_name]

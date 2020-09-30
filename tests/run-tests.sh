@@ -30,6 +30,8 @@ bash -vc "${TEST_DIR}/aio-create.sh"
 # Run functional rpc-maas deployment
 if [[ "${RE_JOB_SCENARIO}" = "osp13" ]]; then
   bash -vc "${TEST_DIR}/test-ansible-functional-osp-mnaio.sh"
+elif [[ "${RE_JOB_SCENARIO}" = "osp16" ]]; then
+  bash -vc "${TEST_DIR}/test-ansible-functional-osp-mnaio.sh"
 else
   bash -vc "${TEST_DIR}/test-ansible-functional.sh"
 fi
