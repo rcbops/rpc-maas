@@ -133,7 +133,6 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
       when: 'physical_host == ansible_host'
 
   vars_files:
