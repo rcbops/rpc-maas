@@ -100,7 +100,7 @@
 
 
 - name: Install checks for openstack octavia API
-  hosts: "octavia-api"
+  hosts: "octavia_api"
   user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   gather_facts: true
@@ -110,6 +110,15 @@
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
+    - name: Ensure the observer role exists
+      os_keystone_role:
+        cloud: default
+        interface: internal
+        name: "{{ octavia_observer_role_name }}"
+        state: present
+      delegate_to: localhost
+      run_once: true
+      
     - name: Ensure Octavia observer member role assignment
       os_user_role:
         cloud: default
