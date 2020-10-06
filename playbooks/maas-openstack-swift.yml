@@ -313,7 +313,7 @@
       block:
         - name: Create rax_maas_accesscheck project
           os_project:
-            cloud: default
+            cloud: overcloud
             interface: internal
             state: present
             enabled: true
@@ -324,7 +324,7 @@
 
         - name: Create swift rax_maas_accesscheck user
           os_user:
-            cloud: default
+            cloud: overcloud
             interface: internal
             state: present
             enabled: true
@@ -338,7 +338,7 @@
 
         - name: Create swift rax_maas_swiftoperator role
           os_keystone_role:
-            cloud: default
+            cloud: overcloud
             interface: internal
             state: present
             name: "{{ maas_swift_operator_role }}"
@@ -346,7 +346,7 @@
 
         - name: Associate role to rax_maas_accesscheck user
           os_user_role:
-            cloud: default
+            cloud: overcloud
             interface: internal
             state: present
             project: "{{ maas_swift_service_project_name }}"

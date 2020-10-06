@@ -93,7 +93,7 @@ def build_sdk_connection():
 
     if os.path.exists(OPENRC) or os.path.exists(STACKRC):
         try:
-            sdk_conn = connect(cloud='default', verify=False)
+            sdk_conn = connect(cloud='overcloud', verify=False)
         except MissingRequiredOptions as e:
             raise e
 

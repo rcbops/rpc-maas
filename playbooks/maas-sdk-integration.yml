@@ -92,13 +92,14 @@
             mode: "{{ openrc_openstack_client_config_dir_mode }}"
             state: directory
 
-        - name: Create clouds.yaml file for OpenStack SDK Connection
+        - name: Create clouds.yaml file for OpenStack SDK Connection(OSA only)
           template:
             src: templates/rax-maas/clouds.yaml.j2
             dest: "{{ openrc_clouds_yml_file_dest }}"
             owner: "{{ openrc_clouds_yml_file_owner }}"
             group: "{{ openrc_clouds_yml_file_group }}"
             mode: "{{ openrc_clouds_yml_file_mode }}"
+          when: not (ansible_local.maas.general.deploy_osp | bool)
       when:
         - ansible_local.maas.general.maas_env_product != 'ceph'
   vars_files:
@@ -114,15 +115,25 @@
   gather_facts: false
   become: true
   tasks:
-    - name: Ensure OpenStack client configuration directory
+    - name: Ensure OpenStack client configuration directory(OSA)
       file:
         dest: "{{ openrc_openstack_client_config_dir_dest }}"
         owner: "{{ openrc_openstack_client_config_dir_owner }}"
         group: "{{ openrc_openstack_client_config_dir_group }}"
         mode: "{{ openrc_openstack_client_config_dir_mode }}"
         state: directory
+      when: not (ansible_local.maas.general.deploy_osp | bool)
 
-    - name: Copy clouds.yaml
+    - name: Ensure OpenStack client configuration directory(OSP)
+      file:
+        dest: "/etc/openstack"
+        owner: "root"
+        group: "root"
+        mode: 0755
+        state: directory
+      when: (ansible_local.maas.general.deploy_osp | bool)
+
+    - name: Copy clouds.yaml(OSA)
       copy:
         src: "{{ openrc_clouds_yml_file_dest }}"
         dest: "{{ openrc_clouds_yml_file_dest }}"
@@ -131,6 +142,18 @@
         mode: "{{ openrc_clouds_yml_file_mode }}"
       when:
         - ansible_local.maas.general.maas_env_product != 'ceph'
+        - not (ansible_local.maas.general.deploy_osp | bool)
+
+    - name: Copy clouds.yaml(OSP)
+      copy:
+        src: "/etc/openstack/clouds.yaml"
+        dest: "/etc/openstack/clouds.yaml"
+        owner: "root"
+        group: "root"
+        mode: 0640
+      when:
+        - ansible_local.maas.general.maas_env_product != 'ceph'
+        - (ansible_local.maas.general.deploy_osp | bool)
   vars_files:
     - vars/main.yml
     - vars/maas.yml

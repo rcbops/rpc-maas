@@ -112,7 +112,7 @@
   tasks:
     - name: Ensure the observer role exists
       os_keystone_role:
-        cloud: default
+        cloud: overcloud
         interface: internal
         name: "{{ octavia_observer_role_name }}"
         state: present
@@ -121,7 +121,7 @@
       
     - name: Ensure Octavia observer member role assignment
       os_user_role:
-        cloud: default
+        cloud: overcloud
         interface: internal
         role: "{{ octavia_observer_role_name }}"
         project: "{{ octavia_project }}"

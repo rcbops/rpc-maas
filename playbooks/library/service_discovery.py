@@ -85,7 +85,7 @@ class ServiceDiscovery(object):
         """
 
         try:
-            sdk_conn = connect(cloud='default', verify=False)
+            sdk_conn = connect(cloud='overcloud', verify=False)
         except MissingRequiredOptions as e:
             message = ('Missing option in clouds.yaml: %s' % str(e))
             self.module.fail_json(msg=message)
