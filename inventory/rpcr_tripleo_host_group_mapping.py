@@ -72,6 +72,15 @@ TRIPLEO_MAPPING_GROUP = {
     # Horizon
     'horizon_all': ['horizon'],
 
+    # Designate
+    'designate_all': [
+        'designate_worker',
+        'designate_api',
+        'designate_producer',
+        'designate_mdns',
+        'designate_central',
+    ],
+
     # Ceph
     'ceph_all': ['ceph_osd', 'ceph_mon', 'ceph_rgw'],
     'mons': ['ceph_mon'],
