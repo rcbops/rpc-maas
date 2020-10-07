@@ -2,7 +2,7 @@
 # {{ ansible_managed }}
 
 scenarios:
-{% for key, value in maas_rally_checks.iteritems() %}
+{% for key, value in maas_rally_checks.items() %}
     {{ key }}:
         {{ value | to_nice_yaml | indent(8, false) }}
 {% endfor %}

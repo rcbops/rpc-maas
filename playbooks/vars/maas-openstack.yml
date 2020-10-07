@@ -347,7 +347,7 @@ maas_rally_galera_address: "{{ hostvars[groups['galera_all'][0]]['ansible_host']
 #
 maas_rally_scheme:  "{{ maas_scheme | default('http')}}"
 maas_rally_auth_url: "{{ maas_rally_scheme }}://{{ internal_vip_address }}:5000/v3/"
-maas_rally_region_name: "{{ keystone_service_region | default('RegionOne') }}"
+maas_rally_region_name: "{{ keystone_service_region | default('regionOne') }}"
 maas_rally_endpoint_type: "internal"
 
 #
@@ -374,7 +374,7 @@ maas_rally_venv_bin: "{{ maas_rally_venv }}/bin"
 # Repo and commit/tag/branch for rally
 #
 maas_rally_git_repo: "https://github.com/openstack/rally"
-maas_rally_git_version: "0.9.2"
+maas_rally_git_version: "3.1.0"
 
 #
 # Set the pip package state, defaults to present

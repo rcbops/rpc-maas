@@ -63,3 +63,10 @@ maas_poller_distro_packages:
 #
 maas_rabbitmq_distro_packages:
   - python3-httplib2
+
+
+#
+# Rally specific packages needed
+# 
+maas_rally_distro_packages:
+  - python3-PyMySQL

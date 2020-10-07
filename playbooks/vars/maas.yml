@@ -340,6 +340,10 @@ maas_pip_verify_packages:
 #  - futures
 #  - pyyaml
 
+#
+# pip allows for pip package override with pip_package_list.
+#
+pip_package_list: []
 
 #
 # pip install core python packages into the maas venv
@@ -367,7 +371,7 @@ maas_pip_packages:
 #
 # pip extra packages for lxc containers
 #
-maas_pip_lxc_packages:
+maas_pip_lxc_packages: []
 #  - lxc-python2
 
 #
@@ -482,7 +486,7 @@ maas_softnet_stats_packet_drop_threshold: 0
 #
 # pip installable packages for given services used within maas
 #
-maas_pip_openstack_packages:
+maas_pip_openstack_packages: []
 #  - keystoneauth1
 #  - openstacksdk
 #  - python-swiftclient==3.5.0 # needed for swift playbook
@@ -492,13 +496,18 @@ maas_pip_openstack_packages:
 # pip packages required for plugin functionality
 #
 maas_pip_rally_packages:
-#  - influxdb
+  - pymysql
+  - rally-openstack
+  - rally
+  - numpy
+  - monitorstack
+  - influxdb
+  - python-senlinclient
+  - PyYAML
+  - python-dateutil
+  - pyasn1
 #  - keystoneauth1
-#  - monitorstack
-#  - numpy
 #  - openstacksdk==0.37.0
-#  - pymysql
-#  - rally
 #  - diskcache
 
 #
@@ -569,3 +578,4 @@ maas_osp_release_excluded_checks:
   queens:
     - filesystem_/var/lib/docker/overlay2
     - filesystem_/var/lib/docker/containers
+

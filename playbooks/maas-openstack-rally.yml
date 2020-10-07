@@ -126,6 +126,12 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
+    - name: Make sure system pymysql package is installed for OSP
+      yum:
+         name: '{{ maas_rally_distro_packages }}'
+         state: present
+      when: ansible_local['maas']['general']['deploy_osp'] | bool
+
     - name: Create rally constraint file
       template:
         src: templates/rax-maas/rally-constraint.txt.j2
@@ -137,6 +143,12 @@
         pip_package_list: "{{ maas_pip_rally_packages }}"
         pip_package_state: "{{ maas_pip_rally_package_state }}"
         pip_package_constraint: "/tmp/rally-constraint.txt"
+        pip_install_options: "-U"
+
+    - name: Override maas_rally_galera_address for OSP
+      set_fact:
+        maas_rally_galera_address: '{{ internal_api_ip }}'
+      when: ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Create rally config directory
       file:
@@ -296,11 +308,11 @@
           when:
             - item.value.enabled
 
-        - name: Grant _member_ role for rally users
+        - name: Grant member role for rally users
           os_user_role:
             user: "{{ item.value.user_name }}"
             project: "{{ item.value.project }}"
-            role: "_member_"
+            role: "member"
             state: present
             cloud: overcloud
             endpoint_type: "admin"
@@ -414,12 +426,12 @@
             - "{{ 'compute' in item.value.primary_resources }}"
 
     - name: Check for existing maas_rally database initialization
-      command: "{{ maas_rally_venv_bin }}/rally-manage db revision"
+      command: "{{ maas_rally_venv_bin }}/rally db revision"
       register: rally_db_revision
       changed_when: False
 
     - name: Initialize maas_rally database
-      command: "{{ maas_rally_venv_bin }}/rally-manage db create"
+      command: "{{ maas_rally_venv_bin }}/rally db create"
       when:
         - "'None' in rally_db_revision.stdout"
 
