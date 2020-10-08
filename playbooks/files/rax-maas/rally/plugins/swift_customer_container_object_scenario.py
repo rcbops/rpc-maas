@@ -1,18 +1,17 @@
 import tempfile
 
-from rally import consts
-from rally.plugins.openstack import scenario
-from rally.plugins.openstack.scenarios.swift import utils
-from rally.task import atomic
 from rally.task import validation
+
+from rally_openstack.common import consts
+from rally_openstack.task import scenario
+from rally_openstack.task.scenarios.swift import utils
 
 
 """Scenarios for Swift Objects."""
 
-
-@validation.required_services(consts.Service.SWIFT)
-@validation.required_openstack(users=True)
-@scenario.configure(context={"cleanup": ["swift"]},
+@validation.add("required_services", services=[consts.Service.SWIFT])
+@validation.add("required_platform", platform="openstack", users=True)
+@scenario.configure(context={"cleanup@openstack": ["swift"]},
                     name="SwiftObjects.create_c_and_o"
                          "_then_download_and_delete_all")
 class CreateContainerAndObjectThenDownloadAndDeleteAll(utils.SwiftScenario):

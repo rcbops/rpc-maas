@@ -1,11 +1,13 @@
-from rally import consts
-from rally.plugins.openstack import scenario
-from rally.plugins.openstack.scenarios.neutron import utils
 from rally.task import validation
 
-@validation.required_services(consts.Service.NEUTRON)
-@validation.required_openstack(users=True)
-@scenario.configure(context={"cleanup": ["neutron"]},
+from rally_openstack.common import consts
+from rally_openstack.task import scenario
+from rally_openstack.task.scenarios.neutron import utils
+
+@validation.add("required_services",
+                services=[consts.Service.NEUTRON])
+@validation.add("required_platform", platform="openstack", users=True)
+@scenario.configure(context={"cleanup@openstack": ["neutron"]},
                     name=("NeutronSecurityGroup"
                           ".create_update_and_delete_security_groups"))
 class CreateUpdateAndDeleteSecurityGroups(utils.NeutronScenario):

@@ -19,6 +19,8 @@ import logging
 import numpy as np
 import openstack
 import os
+import sys
+import json
 import re
 import time
 import yaml
@@ -78,7 +80,7 @@ def cleanup_task_resources(task_uuid, scenario, scenario_config, logger):
             'username': scenario_config['user_name'],
             'password': scenario_config['user_password']}
 
-    conn = openstack.connect(cloud='overcloud', auth=auth)
+    conn = openstack.connect(cloud='overcloud', auth=auth, verify=False)
 
     # this extracts the first part of the task UUID - e.g. AAA from
     # AAA-BBB-CCC-DDD
@@ -219,18 +221,22 @@ def make_parser():
 
 
 def parse_task_results(task_uuid, task_result, logger):
+
+    # Pull out the workloads for ease of use
+    wl = task_result['subtasks'][0]['workloads'][0]
+
     # This expects the format returned by `rally task results <UUID>`
     try:
         action_data = {}
         action_data[args.task + '_total'] = list()
-        for iteration in task_result['result']:
+        for iteration in wl['data']:
             iteration_total_duration = 0
-            for action in iteration['atomic_actions'].keys():
-                action_duration = iteration['atomic_actions'][action]
+            for action in iteration['atomic_actions']:
+                action_duration = action['finished_at'] - action['started_at']
                 iteration_total_duration += action_duration
-                if action not in action_data:
-                    action_data[action] = list()
-                action_data[action].append(action_duration)
+                if action['name'] not in action_data:
+                    action_data[action['name']] = list()
+                action_data[action['name']].append(action_duration)
             action_data[args.task + '_total'].append(iteration_total_duration)
 
         # Quota exceeded would be a typical error here
@@ -242,14 +248,14 @@ def parse_task_results(task_uuid, task_result, logger):
             status_err(' '.join(task_result['result'][0]['error']),
                        m_name='maas_rally')
         metric('rally_load_duration', 'double',
-               '{:.2f}'.format(task_result['load_duration']))
+               '{:.2f}'.format(wl['load_duration']))
         metric('rally_full_duration', 'double',
-               '{:.2f}'.format(task_result['full_duration']))
+               '{:.2f}'.format(wl['full_duration']))
 
         metric('rally_sample_count', 'uint32',
-               '{}'.format(task_result['key']['kw']['runner']['times']))
+               '{}'.format(wl['runner']['times']))
         metric('rally_sample_concurrency', 'uint32',
-               '{}'.format(task_result['key']['kw']['runner']['concurrency']))
+               '{}'.format(wl['runner']['concurrency']))
 
     except KeyError:
         # The alarms need a value here.  Setting it to 0 allows us to handle
@@ -353,7 +359,7 @@ def main():
                                                 lock_remaining_time))
                 wait_for_lock = True
 
-        except rally.exceptions.TaskNotFound:
+        except rally.exceptions.DBRecordNotFound:
             logger.warning("{} - task {} not found in rally db "
                            "- removing lock".format(args.task, lock_uuid))
 
@@ -401,17 +407,10 @@ def main():
                      "{}".format(args.task, PLUGIN_PATH))
         rally.plugins.load()
         logger.info("{} - starting rally task {}".format(args.task, task_uuid))
-        rapi.task.start(args.task, parsed_task, task_obj)
+        rapi.task.start(deployment=args.task,config=parsed_task,
+                        task=task_obj["uuid"])
 
-        # This is the format returned by `rally task results <UUID>`
-        results = [{"key": x["key"], "result": x["data"]["raw"],
-                    "sla": x["data"]["sla"],
-                    "hooks": x["data"].get("hooks", []),
-                    "load_duration": x["data"]["load_duration"],
-                    "full_duration": x["data"]["full_duration"],
-                    "created_at": x.get("created_at").strftime(
-                        "%Y-%d-%mT%H:%M:%S")}
-                   for x in task_obj.get_results()][0]
+        results = rapi.task.get(task_obj["uuid"], detailed=True)
 
         if logger.getEffectiveLevel() == logging.DEBUG:
             logger.debug("{} - rally task {} completed"
