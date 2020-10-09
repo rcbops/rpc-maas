@@ -3,14 +3,12 @@
 ## Overview
 
 A separate 'osp16' branch was created to support some of the following changes:
-* python3
+* python3 support
 * RHEL8 system dependancies
 * newer rally version
 * OSP16 inventory layout changes
 
-I also removed the need for MTC with a quick shell script that sets up /root/ansible_venv used for the installation.
-
-Apart from the removal of MTC the internal documentation can still be used. 
+I removed the need for MTC with a quick shell script that sets up /root/ansible_venv used for the installation.  Apart from the removal of MTC the internal documentation can still be used for everything else. 
 * [internal monitoring docs](https://pages.github.rackspace.com/rpc-internal/docs-rpc/rpc-monitoring-internal/index.html)
 
 ## Download rpc-maas
@@ -36,18 +34,15 @@ According to the docs the rackspace-monitoring-agent installation and entity cre
 * Installation of the rackspace-monitoring-agent. (redhat 8 packages are available)
 * Configuration of the rackspace-monitoring-agent with the entity and agent token.
 
-See the docs for details on a [decouple environment](https://pages.github.rackspace.com/rpc-internal/docs-rpc/rpc-monitoring-internal/monitoring-impl/monitoring-internal.html#id5) for more info.
+See the docs for details on a [decoupled environment](https://pages.github.rackspace.com/rpc-internal/docs-rpc/rpc-monitoring-internal/monitoring-impl/monitoring-internal.html#id5) for more details.
 
 ## Generating an auth-token
 
-This may already be obtained from pitchfork or whatever the rackspace cloud enginners used to set up the entities.  If you have a pubcloud username and api key, you can use the following gating test script to pull the auth token.
+This may already be obtained from pitchfork or whatever the rackspace cloud enginners used to set up the entities.  If you have a pubcloud username and api key, you can use the following gating test script to pull the auth token. The values for the url and auth token can be found in /root/maas-vars.rc after.
 
 ```
 /root/ansible_venv/bin/python3 tests/maasutils.py --username <pubcloud_username> --api-key <pubcloud_api_key> get_token_url
-  Credentials file written to "/root/maas-vars.rc"
-cat /root/maas-vars.rc 
-  export MAAS_AUTH_TOKEN=<removed>
-  export MAAS_API_URL=https://monitoring.api.rackspacecloud.com/v1.0/<tenant id>
+Credentials file written to "/root/maas-vars.rc"
 ```
 
 ## Creating the rpc-maas config file
@@ -97,21 +92,15 @@ maas_excluded_alarms: []
 
 maas_rabbitmq_password: "<some random pass>"
 maas_swift_accesscheck_password: "<some random pass>"
-
-
-```
-
-## Enabling local pollers
-For environments where the rackspace pollers are unable to access, we can enable private pollers. 
-```
--e 'maas_private_monitoring_enabled=true'
 ```
 
 ## Run the install
 ```
 cd /opt/rpc-maas
 . /root/ansible_venv/bin/activate
-ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml -f 75 playbooks/site.yml
+ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
+                 -e @/home/stack/user_maas_variables.yml \
+                 -f 75 playbooks/site.yml
 deactivate
 
 ```
@@ -120,12 +109,14 @@ deactivate
 ```
 cd /opt/rpc-maas
 . /root/ansible_venv/bin/activate
-ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml -f 75 playbooks/maas-verify.yml
+ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
+                 -e @/home/stack/user_maas_variables.yml \
+                 -f 75 playbooks/maas-verify.yml
 deactivate
 ```
 
 
-## Rally performance checks(if required by customer only)
+## Rally performance checks(if required by customer)
 
 * Update the config to enable rally
 ```
@@ -162,8 +153,10 @@ maas_rally_check_overrides:
 cd /opt/rpc-maas
 . /home/stack/overcloudrc
 . /root/ansible_venv/bin/activate
-ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml -f 75 -e "keystone_auth_admin_password=${OS_PASSWORD}" playbooks/maas-openstack-rally.yml 
+ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
+                 -e @/home/stack/user_maas_variables.yml  \
+                 -e "keystone_auth_admin_password=${OS_PASSWORD}" \
+                 -f 75 playbooks/maas-openstack-rally.yml 
 deactivate
-
 ```
 
