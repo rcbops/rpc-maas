@@ -43,12 +43,16 @@ fi
 
 # Bomb if the /home/stack/user_maas_variables.yml doesn't exist.
 if [ ! -e /home/stack/user_maas_variables.yml ]; then
+    echo
     echo "Please read the documentation and create the /home/stack/user_maas_variables.yml config file and set up any entities and agents as needed."
+    echo
 fi
 
+echo
 echo "Example Playbook Usage Post Configuration:
 cd /opt/rpc-maas/
 . /root/ansible_venv/bin/activate
 ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml  playbooks/site.yml
 deactivate
 "
+echo
