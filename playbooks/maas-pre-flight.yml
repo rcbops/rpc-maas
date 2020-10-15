@@ -273,6 +273,7 @@
             gather_subset: "!all"
       when:
         - groups['ceph_all'] | default([]) | length > 0
+        - groups['ceph_mon'] | default([]) | length > 0
 
     - name: rhosp release block
       block:
