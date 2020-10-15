@@ -15,7 +15,7 @@
 
 - name: Define OpenStack SDK configuration
   hosts: localhost
-  gather_facts: false
+  gather_facts: true
   become: true
   pre_tasks:
     - name: Refresh local facts
@@ -80,9 +80,8 @@
 
         - name: Refresh local facts
           setup:
-            # SLM: commented out. next task needs ansible_env.HOME
-            #filter: ansible_local
-            #gather_subset: "!all"
+            filter: ansible_local
+            gather_subset: "!all"
 
         - name: Ensure OpenStack client configuration directory
           file:
@@ -100,6 +99,19 @@
             group: "{{ openrc_clouds_yml_file_group }}"
             mode: "{{ openrc_clouds_yml_file_mode }}"
           when: not (ansible_local.maas.general.deploy_osp | bool)
+
+        - name: Update /etc/openstack/clouds.yaml file for OpenStack SDK Connection(OSP only)
+          shell: |
+            #!/bin/bash
+
+            # Copy the official stack config over(should have both undercloud and overcloud)
+            cp /home/stack/.config/openstack/clouds.yaml /etc/openstack/clouds.yaml
+
+            # Make a copy of the overcloud section called overcloud.
+            . {{ maas_stackrc }}
+            sed -i -e "s/  ${OS_CLOUDNAME}:/  overcloud:/g" /etc/openstack/clouds.yaml
+          when: (ansible_local.maas.general.deploy_osp | bool)
+
       when:
         - ansible_local.maas.general.maas_env_product != 'ceph'
   vars_files:
@@ -112,9 +124,10 @@
 
 - name: Distribute clouds.yaml to hosts
   hosts: hosts
-  gather_facts: false
+  gather_facts: true
   become: true
   tasks:
+
     - name: Ensure OpenStack client configuration directory(OSA)
       file:
         dest: "{{ openrc_openstack_client_config_dir_dest }}"
