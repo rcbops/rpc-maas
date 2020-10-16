@@ -113,7 +113,7 @@
     - name: Ensure the observer role exists
       os_keystone_role:
         cloud: overcloud
-        interface: internal
+        interface: "{{ keystone_check_interface }}"
         name: "{{ octavia_observer_role_name }}"
         state: present
       delegate_to: localhost
@@ -122,7 +122,7 @@
     - name: Ensure Octavia observer member role assignment
       os_user_role:
         cloud: overcloud
-        interface: internal
+        interface: "{{ keystone_check_interface }}"
         role: "{{ octavia_observer_role_name }}"
         project: "{{ octavia_project }}"
         user: "{{ octavia_user }}"

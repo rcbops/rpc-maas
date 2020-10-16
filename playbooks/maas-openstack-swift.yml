@@ -314,7 +314,7 @@
         - name: Create rax_maas_accesscheck project
           os_project:
             cloud: overcloud
-            interface: internal
+            interface: "{{ keystone_check_interface }}"
             state: present
             enabled: true
             domain_id: default
@@ -325,7 +325,7 @@
         - name: Create swift rax_maas_accesscheck user
           os_user:
             cloud: overcloud
-            interface: internal
+            interface: "{{ keystone_check_interface }}"
             state: present
             enabled: true
             domain: default
@@ -339,7 +339,7 @@
         - name: Create swift rax_maas_swiftoperator role
           os_keystone_role:
             cloud: overcloud
-            interface: internal
+            interface: "{{ keystone_check_interface }}"
             state: present
             name: "{{ maas_swift_operator_role }}"
             verify: false
@@ -347,7 +347,7 @@
         - name: Associate role to rax_maas_accesscheck user
           os_user_role:
             cloud: overcloud
-            interface: internal
+            interface: "{{ keystone_check_interface }}"
             state: present
             project: "{{ maas_swift_service_project_name }}"
             role: "{{ maas_swift_operator_role }}"
