@@ -47,13 +47,17 @@
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: 'physical_host != ansible_host'
+      when:
+        - 'physical_host != ansible_host'
+        - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
 
     - name: Write Ceph monitoring client key to file
       copy:
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      when: 'physical_host == ansible_host'
+      when:
+        - 'physical_host == ansible_host'
+        - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
 
     - name: Write Ceph monitoring client key to file within legacy rpc hosts
       copy:
@@ -61,6 +65,7 @@
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
       when:
         - maas_rpc_legacy_ceph | bool
+        - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
 
   post_tasks:
     - name: Install local rgws checks
@@ -73,7 +78,9 @@
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       with_items:
         - ceph_rgw_stats
-      when: 'physical_host != ansible_host'
+      when:
+        - 'physical_host != ansible_host'
+        - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
 
     - name: Install local rgws checks
       template:
@@ -84,7 +91,9 @@
         mode: "0644"
       with_items:
         - ceph_rgw_stats
-      when: 'physical_host == ansible_host'
+      when:
+        - 'physical_host == ansible_host'
+        - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
 
   vars_files:
     - vars/main.yml
