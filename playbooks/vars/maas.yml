@@ -33,7 +33,7 @@ maas_package_state: "latest"
 # MaaS release version, this was tied to the RPC release version
 #   however it is now release independent.
 #
-maas_release: 0.0.0
+maas_release: "{{ ansible_local['maas']['general']['maas_product_osa_version'] is defined |bool |ternary(ansible_local['maas']['general']['maas_product_osa_version'],ansible_local['maas']['general']['maas_product_osp_version']) }}"
 
 #
 # Name of the virtual env to deploy into (maas)
@@ -354,16 +354,16 @@ maas_pip_packages:
    - pyroute2
    - ipaddr
    - python-memcached
-#   - rackspace-monitoring-cli
+   - netaddr
+   - pyudev
+   - dnspython
+   - lxml
+#  - requests
 #  - apache-libcloud
 #  - cryptography
-#  - dnspython
-#  - lxml
 #  - psutil
 #  - git+https://github.com/lunaryorn/pyudev.git
 #  - rackspace-monitoring-cli
-#  - requests
-#  - netaddr
 #  - ipaddress
 #  - contextlib2
 #  - diskcache
@@ -570,7 +570,9 @@ maas_osa_release_excluded_checks:
   train:
     - glance_registry_local_check
     - nova_consoleauth_check
-
+  ussuri:
+    - glance_registry_local_check
+    - nova_consoleauth_check
 #
 # Release specific check exclusions for OSP
 #
@@ -578,4 +580,6 @@ maas_osp_release_excluded_checks:
   queens:
     - filesystem_/var/lib/docker/overlay2
     - filesystem_/var/lib/docker/containers
-
+  train:
+    - glance_registry_local_check
+    - nova_consoleauth_check

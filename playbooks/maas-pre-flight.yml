@@ -560,7 +560,7 @@
 - name: Distribute local facts
   hosts: all
   gather_facts: false
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - name: Ensure local facts directory exists
@@ -591,7 +591,7 @@
 - name: Check for containers on host
   hosts: hosts
   gather_facts: false
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - include_tasks: "common-tasks/maas-container-facts.yml"
@@ -600,7 +600,7 @@
 - name: Distribute openstack rc files
   hosts: all
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - include_tasks: "common-tasks/maas_get_openrc.yml"

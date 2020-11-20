@@ -14,7 +14,7 @@
 # limitations under the License.
 - name: Verify MaaS
   hosts: hosts
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   gather_facts: true
   become: true
   pre_tasks:

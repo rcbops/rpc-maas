@@ -95,7 +95,7 @@
 - name: Install checks for openstack swift account
   hosts: swift_acc
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
 
@@ -150,7 +150,7 @@
 - name: Install checks for openstack swift container
   hosts: swift_cont
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
 
@@ -204,7 +204,7 @@
 - name: Install checks for openstack swift object group
   hosts: swift_obj
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
 
@@ -259,7 +259,7 @@
 - name: Install swift-recon checks for openstack swift proxy
   hosts: swift_proxy
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
 
@@ -369,7 +369,7 @@
 - name: Install accesscheck for openstack swift proxy
   hosts: swift_proxy
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   vars:
     ansible_python_interpreter: "{{ target_venv | default(maas_venv) }}/bin/python3"

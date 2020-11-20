@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2016, Rackspace US, Inc.
 #
@@ -78,7 +78,7 @@ def holland_lb_check(hostname, binary, backupset):
         status_err('Could not list holland backupsets: %s' % (err),
                    m_name='maas_holland')
 
-    for line in output.split():
+    for line in output.decode().split():
         if backupset + '/' in line:
             backupname = line.split('/')[-1]
             disksize = 0

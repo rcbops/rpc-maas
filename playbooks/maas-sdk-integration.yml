@@ -288,7 +288,7 @@
 - name: Distribute local facts
   hosts: all
   gather_facts: false
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - name: Distribute local facts
@@ -309,7 +309,7 @@
 - name: Check for containers on host
   hosts: hosts
   gather_facts: false
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - include_tasks: "common-tasks/maas-container-facts.yml"

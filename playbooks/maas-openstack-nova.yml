@@ -279,7 +279,10 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: 'physical_host != ansible_host'
+      when:
+        - 'physical_host != ansible_host'
+        - 'inventory_hostname not in groups["ironic-compute_all"] |default("") | list()'
+
 
     - name: Install iptables security group check
       template:
@@ -288,7 +291,9 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      when: 'physical_host == ansible_host'
+      when:
+        - 'physical_host == ansible_host'
+        - 'inventory_hostname not in groups["ironic-compute_all"] |default("") | list()'
 
   vars_files:
     - vars/main.yml

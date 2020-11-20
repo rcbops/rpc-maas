@@ -1,27 +1,31 @@
 #!/bin/bash
 
-# Install some dependancies
-rpm -qi python3-pip python3-virtualenv > /dev/null
-if [ $? != 0 ]; then
-    dnf -y install python3-pip python3-virtualenv
-fi
+egrep -i 'Centos|RedHat' /etc/redhat-release 2>/dev/null && isRH=1
 
-# Update the python alternatives if needed
-if [ ! -e /usr/bin/python ]; then
-    alternatives --set python /usr/bin/python3
+# Install some dependancies
+if [ $isRH ]; then
+  rpm -qi python3-pip python3-virtualenv > /dev/null
+  test $? -ne 0 && dnf -y install python3-pip python3-virtualenv
+
+  # Update the python alternatives if needed
+  if [ ! -e /usr/bin/python ]; then
+      alternatives --set python /usr/bin/python3
+  fi
+else
+  apt install -y python3-pip virtualenv
 fi
 
 # Create the virtual environment
 if [ ! -d /root/ansible_venv ]; then
 
     # Set up the python virtual env
-    virtualenv-3 /root/ansible_venv --system-site-packages
+    virtualenv -p /usr/bin/python3 /root/ansible_venv --system-site-packages
 
 fi
 
 # Install required packages
 . /root/ansible_venv/bin/activate
-pip install -r ./osp16-requirements.txt
+pip install -r /opt/rpc-maas/requirements.txt
 deactivate
 
 # Generate a token(non core testing when we have the vars set)
@@ -51,8 +55,12 @@ fi
 echo
 echo "Example Playbook Usage Post Configuration:
 cd /opt/rpc-maas/
-. /root/ansible_venv/bin/activate
-ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml  playbooks/site.yml
-deactivate
-"
+. /root/ansible_venv/bin/activate"
+if [ $isRH ]; then
+  echo "ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml  playbooks/site.yml"
+else
+  echo "openstack-ansible playbooks/site.yml"
+fi
+
+echo "deactivate"
 echo

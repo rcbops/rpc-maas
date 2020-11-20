@@ -62,7 +62,7 @@
 - name: Add admin user on rabbitmq
   hosts: rabbitmq_all
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - name: Ensure MaaS rabbitmq user as administrator with rabbitmqctl
@@ -118,7 +118,7 @@
 - name: Install checks for infra rabbitmq
   hosts: rabbitmq_all
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - name: introspect rabbitmq management ip
