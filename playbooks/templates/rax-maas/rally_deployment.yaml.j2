@@ -1,25 +1,26 @@
 {
-    "type": "ExistingCloud",
-    "auth_url": "{{ maas_rally_auth_url }}",
-    "region_name": "{{ maas_rally_region_name }}",
-    "endpoint_type": "{{ maas_rally_endpoint_type }}",
-    "admin": {
-        "password": "{{ maas_rally_admin_password }}",
-        "project_domain_name": "{{ maas_rally_admin_domain_name }}",
-        "project_name": "{{ maas_rally_admin_project_name }}",
-        "user_domain_name": "{{ maas_rally_admin_domain_name }}",
-        "username": "{{ maas_rally_admin_user_name }}"
-    },
-{% if keystone_service_adminuri_insecure %}
-    "https_insecure": True,
-{% endif %}
-    "users": [        
-        {
-            "username": "{{ item.value.user_name | default('rally_' + item.key) }}",
-            "password": "{{ item.value.user_password }}",
-            "project_name": "{{ item.value.project | default('rally_' + item.key) }}",
+    "existing@openstack": {
+        "auth_url": "{{ maas_rally_auth_url }}",
+        "admin": {
+            "username": "{{ maas_rally_admin_user_name }}",
+            "password": "{{ maas_rally_admin_password }}",
+            "project_name": "{{ maas_rally_admin_project_name }}",
+            "user_domain_name": "{{ maas_rally_admin_domain_name }}",
             "project_domain_name": "{{ maas_rally_admin_domain_name }}",
-            "user_domain_name": "{{ maas_rally_admin_domain_name }}"
-        }        
-    ]
+        },
+        "endpoint_type": "{{ maas_rally_endpoint_type }}",
+        "region_name": "{{ maas_rally_region_name }}",
+{% if keystone_service_adminuri_insecure %}
+        "https_insecure": True,
+{% endif %}
+        "users": [        
+            {
+                "username": "{{ item.value.user_name | default('rally_' + item.key) }}",
+                "password": "{{ item.value.user_password }}",
+                "project_name": "{{ item.value.project | default('rally_' + item.key) }}",
+                "project_domain_name": "{{ maas_rally_admin_domain_name }}",
+                "user_domain_name": "{{ maas_rally_admin_domain_name }}"
+            }        
+        ]
+    }
 }

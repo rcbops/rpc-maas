@@ -16,7 +16,7 @@
 - name: Install checks for openstack heat-api
   hosts: heat_api
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - name: Refresh local facts
@@ -35,6 +35,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install heat api checks
+      template:
+        src: "templates/rax-maas/heat_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/heat_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install heat api lb checks
       template:
@@ -45,6 +55,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install heat api lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_heat_api.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_heat_api.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
@@ -57,6 +80,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install heat api private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_heat_api.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_heat_api.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 
@@ -74,7 +110,7 @@
 - name: Install checks for openstack heat-api-cfn
   hosts: heat_api_cfn
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -88,6 +124,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install heat api cfn checks
+      template:
+        src: "templates/rax-maas/heat_cfn_api_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/heat_cfn_api_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install heat api cfn lb checks
       template:
@@ -98,6 +144,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install heat api cfn lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_heat_cfn.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_heat_cfn.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
@@ -110,6 +169,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install heat api cfn private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_heat_cfn.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_heat_cfn.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 
@@ -127,7 +199,7 @@
 - name: Install checks for openstack heat-api-cloudwatch
   hosts: heat_api_cloudwatch
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -141,6 +213,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install heat api cloudwatch checks
+      template:
+        src: "templates/rax-maas/heat_cw_api_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/heat_cw_api_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install heat cloudwatch lb checks
       template:
@@ -151,6 +233,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install heat cloudwatch lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_heat_cloudwatch.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_heat_cloudwatch.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
@@ -163,6 +258,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install heat cloudwatch private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_heat_cloudwatch.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_heat_cloudwatch.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 

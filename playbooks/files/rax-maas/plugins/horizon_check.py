@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2014, Rackspace US, Inc.
 #
@@ -63,7 +63,7 @@ def check(args):
         metric_bool('client_success', False, m_name='maas_horizon')
     else:
         if not (r.ok and
-                re.search(args.site_name_regexp, r.content, re.IGNORECASE)):
+                re.search(args.site_name_regexp, r.content.decode(), re.IGNORECASE)):
             metric_bool('client_success', False, m_name='maas_horizon')
             status_err('could not load login page', m_name='maas_horizon')
         else:
@@ -101,7 +101,7 @@ def check(args):
         if args.deploy_osp:
             search_phrase = 'project'
         if not (login_resp.ok and re.search(search_phrase,
-                                            login_resp.content,
+                                            login_resp.content.decode(),
                                             re.IGNORECASE)):
             status_err('could not log in', m_name='maas_horizon')
 

@@ -6,7 +6,7 @@
 {% set _ = ceph_args.extend(["--container-name", container_name]) %}
 {% endif %}
 {% if (ansible_local['maas']['general']['deploy_osp'] | bool) %}
-{% set _ = ceph_args.extend(["--deploy_osp"]) %}
+{% set _ = ceph_args.extend(["--deploy_osp", "--container-name", "ceph-mon-"+inventory_hostname]) %}
 {% endif %}
 {% set _ = ceph_args.extend(["health_checks", "--section", "mgr"]) %}
 {% set _ceph_args = ceph_args | to_yaml(width=1000) %}

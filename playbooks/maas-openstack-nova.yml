@@ -16,7 +16,7 @@
 - name: Install checks for openstack nova-api-metadata
   hosts: nova_api_metadata
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - name: Refresh local facts
@@ -35,6 +35,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install nova nova-api-metadata checks
+      template:
+        src: "templates/rax-maas/nova_api_metadata_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_api_metadata_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
@@ -50,7 +60,7 @@
 - name: Install checks for openstack nova-api
   hosts: nova_api_os_compute
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -64,6 +74,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install nova api checks
+      template:
+        src: "templates/rax-maas/nova_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install nova cloud checks
       template:
@@ -73,6 +93,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install nova cloud checks
+      template:
+        src: "templates/rax-maas/nova_cloud_stats_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_cloud_stats_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install nova lb checks
       template:
@@ -83,6 +113,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install nova lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_nova.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_nova.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
@@ -95,6 +138,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install nova private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_nova.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_nova.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 
@@ -112,7 +168,7 @@
 - name: Install checks for openstack nova-api
   hosts: nova_scheduler
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -126,6 +182,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install nova api checks
+      template:
+        src: "templates/rax-maas/nova_scheduler_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_scheduler_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
@@ -141,7 +207,7 @@
 - name: Install checks for openstack nova-api-metadata
   hosts: nova_cert
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -155,6 +221,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install nova nova-api-metadata checks
+      template:
+        src: "templates/rax-maas/nova_cert_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_cert_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
@@ -170,7 +246,7 @@
 - name: Install checks for openstack nova-compute
   hosts: nova_compute
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -184,6 +260,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install nova nova-compute checks
+      template:
+        src: "templates/rax-maas/nova_compute_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_compute_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install iptables security group check
       template:
@@ -193,6 +279,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install iptables security group check
+      template:
+        src: "templates/rax-maas/nova_security_group_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_security_group_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
@@ -208,7 +304,7 @@
 - name: Install checks for openstack nova-conductor
   hosts: nova_conductor
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -222,6 +318,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install nova nova-conductor checks
+      template:
+        src: "templates/rax-maas/nova_conductor_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_conductor_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
@@ -237,7 +343,7 @@
 - name: Install checks for openstack nova-console
   hosts: nova_console
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -251,6 +357,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install nova nova-console-auth checks
+      template:
+        src: "templates/rax-maas/nova_consoleauth_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_consoleauth_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install nova nova-console checks
       template:
@@ -260,6 +376,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install nova nova-console checks
+      template:
+        src: "templates/rax-maas/nova_console_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/nova_console_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml

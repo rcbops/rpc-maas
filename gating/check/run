@@ -25,29 +25,30 @@ export RE_JOB_SCENARIO=${RE_JOB_SCENARIO:-"undefined"}
 export RE_JOB_ACTION=${RE_JOB_ACTION:-"undefined"}
 export DEBIAN_FRONTEND=noninteractive
 
-# Install python2 for Ubuntu 16.04 and CentOS 7
+# Install python3 for Ubuntu 18.04 and CentOS 8
 if which apt-get; then
-    sudo apt-get update && sudo --preserve-env apt-get install -y python
+    sudo apt-get update && sudo --preserve-env apt-get install -y python3
 fi
 
 if which yum; then
-    sudo yum install -y python
+    sudo yum install -y python3
 fi
 
-# Install pip.
-if ! which pip; then
+# Install pip3.
+if ! which pip3; then
   curl --silent --show-error --retry 5 \
-    https://bootstrap.pypa.io/get-pip.py | sudo python2.7
+    https://bootstrap.pypa.io/get-pip.py | sudo python3.6
 fi
 
 # Install bindep and tox with pip.
-sudo pip install bindep tox
+sudo pip3 install bindep tox
 
-# CentOS 7 requires two additional packages:
+# CentOS 8 requires two additional packages:
 #   redhat-lsb-core - for bindep profile support
 #   epel-release    - required to install python-ndg_httpsclient/python2-pyasn1
 if which yum; then
-    sudo yum -y install redhat-lsb-core epel-release
+    #sudo yum -y install redhat-lsb-core epel-release
+    sudo yum -y install redhat-lsb-core
 fi
 if [ "${RE_JOB_ACTION}" != "tox-test" ]; then
   tests/run-tests.sh

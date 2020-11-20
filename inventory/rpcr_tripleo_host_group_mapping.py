@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,6 +71,15 @@ TRIPLEO_MAPPING_GROUP = {
 
     # Horizon
     'horizon_all': ['horizon'],
+
+    # Designate
+    'designate_all': [
+        'designate_worker',
+        'designate_api',
+        'designate_producer',
+        'designate_mdns',
+        'designate_central',
+    ],
 
     # Ceph
     'ceph_all': ['ceph_osd', 'ceph_mon', 'ceph_rgw'],

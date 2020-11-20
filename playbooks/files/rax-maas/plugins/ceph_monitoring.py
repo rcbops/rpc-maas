@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2015, Rackspace US, Inc.
 #
@@ -117,19 +117,25 @@ DETAILED_CHECKS = {
 
 def check_command(command, container_name=None, deploy_osp=False):
     if container_name:
-        container_command = ['lxc-attach',
-                             '-n',
-                             container_name,
-                             '--',
-                             'bash',
-                             '-c']
-        container_command.append("{}".format(' '.join(command)))
+
         if deploy_osp:
-            container_command = []
-            container_command.extend(command)
+            container_command = ['/usr/bin/podman',
+                                 'exec',
+                                 container_name]
+       
+        else:
+            container_command = ['lxc-attach',
+                                 '-n',
+                                 container_name,
+                                 '--',
+                                 'bash',
+                                 '-c']
+
+        container_command.extend(command)
         command = [str(i) for i in container_command]
+
     output = subprocess.check_output(command, stderr=subprocess.STDOUT)
-    lines = output.strip().split('\n')
+    lines = output.decode().strip().split('\n')
     return json.loads(lines[-1])
 
 
@@ -147,8 +153,8 @@ def get_ceph_rgw_hostcheck(rgw_address, container_name=None):
 
 def get_ceph_status(client, keyring, fmt='json', container_name=None,
                     deploy_osp=False):
-    return check_command(('ceph', '--format', fmt, '--name', client,
-                          '--keyring', keyring, 'status'),
+
+    return check_command(('ceph', '--format', fmt, 'status'),
                          container_name=container_name,
                          deploy_osp=deploy_osp)
 

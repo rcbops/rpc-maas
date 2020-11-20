@@ -36,7 +36,7 @@
 - name: Install checks for infra rsyslog
   hosts: rsyslog_all
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - name: Install rsyslog check
@@ -47,6 +47,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install rsyslog check
+      template:
+        src: "templates/rax-maas/rsyslogd_process_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/rsyslogd_process_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2014, Rackspace US, Inc.
 #
@@ -30,9 +30,11 @@ def utilisation(args, time):
                     .format(device=args.device,
                             time=time)
                     ))
-    device_lines = output.split('\nDevice:')[-1].strip().split('\n')[1:]
-    devices = [d.split() for d in device_lines]
-    utils = [(d[0], d[-1]) for d in devices if d]
+
+    # pull the last line
+    last_stat_line = output.decode().strip().split('\n')[-1]
+    fields = last_stat_line.split(' ')
+    utils = [(fields[0], fields[-1])]
     return utils
 
 

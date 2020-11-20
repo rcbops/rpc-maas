@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2014, Rackspace US, Inc.
 #
@@ -39,7 +39,7 @@ def check_command(command, param1, param2=None):
         raise BadOutputError(
             'The output was not in the expected format:\n%s' % output)
 
-    return output
+    return output.decode()
 
 
 # determine nodes status, call "pcs status nodes" command

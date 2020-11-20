@@ -39,6 +39,13 @@ if [[ ${RE_JOB_SCENARIO} = osp13 ]]; then
   cat ${TEST_DIR}/RE_ENV
 
   exit 0
+elif [[ ${RE_JOB_SCENARIO} == osp16 ]]; then
+  env | egrep "(RE|PUBCLOUD)_" | sed "s/^/export /g" > ${TEST_DIR}/RE_ENV
+
+  echo "RE_ENV_file to set: \n"
+  cat ${TEST_DIR}/RE_ENV
+
+  exit 0
 elif [[ ${RE_JOB_SCENARIO} == ceph ]]; then
   rm -f /etc/apt/apt.conf.d/95disable-recommends
 fi

@@ -336,37 +336,43 @@ maas_percent_used_critical_threshold: 85
 # pip installable packages for verifying maas deployment
 #
 maas_pip_verify_packages:
-  - futures
-  - pyyaml
   - waxeye
+#  - futures
+#  - pyyaml
 
+#
+# pip allows for pip package override with pip_package_list.
+#
+pip_package_list: []
 
 #
 # pip install core python packages into the maas venv
 #
 maas_pip_packages:
-  - apache-libcloud
-  - cryptography
-  - dnspython
-  - ipaddr
-  - lxml
-  - monitorstack
-  - psutil
-  - git+https://github.com/lunaryorn/pyudev.git
-  - pyroute2
-  - python-memcached
-  - rackspace-monitoring-cli
-  - requests
-  - netaddr
-  - ipaddress
-  - contextlib2
-  - diskcache
+   - rackspace-monitoring
+   - monitorstack
+   - pyroute2
+   - ipaddr
+   - python-memcached
+#   - rackspace-monitoring-cli
+#  - apache-libcloud
+#  - cryptography
+#  - dnspython
+#  - lxml
+#  - psutil
+#  - git+https://github.com/lunaryorn/pyudev.git
+#  - rackspace-monitoring-cli
+#  - requests
+#  - netaddr
+#  - ipaddress
+#  - contextlib2
+#  - diskcache
 
 #
 # pip extra packages for lxc containers
 #
-maas_pip_lxc_packages:
-  - lxc-python2
+maas_pip_lxc_packages: []
+#  - lxc-python2
 
 #
 # pip extra packages for docker containers
@@ -385,7 +391,7 @@ maas_keys:
 # Distro packages to be installed for the maas-agent runtime
 #
 maas_agent_distro_packages:
-  - python-virtualenv
+  - python3-virtualenv
 
 #
 # MaaS poller options
@@ -480,24 +486,29 @@ maas_softnet_stats_packet_drop_threshold: 0
 #
 # pip installable packages for given services used within maas
 #
-maas_pip_openstack_packages:
-  - keystoneauth1
-  - openstacksdk
-  - python-swiftclient==3.5.0 # needed for swift playbook
-  - python-keystoneclient # needed for swiftclient authentication
+maas_pip_openstack_packages: []
+#  - keystoneauth1
+#  - openstacksdk
+#  - python-swiftclient==3.5.0 # needed for swift playbook
+#  - python-keystoneclient # needed for swiftclient authentication
 
 #
 # pip packages required for plugin functionality
 #
 maas_pip_rally_packages:
-  - influxdb
-  - keystoneauth1
-  - monitorstack
-  - numpy
-  - openstacksdk==0.37.0
   - pymysql
+  - rally-openstack
   - rally
-  - diskcache
+  - numpy
+  - monitorstack
+  - influxdb
+  - python-senlinclient
+  - PyYAML
+  - python-dateutil
+  - pyasn1
+#  - keystoneauth1
+#  - openstacksdk==0.37.0
+#  - diskcache
 
 #
 # agent endpoint TLS location
@@ -567,3 +578,4 @@ maas_osp_release_excluded_checks:
   queens:
     - filesystem_/var/lib/docker/overlay2
     - filesystem_/var/lib/docker/containers
+

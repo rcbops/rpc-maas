@@ -109,8 +109,8 @@ def main():
     holland_bs = args.holland_backupset
 
     today = datetime.date.today().strftime('%Y%m%d')
-    yesterday = (datetime.date.today() -
-                 datetime.timedelta(days=1)).strftime('%Y%m%d')
+    yesterday_obj = (datetime.date.today() - datetime.timedelta(days=1))
+    yesterday = yesterday_obj.strftime('%Y%m%d')
 
     # Get completed Holland backup set
     backupsets = \

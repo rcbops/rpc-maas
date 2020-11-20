@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2014, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,7 +93,7 @@ def build_sdk_connection():
 
     if os.path.exists(OPENRC) or os.path.exists(STACKRC):
         try:
-            sdk_conn = connect(cloud='default', verify=False)
+            sdk_conn = connect(cloud='overcloud', verify=False)
         except MissingRequiredOptions as e:
             raise e
 
@@ -161,7 +161,7 @@ def get_openstack_client(component):
 
 
 def generate_local_endpoint(endpoint, ip, port, protocol, extend=None):
-    from urlparse import urlparse
+    from urllib.parse import urlparse
 
     # Remove trailing slash
     endpoint = endpoint.rstrip('/')

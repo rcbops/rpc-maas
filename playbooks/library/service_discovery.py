@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from socket import gaierror, gethostbyname
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: ignore=H303
 from keystoneauth1.exceptions import MissingRequiredOptions
@@ -85,7 +85,7 @@ class ServiceDiscovery(object):
         """
 
         try:
-            sdk_conn = connect(cloud='default', verify=False)
+            sdk_conn = connect(cloud='overcloud', verify=False)
         except MissingRequiredOptions as e:
             message = ('Missing option in clouds.yaml: %s' % str(e))
             self.module.fail_json(msg=message)

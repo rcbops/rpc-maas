@@ -23,6 +23,19 @@
   delegate_to: "{{ groups['galera_all'][0] }}"
   tags:
     - common-mysql
+  when: not (ansible_local['maas']['general']['deploy_osp'] | bool)
+
+- name: Create DB for service
+  mysql_db:
+    login_user: "{{ galera_root_user }}"
+    login_password: "{{ galera_root_password }}"
+    login_host: "{{ internal_api_ip }}"
+    name: "{{ db_name }}"
+    state: "present"
+  delegate_to: "{{ groups['galera_all'][0] }}"
+  tags:
+    - common-mysql
+  when: ansible_local['maas']['general']['deploy_osp'] | bool
 
 - name: Grant access to the DB for the service
   mysql_user:
@@ -36,5 +49,22 @@
     priv: "{{ db_name }}.*:ALL"
   delegate_to: "{{ groups['galera_all'][0] }}"
   with_items: "{{ grant_list | default(['localhost', '%']) }}"
+  when: not (ansible_local['maas']['general']['deploy_osp'] | bool)
+  tags:
+    - common-mysql
+
+- name: Grant access to the DB for the service
+  mysql_user:
+    login_user: "{{ galera_root_user }}"
+    login_password: "{{ galera_root_password }}"
+    login_host: "{{ internal_api_ip }}"
+    name: "{{ user_name }}"
+    password: "{{ password }}"
+    host: "{{ item }}"
+    state: "present"
+    priv: "{{ db_name }}.*:ALL"
+  delegate_to: "{{ groups['galera_all'][0] }}"
+  with_items: "{{ grant_list | default(['localhost', '%']) }}"
+  when: ansible_local['maas']['general']['deploy_osp'] | bool
   tags:
     - common-mysql

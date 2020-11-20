@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2014, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,32 +56,26 @@ def check_process_statuses(container_or_host_name, container=None):
                 cmdline_check_value = proc.cmdline()
             else:
                 cmdline_check_value = proc.cmdline
-            cmdlines.append(map(os.path.basename,
-                                cmdline_check_value))
+            cmdlines.append(cmdline_check_value)
         except Exception as e:
             status_err_no_exit('Error while retrieving process %s, ERROR: %s'
                                % (cmdline_check_value, str(e)),
                                m_name='maas_neutron')
 
     # Loop through the process names provided on the command line to
-    # see if ovsdb-server, ovs-vswitchd, and neutron-openvswitch
-    # exist on the system or in a container.
-    # Suppress some character which throw MaaS off
-    # ovsdb-server and ovs-vswitchd are not directly in the command
-    # line parsing so we use condition
-    # `process_name in x or process_name in x[0]`
+    # see if ovsdb-server, ovs-vswitchd exist on the system or in a
+    # container.
     pattern = re.compile('[^-\w]+')
     for process_name in process_names:
-        matches = [x for x in cmdlines
-                   if process_name in x or (
-                       len(x) > 0 and process_name in x[0]
-                   )
-                   ]
+        cur_proc_count = 0
+        for cmdline in cmdlines:
+            if process_name in cmdline:
+                cur_proc_count = cur_proc_count + 1
 
         metric_bool('%s_process_status' % (
                     pattern.sub('', process_name)
                     ),
-                    len(matches) > 0)
+                    cur_proc_count > 0)
 
 
 def check(args):
