@@ -336,7 +336,7 @@ maas_percent_used_critical_threshold: 85
 # pip installable packages for verifying maas deployment
 #
 maas_pip_verify_packages:
-  - waxeye
+  - waxeye@git+https://github.com/waxeye-org/waxeye.git@master#subdirectory=src/python&egg=waxeye
 #  - futures
 #  - pyyaml
 
@@ -350,7 +350,7 @@ pip_package_list: []
 #
 maas_pip_packages:
    - rackspace-monitoring
-   - monitorstack
+   - monitorstack@git+https://opendev.org/x/monitorstack@master#egg=monitorstack
    - pyroute2
    - ipaddr
    - python-memcached
@@ -500,7 +500,7 @@ maas_pip_rally_packages:
   - rally-openstack
   - rally
   - numpy
-  - monitorstack
+  - monitorstack@git+https://opendev.org/x/monitorstack@master#egg=monitorstack
   - influxdb
   - python-senlinclient
   - PyYAML
