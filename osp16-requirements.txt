@@ -1,0 +1,10 @@
+
+click==7.1.2
+rackspace-monitoring==0.8.1
+
+#apache-libcloud==1.5.0
+#backports.ssl-match-hostname==3.7.0.1
+#certifi==2020.6.20
+#chardet==3.0.4
+#idna==2.10
+#urllib3===1.25.10

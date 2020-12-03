@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2014, Rackspace US, Inc.
 #
@@ -33,17 +33,17 @@ import maas_common
 
 PARSE_RE = re.compile(
     # First line of both types of output
-    "Queried (?P<num_objects>\d+) \w+ for dispersion reporting, "
-    "(?P<seconds>\d+)s, (?P<retries>\d+) retries\s+"
+    r"Queried (?P<num_objects>\d+) \w+ for dispersion reporting, "
+    r"(?P<seconds>\d+)s, (?P<retries>\d+) retries\s+"
     # Second line if working with object output only
-    "(?:There were (?P<num_partitions>\d+) partitions? missing "
-    "(?P<partition_copies>\d+) cop(y|ies)\.?\s+)?"
+    r"(?:There were (?P<num_partitions>\d+) partitions? missing "
+    r"(?P<partition_copies>\d+) cop(y|ies)\.?\s+)?"
     # Second line for containers, third for objects
-    "(?P<percent>\d+\.\d+)% of \w+ copies found \((?P<copies_found>\d+) of "
-    "(?P<total_copies>\d+)\)\s+"
+    r"(?P<percent>\d+\.\d+)% of \w+ copies found \((?P<copies_found>\d+) of "
+    r"(?P<total_copies>\d+)\)\s+"
     # Last line for both types
-    "Sample represents (?P<partition_percent>\d+.\d+)% of the \w+ "
-    "partition space"
+    r"Sample represents (?P<partition_percent>\d+.\d+)% of the \w+ "
+    r"partition space"
 )
 
 
@@ -127,6 +127,7 @@ def main():
 # > metric container_copies_found uint64 6
 # > metric container_partition_percent double 1.17
 # > metric container_total_copies uint64 6
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Swift dispersion check')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright 2015, Rackspace US, Inc.
 #
@@ -31,7 +31,7 @@ def _get_poller_proc(name="rackspace-monitoring-poller"):
 
     Returns None when more than one poller is found.
     """
-    procs = filter(lambda proc: proc.name() == name, psutil.process_iter())
+    procs = list(filter(lambda proc: proc.name() == name, psutil.process_iter()))
 
     metric_name = "maas_poller"
 

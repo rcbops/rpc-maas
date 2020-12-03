@@ -95,9 +95,26 @@
 - name: Install checks for openstack swift account
   hosts: swift_acc
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
+
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
+    - name: Safety Check - Do not run on OSP
+      debug:
+        msg: "Swift playbooks are non-functional on OSP. Skipping..."
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
+    - name: Exit
+      meta: end_play
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -133,9 +150,26 @@
 - name: Install checks for openstack swift container
   hosts: swift_cont
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
+
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
+    - name: Safety Check - Do not run on OSP
+      debug:
+        msg: "Swift playbooks are non-functional on OSP. Skipping..."
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
+    - name: Exit
+      meta: end_play
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -170,9 +204,26 @@
 - name: Install checks for openstack swift object group
   hosts: swift_obj
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
+
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
+    - name: Safety Check - Do not run on OSP
+      debug:
+        msg: "Swift playbooks are non-functional on OSP. Skipping..."
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
+    - name: Exit
+      meta: end_play
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -208,9 +259,26 @@
 - name: Install swift-recon checks for openstack swift proxy
   hosts: swift_proxy
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
+
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
+    - name: Safety Check - Do not run on OSP
+      debug:
+        msg: "Swift playbooks are non-functional on OSP. Skipping..."
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
+    - name: Exit
+      meta: end_play
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -301,11 +369,28 @@
 - name: Install accesscheck for openstack swift proxy
   hosts: swift_proxy
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   vars:
-    ansible_python_interpreter: "{{ target_venv | default(maas_venv) }}/bin/python"
+    ansible_python_interpreter: "{{ target_venv | default(maas_venv) }}/bin/python3"
   pre_tasks:
+
+    - name: Refresh local facts
+      setup:
+        filter: ansible_local
+        gather_subset: "!all"
+
+    - name: Safety Check - Do not run on OSP
+      debug:
+        msg: "Swift playbooks are non-functional on OSP. Skipping..."
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
+    - name: Exit
+      meta: end_play
+      when:
+        - ansible_local['maas']['general']['deploy_osp'] | bool
+
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
   tasks:
@@ -313,8 +398,8 @@
       block:
         - name: Create rax_maas_accesscheck project
           os_project:
-            cloud: default
-            interface: internal
+            cloud: "{{ cloud_config_name }}"
+            interface: "{{ keystone_check_interface }}"
             state: present
             enabled: true
             domain_id: default
@@ -324,8 +409,8 @@
 
         - name: Create swift rax_maas_accesscheck user
           os_user:
-            cloud: default
-            interface: internal
+            cloud: "{{ cloud_config_name }}"
+            interface: "{{ keystone_check_interface }}"
             state: present
             enabled: true
             domain: default
@@ -338,16 +423,16 @@
 
         - name: Create swift rax_maas_swiftoperator role
           os_keystone_role:
-            cloud: default
-            interface: internal
+            cloud: "{{ cloud_config_name }}"
+            interface: "{{ keystone_check_interface }}"
             state: present
             name: "{{ maas_swift_operator_role }}"
             verify: false
 
         - name: Associate role to rax_maas_accesscheck user
           os_user_role:
-            cloud: default
-            interface: internal
+            cloud: "{{ cloud_config_name }}"
+            interface: "{{ keystone_check_interface }}"
             state: present
             project: "{{ maas_swift_service_project_name }}"
             role: "{{ maas_swift_operator_role }}"

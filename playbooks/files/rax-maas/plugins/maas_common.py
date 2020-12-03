@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2014, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,8 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_IDENTITY_API_VERSION': None,
                 'OS_API_INSECURE': True,
                 'OS_VOLUME_API_VERSION': 1,
-                'OS_IMAGE_API_VERSION': 1}
+                'OS_IMAGE_API_VERSION': 1,
+                'OS_CLOUDNAME': 'overcloud'}
 
 if 'Ubuntu' in platform.linux_distribution()[0]:
     AUTH_DETAILS.update({
@@ -51,7 +52,8 @@ if 'Ubuntu' in platform.linux_distribution()[0]:
         'OS_TENANT_NAME': None,
         'OS_ENDPOINT_TYPE': None,
         'OS_API_INSECURE': True,
-        'OS_REGION_NAME': 'RegionOne'
+        'OS_REGION_NAME': 'RegionOne',
+        'OS_CLOUDNAME': 'default'
     })
 
 
@@ -93,7 +95,7 @@ def build_sdk_connection():
 
     if os.path.exists(OPENRC) or os.path.exists(STACKRC):
         try:
-            sdk_conn = connect(cloud='default', verify=False)
+            sdk_conn = connect(cloud=AUTH_DETAILS.get('OS_CLOUDNAME'), verify=False)
         except MissingRequiredOptions as e:
             raise e
 
@@ -161,7 +163,7 @@ def get_openstack_client(component):
 
 
 def generate_local_endpoint(endpoint, ip, port, protocol, extend=None):
-    from urlparse import urlparse
+    from urllib.parse import urlparse
 
     # Remove trailing slash
     endpoint = endpoint.rstrip('/')

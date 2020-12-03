@@ -32,7 +32,8 @@ except ImportError:
 
 import requests
 
-from ansible.module_utils.basic import *  # noqa: ignore=H303
+from ansible.module_utils.basic import unicode  # noqa: ignore=H303
+from ansible.module_utils.basic import AnsibleModule  # noqa: ignore=H303
 
 
 def parse_url(url):
@@ -112,7 +113,7 @@ class MakeRequest(object):
         }
 
         if isinstance(self.config, dict):
-            if 'headers'in self.config:
+            if 'headers' in self.config:
                 self.headers.update(self.config.get('headers'))
 
             if self.config.get('debug', False):

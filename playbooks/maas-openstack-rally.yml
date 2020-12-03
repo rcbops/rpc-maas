@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Ensure rally basic requirements are met
-  hosts: "shared-infra_hosts"
+  hosts: "os-infra_hosts"
   gather_facts: false
   connection: local
   tasks:
@@ -33,6 +33,12 @@
         - (((groups['swift_all'] | default([])) | union(groups['rgws'] | default([]))) | length) > 0
   tags:
     - always
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
 
 
 - name: Perform pre-flight and configuration checks
@@ -126,6 +132,12 @@
 
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
+    - name: Make sure system pymysql package is installed for OSP
+      yum:
+         name: '{{ maas_rally_distro_packages }}'
+         state: present
+      when: ansible_local['maas']['general']['deploy_osp'] | bool
+
     - name: Create rally constraint file
       template:
         src: templates/rax-maas/rally-constraint.txt.j2
@@ -137,6 +149,12 @@
         pip_package_list: "{{ maas_pip_rally_packages }}"
         pip_package_state: "{{ maas_pip_rally_package_state }}"
         pip_package_constraint: "/tmp/rally-constraint.txt"
+        pip_install_options: "-U"
+
+    - name: Override maas_rally_galera_address for OSP
+      set_fact:
+        maas_rally_galera_address: '{{ internal_api_ip }}'
+      when: ansible_local['maas']['general']['deploy_osp'] | bool
 
     - name: Create rally config directory
       file:
@@ -217,7 +235,7 @@
           os_project:
             name: "{{ item.value.project }}"
             state: present
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
             domain_id: "Default"
@@ -231,7 +249,7 @@
       #  - name: Ensure quotas for rally projects
       #    os_quota:
       #      state: present
-      #      cloud: default
+      #      cloud: "{{ cloud_config_name }}"
       #      validate_certs: "{{ not keystone_service_adminuri_insecure }}"
       #      name: "{{ item.value.project | default('rally_' + item.key) }}"
       #      instances: "{{ item.value.quotas.instances }}"
@@ -275,7 +293,7 @@
             project: "{{ item.value.project }}"
             role: "admin"
             state: present
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
           with_dict: "{{ maas_rally_checks }}"
@@ -288,7 +306,7 @@
             password: "{{ item.value.user_password }}"
             default_project: "{{ item.value.project }}"
             state: present
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
             domain: "Default"
@@ -296,13 +314,13 @@
           when:
             - item.value.enabled
 
-        - name: Grant _member_ role for rally users
+        - name: Grant member role for rally users
           os_user_role:
             user: "{{ item.value.user_name }}"
             project: "{{ item.value.project }}"
-            role: "_member_"
+            role: "member"
             state: present
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
           with_dict: "{{ maas_rally_checks }}"
@@ -315,7 +333,7 @@
             project: "{{ item.0.project }}"
             role: "{{ item.1 }}"
             state: present
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
           with_subelements:
@@ -336,7 +354,7 @@
       block:
         - name: Create rally_cirros image in glance
           os_image:
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             state: present
             name: rally_cirros
             filename: /tmp/cirros-0.3.5-x86_64-disk.img"
@@ -346,7 +364,7 @@
 
         - name: Create rally nova flavor
           os_nova_flavor:
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             state: present
             name: rally
             ram: 256
@@ -384,7 +402,7 @@
       block:
         - name: Create rally networks
           os_network:
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             state: present
             name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
             shared: no
@@ -399,7 +417,7 @@
 
         - name: Create rally subnets
           os_subnet:
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             state: present
             name: "{{ item.value.subnet_name | default('rally_subnet_' + item.key) }}"
             network_name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
@@ -414,12 +432,12 @@
             - "{{ 'compute' in item.value.primary_resources }}"
 
     - name: Check for existing maas_rally database initialization
-      command: "{{ maas_rally_venv_bin }}/rally-manage db revision"
+      command: "{{ maas_rally_venv_bin }}/rally db revision"
       register: rally_db_revision
       changed_when: False
 
     - name: Initialize maas_rally database
-      command: "{{ maas_rally_venv_bin }}/rally-manage db create"
+      command: "{{ maas_rally_venv_bin }}/rally db create"
       when:
         - "'None' in rally_db_revision.stdout"
 
@@ -540,7 +558,7 @@
       block:
         - name: Retrieve network UUIDs
           os_networks_facts:
-            cloud: default
+            cloud: "{{ cloud_config_name }}"
             wait: yes
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"

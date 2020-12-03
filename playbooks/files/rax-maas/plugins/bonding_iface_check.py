@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2018, Rackspace US, Inc.
 #
@@ -32,7 +32,7 @@ def bonding_ifaces_check(_):
         )
 
         bonding_iface_check_cmd_output_lines = (
-            bonding_iface_check_cmd_output.split('\n')
+            bonding_iface_check_cmd_output.decode().split('\n')
         )
         slave_count = 0
         for idx, line in enumerate(bonding_iface_check_cmd_output_lines):

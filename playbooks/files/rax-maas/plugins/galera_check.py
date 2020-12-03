@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2014, Rackspace US, Inc.
 #
@@ -133,7 +133,7 @@ def main():
             status_err('No output received from mysql. Cannot gather metrics.',
                        m_name='maas_galera')
 
-        show_list = output.split('\n')[1:-1]
+        show_list = output.decode().split('\n')[1:-1]
         for i in show_list:
             replica_status[i.split('\t')[0]] = i.split('\t')[1]
 

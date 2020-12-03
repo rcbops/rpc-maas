@@ -15,7 +15,7 @@
 
 - name: Install checks for openstack designate
   hosts: designate_all
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   gather_facts: true
   pre_tasks:
@@ -35,6 +35,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install designate api checks
+      template:
+        src: "templates/rax-maas/designate_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/designate_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install designate mdns checks
       template:
@@ -44,6 +54,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install designate mdns checks
+      template:
+        src: "templates/rax-maas/designate_mdns_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/designate_mdns_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install designate lb checks
       template:
@@ -54,6 +74,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install designate lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_designate.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_designate.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
@@ -66,6 +99,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install designate private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_designate.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_designate.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 

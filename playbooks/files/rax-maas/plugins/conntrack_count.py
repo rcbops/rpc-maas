@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2015, Rackspace US, Inc.
 #
@@ -162,7 +162,7 @@ def main():
         maas_common.status_err(str(e), m_name='maas_conntrack')
     else:
         maas_common.status_ok(m_name='maas_conntrack')
-        for name, data in metrics.viewitems():
+        for name, data in metrics.items():
             maas_common.metric(name, 'uint32', data['value'])
 
 

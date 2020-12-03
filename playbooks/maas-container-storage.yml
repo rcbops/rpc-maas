@@ -59,7 +59,7 @@
 - name: Fix mtab within containers
   hosts: all_containers
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - name: Remove the old mtab object
@@ -99,7 +99,7 @@
 - name: Install checks for infra storage local checks
   hosts: known_container_hosts
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   tasks:
     - name: Install local checks

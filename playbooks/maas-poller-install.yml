@@ -49,6 +49,10 @@
         - always
 
   tasks:
+    - name: debug
+      debug:
+        msg: 'maas_private_monitoring_enabled: {{ maas_private_monitoring_enabled }} maas_private_monitoring_zone: {{ maas_private_monitoring_zone }}'
+
     - name: Include Ubuntu distro install tasks
       include_tasks: "common-tasks/maas-poller-{{ ansible_distribution | lower }}-install.yml"
       when:

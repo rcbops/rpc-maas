@@ -83,6 +83,11 @@ keystone_local_api_port: '5000'
 #
 keystone_local_api_protocol: 'http'
 
+#
+# interface to use when working with specific playbooks(swift, octavia)
+#
+keystone_check_interface: 'internal'
+
 # cinder_local_api_protocol: Protocol to use for cinder local API checks
 #
 cinder_local_api_protocol: 'http'

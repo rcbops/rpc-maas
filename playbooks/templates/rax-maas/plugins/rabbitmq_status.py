@@ -71,11 +71,11 @@ def hostname():
 
 
 def rabbit_version(node):
-    if ('applications' in node and
-            'rabbit' in node['applications'] and
-            'version' in node['applications']['rabbit']):
-        version_string = node['applications']['rabbit']['version']
-        return tuple(int(part) for part in version_string.split('.'))
+    if 'applications' in node:
+        if 'rabbit' in node['applications']:
+            if 'version' in node['applications']['rabbit']:
+                version_string = node['applications']['rabbit']['version']
+                return tuple(int(part) for part in version_string.split('.'))
     else:
         return tuple()
 
@@ -132,7 +132,7 @@ def _get_connection_metrics(session, metrics, protocol, host, port):
                                                             host, port))
 
     max_chans = max(chain(connection['channels'] for connection in response
-                    if 'channels' in connection), '0')
+                    if 'channels' in connection))
     for k in CONNECTIONS_METRICS:
         metrics[k] = {'value': max_chans, 'unit': CONNECTIONS_METRICS[k]}
 

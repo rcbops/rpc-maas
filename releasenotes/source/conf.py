@@ -41,7 +41,7 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'oslosphinx',
+    'openstackdocstheme',
     'sphinxmark'
 ]
 
@@ -70,7 +70,7 @@ target_name = role_name
 title = 'RPC-MaaS Release Notes: ' + role_name + 'role'
 
 # The link to the browsable source code (for the left hand menu)
-oslosphinx_cgit_link = 'https://git.openstack.org/cgit/openstack/' + target_name
+#oslosphinx_cgit_link = 'https://git.openstack.org/cgit/openstack/' + target_name
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

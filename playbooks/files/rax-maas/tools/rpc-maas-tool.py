@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2015, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +17,11 @@
 from __future__ import print_function
 
 import argparse
-import ConfigParser
+import configparser
 import datetime
 import logging
 import os
-from Queue import Queue
+from queue import Queue
 import re
 import subprocess
 import sys
@@ -92,7 +92,7 @@ class RpcMaas(object):
 
     def _get_conn(self):
         """Read config file and use extracted creds to connect to MAAS"""
-        self.config = ConfigParser.RawConfigParser()
+        self.config = configparser.RawConfigParser()
         self.config.read(self.config_file)
         self.conn = None
 
@@ -100,7 +100,7 @@ class RpcMaas(object):
             user = self.config.get('credentials', 'username')
             api_key = self.config.get('credentials', 'api_key')
             self.conn = self.driver(user, api_key)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        except (configparser.NoSectionError, configparser.NoOptionError):
             url = self.config.get('api', 'url')
             token = self.config.get('api', 'token')
             self.conn = self.driver(None, None, ex_force_base_url=url,
@@ -465,7 +465,7 @@ class RpcMassCli(object):
                 failed_checks.append(result)
                 continue
             # use the output of executing the checks to find available metrics
-            for line in result['output'].splitlines():
+            for line in result['output'].decode().splitlines():
                 # check the status line and return code
                 match = status_line_re.match(line)
                 if match:

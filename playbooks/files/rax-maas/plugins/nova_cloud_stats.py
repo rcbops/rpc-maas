@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2015, Rackspace US, Inc.
 #
@@ -74,7 +74,7 @@ def check(args):
         for stat in stats:
             count += 1
             setattr(stat, 'count', count)
-            for metric_name, vals in stats_mapping.iteritems():
+            for metric_name, vals in iter(stats_mapping.items()):
                 multiplier = 1
                 if metric_name == 'total_vcpus':
                     multiplier = args.cpu_allocation_ratio
@@ -88,7 +88,7 @@ def check(args):
                     vals['type']
 
     status_ok(m_name='maas_nova')
-    for metric_name in cloud_stats.iterkeys():
+    for metric_name in iter(cloud_stats):
         metric('cloud_resource_%s' % metric_name,
                cloud_stats[metric_name]['type'],
                cloud_stats[metric_name]['value'],

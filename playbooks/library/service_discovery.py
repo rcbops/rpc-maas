@@ -13,13 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from socket import gaierror, gethostbyname
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: ignore=H303
 from keystoneauth1.exceptions import MissingRequiredOptions
 import netaddr
 from openstack import connect
+
+log = logging.getLogger(__name__)
+log_fmt = "%(asctime)-15s %(lineno)d - %(funcName)s: %(message)s"
 
 
 DOCUMENTATION = """
@@ -44,6 +49,14 @@ options:
         description:
             - An IP address identifying the external OpenStack VIP.
         required: true
+    cinder_discovery:
+        description:
+            - A boolen to lookup cinder backends from the API.
+        required: true
+    cloud_name:
+        description:
+            - String, representing the cloud name inside the clouds.yaml
+        required: true
 author:
     - Nathan Pawelek (@npawelek)
 """
@@ -52,8 +65,10 @@ EXAMPLES = """
 - name: Service discovery
   service_discovery:
     raxdc: False
+    cinder_discovery: True
     internal_vip: 172.29.236.100
     external_vip: 172.99.120.153
+    cloud_name: default
 """
 
 
@@ -63,6 +78,7 @@ class ServiceDiscovery(object):
         self.raxdc = module.params.get('raxdc')
         self.internal_vip = module.params.get('internal_vip')
         self.external_vip = module.params.get('external_vip')
+        self.cloud_name = module.params.get('cloud_name')
         self.conn = self.build_sdk_connection()
         self.catalog_details = dict()
         self.cert_expiry = False
@@ -85,7 +101,7 @@ class ServiceDiscovery(object):
         """
 
         try:
-            sdk_conn = connect(cloud='default', verify=False)
+            sdk_conn = connect(cloud=self.cloud_name, verify=False)
         except MissingRequiredOptions as e:
             message = ('Missing option in clouds.yaml: %s' % str(e))
             self.module.fail_json(msg=message)
@@ -377,18 +393,25 @@ class ServiceDiscovery(object):
         """
         cinder = self.conn.block_storage
 
-        backend_pools = [str(bp.name) for bp in cinder.backend_pools()]
-        backend_names = [i.split('#')[-1] for i in backend_pools]
+        backend_pools = [{'name': str(bp.name),
+                          'storage_protocol':
+                          str(bp.capabilities["storage_protocol"])}
+                         for bp in cinder.backend_pools()]
+        backend_names = [str(b['name']).split('#')[-1] for b in backend_pools]
         unique_backend_names = set(backend_names)
         unique_backend_counts = dict()
+
+        log.debug("Cinder Backend Pools: {}".format(backend_pools))
+        log.debug("Cinder Backend Names: {}".format(backend_names))
+        log.debug("Cinder Unique Backend Names: {}"
+                  .format(unique_backend_names))
 
         for name in unique_backend_names:
             unique_backend_counts[name] = backend_names.count(name)
 
-        for pool in backend_pools:
-            host, backend_name = pool.split('#')
-
-            if unique_backend_counts[backend_name] == 1:
+        for backend in backend_pools:
+            host, backend_name = backend['name'].split('#')
+            if backend['storage_protocol'] in ('ceph', 'nfs'):
                 self.cinder_backends['shared'].append(host)
             else:
                 self.cinder_backends['local'].append(host)
@@ -400,10 +423,16 @@ def main():
             raxdc=dict(required=True, type='bool'),
             internal_vip=dict(required=True),
             external_vip=dict(required=True),
-            cinder_discovery=dict(required=True, type='bool')
+            cinder_discovery=dict(required=True, type='bool'),
+            cloud_name=dict(type='str', default='overcloud'),
+            debug=dict(required=False, type='bool')
         ),
         supports_check_mode=False
     )
+
+    if module.params.get('debug') is True:
+        logging.basicConfig(format=log_fmt, filename='service_discovery.log')
+        log.setLevel(logging.DEBUG)
 
     discovery = ServiceDiscovery(module)
     discovery.parse_service_catalog()

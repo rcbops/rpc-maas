@@ -41,9 +41,14 @@
   tags:
     - maas
 
-- import_playbook: maas-container-all.yml
-  tags:
-    - maas
+# Maintainer only created lxc-python2.
+# We will need to move to maybe lxc-python3 and
+# rewrite the scripts if this is still needed.
+#
+# Keeping commented out for now.
+#- import_playbook: maas-container-all.yml
+#  tags:
+#    - maas
 
 - import_playbook: maas-openstack-all.yml
   tags:

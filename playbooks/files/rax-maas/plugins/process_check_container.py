@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright 2015, Rackspace US, Inc.
 #
@@ -141,7 +141,7 @@ def check_process_running(process_names, container_name=None):
     # Loop through the process names provided on the command line to see if
     # they exist on the system or in a container.
     # suppress some character which throw MaaS off
-    pattern = re.compile('[^-\w]+')
+    pattern = re.compile(r'[^-\w]+')
     for process_name in process_names:
         matches = [x for x in cmdlines if process_name in x]
         metric_bool('%s_process_status' % pattern.sub('', process_name),

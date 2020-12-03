@@ -16,7 +16,7 @@
 - name: Install checks for openstack neutron
   hosts: neutron_server
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - name: Refresh local facts
@@ -35,6 +35,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install neutron server checks
+      template:
+        src: "templates/rax-maas/neutron_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
     - name: Install neutron lb checks
       template:
@@ -45,6 +55,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install neutron lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_neutron.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_neutron.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_remote_check | bool
         - not maas_private_monitoring_enabled
 
@@ -57,6 +80,19 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install neutron private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_neutron.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_neutron.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - maas_private_monitoring_enabled
         - maas_private_monitoring_zone is defined
 
@@ -74,7 +110,7 @@
 - name: Install checks for openstack neutron dhcp agent
   hosts: neutron_dhcp_agent
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -88,6 +124,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install neutron dhcp agent checks
+      template:
+        src: "templates/rax-maas/neutron_dhcp_agent_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_dhcp_agent_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
@@ -103,7 +149,7 @@
 - name: Install checks for openstack neutron l3 agent
   hosts: neutron_l3_agent
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -117,6 +163,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install neutron l3 agent checks
+      template:
+        src: "templates/rax-maas/neutron_l3_agent_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_l3_agent_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
@@ -132,7 +188,7 @@
 - name: Install checks for openstack neutron linux bridge agent
   hosts: neutron_linuxbridge_agent
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -147,6 +203,20 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - ansible_local['maas']['general']['neutron_plugin_type'] is undefined
+        - (neutron_plugin_type is undefined) or
+          (neutron_plugin_type is search("lxb"))
+
+    - name: Install neutron linux bridge agent checks
+      template:
+        src: "templates/rax-maas/neutron_linuxbridge_agent_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_linuxbridge_agent_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - ansible_local['maas']['general']['neutron_plugin_type'] is undefined
         - (neutron_plugin_type is undefined) or
           (neutron_plugin_type is search("lxb"))
@@ -165,7 +235,7 @@
 - name: Install checks for openstack neutron OVS agent
   hosts: neutron_openvswitch_agent
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -180,6 +250,23 @@
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
+        - 'physical_host != ansible_host'
+        - (
+            (ansible_local['maas']['general']['neutron_plugin_type'] is defined and
+             ansible_local['maas']['general']['neutron_plugin_type'] is search("ovs")) or
+            (neutron_plugin_type is defined and
+             neutron_plugin_type is search("ovs"))
+          )
+
+    - name: Install neutron OVS agent checks
+      template:
+        src: "templates/rax-maas/neutron_ovs_agent_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_ovs_agent_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
         - (
             (ansible_local['maas']['general']['neutron_plugin_type'] is defined and
              ansible_local['maas']['general']['neutron_plugin_type'] is search("ovs")) or
@@ -201,7 +288,7 @@
 - name: Install checks for openstack neutron metadata agent
   hosts: neutron_metadata_agent
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -215,6 +302,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install neutron metadata agent check
+      template:
+        src: "templates/rax-maas/neutron_metadata_agent_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_metadata_agent_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
 # TODO(npawelek): This doesn't appear to be consistently implemented, will re-add later
 #    - name: Install neutron metadata proxy check
@@ -240,7 +337,7 @@
 - name: Install checks for openstack neutron metering agent
   hosts: neutron_metering_agent
   gather_facts: true
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -254,6 +351,16 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install neutron metadata agent checks
+      template:
+        src: "templates/rax-maas/neutron_metering_agent_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/neutron_metering_agent_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml

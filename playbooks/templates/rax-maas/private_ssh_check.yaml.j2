@@ -6,7 +6,15 @@ label             : "{{ check_name }}"
 period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
 timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
 disabled          : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+{% if (ansible_local['maas']['general']['deploy_osp'] | bool) %}
+{% if inventory_hostname == 'director' or ansible_host == 'localhost' %}
+target_hostname   : "{{ ansible_br_ctlplane.ipv4.address }}"
+{% else %}
+target_hostname   : "{{ ctlplane_ip }}"
+{% endif %}
+{% else %}
 target_hostname   : "{{ ansible_default_ipv4.address }}"
+{% endif %}
 details           :
   port            : {{ private_ssh_port }}
   banner_match    : "SSH"

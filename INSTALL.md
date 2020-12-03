@@ -1,14 +1,16 @@
-# rpc-maas OSP16 install docs
+# rpc-maas Install docs
 
 ## Overview
 
-A separate 'osp16' branch was created to support some of the following changes:
+RedHat OSP16 and changes for python3 are made into this branch.
+Checkout the ***python2*** branch for all release below OSP16 or OpenStack Ussuri:
 * python3 support
 * RHEL8 system dependancies
 * newer rally version
 * OSP16 inventory layout changes
 
-I removed the need for MTC with a quick shell script that sets up /root/ansible_venv used for the installation.  Apart from the removal of MTC the internal documentation can still be used for everything else. 
+MTC is replaced with a shell script that sets up ***/root/ansible_venv*** used for the installation.
+Apart from the removal of MTC the internal documentation can still be used for everything else.
 * [internal monitoring docs](https://pages.github.rackspace.com/rpc-internal/docs-rpc/rpc-monitoring-internal/index.html)
 
 ## Download rpc-maas
@@ -16,7 +18,6 @@ I removed the need for MTC with a quick shell script that sets up /root/ansible_
 ```
 git clone https://github.com/rcbops/rpc-maas /opt/rpc-maas
 cd /opt/rpc-maas/
-git checkout osp16
 ```
 
 ## Setting up the installer venv
@@ -24,12 +25,13 @@ git checkout osp16
 Ran as root on the director vm.
 ```
 cd /opt/rpc-maas/
-./scripts/osp16-prep.sh
+./scripts/prepare.sh
 ```
 
 ## Creating rackspace monitoring entities and agent tokens.
 
-According to the docs the rackspace-monitoring-agent installation and entity creation is handled by the rackspace cloud engineers.  It doesn't cover this in detail, so I'm assuiming our deployment guys have the steps down for that.  Before continuing on the following must be completed.
+According to the docs the rackspace-monitoring-agent installation and entity creation is handled by the Rackspace cloud engineers.
+t doesn't cover this in detail, so I'm assuiming our deployment guys have the steps down for that.  Before continuing on the following must be completed.
 * Entity and agent token creation.
 * Installation of the rackspace-monitoring-agent. (redhat 8 packages are available)
 * Configuration of the rackspace-monitoring-agent with the entity and agent token.
@@ -38,7 +40,9 @@ See the docs for details on a [decoupled environment](https://pages.github.racks
 
 ## Generating an auth-token
 
-This may already be obtained from pitchfork or whatever the rackspace cloud enginners used to set up the entities.  If you have a pubcloud username and api key, you can use the following gating test script to pull the auth token. The values for the url and auth token can be found in /root/maas-vars.rc after.
+This may already be obtained from pitchfork or whatever the Rackspace cloud enginners used to set up the entities.
+If you have a pubcloud username and api key, you can use the following gating test script to pull the auth token.
+The values for the url and auth token can be found in /root/maas-vars.rc after.
 
 ```
 /root/ansible_venv/bin/python3 tests/maasutils.py --username <pubcloud_username> --api-key <pubcloud_api_key> get_token_url
@@ -116,7 +120,7 @@ deactivate
 ```
 
 
-## Rally performance checks(if required by customer)
+## Rally performance checks(OSP only, if required by customer)
 
 * Update the config to enable rally
 ```
