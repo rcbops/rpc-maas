@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Ensure rally basic requirements are met
-  hosts: "shared-infra_hosts"
+  hosts: "os-infra_hosts"
   gather_facts: false
   connection: local
   tasks:
@@ -33,6 +33,12 @@
         - (((groups['swift_all'] | default([])) | union(groups['rgws'] | default([]))) | length) > 0
   tags:
     - always
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+    - "vars/maas-{{ ansible_distribution | lower }}.yml"
+    - vars/maas-openstack.yml
 
 
 - name: Perform pre-flight and configuration checks
@@ -229,7 +235,7 @@
           os_project:
             name: "{{ item.value.project }}"
             state: present
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
             domain_id: "Default"
@@ -243,7 +249,7 @@
       #  - name: Ensure quotas for rally projects
       #    os_quota:
       #      state: present
-      #      cloud: overcloud
+      #      cloud: "{{ cloud_config_name }}"
       #      validate_certs: "{{ not keystone_service_adminuri_insecure }}"
       #      name: "{{ item.value.project | default('rally_' + item.key) }}"
       #      instances: "{{ item.value.quotas.instances }}"
@@ -287,7 +293,7 @@
             project: "{{ item.value.project }}"
             role: "admin"
             state: present
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
           with_dict: "{{ maas_rally_checks }}"
@@ -300,7 +306,7 @@
             password: "{{ item.value.user_password }}"
             default_project: "{{ item.value.project }}"
             state: present
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
             domain: "Default"
@@ -314,7 +320,7 @@
             project: "{{ item.value.project }}"
             role: "member"
             state: present
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
           with_dict: "{{ maas_rally_checks }}"
@@ -327,7 +333,7 @@
             project: "{{ item.0.project }}"
             role: "{{ item.1 }}"
             state: present
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"
           with_subelements:
@@ -348,7 +354,7 @@
       block:
         - name: Create rally_cirros image in glance
           os_image:
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             state: present
             name: rally_cirros
             filename: /tmp/cirros-0.3.5-x86_64-disk.img"
@@ -358,7 +364,7 @@
 
         - name: Create rally nova flavor
           os_nova_flavor:
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             state: present
             name: rally
             ram: 256
@@ -396,7 +402,7 @@
       block:
         - name: Create rally networks
           os_network:
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             state: present
             name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
             shared: no
@@ -411,7 +417,7 @@
 
         - name: Create rally subnets
           os_subnet:
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             state: present
             name: "{{ item.value.subnet_name | default('rally_subnet_' + item.key) }}"
             network_name: "{{ item.value.net_name | default('rally_net_' + item.key) }}"
@@ -552,7 +558,7 @@
       block:
         - name: Retrieve network UUIDs
           os_networks_facts:
-            cloud: overcloud
+            cloud: "{{ cloud_config_name }}"
             wait: yes
             endpoint_type: "admin"
             validate_certs: "{{ not keystone_service_adminuri_insecure }}"

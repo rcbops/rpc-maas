@@ -155,6 +155,7 @@ octavia_quota_names:
 
 octavia_observer_role_name: load-balancer_observer
 octavia_project: admin
+octavia_project_domain: 'default'
 octavia_user: admin
 
 # Designate variables

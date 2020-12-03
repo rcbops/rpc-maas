@@ -98,9 +98,8 @@
   tags:
     - maas-openstack-octavia
 
-
 - name: Install checks for openstack octavia API
-  hosts: "octavia_api"
+  hosts: "octavia-api:octavia_api"
   user: "{{ ansible_ssh_user | default('root') }}"
   become: true
   gather_facts: true
@@ -112,18 +111,19 @@
   tasks:
     - name: Ensure the observer role exists
       os_keystone_role:
-        cloud: overcloud
+        cloud: "{{ cloud_config_name }}"
         interface: "{{ keystone_check_interface }}"
         name: "{{ octavia_observer_role_name }}"
         state: present
       delegate_to: localhost
       run_once: true
-      
+
     - name: Ensure Octavia observer member role assignment
       os_user_role:
-        cloud: overcloud
+        cloud: "{{ cloud_config_name }}"
         interface: "{{ keystone_check_interface }}"
         role: "{{ octavia_observer_role_name }}"
+        domain: "{{ octavia_project_domain }}"
         project: "{{ octavia_project }}"
         user: "{{ octavia_user }}"
         state: present

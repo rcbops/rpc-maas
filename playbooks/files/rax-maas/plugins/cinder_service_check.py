@@ -46,10 +46,13 @@ def check(args):
         metric_bool('client_success', True, m_name='maas_cinder')
 
     services = resp.json()['services']
-
     # We need to match against a host of X and X@lvm (or whatever backend)
     if args.host:
-        backend = ''.join((args.host, '@'))
+        if '@' not in args.host:
+          backend = ''.join((args.host, '@'))
+        else:
+          backend = args.host
+
         services = [service for service in services
                     if (service['host'].startswith(backend) or
                         service['host'] == args.host)]

@@ -510,6 +510,8 @@ maas_pip_rally_packages:
 #  - openstacksdk==0.37.0
 #  - diskcache
 
+maas_rally_enabled: False
+
 #
 # agent endpoint TLS location
 #
@@ -551,7 +553,7 @@ maas_compat:
     neutron_plugin_type: 'ovs'
     horizon_service_protocol: 'http'
     horizon_service_port: '80'
-
+ 
 #
 # Release specific check exclusions for OSA
 #
@@ -583,3 +585,8 @@ maas_osp_release_excluded_checks:
   train:
     - glance_registry_local_check
     - nova_consoleauth_check
+
+#
+# Set configuration options depending on OSA/OSP product
+#
+cloud_config_name: "{{ ansible_local.maas.general.deploy_osp | bool | ternary('overcloud','default') }}"
