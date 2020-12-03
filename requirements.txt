@@ -1,0 +1,4 @@
+
+click==7.1.2
+rackspace-monitoring==0.8.1
+
