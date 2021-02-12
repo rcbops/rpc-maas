@@ -61,7 +61,7 @@ vi /home/stack/user_maas_variables.yml
 * Example:
 ```
 # MaaS v2 overrides
-maas_api_url: "https://monitoring.api.rackspacecloud.com/v1.0/<tenant id>"
+maas_api_url: "https://monitoring.api.rackspacecloud.com/v1.0/hybrid:<tenant id>"
 maas_auth_token: "<taken from the /root/maas-vars.rc if using the test script>"
 
 # The entityLabel should based on the 'maas_fqdn_extension', as follows:
