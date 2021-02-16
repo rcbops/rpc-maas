@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Copy over pip constraints
+- name: Copy over pip requirement
   copy:
     src: "files/pip-constraints.txt"
-    dest: "/tmp/pip-constraints.txt"
+    dest: "/tmp/pip-requirements.txt"
 
 - name: Install required pip packages
   package:
@@ -116,7 +116,7 @@
         state: "{{ pip_package_state | default(maas_pip_package_state) }}"
         extra_args: >-
           --isolated
-          --constraint "{{ pip_package_constraint | default('/tmp/pip-constraints.txt') }}"
+          --requirement "{{ pip_package_requirements | default('/tmp/pip-requirements.txt') }}"
           {{ pip_install_options | default('') }}
         virtualenv: "{{ target_venv | default(maas_venv) }}"
       register: install_pip_packages
