@@ -46,17 +46,8 @@
       copy:
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host | default(ansible_hostname) }}"
       when:
-        - 'physical_host != ansible_host'
-        - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
-
-    - name: Write Ceph monitoring client key to file
-      copy:
-        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
-        dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      when:
-        - 'physical_host == ansible_host'
         - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
 
     - name: Write Ceph monitoring client key to file within legacy rpc hosts
@@ -75,24 +66,10 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host | default(ansible_hostname) }}"
       with_items:
         - ceph_rgw_stats
       when:
-        - 'physical_host != ansible_host'
-        - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
-
-    - name: Install local rgws checks
-      template:
-        src: "templates/rax-maas/{{ item }}.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item }}.yaml--{{ inventory_hostname }}.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      with_items:
-        - ceph_rgw_stats
-      when:
-        - 'physical_host == ansible_host'
         - ansible_local['maas']['general']['maas_product_ceph_version'] is defined
 
   vars_files:

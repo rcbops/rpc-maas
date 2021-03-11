@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: hosts
+  hosts: hosts:mons:mgrs:osds:rgws:grafana-server
   gather_facts: true
   become: true
   tasks:
@@ -34,7 +34,7 @@
 
 
 - name: Deploy vendor hardware monitoring
-  hosts: hosts
+  hosts: hosts:mons:mgrs:osds:rgws:grafana-server
   gather_facts: true
   become: true
   tasks:

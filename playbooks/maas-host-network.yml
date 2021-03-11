@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Gather facts
-  hosts: hosts
+  hosts: hosts:mons:mgrs:osds:rgws:grafana-server
   gather_facts: true
   become: true
   tasks:
@@ -34,7 +34,7 @@
 
 
 - name: Install checks for host networking
-  hosts: hosts
+  hosts: hosts:mons:mgrs:osds:rgws:grafana-server
   gather_facts: true
   become: true
   pre_tasks:

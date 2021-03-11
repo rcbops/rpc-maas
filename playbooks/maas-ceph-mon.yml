@@ -48,14 +48,7 @@
       copy:
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      delegate_to: "{{ physical_host }}"
-      when: 'physical_host != ansible_host'
-
-    - name: Write Ceph monitoring client key to file
-      copy:
-        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
-        dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      when: 'physical_host == ansible_host'
+      delegate_to: "{{ physical_host | default(ansible_hostname) }}"
 
     - name: Get the first mon container
       shell: podman ps --format '{{ '{{' }}.Names{{ '}}' }}' --filter name=ceph-mon
@@ -84,7 +77,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host | default(ansible_hostname) }}"
       with_items:
         - ceph_mon_stats
         - ceph_cluster_stats
@@ -94,25 +87,6 @@
         - ceph_health_checks_device_health
         - ceph_health_checks_data_health
         - ceph_health_checks_misc
-      when: 'physical_host != ansible_host'
-
-    - name: Install local mons checks
-      template:
-        src: "templates/rax-maas/{{ item }}.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/{{ item }}.yaml--{{ inventory_hostname }}.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      with_items:
-        - ceph_mon_stats
-        - ceph_cluster_stats
-        - ceph_health_checks_mon
-        - ceph_health_checks_mgr
-        - ceph_health_checks_osds
-        - ceph_health_checks_device_health
-        - ceph_health_checks_data_health
-        - ceph_health_checks_misc
-      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml
