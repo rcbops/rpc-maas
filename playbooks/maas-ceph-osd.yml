@@ -46,14 +46,7 @@
       copy:
         content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
         dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: 'physical_host != ansible_host'
-
-    - name: Write Ceph monitoring client key to file
-      copy:
-        content: "{{ [hostvars[groups['mons'][0]]['ceph_raxmon_client']['stdout'], '\n'] | join('') }}"
-        dest: "/etc/ceph/ceph.client.raxmon.keyring"
-      when: 'physical_host == ansible_host'
+      delegate_to: "{{ physical_host | default(ansible_hostname) }}"
 
     - name: Write Ceph monitoring client key to file within legacy rpc hosts
       copy:
@@ -122,21 +115,9 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      delegate_to: "{{ physical_host | default(ansible_hostname) }}"
       with_items:
         - "{{ ceph_osd_list }}"
-      when: 'physical_host != ansible_host'
-
-    - name: Install local osd checks
-      template:
-        src: "templates/rax-maas/ceph_osd_stats.yaml.j2"
-        dest: "/etc/rackspace-monitoring-agent.conf.d/ceph_osd_{{ item }}_stats.yaml--{{ inventory_hostname }}.yaml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-      with_items:
-        - "{{ ceph_osd_list }}"
-      when: 'physical_host == ansible_host'
 
   vars_files:
     - vars/main.yml

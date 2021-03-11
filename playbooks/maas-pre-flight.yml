@@ -220,7 +220,15 @@
 
     - name: ceph release block
       block:
-        - name: Register ceph version
+        - name: Register ceph version (OSA)
+          command: ceph --version
+          register: maas_osa_ceph_version
+          delegate_to: "{{ groups['mons'][0] }}"
+          when:
+           - not (deploy_osp | default(False) | bool)
+           - ansible_local['maas']['general']['maas_product_osa_codename'] is defined
+
+        - name: Register ceph version (OSP)
           shell: |
               #!/bin/bash
               set -x
@@ -228,17 +236,25 @@
               export CONTAINER=$(podman ps --format '{{ '{{' }}.Names{{ '}}' }}' | grep ceph-mon-controller)
               echo "container:  $CONTAINER"
               podman exec $CONTAINER ceph --version
-          register: maas_product_ceph_version
+          register: maas_osp_ceph_version
           delegate_to: "{{ groups['ceph_mon'][0] }}"
+          when:
+            - deploy_osp | default(False) | bool
+
+        - name: Register maas_product_ceph_version
+          set_fact:
+            maas_product_ceph_version: "{{ maas_osa_ceph_version is defined |ternary(maas_osa_ceph_version.stdout,maas_osp_ceph_version.stdout) }}"
+          when:
+            - (maas_osa_ceph_version.changed |bool or maas_osp_ceph_version.changed |bool)
 
         - name: Set ceph release version fact
           ini_file:
             path: "/etc/ansible/facts.d/maas.fact"
             section: "general"
             option: "maas_product_ceph_version"
-            value: "{{ maas_product_ceph_version.stdout.split('(')[0].strip() | regex_search('[0-9]+.[0-9]+.[0-9]+') }}"
+            value: "{{ maas_product_ceph_version.split('(')[0].strip() | regex_search('[0-9]+.[0-9]+.[0-9]+') }}"
           when:
-            - maas_product_ceph_version.changed | bool
+            - maas_product_ceph_version is defined
 
         - name: Check for Podman command
           command: podman --version
@@ -272,8 +288,7 @@
             filter: ansible_local
             gather_subset: "!all"
       when:
-        - groups['ceph_all'] | default([]) | length > 0
-        - groups['ceph_mon'] | default([]) | length > 0
+        - (groups['ceph_mon'] | default([]) | length > 0 or groups['mons'] | default([]) | length > 0)
 
     - name: rhosp release block
       block:
