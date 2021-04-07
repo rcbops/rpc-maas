@@ -350,7 +350,7 @@ pip_package_list: []
 #
 maas_pip_packages:
    - rackspace-monitoring
-   - monitorstack
+   - 'git+https://opendev.org/x/monitorstack@master#egg=monitorstack'
    - pyroute2
    - ipaddr
    - python-memcached
