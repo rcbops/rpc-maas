@@ -16,7 +16,7 @@
 - name: Copy over pip requirement
   copy:
     src: "files/pip-constraints.txt"
-    dest: "/tmp/pip-requirements.txt"
+    dest: "/tmp/pip-constraints.txt"
 
 - name: Install required pip packages
   package:
@@ -116,7 +116,7 @@
         state: "{{ pip_package_state | default(maas_pip_package_state) }}"
         extra_args: >-
           --isolated
-          --requirement "{{ pip_package_requirements | default('/tmp/pip-requirements.txt') }}"
+          --constraint "{{ pip_package_constraint | default('/tmp/pip-constraints.txt') }}"
           {{ pip_install_options | default('') }}
         virtualenv: "{{ target_venv | default(maas_venv) }}"
       register: install_pip_packages
