@@ -31,7 +31,7 @@ def nfs_export_check():
         shlex.split(
             "awk -F':' '/ nfs / {print $1}' /proc/mounts"
         )
-    )
+    ).decode('utf-8')
     nfs_mounts = output.splitlines()
     for mount in nfs_mounts:
         mount_metrics = nfs_metrics[mount] = {'exports': 0, 'online': False}
