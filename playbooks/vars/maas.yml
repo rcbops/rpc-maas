@@ -358,15 +358,6 @@ maas_pip_packages:
    - pyudev
    - dnspython
    - lxml
-#  - requests
-#  - apache-libcloud
-#  - cryptography
-#  - psutil
-#  - git+https://github.com/lunaryorn/pyudev.git
-#  - rackspace-monitoring-cli
-#  - ipaddress
-#  - contextlib2
-#  - diskcache
 
 #
 # pip extra packages for lxc containers
