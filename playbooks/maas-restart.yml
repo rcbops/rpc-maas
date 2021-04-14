@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Restart MaaS
-  hosts: hosts
+  hosts: hosts:mons:mgrs:osds:rgws:grafana-server
   gather_facts: true
   serial: "{{ maas_restart_serial | default(1) }}"
   become: true

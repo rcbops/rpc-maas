@@ -26,10 +26,10 @@ maas_distro_packages:
   - sysstat
   - rackspace-monitoring-agent
   - python3-dev
+  - virtualenv
   - gcc
   - ipmitool
   - dmidecode
-
 #
 # Enable additional package override
 #
