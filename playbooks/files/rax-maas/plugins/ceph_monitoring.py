@@ -159,6 +159,14 @@ def get_ceph_status(client, keyring, fmt='json', container_name=None,
                          deploy_osp=deploy_osp)
 
 
+def get_ceph_mon_status(client, keyring, fmt='json', container_name=None,
+                    deploy_osp=False):
+
+    return check_command(('ceph', 'mon', 'stat', '--format', fmt),
+                         container_name=container_name,
+                         deploy_osp=deploy_osp)
+
+
 def get_local_osd_info(osd_ref, fmt='json', container_name=None,
                        deploy_osp=False):
     return check_command(
@@ -174,8 +182,18 @@ def get_mon_statistics(client=None, keyring=None, host=None,
                                   keyring=keyring,
                                   container_name=container_name,
                                   deploy_osp=deploy_osp)
-    mon = [m for m in ceph_status['monmap']['mons']
-           if m['name'] == host]
+    try:
+      mon = [m for m in ceph_status['monmap']['mons']
+             if m['name'] == host]
+
+    except KeyError:
+      ceph_mon_status = get_ceph_mon_status(client=client,
+                                  keyring=keyring,
+                                  container_name=container_name,
+                                  deploy_osp=deploy_osp)
+      mon = [m for m in ceph_mon_status['quorum']
+             if m['name'] == host]
+
     mon_in = mon[0]['rank'] in ceph_status['quorum']
     metric_bool('mon_in_quorum', mon_in)
 
