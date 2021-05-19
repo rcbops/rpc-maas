@@ -352,6 +352,7 @@ maas_pip_packages:
    - rackspace-monitoring
    - monitorstack@git+https://opendev.org/x/monitorstack@master#egg=monitorstack
    - pyroute2
+   - mitogen
    - ipaddr
    - python-memcached
    - netaddr
