@@ -191,10 +191,7 @@ def get_mon_statistics(client=None, keyring=None, host=None,
                                   keyring=keyring,
                                   container_name=container_name,
                                   deploy_osp=deploy_osp)
-      mon = [m for m in ceph_mon_status['quorum']
-             if m['name'] == host]
-
-    mon_in = mon[0]['rank'] in ceph_status['quorum']
+    mon_in = host in ceph_status['quorum_names']
     metric_bool('mon_in_quorum', mon_in)
 
 
@@ -288,14 +285,24 @@ def get_cluster_statistics(client=None, keyring=None, container_name=None,
     metrics.append({'name': "monmap_epoch",
                     'type': 'uint32',
                     'value': ceph_status['monmap']['epoch']})
-    metrics.append({'name': "osdmap_epoch",
-                    'type': 'uint32',
-                    'value': ceph_status['osdmap']['osdmap']['epoch']})
+    if 'osdmap' in ceph_status['osdmap']:
+        metrics.append({'name': "osdmap_epoch",
+                        'type': 'uint32',
+                        'value': ceph_status['osdmap']['osdmap']['epoch']})
+    else:
+        metrics.append({'name': "osdmap_epoch",
+                        'type': 'uint32',
+                        'value': ceph_status['osdmap']['epoch']})
 
     # Collect OSDs per state
-    osds = {'total': ceph_status['osdmap']['osdmap']['num_osds'],
-            'up': ceph_status['osdmap']['osdmap']['num_up_osds'],
-            'in': ceph_status['osdmap']['osdmap']['num_in_osds']}
+    if 'osdmap' in ceph_status['osdmap']:
+        osds = {'total': ceph_status['osdmap']['osdmap']['num_osds'],
+                'up': ceph_status['osdmap']['osdmap']['num_up_osds'],
+                'in': ceph_status['osdmap']['osdmap']['num_in_osds']}
+    else:
+        osds = {'total': ceph_status['osdmap']['num_osds'],
+                'up': ceph_status['osdmap']['num_up_osds'],
+                'in': ceph_status['osdmap']['num_in_osds']}
     for k in osds:
         metrics.append({'name': 'osds_%s' % k,
                         'type': 'uint32',
