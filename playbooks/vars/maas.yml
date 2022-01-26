@@ -359,6 +359,7 @@ maas_pip_packages:
    - pyudev
    - dnspython
    - lxml
+   - distro
 
 #
 # pip extra packages for lxc containers
