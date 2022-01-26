@@ -15,11 +15,11 @@
 from __future__ import print_function
 
 import contextlib
+import distro
 import errno
 import logging
 import os
 import pickle
-import platform
 import re
 import sys
 import traceback
@@ -43,7 +43,7 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_IMAGE_API_VERSION': 1,
                 'OS_CLOUDNAME': 'overcloud'}
 
-if 'Ubuntu' in platform.linux_distribution()[0]:
+if 'Ubuntu' in distro.name():
     AUTH_DETAILS.update({
         'OS_USER_DOMAIN_NAME': None,
         'OS_PROJECT_DOMAIN_NAME': None,
