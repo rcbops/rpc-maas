@@ -62,7 +62,7 @@ else
   echo ". /usr/local/bin/openstack-ansible.rc"
   echo "# When present add the Ceph inventory to update the maas checks on"
   echo "# the ceph nodes"
-  echo "export ANSIBLE_INVENTORY="$ANSIBLE_INVENTORY,/tmp/inventory-ceph.ini"
+  echo 'export ANSIBLE_INVENTORY="$ANSIBLE_INVENTORY,/tmp/inventory-ceph.ini"'
   echo ""
   echo "ansible-playbook playbooks/site.yml"
 fi
