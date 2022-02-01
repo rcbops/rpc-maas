@@ -59,7 +59,12 @@ cd /opt/rpc-maas/
 if [ $isRH ]; then
   echo "ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml  playbooks/site.yml"
 else
-  echo "openstack-ansible playbooks/site.yml"
+  echo ". /usr/local/bin/openstack-ansible.rc"
+  echo "# When present add the Ceph inventory to update the maas checks on"
+  echo "# the ceph nodes"
+  echo "export ANSIBLE_INVENTORY="$ANSIBLE_INVENTORY,/tmp/inventory-ceph.ini"
+  echo ""
+  echo "ansible-playbook playbooks/site.yml"
 fi
 
 echo "deactivate"
