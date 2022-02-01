@@ -353,6 +353,15 @@
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
 
+    - name: Set OpenStack version
+      set_fact:
+        openstack_release: "{{ true |ternary(ansible_local['maas']['general']['maas_product_osa_codename'], ansible_local['maas']['general']['maas_product_osp_codename']) |default('') }}"
+
+    - name: Skip deprecated checks on newer OpenStack versions
+      set_fact:
+         skip_deprecated_check: true
+      when: "openstack_release in ['victoria', 'wallaby', 'xena']"
+
   tasks:
     - name: Install nova nova-console-auth checks
       template:
@@ -362,7 +371,9 @@
         group: "root"
         mode: "0644"
       delegate_to: "{{ physical_host | default(ansible_host) }}"
-      when: 'physical_host != ansible_host'
+      when:
+        - 'physical_host != ansible_host'
+        - 'skip_deprecated_check is not defined'
 
     - name: Install nova nova-console-auth checks
       template:
@@ -371,7 +382,9 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      when: 'physical_host == ansible_host'
+      when:
+        - 'physical_host == ansible_host'
+        - 'skip_deprecated_check is not defined'
 
     - name: Install nova nova-console checks
       template:
@@ -391,6 +404,25 @@
         group: "root"
         mode: "0644"
       when: 'physical_host == ansible_host'
+
+    - name: Remove nova nova-console-auth check when necessary (Victoria+)
+      file:
+        path: "/etc/rackspace-monitoring-agent.conf.d/nova_console_check--{{ inventory_hostname }}.yaml"
+        state: absent
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - 'physical_host != ansible_host'
+        - 'skip_deprecated_check is defined'
+      ignore_errors: True
+
+    - name: Remove nova nova-console-auth check when necessary (Victoria+)
+      file:
+        path: "/etc/rackspace-monitoring-agent.conf.d/nova_console_check--{{ inventory_hostname }}.yaml"
+        state: absent
+      when:
+        - 'physical_host == ansible_host'
+        - 'skip_deprecated_check is defined'
+      ignore_errors: True
 
   vars_files:
     - vars/main.yml
