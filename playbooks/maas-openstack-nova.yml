@@ -407,7 +407,7 @@
 
     - name: Remove nova nova-console-auth check when necessary (Victoria+)
       file:
-        path: "/etc/rackspace-monitoring-agent.conf.d/nova_console_check--{{ inventory_hostname }}.yaml"
+        path: "/etc/rackspace-monitoring-agent.conf.d/nova_consoleauth_check--{{ inventory_hostname }}.yaml"
         state: absent
       delegate_to: "{{ physical_host | default(ansible_host) }}"
       when:
@@ -417,7 +417,7 @@
 
     - name: Remove nova nova-console-auth check when necessary (Victoria+)
       file:
-        path: "/etc/rackspace-monitoring-agent.conf.d/nova_console_check--{{ inventory_hostname }}.yaml"
+        path: "/etc/rackspace-monitoring-agent.conf.d/nova_consoleauth_check--{{ inventory_hostname }}.yaml"
         state: absent
       when:
         - 'physical_host == ansible_host'
