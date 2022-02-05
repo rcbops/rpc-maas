@@ -352,7 +352,7 @@ maas_pip_packages:
   - lxml
   - monitorstack
   - psutil
-  - git+https://github.com/lunaryorn/pyudev.git
+  - pyudev==0.21.0
   - pyroute2
   - python-memcached
   - rackspace-monitoring-cli
