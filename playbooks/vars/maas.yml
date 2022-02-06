@@ -353,7 +353,7 @@ maas_pip_packages:
   - monitorstack
   - psutil
   - pyudev==0.21.0
-  - pyroute2
+  - pyroute2==0.5.18
   - python-memcached
   - rackspace-monitoring-cli
   - requests
