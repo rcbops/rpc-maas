@@ -1,3 +1,1 @@
 ### Requirements for RAX-MaaS
-monitorstack>=0.0.1.dev71
-waxeye>=0.8.1
