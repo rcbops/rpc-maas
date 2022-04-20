@@ -2,29 +2,9 @@
 # of appearance. Changing the order has an impact on the overall integration
 # process, which may cause wedges in the gate later.
 
-bandit==1.6.2
-
-# this is required for the docs build jobs
-sqlalchemy==1.6.0
-Pygments
-Sphinx==3.3.1
-doc8 # Apache-2.0
-openstackdocstheme
-sphinxmark
-
-# Bash linting
 bashate
-
-# Python linting
-flake8<2.6.0,>=2.5.4
-
-
-# From python2(will fix with functional testing changes)
-#pyasn1 # BSD
-#pyOpenSSL>=0.14 # Apache-2.0
-#requests[security]
-#ndg-httpsclient>=0.4.2;python_version<'3.0' # BSD
-# MaaS specific
-#rackspace_monitoring
-#waxeye
-#click
+doc8==0.8.0
+sphinxmark==0.2.0
+bandit==1.7.4
+Sphinx
+openstackdocstheme
