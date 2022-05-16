@@ -16,7 +16,7 @@ else
 fi
 
 # Create the virtual environment
-if [ ! -d /root/ansible_venv ]; then
+if [ ! -d /root/ansible_venv ] || [ ! -f /root/ansible_venv/bin/python3 ]; then
 
     # Set up the python virtual env
     virtualenv -p /usr/bin/python3 /root/ansible_venv --system-site-packages
