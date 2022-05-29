@@ -17,10 +17,9 @@ fi
 
 # Create the virtual environment
 if [ ! -d /root/ansible_venv ] || [ ! -f /root/ansible_venv/bin/python3 ]; then
-
     # Set up the python virtual env
+    rm -rf /root/ansible_venv
     virtualenv -p /usr/bin/python3 /root/ansible_venv --system-site-packages
-
 fi
 
 # Install required packages
@@ -64,7 +63,7 @@ else
   echo "# the ceph nodes"
   echo 'export ANSIBLE_INVENTORY="$ANSIBLE_INVENTORY,/tmp/inventory-ceph.ini"'
   echo ""
-  echo "ansible-playbook playbooks/site.yml"
+  echo "openstack-ansible playbooks/site.yml"
 fi
 
 echo "deactivate"
