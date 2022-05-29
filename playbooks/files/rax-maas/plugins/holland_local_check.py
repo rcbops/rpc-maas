@@ -66,7 +66,10 @@ def holland_lb_check(hostname, binary, backupset):
     try:
         os.stat('/sys/fs/cgroup/pids/lxc/' + hostname)
     except OSError:
-        container_present = False
+        try:
+            os.stat('/sys/fs/cgroup/pids/lxc.payload.' + hostname)
+        except OSError:
+            container_present = False
 
     if container_present:
         retcode, output, err = run_command('lxc-attach -n %s -- %s lb' %
