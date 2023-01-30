@@ -190,6 +190,22 @@ IP address of service to test
     metric magnum_api_local_response_time double 48.532 ms
 
 ***
+#### barbican_api_local_check.py
+
+##### Description:
+Polls a barbican API living on the specified IP. Checks to see if the API is up, and then also gathers a list of metrics to return.
+
+##### Mandatory Arguments:
+IP address of service to test
+##### Example Output:
+
+    status okay
+    metric client_success uint32 1
+    metric barbican_secrets uint32 2
+    metric barbican_api_local_status uint32 1
+    metric barbican_api_local_response_time double 26.472 ms
+
+***
 #### service_api_local_check.py
 
 ##### Mandatory Arguments:

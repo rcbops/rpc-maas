@@ -1,0 +1,29 @@
+{% from "templates/common/macros.jinja" import get_metadata with context %}
+{% set label = "private_lb_api_check_barbican" %}
+{% set check_name = label %}
+{% set barbican_api_url = ansible_local.maas.api.barbican_public_url | default(ansible_local.maas.api.barbican_internal_url) %}
+{% set barbican_api_ip = ansible_local.maas.api.barbican_public_ip | default(ansible_local.maas.api.barbican_internal_ip) %}
+{% set barbican_fallback_url = (maas_barbican_scheme | default(maas_scheme)) + '://' + maas_external_hostname + ':9311/' %}
+type              : remote.http
+label             : "{{ check_name }}"
+period            : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
+timeout           : "{{ maas_check_timeout_override[label] | default(maas_check_timeout) }}"
+disabled          : "{{ (inventory_hostname != groups['barbican_all'][0] or check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
+target_resolver   : "IPv4"
+target_hostname   : "{{ barbican_api_ip | default(maas_external_ip_address) }}"
+details           :
+    url           : "{{ barbican_api_url | default(barbican_fallback_url) }}"
+monitoring_zones_poll:
+  - "{{ maas_private_monitoring_zone }}"
+{{ get_metadata(label).strip() }}
+{# Add extra metadata options with two leading white spaces #}
+alarms            :
+    private_lb_api_alarm_barbican   :
+        label               : private_lb_api_alarm_barbican
+        notification_plan_id: "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled            : {{ ('private_lb_api_alarm_barbican' | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria            : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (metric['code'] != '300') {
+                return new AlarmStatus(CRITICAL, 'API unavailable.');
+            }
