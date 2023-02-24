@@ -18,6 +18,7 @@ import argparse
 import os
 import subprocess
 
+from maas_common import metric
 from maas_common import metric_bool
 from maas_common import print_output
 
@@ -34,7 +35,9 @@ def bonding_ifaces_check(_):
         bonding_iface_check_cmd_output_lines = (
             bonding_iface_check_cmd_output.decode().split('\n')
         )
+
         slave_count = 0
+        failure_count = 0
         for idx, line in enumerate(bonding_iface_check_cmd_output_lines):
             if line.startswith("Slave Interface"):
                 slave_count = slave_count + 1
@@ -51,6 +54,9 @@ def bonding_ifaces_check(_):
                 if 'up' not in slave_inface_mii_status or slave_count < 2:
                     has_slave_down = True
 
+            if line.startswith("Link Failure Count"):
+                failure_count =+ int(line.split(':')[1])
+
         if has_slave_down:
             metric_bool('host_bonding_iface_%s_slave_down' %
                         bonding_iface,
@@ -60,6 +66,7 @@ def bonding_ifaces_check(_):
                         bonding_iface,
                         False)
 
+        metric('host_bonding_iface_%s_failure_count' % bonding_iface, 'int64', failure_count)
 
 def main(args):
     bonding_ifaces_check(args)
