@@ -51,6 +51,7 @@
 
     - name: Include maas venv create
       include_tasks: common-tasks/maas-venv-create.yml
+      tags: maas-venv-create
 
   vars_files:
     - vars/main.yml
