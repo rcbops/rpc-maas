@@ -85,6 +85,7 @@
     - name: Discover Ceph facts
       ceph_osd_host_facts:
         hostname: "{{ ansible_hostname }}"
+        ceph_cluster_name: "{{ ceph_cluster_name }}"
         container_name: "{{ container_name | default(inventory_hostname) }}"
         deploy_osp: "{{ ansible_local['maas']['general']['deploy_osp'] | bool }}"
         osp_standalone: "{{ ansible_local.maas.general.maas_osp_ceph_standalone | default(True) | bool }}"
@@ -122,6 +123,7 @@
   vars_files:
     - vars/main.yml
     - vars/maas.yml
+    - vars/maas-ceph.yml
 
   environment: "{{ deployment_environment_variables | default({}) }}"
 

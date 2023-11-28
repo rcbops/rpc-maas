@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2015, Rackspace US, Inc.
+# Copyright 2023, Rackspace Technology, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ short_description:
     - A module for gathering ceph osd host facts.
 description:
     - A module for gathering ceph osd host facts.
-author: Rcbops
+author: Rackspace Technology
 """
 
 EXAMPLES = """
@@ -60,14 +60,13 @@ class OSDHostFacts(object):
         self.state_change = False
         self.module = module
 
-    def gather_facts(self, hostname, container_name, deployed_osd_list,
+    def gather_facts(self, hostname, ceph_cluster_name, container_name, deployed_osd_list,
                      deploy_osp=False, osp_standalone=False):
-        """Get information about OSDs."""
         ceph_command_string = "ceph"
         if deploy_osp and not osp_standalone:
             ceph_command_string = (
                 "sudo podman exec {container_name} ceph "
-                "--cluster ceph").format(container_name=container_name)
+                "--cluster {cluster_name}").format(cluster_name=ceph_cluster_name, container_name=container_name)
         cmd = ["osd", "tree", "--format", "json",
                "--name", "client.raxmon"]
         # flatten the cmd list
@@ -81,15 +80,35 @@ class OSDHostFacts(object):
                        'command is: %s' % (e.output.strip(), cmd))
             self.module.fail_json(msg=message)
         else:
+            fsid = '00000000-1111-2222-3333-444444444444' #mock uuid
             osd_ids = []
             for _osd in json_output['nodes']:
                 if _osd['name'] == hostname:
                     osd_ids = _osd['children']
             facts = osd_ids
             stale_osd_list = discover_stale_osds(facts, deployed_osd_list)
+
+            """Get ceph fsid"""
+            ceph_command_string = "ceph"
+            if deploy_osp and not osp_standalone:
+                ceph_command_string = (
+                    "sudo podman exec {container_name} ceph "
+                    "--cluster {cluster_name}").format(cluster_name=ceph_cluster_name, container_name=container_name)
+            cmd = ["fsid",
+                   "--name", "client.raxmon"]
+            cmd = ceph_command_string.split() + cmd
+            try:
+              output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+              fsid = output.decode().strip().split('\n')[-1]
+            except subprocess.CalledProcessError as e:
+              message = ('Ceph fsid collection failed: "%s", '
+                         'command is: %s' % (e.output.strip(), cmd))
+              self.module.fail_json(msg=message)
+
             self.module.exit_json(
                 changed=self.state_change,
                 ansible_facts={
+                    'fsid': fsid,
                     'ceph_osd_list': facts,
                     'stale_osd_list': stale_osd_list
                 }
@@ -100,6 +119,9 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             hostname=dict(
+                required=True
+            ),
+            ceph_cluster_name=dict(
                 required=True
             ),
             container_name=dict(
@@ -125,6 +147,7 @@ def main():
     osd_host_facts = OSDHostFacts(module)
     osd_host_facts.gather_facts(
         hostname=module.params.get('hostname'),
+        ceph_cluster_name=module.params.get('ceph_cluster_name'),
         container_name=module.params.get('container_name'),
         deploy_osp=module.params.get('deploy_osp', False),
         osp_standalone=module.params.get('osp_standalone', False),
