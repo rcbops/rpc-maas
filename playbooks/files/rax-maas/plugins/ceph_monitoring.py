@@ -227,14 +227,15 @@ def get_health_checks(client=None, keyring=None, section=None,
 
 
 def get_rgw_checkup(client, keyring=None, rgw_address=None,
-                    container_name=None, deploy_osp=False):
+                    admin_socket=None, container_name=None,
+                    deploy_osp=False):
     rgw_status = get_ceph_rgw_hostcheck(rgw_address,
                                         container_name=container_name)
     metric('rgw_up', 'uint32', rgw_status)
 
 
 def get_osd_statistics(client=None, keyring=None, osd_id=None,
-                       container_name=None, admin_socket=None,
+                       admin_socket=None, container_name=None,
                        deploy_osp=False):
     osd_ref = "osd.%s" % osd_id
     try:
