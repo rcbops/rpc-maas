@@ -179,7 +179,8 @@ def get_local_osd_info(osd_ref, fmt='json', container_name=None,
 
 
 def get_mon_statistics(client=None, keyring=None, host=None,
-                       container_name=None, deploy_osp=False):
+                       admin_socket=None, container_name=None,
+                       deploy_osp=False):
     ceph_status = get_ceph_status(client=client,
                                   keyring=keyring,
                                   container_name=container_name,
@@ -198,7 +199,8 @@ def get_mon_statistics(client=None, keyring=None, host=None,
 
 
 def get_health_checks(client=None, keyring=None, section=None,
-                      container_name=None, deploy_osp=False):
+                      admin_socket=None, container_name=None,
+                      deploy_osp=False):
     metrics = []
 
     ceph_status = get_ceph_status(client=client,
@@ -249,7 +251,8 @@ def get_osd_statistics(client=None, keyring=None, osd_id=None,
         metric_bool(metric_name, state)
 
 
-def get_cluster_statistics(client=None, keyring=None, container_name=None,
+def get_cluster_statistics(client=None, keyring=None, admin_socket=None,
+                           container_name=None,
                            deploy_osp=False):
     metrics = []
 
