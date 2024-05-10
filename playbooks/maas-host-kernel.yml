@@ -36,6 +36,7 @@
 - name: Install checks for hosts kernel
   hosts: hosts
   gather_facts: true
+  become: true
   pre_tasks:
     - name: Check nf_conntrack status
       stat:

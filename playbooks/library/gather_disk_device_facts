@@ -42,9 +42,8 @@ class DiskDeviceFacts(object):
         """Get disk device facts on a host"""
 
         if venv_bin is not None:
-            activate_this = '%s/activate_this.py' % (venv_bin)
-            exec(open(activate_this).read(), dict(__file__=activate_this))
-
+            activate_this = '%s/activate' % (venv_bin)
+            subprocess.call(['bash', '-c', f'source {activate_this}'])
         # We place these imports after we activate the virtualenv to ensure
         # we're importing the correct libraries
         import psutil

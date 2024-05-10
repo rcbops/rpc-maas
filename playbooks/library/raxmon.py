@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 # Copyright 2017, Rackspace US, Inc.
 #
@@ -15,7 +14,7 @@
 # limitations under the License.
 
 import configparser
-
+import subprocess
 from ansible.module_utils.basic import *  # noqa: ignore=H303
 
 
@@ -258,9 +257,8 @@ def main():
     )
 
     if module.params['venv_bin']:
-        activate_this = '%s/activate_this.py' % (module.params['venv_bin'])
-        exec(open(activate_this).read(), dict(__file__=activate_this))
-        
+        activate_this = '%s/activate' % (module.params['venv_bin'])
+        subprocess.call(['bash', '-c', f'source {activate_this}'])
 
     # We place these imports after we activate the virtualenv to ensure we're
     # importing the correct libraries

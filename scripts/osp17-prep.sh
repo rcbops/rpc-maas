@@ -3,7 +3,7 @@
 # Install some dependancies
 rpm -qi python3-pip python3-virtualenv > /dev/null
 if [ $? != 0 ]; then
-    dnf -y install python3-pip python3-virtualenv
+    dnf -y install python3-pip
 fi
 
 # Update the python alternatives if needed
@@ -15,7 +15,7 @@ fi
 if [ ! -d /root/ansible_venv ]; then
 
     # Set up the python virtual env
-    virtualenv-3 /root/ansible_venv --system-site-packages
+    python3 -m venv --system-site-packages /root/ansible_venv
 
 fi
 

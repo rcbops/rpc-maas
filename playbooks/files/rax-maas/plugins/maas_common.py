@@ -19,7 +19,7 @@ import errno
 import logging
 import os
 import pickle
-import platform
+import distro
 import re
 import sys
 import traceback
@@ -42,7 +42,7 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_VOLUME_API_VERSION': 1,
                 'OS_IMAGE_API_VERSION': 1}
 
-if 'Ubuntu' in platform.linux_distribution()[0]:
+if 'Ubuntu' in distro.linux_distribution()[0]:
     AUTH_DETAILS.update({
         'OS_USER_DOMAIN_NAME': None,
         'OS_PROJECT_DOMAIN_NAME': None,

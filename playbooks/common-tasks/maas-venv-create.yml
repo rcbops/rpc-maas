@@ -18,13 +18,13 @@
     src: "files/pip-constraints.txt"
     dest: "/tmp/pip-constraints.txt"
 
-- name: Install required pip packages
-  package:
-    name: "{{ maas_agent_distro_packages }}"
-  register: install_packages
-  until: install_packages is success
-  retries: 5
-  delay: 2
+#- name: Install required pip packages
+#  package:
+#    name: "{{ maas_agent_distro_packages }}"
+#  register: install_packages
+#  until: install_packages is success
+#  retries: 5
+#  delay: 2
 
 - name: Check for pip.conf
   stat:
@@ -38,14 +38,14 @@
     - pip_conf.stat.exists | bool
 
 - name: Create MaaS venv
-  command: "virtualenv-3 {{ target_venv | default(maas_venv) }}"
+  command: "python3 -m venv virtualenv-3 {{ target_venv | default(maas_venv) }}"
   args:
     creates: "{{ target_venv | default(maas_venv) }}/bin/python"
   when:
     - not ansible_local['maas']['general']['deploy_osp'] | bool
 
 - name: Create MaaS venv (--system-site-packages)
-  command: "virtualenv-3 --system-site-packages {{ target_venv | default(maas_venv) }}"
+  command: "python3 -m venv --system-site-packages {{ target_venv | default(maas_venv) }}"
   args:
     creates: "{{ target_venv | default(maas_venv) }}/bin/python"
   when:

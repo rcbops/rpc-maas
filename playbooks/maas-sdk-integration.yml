@@ -17,6 +17,8 @@
   hosts: localhost
   gather_facts: true
   become: true
+  vars:
+    internal_lb_vip_address: "{{ hostvars['undercloud']['internal_lb_vip_address'] }}"
   pre_tasks:
     - name: Refresh local facts
       setup:
@@ -181,6 +183,8 @@
   become: true
   vars:
     ansible_python_interpreter: "{{ target_venv | default(maas_venv) }}/bin/python"
+    internal_lb_vip_address: "{{ hostvars['undercloud']['internal_lb_vip_address'] }}"
+    external_lb_vip_address: "{{ hostvars['undercloud']['external_lb_vip_address'] }}"
   tasks:
     - name: Determine endpoint components
       service_discovery:
