@@ -33,7 +33,16 @@ maas_package_state: "latest"
 # MaaS release version, this was tied to the RPC release version
 #   however it is now release independent.
 #
-maas_release: "{{ ansible_local['maas']['general']['maas_product_osa_version'] is defined |bool |ternary(ansible_local['maas']['general']['maas_product_osa_version'],ansible_local['maas']['general']['maas_product_osp_version']) }}"
+maas_release: >-
+  {% set _var = [] -%}
+  {% if ansible_local['maas']['general']['maas_product_osa_version'] is defined -%}
+  {%   if _var.append(ansible_local['maas']['general']['maas_product_osa_version']) -%}{% endif -%}
+  {% elif ansible_local['maas']['general']['maas_product_osa_version'] is defined -%}
+  {%   if _var.append(ansible_local['maas']['general']['maas_product_osa_version']) -%}{% endif -%}
+  {% elif ansible_local['maas']['general']['maas_product_ceph_version'] is defined -%}
+  {%   if _var.append(ansible_local['maas']['general']['maas_product_ceph_version']) -%}{% endif -%}
+  {% endif -%}
+  {{ _var |join(',') }}
 
 #
 # Name of the virtual env to deploy into (maas)

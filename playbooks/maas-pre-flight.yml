@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 - name: Setup local facts
-  hosts: all
+  hosts: all:localhost
   gather_facts: true
   become: true
   tasks:
@@ -226,7 +226,6 @@
           delegate_to: "{{ groups['mons'][0] }}"
           when:
            - not (deploy_osp | default(False) | bool)
-           - ansible_local['maas']['general']['maas_product_osa_codename'] is defined
 
         - name: Register ceph version (OSP)
           shell: |
