@@ -364,7 +364,7 @@ maas_pip_packages:
    - mitogen
    - ipaddr
    - python-memcached
-   - netaddr
+   - netaddr==0.10.1
    - pyudev
    - dnspython
    - lxml
