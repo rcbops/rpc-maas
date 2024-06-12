@@ -16,7 +16,6 @@
 
 import argparse
 import os
-import psutil
 
 import lxc
 
@@ -26,26 +25,25 @@ from maas_common import status_err
 from maas_common import status_ok
 
 
-class Chroot(object):
-    def __init__(self, path):
-        self.path = path
-        self.root = os.open('/', os.O_RDONLY)  # Get real root path
-        self.cwd = os.getcwd()  # Get current dir
-
-    def __enter__(self):
-        os.chroot(self.path)
-
-    def __exit__(self, type, value, traceback):
-        os.fchdir(self.root)
-        os.chroot('.')
-        os.chdir(self.cwd)
+def disk_partitions(container):
+    """runs df in container pid/mnt/user namespace"""
+    try:
+        r, w = os.pipe()
+        with os.fdopen(w, 'w') as fh:
+            cmd = 'df -x devtmpfs -x tmpfs -x debugfs'.split()
+            container.attach_wait(lxc.attach_run_command, cmd, stdout=fh)
+        with os.fdopen(r) as fh:
+            return fh.read().splitlines()[1:]
+    except OSError:
+        return []
 
 
 def disk_usage(part):
-    st = os.statvfs(part.mountpoint)
-    used = (st.f_blocks - st.f_bfree) * st.f_frsize
-    total = st.f_blocks * st.f_frsize
-    return 100 * float(used) / float(total)
+    """gets usage percentage from df output lines"""
+    try:
+        return int(part.split()[4].rstrip('%'))
+    except:
+        return 0
 
 
 def container_check(thresh):
@@ -55,14 +53,10 @@ def container_check(thresh):
         if c.init_pid == -1:
             return True
 
-        with Chroot('/proc/%s/root' % int(c.init_pid)):
-            for partition in psutil.disk_partitions():
-                try:
-                    percent_used = disk_usage(part=partition)
-                    if percent_used >= thresh:
-                        return False
-                except OSError:
-                    pass
+        for partition in disk_partitions(c):
+            percent_used = disk_usage(part=partition)
+            if percent_used >= thresh:
+                return False
     else:
         return True
 
