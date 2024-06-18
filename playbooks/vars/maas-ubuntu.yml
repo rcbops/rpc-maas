@@ -25,11 +25,11 @@ maas_distro_packages:
   - libxslt-dev
   - sysstat
   - rackspace-monitoring-agent
-  - python-dev
+  - python3-dev
+  - virtualenv
   - gcc
   - ipmitool
   - dmidecode
-
 #
 # Enable additional package override
 #
@@ -70,4 +70,4 @@ maas_poller_distro_packages:
 # Distro packages needed to be installed for rabbitmq monitoring
 #
 maas_rabbitmq_distro_packages:
-  - python-httplib2
+  - python3-httplib2

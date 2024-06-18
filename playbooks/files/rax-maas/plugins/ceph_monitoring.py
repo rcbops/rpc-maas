@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2015, Rackspace US, Inc.
+# Copyright 2023, Rackspace Technology, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ def check_command(command, container_name=None, deploy_osp=False):
             container_command = ['/usr/bin/podman',
                                  'exec',
                                  container_name]
-       
+
         else:
             container_command = ['lxc-attach',
                                  '-n',
@@ -159,29 +159,48 @@ def get_ceph_status(client, keyring, fmt='json', container_name=None,
                          deploy_osp=deploy_osp)
 
 
+def get_ceph_mon_status(client, keyring, fmt='json', container_name=None,
+                        deploy_osp=False):
+
+    return check_command(('ceph', 'mon', 'stat', '--format', fmt),
+                         container_name=container_name,
+                         deploy_osp=deploy_osp)
+
+
 def get_local_osd_info(osd_ref, fmt='json', container_name=None,
-                       deploy_osp=False):
+                       admin_socket=None, deploy_osp=False):
     return check_command(
-        ('ceph', '--format', fmt, 'daemon', osd_ref, 'status'),
+        ('ceph', '--format', fmt, 'daemon', osd_ref, 'status') if
+        not admin_socket else
+        ('ceph', '--format', fmt, 'daemon', admin_socket, 'status'),
         container_name=container_name,
         deploy_osp=deploy_osp
     )
 
 
 def get_mon_statistics(client=None, keyring=None, host=None,
-                       container_name=None, deploy_osp=False):
+                       admin_socket=None, container_name=None,
+                       deploy_osp=False):
     ceph_status = get_ceph_status(client=client,
                                   keyring=keyring,
                                   container_name=container_name,
                                   deploy_osp=deploy_osp)
-    mon = [m for m in ceph_status['monmap']['mons']
-           if m['name'] == host]
-    mon_in = mon[0]['rank'] in ceph_status['quorum']
+    try:
+        mon = [m for m in ceph_status['monmap']['mons']
+               if m['name'] == host]
+
+    except KeyError:
+        ceph_mon_status = get_ceph_mon_status(client=client,
+                                              keyring=keyring,
+                                              container_name=container_name,
+                                              deploy_osp=deploy_osp)
+    mon_in = host in ceph_status['quorum_names']
     metric_bool('mon_in_quorum', mon_in)
 
 
 def get_health_checks(client=None, keyring=None, section=None,
-                      container_name=None, deploy_osp=False):
+                      admin_socket=None, container_name=None,
+                      deploy_osp=False):
     metrics = []
 
     ceph_status = get_ceph_status(client=client,
@@ -208,18 +227,21 @@ def get_health_checks(client=None, keyring=None, section=None,
 
 
 def get_rgw_checkup(client, keyring=None, rgw_address=None,
-                    container_name=None, deploy_osp=False):
+                    admin_socket=None, container_name=None,
+                    deploy_osp=False):
     rgw_status = get_ceph_rgw_hostcheck(rgw_address,
                                         container_name=container_name)
     metric('rgw_up', 'uint32', rgw_status)
 
 
 def get_osd_statistics(client=None, keyring=None, osd_id=None,
-                       container_name=None, deploy_osp=False):
+                       admin_socket=None, container_name=None,
+                       deploy_osp=False):
     osd_ref = "osd.%s" % osd_id
     try:
         osd_info = get_local_osd_info(
-            osd_ref, container_name=container_name, deploy_osp=deploy_osp
+            osd_ref, container_name=container_name,
+            admin_socket=admin_socket, deploy_osp=deploy_osp
         )
     except Exception:
         msg = 'The OSD ID %s does not exist.' % osd_id
@@ -230,7 +252,8 @@ def get_osd_statistics(client=None, keyring=None, osd_id=None,
         metric_bool(metric_name, state)
 
 
-def get_cluster_statistics(client=None, keyring=None, container_name=None,
+def get_cluster_statistics(client=None, keyring=None, admin_socket=None,
+                           container_name=None,
                            deploy_osp=False):
     metrics = []
 
@@ -270,14 +293,24 @@ def get_cluster_statistics(client=None, keyring=None, container_name=None,
     metrics.append({'name': "monmap_epoch",
                     'type': 'uint32',
                     'value': ceph_status['monmap']['epoch']})
-    metrics.append({'name': "osdmap_epoch",
-                    'type': 'uint32',
-                    'value': ceph_status['osdmap']['osdmap']['epoch']})
+    if 'osdmap' in ceph_status['osdmap']:
+        metrics.append({'name': "osdmap_epoch",
+                        'type': 'uint32',
+                        'value': ceph_status['osdmap']['osdmap']['epoch']})
+    else:
+        metrics.append({'name': "osdmap_epoch",
+                        'type': 'uint32',
+                        'value': ceph_status['osdmap']['epoch']})
 
     # Collect OSDs per state
-    osds = {'total': ceph_status['osdmap']['osdmap']['num_osds'],
-            'up': ceph_status['osdmap']['osdmap']['num_up_osds'],
-            'in': ceph_status['osdmap']['osdmap']['num_in_osds']}
+    if 'osdmap' in ceph_status['osdmap']:
+        osds = {'total': ceph_status['osdmap']['osdmap']['num_osds'],
+                'up': ceph_status['osdmap']['osdmap']['num_up_osds'],
+                'in': ceph_status['osdmap']['osdmap']['num_in_osds']}
+    else:
+        osds = {'total': ceph_status['osdmap']['num_osds'],
+                'up': ceph_status['osdmap']['num_up_osds'],
+                'in': ceph_status['osdmap']['num_in_osds']}
     for k in osds:
         metrics.append({'name': 'osds_%s' % k,
                         'type': 'uint32',
@@ -326,6 +359,10 @@ def get_args():
                         required=False,
                         default=None,
                         help='Ceph Container Name')
+    parser.add_argument('--admin-socket',
+                        required=False,
+                        default=None,
+                        help='Socket for admin/daemon commands')
 
     subparsers = parser.add_subparsers(dest='subparser_name')
 
@@ -360,7 +397,11 @@ def main(args):
                       'rgw': get_rgw_checkup,
                       'osd': get_osd_statistics,
                       'health_checks': get_health_checks}
-    kwargs = {'client': args.name, 'keyring': args.keyring}
+
+    kwargs = {'client': args.name,
+              'keyring': args.keyring,
+              'admin_socket': args.admin_socket}
+
     if args.subparser_name == 'osd':
         kwargs['osd_id'] = args.osd_id
     if args.subparser_name == 'mon':

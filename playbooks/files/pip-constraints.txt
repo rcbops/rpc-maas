@@ -1,5 +1,1 @@
-### Monitorstack plugin framework
-monitorstack>=0.0.1.dev71
-
-### maas-verify
-waxeye>=0.8.1
+### Requirements for RAX-MaaS

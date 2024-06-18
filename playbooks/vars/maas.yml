@@ -33,7 +33,16 @@ maas_package_state: "latest"
 # MaaS release version, this was tied to the RPC release version
 #   however it is now release independent.
 #
-maas_release: 0.0.0
+maas_release: >-
+  {% set _var = [] -%}
+  {% if ansible_local['maas']['general']['maas_product_osa_version'] is defined -%}
+  {%   if _var.append(ansible_local['maas']['general']['maas_product_osa_version']) -%}{% endif -%}
+  {% elif ansible_local['maas']['general']['maas_product_osa_version'] is defined -%}
+  {%   if _var.append(ansible_local['maas']['general']['maas_product_osa_version']) -%}{% endif -%}
+  {% elif ansible_local['maas']['general']['maas_product_ceph_version'] is defined -%}
+  {%   if _var.append(ansible_local['maas']['general']['maas_product_ceph_version']) -%}{% endif -%}
+  {% endif -%}
+  {{ _var |join(',') }}
 
 #
 # Name of the virtual env to deploy into (maas)
@@ -336,7 +345,7 @@ maas_percent_used_critical_threshold: 85
 # pip installable packages for verifying maas deployment
 #
 maas_pip_verify_packages:
-  - waxeye
+  - waxeye@git+https://github.com/waxeye-org/waxeye.git@master#subdirectory=src/python&egg=waxeye
 #  - futures
 #  - pyyaml
 
@@ -350,23 +359,16 @@ pip_package_list: []
 #
 maas_pip_packages:
    - rackspace-monitoring
-   - 'git+https://opendev.org/x/monitorstack@master#egg=monitorstack'
+   - monitorstack@git+https://opendev.org/x/monitorstack@master#egg=monitorstack
    - pyroute2
+   - mitogen
    - ipaddr
    - python-memcached
-#   - rackspace-monitoring-cli
-#  - apache-libcloud
-#  - cryptography
-#  - dnspython
-#  - lxml
-#  - psutil
-#  - git+https://github.com/lunaryorn/pyudev.git
-#  - rackspace-monitoring-cli
-#  - requests
-#  - netaddr
-#  - ipaddress
-#  - contextlib2
-#  - diskcache
+   - netaddr==0.10.1
+   - pyudev
+   - dnspython
+   - lxml
+   - distro
 
 #
 # pip extra packages for lxc containers
@@ -500,7 +502,7 @@ maas_pip_rally_packages:
   - rally-openstack
   - rally
   - numpy
-  - monitorstack
+  - monitorstack@git+https://opendev.org/x/monitorstack@master#egg=monitorstack
   - influxdb
   - python-senlinclient
   - PyYAML
@@ -509,6 +511,8 @@ maas_pip_rally_packages:
 #  - keystoneauth1
 #  - openstacksdk==0.37.0
 #  - diskcache
+
+maas_rally_enabled: False
 
 #
 # agent endpoint TLS location
@@ -551,7 +555,7 @@ maas_compat:
     neutron_plugin_type: 'ovs'
     horizon_service_protocol: 'http'
     horizon_service_port: '80'
-
+ 
 #
 # Release specific check exclusions for OSA
 #
@@ -570,7 +574,9 @@ maas_osa_release_excluded_checks:
   train:
     - glance_registry_local_check
     - nova_consoleauth_check
-
+  ussuri:
+    - glance_registry_local_check
+    - nova_consoleauth_check
 #
 # Release specific check exclusions for OSP
 #
@@ -578,4 +584,11 @@ maas_osp_release_excluded_checks:
   queens:
     - filesystem_/var/lib/docker/overlay2
     - filesystem_/var/lib/docker/containers
+  train:
+    - glance_registry_local_check
+    - nova_consoleauth_check
 
+#
+# Set configuration options depending on OSA/OSP product
+#
+cloud_config_name: "{{ ansible_local.maas.general.deploy_osp | bool | ternary('overcloud','default') }}"

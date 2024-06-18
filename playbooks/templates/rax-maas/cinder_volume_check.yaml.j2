@@ -1,5 +1,9 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
+{% if ansible_local['maas']['general']['maas_product_osa_version'] is defined and item is mapping %}
+{% set backend_name = item.value['volume_backend_name'] %}
+{% else %}
 {% set backend_name = item.split('@')[-1] %}
+{% endif %}
 {% set label = "cinder_volume_" + backend_name + "_check" %}
 {% set check_name = label + '--' + inventory_hostname %}
 type        : agent.plugin
@@ -9,7 +13,7 @@ timeout     : "{{ maas_check_timeout_override[label] | default(maas_check_timeou
 disabled    : "{{ (check_name | regex_search(maas_excluded_checks_regex)) | ternary('true', 'false') }}"
 details     :
     file    : run_plugin_in_venv.sh
-    args    : ["{{ maas_plugin_dir }}/cinder_service_check.py", "--host", "{{ item }}", "--protocol", "{{ cinder_client_protocol }}", "{{ internal_vip_address }}"]
+    args    : ["{{ maas_plugin_dir }}/cinder_service_check.py", "--host", "{{ inventory_hostname }}@{{ backend_name }}", "--protocol", "{{ cinder_client_protocol }}", "{{ internal_vip_address }}"]
     timeout : {{ (maas_check_timeout_override[label] | default(maas_check_timeout) * 1000) }}
 {{ get_metadata(label).strip() }}
 {# Add extra metadata options with two leading white spaces #}

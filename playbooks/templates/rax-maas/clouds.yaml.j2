@@ -1,6 +1,10 @@
 # {{ ansible_managed }}
 clouds:
+{% if (ansible_local['maas']['general']['deploy_osp'] | bool) %}
   overcloud:
+{% else %}
+  default:
+{% endif %}
     auth:
       auth_url: {{ openrc_os_auth_url }}
       project_name: {{ openrc_os_tenant_name }}

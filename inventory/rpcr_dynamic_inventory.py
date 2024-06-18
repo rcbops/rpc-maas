@@ -243,7 +243,7 @@ class RPCRMaasInventory(MaasInventory):
                     'container_address']) = (
                     self.inventory['_meta']['hostvars'][host]['ctlplane_ip']
                 )
-            self.inventory['_meta']['hostvars'][host]['ansible_user'] = (
+            self.inventory['_meta']['hostvars'][host]['ansible_ssh_user'] = (
                 'heat-admin')
             (self.inventory['_meta']['hostvars'][host]['ansible_become']) = (
                 'yes'

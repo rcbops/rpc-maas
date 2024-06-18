@@ -22,4 +22,13 @@ alarms      :
             if (metric["host_bonding_iface_{{ interface }}_slave_down"] != 0) {
                 return new AlarmStatus(CRITICAL, "A bonding interface has slave(s) down");
             }
+    host_bonding_iface_{{ interface }}_flapping_status :
+        label                   : host_bonding_iface_{{ interface }}_flapping_status--{{ inventory_hostname }}
+        notification_plan_id    : "{{ maas_notification_plan_override[label] | default(maas_notification_plan) }}"
+        disabled                : {{ (('host_bonding_iface_{{ interface }}_flapping_status--'+inventory_hostname) | regex_search(maas_excluded_alarms_regex)) | ternary('true', 'false') }}
+        criteria                : |
+            :set consecutiveCount={{ maas_alarm_local_consecutive_count }}
+            if (rate(metric["host_bonding_iface_{{ interface }}_failure_count"]) >= 2) {
+                return new AlarmStatus(CRITICAL, "A bonding interface is flapping");
+            }
 {% endfor %}

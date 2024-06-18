@@ -22,7 +22,8 @@ export PUBCLOUD_TENANT_ID=${PUBCLOUD_TENANT_ID}
 git clone $REPO_URL
 cd rpc-maas
 git fetch -va
-git checkout ${RE_JOB_BRANCH}
+git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin ${RE_JOB_BRANCH}
+git checkout --progress --force ${RE_JOB_BRANCH}
 git branch
 
 # Run the test

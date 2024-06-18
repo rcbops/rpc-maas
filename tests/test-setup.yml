@@ -16,7 +16,7 @@
 - name: Find and delete existing rpcm vars files
   hosts: localhost
   connection: local
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   tasks:
     - name: Find existing /etc/openstack_deploy/user_rpcm_*.yml files
       find:
@@ -33,7 +33,7 @@
 - name: Copy var files in place
   hosts: localhost
   connection: local
-  user: "{{ ansible_user | default('root') }}"
+  user: "{{ ansible_ssh_user | default('root') }}"
   gather_facts: true
   tasks:
     - name: Check for /etc/rhosp-release

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2017, Rackspace US, Inc.
+# Copyright 2023, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import collections
 
 import ipaddr
 from maas_common import generate_local_endpoint
@@ -28,30 +29,34 @@ from requests import exceptions as exc
 
 
 def check(args):
-    ironic = get_openstack_client('baremetal')
+    barbican = get_openstack_client('key_manager')
 
     try:
-        ironic_local_endpoint = generate_local_endpoint(
-            str(ironic.get_endpoint()), args.ip, args.port,
-            args.protocol, '/nodes'
+        local_endpoint = generate_local_endpoint(
+            str(barbican.get_endpoint()), args.ip, args.port, args.protocol,
+            '/secrets?limit=1000&offset=0'
         )
-        resp = ironic.session.get(ironic_local_endpoint)
+        resp = barbican.session.get(local_endpoint, timeout=180)
 
     except (exc.ConnectionError, exc.HTTPError, exc.Timeout):
         is_up = False
+        metric_bool('client_success', False, m_name='maas_barbican')
     # Any other exception presumably isn't an API error
     except Exception as e:
-        metric_bool('client_success', False, m_name='maas_ironic')
-        status_err(str(e), m_name='maas_ironic')
+        metric_bool('client_success', False, m_name='maas_barbican')
+        status_err(str(e), m_name='maas_barbican')
     else:
-        is_up = resp.status_code == 200
+        is_up = resp.ok
+        metric_bool('client_success', True, m_name='maas_barbican')
         milliseconds = resp.elapsed.total_seconds() * 1000
-        metric_bool('client_success', True, m_name='maas_ironic')
+        secret_total = resp.json()['total']
+        metric('barbican_secrets', 'uint32', secret_total)
 
-    status_ok(m_name='maas_ironic')
-    metric_bool('ironic_api_local_status', is_up, m_name='maas_ironic')
+    status_ok(m_name='maas_barbican')
+    metric_bool('barbican_api_local_status', is_up, m_name='maas_barbican')
+    # only want to send other metrics if api is up
     if is_up:
-        metric('ironic_api_local_response_time',
+        metric('barbican_api_local_response_time',
                'double',
                '%.3f' % milliseconds,
                'ms')
@@ -63,22 +68,20 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Check Ironic API against local or remote address')
-    parser.add_argument('ip', nargs='?', type=ipaddr.IPv4Address,
-                        help="Check Ironic API against "
-                        " local or remote address")
+        description='Check Barbican API against local or remote address')
+    parser.add_argument('ip', nargs='?',
+                        type=ipaddr.IPv4Address,
+                        help='Optional Barbican API server address')
     parser.add_argument('--telegraf-output',
                         action='store_true',
                         default=False,
                         help='Set the output format to telegraf')
-    parser.add_argument('--protocol',
-                        action='store',
-                        default='http',
-                        help='Protocol used to connect to local ironic API')
     parser.add_argument('--port',
-                        action='store',
-                        default='6385',
-                        help='Port for local ironic API')
+                        default='9311',
+                        help='Port for the Barbican API service')
+    parser.add_argument('--protocol',
+                        default='http',
+                        help='Protocol used to contact the Barbican API service')
     args = parser.parse_args()
     with print_output(print_telegraf=args.telegraf_output):
         main(args)

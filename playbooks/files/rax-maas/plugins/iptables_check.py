@@ -62,10 +62,11 @@ def main():
             try:
                 bridge_sysctl = True
                 for param in bridge_params:
-                    bridge_param_metrics[param] = str(
-                        subprocess.check_output(
-                            ['cat', '/proc/sys/net/bridge/' + param])
-                    ).rstrip('\n')
+                    bridge_param_metrics[param] = \
+                        subprocess.check_output(['cat',
+                                                '/proc/sys/net/bridge/' +
+                                                 param]
+                                                ).decode().rstrip('\n')
                     if bridge_param_metrics[param] != "1":
                         bridge_sysctl = False
             except Exception as e:
@@ -74,8 +75,8 @@ def main():
             # Check if iptables rules are in place
             iptables_rules = ''
             try:
-                iptables_rules = str(subprocess.check_output(
-                    ['iptables-save'])).split('\n')
+                iptables_rules = subprocess.check_output(
+                    ['iptables-save']).decode().split('\n')
             except Exception as e:
                 status('error', str(e), force_print=False)
 

@@ -1,0 +1,5 @@
+ansible==2.9.0
+MarkupSafe==1.1.1
+Jinja2<3.0
+click
+rackspace-monitoring

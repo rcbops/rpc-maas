@@ -18,14 +18,6 @@
     src: "files/pip-constraints.txt"
     dest: "/tmp/pip-constraints.txt"
 
-#- name: Install required pip packages
-#  package:
-#    name: "{{ maas_agent_distro_packages }}"
-#  register: install_packages
-#  until: install_packages is success
-#  retries: 5
-#  delay: 2
-
 - name: Check for pip.conf
   stat:
     path: /root/.pip/pip.conf

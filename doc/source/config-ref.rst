@@ -21,24 +21,17 @@ Agent playbook variables
    :language: yaml
    :start-after: under the License.
 
-Container playbook variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Ubuntu related playbook variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../playbooks/vars/maas-container.yml
+.. literalinclude:: ../../playbooks/vars/maas-ubuntu.yml
    :language: yaml
    :start-after: under the License.
 
-Host playbook variables
-~~~~~~~~~~~~~~~~~~~~~~~
+RedHat related playbook variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../playbooks/vars/maas-host.yml
-   :language: yaml
-   :start-after: under the License.
-
-Infra playbook variables
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. literalinclude:: ../../playbooks/vars/maas-infra.yml
+.. literalinclude:: ../../playbooks/vars/maas-redhat.yml
    :language: yaml
    :start-after: under the License.
 
@@ -52,6 +45,6 @@ OpenStack playbook variables
 Ceph playbook variables
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../playbooks/vars/maas.yml
+.. literalinclude:: ../../playbooks/vars/maas-ceph.yml
    :language: yaml
-   :start-after: under the License.
+   :start-after: Descriptions pulled

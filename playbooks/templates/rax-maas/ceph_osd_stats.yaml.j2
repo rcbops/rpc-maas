@@ -9,6 +9,7 @@
 {% if (ansible_local['maas']['general']['deploy_osp'] | bool) %}
 {% set _ = ceph_args.extend(["--deploy_osp", "--container-name", "ceph-osd-"+item_string]) %}
 {% endif %}
+{% set _ = ceph_args.extend(["--admin-socket", "/run/ceph/"+fsid+"/ceph-osd."+item_string+".asok"]) %}
 {% set _ = ceph_args.extend(["osd", "--osd_id"]) %}
 {% set _ = ceph_args.append(item_string | default('')) %}
 {% set _ceph_args = ceph_args | to_yaml(width=1000) %}

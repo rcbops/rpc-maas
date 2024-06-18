@@ -152,11 +152,10 @@ octavia_quota_names:
   - octavia_instances_quota_usage
   - octavia_ram_quota_usage
   - octavia_server_group_quota_usage
-  - octavia_volume_gb_quota_usage
-  - octavia_num_volume_quota_usage
 
 octavia_observer_role_name: load-balancer_observer
 octavia_project: admin
+octavia_project_domain: 'default'
 octavia_user: admin
 
 # Designate variables

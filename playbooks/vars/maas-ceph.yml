@@ -1,4 +1,6 @@
 ---
+ceph_cluster_name: ceph
+
 # Error metric info for detailed ceph health checks.
 # Descriptions pulled from:  https://docs.ceph.com/docs/master/rados/operations/health-checks
 ceph_health_mon_checks:

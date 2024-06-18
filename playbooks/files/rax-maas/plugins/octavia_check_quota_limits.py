@@ -28,7 +28,6 @@ from requests import exceptions as exc
 
 def check(args):
     nova = get_openstack_client('compute')
-    cinder = get_openstack_client('block_storage')
 
     try:
         if args.tenant_id:
@@ -41,19 +40,10 @@ def check(args):
         compute_resp = nova.session.get(compute_url, params=params,
                                         timeout=180)
 
-        volume_url = '%s/limits' % str(cinder.get_endpoint())
-        volume_resp = cinder.session.get(volume_url, params=params,
-                                         timeout=180)
-
         if compute_resp.status_code != 200:
             raise Exception("Nova returned status code %s" % str(
                 compute_resp.status_code))
         nova_limits = compute_resp.json()['limits']['absolute']
-
-        if volume_resp.status_code != 200:
-            raise Exception("Volume returned status code %s" % str(
-                volume_resp.status_code))
-        volume_limits = volume_resp.json()['limits']['absolute']
 
         metric_bool('client_success', True, m_name='maas_octavia')
         status_ok(m_name='maas_octavia')
@@ -78,16 +68,6 @@ def check(args):
                'double',
                '%.3f' % (max(0, nova_limits['totalServerGroupsUsed'] /
                              nova_limits['maxServerGroups'] * 100)),
-               '%')
-        metric('octavia_volume_gb_quota_usage',
-               'double',
-               '%.3f' % (max(0, volume_limits['totalGigabytesUsed'] /
-                             volume_limits['maxTotalVolumeGigabytes'] * 100)),
-               '%')
-        metric('octavia_num_volume_quota_usage',
-               'double',
-               '%.3f' % (max(0, volume_limits['totalVolumesUsed'] /
-                             volume_limits['maxTotalVolumes'] * 100)),
                '%')
 
         # Neutron got it's limit support in Pike...

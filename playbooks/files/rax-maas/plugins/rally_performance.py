@@ -80,7 +80,7 @@ def cleanup_task_resources(task_uuid, scenario, scenario_config, logger):
             'username': scenario_config['user_name'],
             'password': scenario_config['user_password']}
 
-    conn = openstack.connect(cloud='overcloud', auth=auth, verify=False)
+    conn = openstack.connect(cloud=AUTH_DETAILS.get('OS_CLOUDNAME'), auth=auth, verify=False)
 
     # this extracts the first part of the task UUID - e.g. AAA from
     # AAA-BBB-CCC-DDD

@@ -190,6 +190,12 @@ maas_designate_service_proto: "{{ designate_service_proto | default('http') }}"
 maas_designate_service_port: "{{ designate_service_port | default('9001') }}"
 
 #
+# Barbican template options
+#
+barbican_service_check_protocol: "{{ barbican_service_proto | default('http') }}"
+barbican_service_check_port: "{{ barbican_service_port | default('9311') }}"
+
+#
 # Variables required to populate clouds.yaml
 #
 

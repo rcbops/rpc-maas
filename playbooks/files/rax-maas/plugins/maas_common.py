@@ -15,11 +15,11 @@
 from __future__ import print_function
 
 import contextlib
+import distro
 import errno
 import logging
 import os
 import pickle
-import distro
 import re
 import sys
 import traceback
@@ -40,9 +40,10 @@ AUTH_DETAILS = {'OS_USERNAME': None,
                 'OS_IDENTITY_API_VERSION': None,
                 'OS_API_INSECURE': True,
                 'OS_VOLUME_API_VERSION': 1,
-                'OS_IMAGE_API_VERSION': 1}
+                'OS_IMAGE_API_VERSION': 1,
+                'OS_CLOUDNAME': 'overcloud'}
 
-if 'Ubuntu' in distro.linux_distribution()[0]:
+if 'Ubuntu' in distro.name():
     AUTH_DETAILS.update({
         'OS_USER_DOMAIN_NAME': None,
         'OS_PROJECT_DOMAIN_NAME': None,
@@ -51,7 +52,8 @@ if 'Ubuntu' in distro.linux_distribution()[0]:
         'OS_TENANT_NAME': None,
         'OS_ENDPOINT_TYPE': None,
         'OS_API_INSECURE': True,
-        'OS_REGION_NAME': 'RegionOne'
+        'OS_REGION_NAME': 'RegionOne',
+        'OS_CLOUDNAME': 'default'
     })
 
 
@@ -93,7 +95,8 @@ def build_sdk_connection():
 
     if os.path.exists(OPENRC) or os.path.exists(STACKRC):
         try:
-            sdk_conn = connect(cloud='overcloud', verify=False)
+            sdk_conn = connect(cloud=AUTH_DETAILS.get(
+                'OS_CLOUDNAME'), verify=False)
         except MissingRequiredOptions as e:
             raise e
 

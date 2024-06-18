@@ -256,6 +256,7 @@
       when:
         - 'physical_host != ansible_host'
         - inventory_hostname == groups['cinder_volume'][0]
+        - item.split('@')[0] != 'ceph'
 
     - name: Install cinder volume shared checks
       template:
@@ -269,6 +270,20 @@
       when:
         - 'physical_host == ansible_host'
         - inventory_hostname == groups['cinder_volume'][0]
+        - item.split('@')[0] != 'ceph'
+
+    - name: Install cinder volume legacy ceph cluster check
+      template:
+        src: "templates/rax-maas/cinder_volume_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/cinder_volume_{{ item.key }}_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_dict: "{{ cinder_backends | default({}) }}"
+      when:
+        - "'volume_driver' in cinder_backends[item.key]"
+        - inventory_hostname == groups['cinder_volume'][0]
+        - ('ceph@ceph' in maas_cinder_shared_backends and ansible_local['maas']['general']['maas_product_osa_version'] is defined)
 
     - name: Install cinder vg checks
       template:

@@ -79,11 +79,14 @@ ansible_nodename: "{{inventory_hostname}}{{local_suffix}}"
 horizon_service_protocol: 'http'
 horizon_service_port: '80'
 
-deploy_osp: true
+## OSP17 defaults
 undercloud_provisioning_interface: "br_ctlplane"
-maas_stackrc: /home/stack/<overcloudrc>
 ansible_user: tripleo-admin
 physical_host: "{{ hostvars[inventory_hostname]['ansible_'+provisioning_interface]['ipv4']['address'] }}"
 container_address: "{{ internal_api_ip | default(physical_host) }}"
-overcloud_stack: "<overcloud_stack>"
-overcloud_provisioning_interface: "<overcloud_provisioning_interface>"
+
+## OSP17
+# deploy_osp: true
+# maas_stackrc: /home/stack/<overcloudrc>
+# overcloud_stack: "<overcloud_stack>"
+# overcloud_provisioning_interface: "<overcloud_provisioning_interface>"

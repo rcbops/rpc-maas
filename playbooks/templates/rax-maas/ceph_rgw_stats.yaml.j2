@@ -7,7 +7,7 @@
 {% elif radosgw_address is defined and radosgw_address != 'address' %}
 {%   set _rgw_listen_addr = radosgw_address %}
 {% elif radosgw_address_block is defined and radosgw_address_block != 'subnet' %}
-{%   set _rgw_listen_addr = hostvars[inventory_hostname]['ansible_all_ipv4_addresses'] | ipaddr(radosgw_address_block) | first %}
+{%   set _rgw_listen_addr = hostvars[inventory_hostname]['ansible_all_ipv4_addresses'] | ansible.utils.ipaddr(radosgw_address_block) | first %}
 {% elif radosgw_interface is defined and radosgw_interface != 'interface' %}
 {%   set _rgw_interface_name = 'ansible_' + (hostvars[inventory_hostname]['radosgw_interface'] | replace('-', '_')) %}
 {%   set _rgw_listen_addr = hostvars[inventory_hostname][_rgw_interface_name]['ipv4']['address'] %}
