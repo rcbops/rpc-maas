@@ -1,0 +1,92 @@
+# MaaS v2 overrides
+maas_auth_method: token
+maas_api_url: https://monitoring.api.rackspacecloud.com/v1.0/hybrid:<account>
+maas_auth_token: <maas_auth_token>
+maas_agent_token: <maas_agent_token>
+#maas_notification_plan: npManaged
+maas_notification_plan: npTechnicalContactsEmail
+maas_notification_plan_override: {}
+# The entityLabel should based on the 'maas_fqdn_extension', as follows:
+# entityLabel == '{{ inventory_hostname }}{{ maas_fqdn_extension }}'
+# Refer to the naming convention documentation section for additional details
+#
+maas_fqdn_extension: ""
+
+# Define a Unique Environment ID
+# If multiple clouds exist on an account, each should have a different value
+#
+maas_env_identifier: "<overcloud stack>"
+
+# Identify data center requirements for PNM and hardware monitoring
+#  true = Rackspace DC (RDC) or OpenStack Everywhere deployments
+# false = Customer DC (CDC)
+#
+maas_raxdc: true
+
+# Release-specific exclusions are now handled dynamically. These
+# overrides will likely remain empty. These are included for
+# compatibility to remove any remnant host_vars that may have
+# existed in the inventory.
+maas_excluded_checks: []
+maas_excluded_alarms: []
+
+maas_rabbitmq_password: "<password>"
+maas_swift_accesscheck_password: "<password>"
+
+# Set the OSA/RPCO working directories ONLY if you use non-standard
+# directories. If these locations differ from the list below, update and
+# uncomment accordingly.
+maas_product_dir: /opt/rpc-maas
+maas_product_osa_dir: /opt/rpc-maas
+
+# Set the product type. Valid options are: rpco, osa, or ceph.
+# Only set 'osa' if there is no corresponding rpco directory.
+maas_env_product: rpco
+
+# Allow operations that make use of the MaaS API
+maas_use_api: true
+
+# Enable remote lb_api_checks
+maas_remote_check: true
+
+# Enable Dell/HP Hardware monitoring checks
+maas_host_check: true
+
+# Switch the MaaS scheme to https
+maas_scheme: https
+
+# Disable if non-transparent web proxy is preventing raxmon SSL verification
+maas_raxmon_ssl_verify: true
+
+# Set overrides for check period/timeout
+maas_check_period_override:
+  disk_utilisation: 900
+  hp-check: 300
+  nova_api_local_check: 120
+  neutron_api_local_check: 120
+maas_check_timeout_override:
+  disk_utilisation: 899
+  hp-check: 299
+  nova_api_local_check: 119
+  neutron_api_local_check: 119
+
+maas_rabbitmq_user: maas
+
+local_suffix: ".localdomain"
+ansible_nodename: "{{inventory_hostname}}{{local_suffix}}"
+
+#neutron_plugin_type: ovn
+horizon_service_protocol: 'http'
+horizon_service_port: '80'
+
+## OSP17 defaults
+undercloud_provisioning_interface: "br_ctlplane"
+ansible_user: tripleo-admin
+physical_host: "{{ hostvars[inventory_hostname]['ansible_'+provisioning_interface]['ipv4']['address'] }}"
+container_address: "{{ internal_api_ip | default(physical_host) }}"
+
+## OSP17
+# deploy_osp: true
+# maas_stackrc: /home/stack/<overcloudrc>
+# overcloud_stack: "<overcloud_stack>"
+# overcloud_provisioning_interface: "<overcloud_provisioning_interface>"

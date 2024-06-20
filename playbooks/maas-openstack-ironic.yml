@@ -16,7 +16,7 @@
 - name: Install checks for openstack ironic-api
   hosts: ironic_api
   gather_facts: true
-  user: "{{ ansible_ssh_user | default('root') }}"
+  user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
     - name: Refresh local facts
@@ -83,7 +83,7 @@
 - name: Install checks for openstack ironic-conductor
   hosts: ironic_conductor
   gather_facts: true
-  user: "{{ ansible_ssh_user | default('root') }}"
+  user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"
@@ -110,7 +110,7 @@
 - name: Install checks for openstack ironic-compute
   hosts: ironic_compute
   gather_facts: true
-  user: "{{ ansible_ssh_user | default('root') }}"
+  user: "{{ ansible_user | default('root') }}"
   become: true
   pre_tasks:
     - include_tasks: "common-tasks/maas_excluded_regex.yml"

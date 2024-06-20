@@ -34,6 +34,12 @@ from rackspace_monitoring.providers import get_driver
 from rackspace_monitoring.types import Provider
 
 import alarmparser
+import certifi
+
+cafile = certifi.where()
+
+with open(cafile, 'r') as f:
+    ca_certificates = f.read()
 
 DEFAULT_CONFIG_FILE = '/root/.raxrc'
 logging.basicConfig(level=logging.DEBUG,
@@ -100,6 +106,7 @@ class RpcMaas(object):
             user = self.config.get('credentials', 'username')
             api_key = self.config.get('credentials', 'api_key')
             self.conn = self.driver(user, api_key)
+            print(user, api_key)
         except (configparser.NoSectionError, configparser.NoOptionError):
             url = self.config.get('api', 'url')
             token = self.config.get('api', 'token')
@@ -215,6 +222,7 @@ class RpcMaasAgentConfig(object):
 
     Parse them as yaml and store that.
     """
+
     def __init__(self, agentconfdpath):
         self.agentconfdpath = agentconfdpath
         self.checks = self._parse_maas_configs()
@@ -241,6 +249,7 @@ class RpcMaasAgentConfig(object):
 
 class RpcMassCli(object):
     """CLI interface for RPC Maas"""
+
     def __init__(self):
         self.parse_args()
         LOGGER.addHandler(logging.FileHandler(self.args.logfile))

@@ -95,7 +95,8 @@ def build_sdk_connection():
 
     if os.path.exists(OPENRC) or os.path.exists(STACKRC):
         try:
-            sdk_conn = connect(cloud=AUTH_DETAILS.get('OS_CLOUDNAME'), verify=False)
+            sdk_conn = connect(cloud=AUTH_DETAILS.get(
+                'OS_CLOUDNAME'), verify=False)
         except MissingRequiredOptions as e:
             raise e
 
