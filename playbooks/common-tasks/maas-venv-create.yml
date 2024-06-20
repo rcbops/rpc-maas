@@ -72,7 +72,7 @@
       pip:
         name:
           - pip
-          - setuptools<45
+          - "{%- if ansible_python.version.major == 2 -%}setuptools<45{% else %}setuptools{% endif %}"
         extra_args: >-
           -U --isolated
           {{ pip_install_options | default('') }}
@@ -93,7 +93,7 @@
         venv_pip_packages: "{{ venv_pip_packages | union(maas_pip_lxc_packages) }}"
       when:
         - not (ansible_local['maas']['general']['deploy_osp'] | bool)
-        - ansible_local['maas']['general']['maas_lxc_host'] | bool
+        - ansible_local['maas']['general']['maas_lxc_host'] | default(False) | bool
 
     - name: Include docker pip packages
       set_fact:
