@@ -360,7 +360,7 @@
     - name: Skip deprecated checks on newer OpenStack versions
       set_fact:
          skip_deprecated_check: true
-      when: "openstack_release in ['victoria', 'wallaby', 'xena']"
+      when: "openstack_release in ['victoria', 'wallaby', 'xena', 'yoga', 'zed', 'antelope']"
 
   tasks:
     - name: Install nova nova-console-auth checks
