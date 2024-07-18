@@ -1,0 +1,102 @@
+---
+# Copyright 2023, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Install checks for openstack masakari-api
+  hosts: masakari_api
+  gather_facts: true
+  user: "{{ ansible_ssh_user | default('root') }}"
+  become: true
+  pre_tasks:
+    - include_tasks: "common-tasks/maas_excluded_regex.yml"
+
+  tasks:
+    - name: Install masakari api checks
+      template:
+        src: "templates/rax-maas/masakari_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/masakari_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when: 'physical_host != ansible_host'
+
+    - name: Install masakari api checks
+      template:
+        src: "templates/rax-maas/masakari_api_local_check.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/masakari_api_local_check--{{ inventory_hostname }}.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when: 'physical_host == ansible_host'
+
+    - name: Install masakari lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_masakari.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_masakari.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - 'physical_host != ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install masakari lb checks
+      template:
+        src: "templates/rax-maas/lb_api_check_masakari.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/lb_api_check_masakari.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
+        - maas_remote_check | bool
+        - not maas_private_monitoring_enabled
+
+    - name: Install masakari private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_masakari.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_masakari.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host | default(ansible_host) }}"
+      when:
+        - 'physical_host != ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+    - name: Install masakari private lb checks
+      template:
+        src: "templates/rax-maas/private_lb_api_check_masakari.yaml.j2"
+        dest: "/etc/rackspace-monitoring-agent.conf.d/private_lb_api_check_masakari.yaml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      when:
+        - 'physical_host == ansible_host'
+        - maas_private_monitoring_enabled
+        - maas_private_monitoring_zone is defined
+
+  vars_files:
+    - vars/main.yml
+    - vars/maas.yml
+    - vars/maas-openstack.yml
+
+  environment: "{{ deployment_environment_variables | default({}) }}"
+
+  tags:
+    - maas-openstack-masakari

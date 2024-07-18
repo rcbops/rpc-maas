@@ -68,3 +68,7 @@
 - import_playbook: maas-openstack-barbican.yml
   tags:
     - maas-openstack
+
+- import_playbook: maas-openstack-masakari.yml
+  tags:
+    - maas-openstack
