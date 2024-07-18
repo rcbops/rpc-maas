@@ -157,6 +157,16 @@ ironic_local_api_port: '6385'
 ironic_local_api_protocol: 'http'
 
 #
+# masakari_local_api_port: Port number for the local masakri api service
+#
+masakari_local_api_port:  "{{ masakari_service_port | default('15868') }}"
+
+#
+# masakari_local_api_protocol: Protocol for the local masakari API checks
+#
+masakari_local_api_protocol: "{{ masakari_service_proto | default('http') }}"
+
+#
 # horizon service
 #
 horizon_service_protocol: 'https'
