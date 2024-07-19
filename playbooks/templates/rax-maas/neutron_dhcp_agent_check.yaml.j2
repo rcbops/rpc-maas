@@ -1,7 +1,7 @@
 {% from "templates/common/macros.jinja" import get_metadata with context %}
 {% set label = "neutron_dhcp_agent_check" %}
 {% set check_name = label+'--'+inventory_hostname %}
-{% set service_host = ansible_nodename + ansible_local['maas']['general']['local_suffix'] | default('') %}
+{% set service_host = ansible_fqdn %}
 type        : agent.plugin
 label       : "{{ check_name }}"
 period      : "{{ maas_check_period_override[label] | default(maas_check_period) }}"
