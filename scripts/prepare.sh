@@ -25,6 +25,10 @@ fi
 # Install required packages
 . /root/ansible_venv/bin/activate
 pip install -r /opt/rpc-maas/requirements.txt
+
+ansible-galaxy collection install community.rabbitmq
+ansible-galaxy collection install openstack.cloud
+
 deactivate
 
 # Generate a token(non core testing when we have the vars set)
@@ -53,17 +57,16 @@ fi
 
 echo
 echo "Example Playbook Usage Post Configuration:
-cd /opt/rpc-maas/
-. /root/ansible_venv/bin/activate"
+cd /opt/rpc-maas/"
+
 if [ $isRH ]; then
-  echo "ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py -e @/home/stack/user_maas_variables.yml  playbooks/site.yml"
+  echo "scripts/maas-ansible -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py playbooks/site.yml"
 else
-  echo ". /usr/local/bin/openstack-ansible.rc"
   echo "# When present add the Ceph inventory to update the maas checks on"
   echo "# the ceph nodes"
   echo 'export ANSIBLE_INVENTORY="$ANSIBLE_INVENTORY,/tmp/inventory-ceph.ini"'
   echo ""
-  echo "openstack-ansible playbooks/site.yml"
+  echo "scripts/maas-ansible playbooks/site.yml"
 fi
 
 echo "deactivate"
