@@ -51,6 +51,7 @@ The values for the url and auth token can be found in /root/maas-vars.rc after.
 
 ```
 /root/ansible_venv/bin/python3 tests/maasutils.py --username <pubcloud_username> --api-key <pubcloud_api_key> get_token_url
+
 Credentials file written to "/root/maas-vars.rc"
 ```
 
@@ -131,26 +132,24 @@ maas_swift_accesscheck_password: "<some random pass>"
 
 ```
 cd /opt/rpc-maas
-. /root/ansible_venv/bin/activate
-. /usr/local/bin/openstack-ansible.rc
+scripts/prepare.sh
 
 # When present add the Ceph inventory to update the maas checks on
 # the ceph nodes
 export ANSIBLE_INVENTORY="$ANSIBLE_INVENTORY,/tmp/inventory-ceph.ini"
 
-ansible-playbook playbooks/maas-verify.yml -f 75
-deactivate
+scripts/maas-ansible playbooks/maas-verify.yml -f 75
 ```
 
 ### RedHat OSP
 
 ```
 cd /opt/rpc-maas
-. /root/ansible_venv/bin/activate
-ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
-                 -e @/home/stack/user_maas_variables.yml \
-                 -f 75 playbooks/site.yml
-deactivate
+scripts/prepare.sh
+
+scripts/maas-ansible -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
+                     -e @/home/stack/user_maas_variables.yml \
+                     -f 75 playbooks/site.yml
 
 ```
 
@@ -160,26 +159,22 @@ deactivate
 
 ```
 cd /opt/rpc-maas
-. /root/ansible_venv/bin/activate
-. /usr/local/bin/openstack-ansible.rc
 
 # When present add the Ceph inventory to update the maas checks on
 # the ceph nodes
 export ANSIBLE_INVENTORY="$ANSIBLE_INVENTORY,/tmp/inventory-ceph.ini"
 
-ansible-playbook playbooks/maas-verify.yml -f 75
-deactivate
+scripts/maas-ansible playbooks/maas-verify.yml -f 75
 ```
 
 ### RedHat OSP
 
 ```
 cd /opt/rpc-maas
-. /root/ansible_venv/bin/activate
-ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
-                 -e @/home/stack/user_maas_variables.yml \
-                 -f 75 playbooks/maas-verify.yml
-deactivate
+
+scripts/maas-ansible -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
+                     -e @/home/stack/user_maas_variables.yml \
+                     -f 75 playbooks/maas-verify.yml
 ```
 
 ### Rally performance checks(OSP only, if required by customer)
@@ -218,11 +213,10 @@ maas_rally_check_overrides:
 ```
 cd /opt/rpc-maas
 . /home/stack/overcloudrc
-. /root/ansible_venv/bin/activate
-ansible-playbook -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
-                 -e @/home/stack/user_maas_variables.yml  \
-                 -e "keystone_auth_admin_password=${OS_PASSWORD}" \
-                 -f 75 playbooks/maas-openstack-rally.yml 
-deactivate
+
+scripts/maas-ansible -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
+                     -e @/home/stack/user_maas_variables.yml  \
+                     -e "keystone_auth_admin_password=${OS_PASSWORD}" \
+                     -f 75 playbooks/maas-openstack-rally.yml 
 ```
 
