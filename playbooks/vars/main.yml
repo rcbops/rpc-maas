@@ -46,7 +46,7 @@ nova_metadata_api_protocol: 'http'
 #                         service checks. Valid values are "http" or
 #                         "https".
 rabbitmq_http_protocol: 'http'
-rabbitmq_http_port: '15672'
+rabbitmq_mgmt_port: '15672'
 
 #
 # neutron_client_protocol: Protocol to use when authenticating for neutron
