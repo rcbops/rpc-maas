@@ -123,20 +123,20 @@
   tasks:
     - name: introspect rabbitmq management ip
       block:
-        - name: Identify rabbitmq management listening address
-          shell: ss -lt | grep -c 127.0.0.1:15672
+        - name: Probe rabbitmq ansible_ssh_host ip
+          shell: "ss -nlt | grep -q {{ ansible_ssh_host }}:{{ rabbitmq_mgmt_port | default('15672') }}"
           register: rabbit_local
           delegate_to: "{{ groups['rabbitmq_all'][0] }}"
           failed_when: rabbit_local.rc >= 2
 
-        - name: Set rabbitmq management to local address
+        - name: Set rabbitmq management to host address
           set_fact:
-            rabbit_local_address: "127.0.0.1"
+            rabbit_local_address: "{{ ansible_ssh_host }}"
           when: rabbit_local.rc == 0
 
     - name: Get list of vhosts
       uri:
-        url: "http://{{ rabbit_local_address | default(container_address | default('localhost')) }}:{{ rabbitmq_mgmt_port | default('15672') }}/api/vhosts"
+        url: "{{ rabbitmq_http_protocol | default('http') }}://{{ rabbit_local_address | default(container_address | default('localhost')) }}:{{ rabbitmq_mgmt_port | default('15672') }}/api/vhosts"
         user: "{{ maas_rabbitmq_user }}"
         password: "{{ maas_rabbitmq_password }}"
         return_content: yes
@@ -147,7 +147,7 @@
 
     - name: Ensure MaaS rabbitmq user has access to all openstack vhosts
       uri:
-        url: "http://{{ rabbit_local_address | default(container_address| default('localhost')) }}:{{ rabbitmq_mgmt_port | default('15672') }}/api/permissions/{{ item.name | urlencode | regex_replace('/','%2F') }}/{{ maas_rabbitmq_user | urlencode }}"
+        url: "{{ rabbitmq_http_protocol | default('http') }}://{{ rabbit_local_address | default(container_address| default('localhost')) }}:{{ rabbitmq_mgmt_port | default('15672') }}/api/permissions/{{ item.name | urlencode | regex_replace('/','%2F') }}/{{ maas_rabbitmq_user | urlencode }}"
         user: "{{ maas_rabbitmq_user }}"
         password: "{{ maas_rabbitmq_password }}"
         method: PUT

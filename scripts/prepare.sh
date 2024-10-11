@@ -1,9 +1,10 @@
 #!/bin/bash
 
-egrep -i 'Centos|RedHat' /etc/redhat-release 2>/dev/null && isRH=1
+egrep -q -i 'Centos|RedHat|Rocky' /etc/redhat-release 2>/dev/null && isRH=true || isRH=false
+egrep -q -i proxy /etc/apt/apt.conf 2>/dev/null && hasProxy=true || hasProxy=false
 
 # Install some dependancies
-if [ $isRH ]; then
+if [ $isRH == true ]; then
   rpm -qi python3-pip python3-virtualenv > /dev/null
   test $? -ne 0 && dnf -y install python3-pip python3-virtualenv
 
@@ -13,6 +14,15 @@ if [ $isRH ]; then
   fi
 else
   apt install -y python3-pip virtualenv
+fi
+
+if [ $hasProxy == true ]; then
+  if [ $isRH == false ]; then
+    export HTTP_PROXY=`awk '/Acquire::http::Proxy/ {str=$2; gsub(";","",str); print str}' /etc/apt/apt.conf`
+    export HTTPS_PROXY=`awk '/Acquire::https::Proxy/ {str=$2; gsub(";","",str); print str}' /etc/apt/apt.conf`
+    export http_proxy=$HTTP_PROXY
+    export https_proxy=$HTTPS_PROXY
+  fi
 fi
 
 # Create the virtual environment
@@ -59,7 +69,7 @@ echo
 echo "Example Playbook Usage Post Configuration:
 cd /opt/rpc-maas/"
 
-if [ $isRH ]; then
+if [ $isRH == true ]; then
   echo "scripts/maas-ansible -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py playbooks/site.yml"
 else
   echo "# When present add the Ceph inventory to update the maas checks on"

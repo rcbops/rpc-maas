@@ -45,8 +45,8 @@ nova_metadata_api_protocol: 'http'
 # rabbitmq_http_protocol: Protocol to use when authenticating for rabbitmq
 #                         service checks. Valid values are "http" or
 #                         "https".
-# TODO Should this be moved to the openstack vars file?
 rabbitmq_http_protocol: 'http'
+rabbitmq_http_port: '15672'
 
 #
 # neutron_client_protocol: Protocol to use when authenticating for neutron
