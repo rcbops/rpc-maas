@@ -18,8 +18,8 @@ fi
 
 if [ $hasProxy == true ]; then
   if [ $isRH == false ]; then
-    export HTTP_PROXY=`awk '/Acquire::http::Proxy/ {str=$2; gsub(";","",str); print str}' /etc/apt/apt.conf`
-    export HTTPS_PROXY=`awk '/Acquire::https::Proxy/ {str=$2; gsub(";","",str); print str}' /etc/apt/apt.conf`
+    export HTTP_PROXY=`awk '/Acquire::http::Proxy/ {str=$2; gsub("[;\"]","",str); print str}' /etc/apt/apt.conf`
+    export HTTPS_PROXY=`awk '/Acquire::https::Proxy/ {str=$2; gsub("[;\"]","",str); print str}' /etc/apt/apt.conf`
     export http_proxy=$HTTP_PROXY
     export https_proxy=$HTTPS_PROXY
   fi
@@ -38,6 +38,7 @@ pip install -r /opt/rpc-maas/requirements.txt
 
 ansible-galaxy collection install community.rabbitmq
 ansible-galaxy collection install openstack.cloud
+ansible-galaxy collection install community.general
 
 deactivate
 
