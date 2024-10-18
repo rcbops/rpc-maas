@@ -34,6 +34,10 @@ fi
 
 # Install required packages
 . /root/ansible_venv/bin/activate
+
+export ANSIBLE_COLLECTIONS_PATHS="${ANSIBLE_COLLECTIONS_PATHS:-/root/ansible_venv/}"
+export ANSIBLE_COLLECTIONS_PATH="${ANSIBLE_COLLECTIONS_PATH:-/root/ansible_venv/}"
+
 pip install -r /opt/rpc-maas/requirements.txt
 
 ansible-galaxy collection install community.rabbitmq

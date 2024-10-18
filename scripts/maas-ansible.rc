@@ -18,7 +18,7 @@ export OSA_CONFIG_DIR="${OSA_CONFIG_DIR:-/etc/openstack_deploy}"
 
 export ANSIBLE_RETRY_FILES_ENABLED="${ANSIBLE_RETRY_FILES_ENABLED:-False}"
 export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-/opt/openstack-ansible/inventory/dynamic_inventory.py,/opt/openstack-ansible/inventory/inventory.ini,${OSA_CONFIG_DIR}/inventory.ini}"
-export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_PATH:-/openstack/log/ansible-logging/ansible.log}"
+export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_PATH:-/opt/rpc-maas/maas-ansible.log}"
 
 mkdir -p "$(dirname ${ANSIBLE_LOG_PATH})" || unset ANSIBLE_LOG_PATH
 export ANSIBLE_PYTHON_INTERPRETER="auto_legacy"
@@ -35,6 +35,9 @@ if [[ "${ANSIBLE_CACHE_PLUGIN}" == "memcached" ]];then
     export ANSIBLE_CACHE_PLUGIN="memory"
   fi
 fi
+
+export ANSIBLE_COLLECTIONS_PATHS="${ANSIBLE_COLLECTIONS_PATHS:-/root/ansible_venv/}"
+export ANSIBLE_COLLECTIONS_PATH="${ANSIBLE_COLLECTIONS_PATH:-/root/ansible_venv/}"
 
 export ANSIBLE_HOST_KEY_CHECKING="${ANSIBLE_HOST_KEY_CHECKING:-False}"
 export ANSIBLE_TIMEOUT="${ANSIBLE_TIMEOUT:-5}"
