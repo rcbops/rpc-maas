@@ -43,6 +43,7 @@ pip install -r /opt/rpc-maas/requirements.txt
 ansible-galaxy collection install community.rabbitmq
 ansible-galaxy collection install openstack.cloud
 ansible-galaxy collection install community.general
+ansible-galaxy collection install ansible.posix
 
 deactivate
 

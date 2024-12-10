@@ -66,10 +66,12 @@ if [ -d "${OSA_ROOT}" -a -f "/usr/local/bin/openstack-ansible.rc" ]; then
   fi
 
 else
-
-  # Assuming we are running outside OSA and pre-configure
-  # the extra vars for OSP.
-  VAR1="/home/stack/user_maas_variables.yml"
+ 
+  if [ -f /home/stack/user_maas_variables.yml ]; then
+    # Assuming we are running outside OSA and pre-configure
+    # the extra vars for OSP.
+    VAR1="/home/stack/user_maas_variables.yml"
+  fi
 
 fi
 

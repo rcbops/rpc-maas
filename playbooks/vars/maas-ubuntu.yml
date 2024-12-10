@@ -52,11 +52,11 @@ maas_apt_validate_certs: True
 #
 maas_repos:
   main:
-    repo: "deb http://stable.packages.cloudmonitoring.rackspace.com/ubuntu-{{ ansible_distribution_version | lower }}-x86_64 cloudmonitoring main"
+    repo: "deb https://stable.packages.cloudmonitoring.rackspace.com/ubuntu-{{ ansible_distribution_version | lower }}-x86_64 cloudmonitoring main"
     state: "present"
     enabled: "yes"
   poller:
-    repo: "deb [arch=amd64] http://stable.poller.packages.cloudmonitoring.rackspace.com/debian cloudmonitoring main"
+    repo: "deb [arch=amd64] https://stable.poller.packages.cloudmonitoring.rackspace.com/debian cloudmonitoring main"
     state: "present"
     enabled: "yes"
 
