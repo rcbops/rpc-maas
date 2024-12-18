@@ -39,11 +39,7 @@ export ANSIBLE_COLLECTIONS_PATHS="${ANSIBLE_COLLECTIONS_PATHS:-/root/ansible_ven
 export ANSIBLE_COLLECTIONS_PATH="${ANSIBLE_COLLECTIONS_PATH:-/root/ansible_venv/}"
 
 pip install -r /opt/rpc-maas/requirements.txt
-
-ansible-galaxy collection install community.rabbitmq
-ansible-galaxy collection install openstack.cloud
-ansible-galaxy collection install community.general
-ansible-galaxy collection install ansible.posix
+ansible-playbook /opt/rpc-maas/scripts/get-ansible-collection-requirements.yml
 
 deactivate
 
