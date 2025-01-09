@@ -138,7 +138,7 @@ scripts/prepare.sh
 # the ceph nodes
 export ANSIBLE_INVENTORY="$ANSIBLE_INVENTORY,/tmp/inventory-ceph.ini"
 
-scripts/maas-ansible playbooks/maas-verify.yml -f 75
+scripts/maas-ansible playbooks/site.yml -f 75
 ```
 
 ### RedHat OSP
@@ -156,6 +156,8 @@ scripts/maas-ansible -i /opt/rpc-maas/inventory/rpcr_dynamic_inventory.py \
 ## Verify the install
 
 ### OpenStack Ansible (OSA)
+
+This can be skipped, until further notice
 
 ```
 cd /opt/rpc-maas
