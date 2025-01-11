@@ -121,7 +121,7 @@
     - name: Skip glance-registry on newer versions
       set_fact:
          skip_glance_registry: true
-      when: "openstack_release in ['victoria', 'wallaby', 'xena']"
+      when: "openstack_release in ['victoria', 'wallaby', 'xena', 'zed', 'caracal', 'epoxy']"
 
   tasks:
     - name: Install glance registry checks
