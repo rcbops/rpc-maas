@@ -13,7 +13,7 @@ Checkout the ***python2*** branch for all release below OSP16 or OpenStack Ussur
 
 MTC is replaced with a shell script that sets up ***/root/ansible_venv*** used for the installation.
 Apart from the removal of MTC the internal documentation can still be used for everything else.
-* [internal monitoring docs](https://pages.github.rackspace.com/rpc-internal/docs-rpc/rpc-monitoring-internal/index.html)
+* [internal monitoring docs](https://pages.github.rackspace.com/rpc-internal/docs-rpc/master/rpc-monitoring-internal/index.html)
 
 ## Download rpc-maas
 
