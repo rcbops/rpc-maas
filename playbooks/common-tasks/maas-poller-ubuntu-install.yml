@@ -18,6 +18,7 @@
     id: "{{ maas_keys.hash_id | default(omit) }}"
     keyserver: "{{ maas_keys.keyserver | default(omit) }}"
     url: "{{ maas_keys.url | default(omit) }}"
+    keyring: "/etc/apt/trusted.gpg.d/rackspace_maas_poller.gpg"
     state: "{{ maas_keys.state }}"
     validate_certs: "{{ maas_apt_validate_certs }}"
   register: add_repo_keys
@@ -30,7 +31,8 @@
     repo: "{{ maas_repos.poller.repo }}"
     state: "{{ maas_repos.poller.state }}"
     filename: "{{ maas_repos.main.filename | default(omit) }}"
-    update_cache: yes
+    update_cache: "{{ (ansible_pkg_mgr == 'apt') | ternary('yes', omit) }}"
+    update_cache_retries: 2
     validate_certs: "{{ maas_apt_validate_certs }}"
   register: add_repos
   until: add_repos is success
@@ -41,5 +43,5 @@
   package:
     name: "{{ maas_poller_distro_packages }}"
     state: "{{ maas_package_state }}"
-    update_cache: yes
+    update_cache: "{{ (ansible_pkg_mgr == 'apt') | ternary('yes', omit) }}"
     cache_valid_time: 600
