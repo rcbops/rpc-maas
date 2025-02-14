@@ -25,7 +25,7 @@ from maas_common import status_ok
 
 SUPPORTED_VERSIONS = set(["7.1.0", "7.4.0", "8.3.0", "8.4.0", "9.1.0",
                           "9.2.0", "9.3.0", "9.4.0", "9.5.0", "10.1.0.1",
-                          "11.0.0.0", "11.0.1.0"])
+                          "11.0.0.0", "11.0.1.0", "11.1.0.0"])
 OM_PATTERN = r'(?:%(field)s)\s+:\s+(%(group_pattern)s)'
 CHASSIS = re.compile(OM_PATTERN %
                      {'field': '^Health', 'group_pattern': r'\w+'},
