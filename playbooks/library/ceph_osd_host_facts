@@ -73,7 +73,7 @@ class OSDHostFacts(object):
         cmd = ceph_command_string.split() + cmd
         try:
             # This command was taken from /etc/init/ceph-osd-all-starter.conf
-            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            output = subprocess.check_output(cmd, shell=False)
             json_output = json.loads(output.decode().strip().split('\n')[-1])
         except subprocess.CalledProcessError as e:
             message = ('Ceph OSD host fact collection failed: "%s", '
