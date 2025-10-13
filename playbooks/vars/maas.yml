@@ -441,10 +441,10 @@ maas_disk_utilisation_critical_threshold: 99
 
 _maas_bonding_interfaces: |
   ---
-  {% for interface in ansible_interfaces %}
-  {% set interface_detail = (hostvars[inventory_hostname]['ansible_%s' | format(interface)] | default({})) %}
-  {%   if (interface_detail and interface_detail['type'] == 'bonding' ) %}
-  - "{{ interface }}"
+  {% for bond in ['bond0', 'bond1'] %}
+  {%   set bond_name = ('ansible_%s' | format(bond)) %}
+  {%   if bond_name in hostvars[inventory_hostname] %}
+  - "{{ bond }}"
   {%   endif %}
   {% endfor %}
 maas_bonding_interfaces: "{{ _maas_bonding_interfaces | from_yaml }}"
