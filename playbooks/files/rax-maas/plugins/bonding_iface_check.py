@@ -55,7 +55,7 @@ def bonding_ifaces_check(_):
                     has_slave_down = True
 
             if line.startswith("Link Failure Count"):
-                failure_count =+ int(line.split(':')[1])
+                failure_count += int(line.split(':')[1])
 
         if has_slave_down:
             metric_bool('host_bonding_iface_%s_slave_down' %
