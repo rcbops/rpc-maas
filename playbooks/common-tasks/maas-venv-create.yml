@@ -80,7 +80,7 @@
       pip:
         name:
           - pip
-          - "{%- if ansible_python.version.major == 2 -%}setuptools<45{% else %}setuptools{% endif %}"
+          - "{%- if ansible_python.version.major == 2 -%}setuptools<45{% else %}setuptools==81.0.0{% endif %}"
         extra_args: >-
           -U --isolated
           {{ pip_install_options | default('') }}
