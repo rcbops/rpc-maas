@@ -51,7 +51,7 @@
       file:
         path: "{{ maas_plugin_dir }}"
         state: directory
-        owner: "{{ ansible_ssh_user | default('root')}}"
+        owner: "{{ ansible_ssh_user | default('root') }}"
         group: "root"
         mode: "0755"
 

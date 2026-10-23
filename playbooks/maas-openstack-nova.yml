@@ -413,7 +413,8 @@
       when:
         - 'physical_host != ansible_host'
         - 'skip_deprecated_check is defined'
-      ignore_errors: True
+      # Best-effort cleanup of checks removed in Victoria.
+      ignore_errors: True  # noqa ignore-errors
 
     - name: Remove nova nova-console-auth check when necessary (Victoria+)
       file:
@@ -422,7 +423,8 @@
       when:
         - 'physical_host == ansible_host'
         - 'skip_deprecated_check is defined'
-      ignore_errors: True
+      # Best-effort cleanup of checks removed in Victoria.
+      ignore_errors: True  # noqa ignore-errors
 
   vars_files:
     - vars/main.yml
