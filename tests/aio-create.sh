@@ -249,21 +249,6 @@ if [[ ${RE_JOB_SCENARIO} == ceph ]]; then
     TEST_RPC_MAAS="False" RE_JOB_SCENARIO="functional" ./run_tests.sh
   popd
 
-elif [[ ${RE_JOB_SCENARIO} == osp13 ]]; then
-  git clone https://github.com/rcbops/osp-mnaio.git /opt/osp-mnaio
-  pushd /opt/osp-mnaio
-    export OSP_DEPLOY_VERSION=`echo ${RE_JOB_SCENARIO} | tr -d 'osp'`
-    export OSP_JOB_ACTION=${RE_JOB_ACTION}
-    export REDHAT_USERNAME=${RPC_OSP_REDHAT_USERNAME:-''}
-    export REDHAT_PASSWORD=${RPC_OSP_REDHAT_PASSWORD:-''}
-    export REDHAT_POOL_ID=${RPC_OSP_REDHAT_POOL_ID:-''}
-    export REDHAT_ISO_URL=${RPC_OSP_REDHAT_ISO_URL:-''}
-    export REDHAT_CONSUMER_NAME="osp-mnaio-PR-test"
-    export REDHAT_OSP_VERSION=${OSP_DEPLOY_VERSION:-'13'}
-    export REDHAT_OVERCLOUD_REGISTER="true"
-    bash ./build.sh
-  popd
-
 else
     if [[ ${RE_JOB_SCENARIO#rpco-} == ${RE_JOB_SCENARIO} ]]; then
       export OA_DIR="/opt/openstack-ansible"
@@ -392,10 +377,6 @@ else
       elif [[ "${RE_JOB_SCENARIO}" == "stein" ]]; then
         git checkout "stable/stein"  # Branch checkout of Stein (Current Stable)
         export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
-
-      elif [[ "${RE_JOB_SCENARIO}" == "train" ]]; then
-        git checkout "stable/train"  # Branch checkout of Train (Current Stable)
-        export ANSIBLE_INVENTORY="/opt/openstack-ansible/inventory"
       fi
 
       # Install ovs agent if applicable
@@ -413,7 +394,7 @@ else
       # NOTE(npawelek): Rocky requires a different version to be set, all other
       # releases work with the existing pin
       case ${RE_JOB_SCENARIO} in
-        rocky|stein|train)
+        rocky|stein)
           true
           ;;
         *)

@@ -48,11 +48,6 @@ export ANSIBLE_LOG_DIR="${TESTING_HOME}/.ansible/logs"
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_DIR}/ansible-functional.log"
 export ANSIBLE_GATHER_TIMEOUT="${ANSIBLE_GATHER_TIMEOUT:-30}"
 
-if [[ ${RE_JOB_SCENARIO} == osp13 ]]; then
-  # Env vars prep for osp 13
-  export ANSIBLE_HOST_KEY_CHECKING="false"
-  export WORKING_DIR="/opt/rpc-maas"
-  export ANSIBLE_INVENTORY="${ANSIBLE_INVENTORY:-$WORKING_DIR/inventory/rpcr_dynamic_inventory.py}"
 if [[ ${RE_JOB_SCENARIO} == osp16 ]]; then
   # Env vars prep for osp 16
   export ANSIBLE_HOST_KEY_CHECKING="false"
@@ -97,7 +92,7 @@ esac
 # ansible that is not available in liberty and mitaka. There is no reason
 # to run it in a ceph context either.
 case ${RE_JOB_SCENARIO} in
-  kilo|*liberty|*mitaka|ceph|osp13|osp16|rocky|stein)
+  kilo|*liberty|*mitaka|ceph|osp16|rocky|stein)
     export TEST_PLAYBOOK="${TEST_PLAYBOOK:-$WORKING_DIR/tests/test.yml}"
     ;;
   *)
@@ -347,9 +342,6 @@ execute_ansible_playbook ${TEST_SETUP_PLAYBOOK}
 
 # Enable MaaS API testing if the cloud variables are set.
 if [[ ! "${PUBCLOUD_USERNAME:-false}" == false ]] && [[ ! "${PUBCLOUD_API_KEY:-false}" == false ]]; then
-  if [[ "${RE_JOB_SCENARIO}" == "osp13" ]]; then
-    install_director_dev_packages
-  fi
   if [[ "${RE_JOB_SCENARIO}" == "osp16" ]]; then
     install_director_dev_packages
   fi
