@@ -32,14 +32,7 @@ export OSA_REQUIREMENTS_CHECKOUT="stable/stein"
 export UPPER_CONSTRAINTS_FILE="https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=${OSA_REQUIREMENTS_CHECKOUT}"
 export OSA_TEST_DEPS="https://git.openstack.org/cgit/openstack/openstack-ansible-tests/plain/test-ansible-deps.txt?h=${OSA_TESTS_CHECKOUT}"
 
-if [[ ${RE_JOB_SCENARIO} = osp13 ]]; then
-  env | egrep "(RE|PUBCLOUD)_" | sed "s/^/export /g" > ${TEST_DIR}/RE_ENV
-
-  echo "RE_ENV_file to set: \n"
-  cat ${TEST_DIR}/RE_ENV
-
-  exit 0
-elif [[ ${RE_JOB_SCENARIO} == osp16 ]]; then
+if [[ ${RE_JOB_SCENARIO} == osp16 ]]; then
   env | egrep "(RE|PUBCLOUD)_" | sed "s/^/export /g" > ${TEST_DIR}/RE_ENV
 
   echo "RE_ENV_file to set: \n"

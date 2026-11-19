@@ -1,0 +1,27 @@
+# Match the legacy playbooks and lint policy without fetching a retired branch.
+ansible-core==2.11.12
+ansible-lint==5.0.10
+bandit==1.7.5
+bashate==2.1.1
+doc8==0.11.2
+docutils==0.17.1
+flake8==3.8.4
+Jinja2==3.0.3
+MarkupSafe==2.0.1
+openstackdocstheme==2.4.0
+pbr==5.11.1
+# pbr and the docs theme still import pkg_resources.
+setuptools==79.0.1
+PyYAML==6.0.2
+Sphinx==4.5.0
+sphinxmark==0.2.0
+Pillow==9.5.0
+netaddr==0.8.0
+# These releases still support Sphinx 4 and ansible-lint 5's APIs.
+sphinxcontrib-applehelp==1.0.4
+sphinxcontrib-devhelp==1.0.2
+sphinxcontrib-htmlhelp==2.0.1
+sphinxcontrib-qthelp==1.0.3
+sphinxcontrib-serializinghtml==1.1.5
+rich==10.16.2
+ruamel.yaml==0.17.21
