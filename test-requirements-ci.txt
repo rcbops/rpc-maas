@@ -11,7 +11,7 @@ MarkupSafe==2.0.1
 openstackdocstheme==2.4.0
 pbr==5.11.1
 # pbr and the docs theme still import pkg_resources.
-setuptools==79.0.1
+setuptools==84.1.0
 PyYAML==6.0.2
 Sphinx==4.5.0
 sphinxmark==0.2.0
