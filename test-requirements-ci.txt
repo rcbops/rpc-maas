@@ -15,7 +15,7 @@ setuptools==79.0.1
 PyYAML==6.0.2
 Sphinx==4.5.0
 sphinxmark==0.2.0
-Pillow==9.5.0
+Pillow==13.0.0
 netaddr==0.8.0
 # These releases still support Sphinx 4 and ansible-lint 5's APIs.
 sphinxcontrib-applehelp==1.0.4
