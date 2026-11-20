@@ -25,6 +25,22 @@ Submitting Code
 
 Submit a PR directly to GitHub which will then be reviewed and merged where appropriate.
 
+Running static checks
+^^^^^^^^^^^^^^^^^^^^^
+
+Use Python 3.10 and the self-contained CI configuration::
+
+    python3 -m pip install 'tox>=4,<5'
+    python3 -m tox -c tox-ci.ini
+
+To run only the bond detection regression tests::
+
+    python3 -m tox -c tox-ci.ini -e bond-detection
+
+The CI configuration preserves the legacy lint rules and uses compatible test
+dependencies. It does not change deployment requirements. The original
+``tox.ini`` remains available for the OSA functional deployment tests.
+
 Extra
 -----
 

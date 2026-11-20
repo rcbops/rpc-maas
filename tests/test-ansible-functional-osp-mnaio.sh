@@ -18,7 +18,7 @@
 
 set -exu
 
-echo "Run Maas tests on an OSP13 Multi Node AIO (MNAIO)"
+echo "Run Maas tests on an OSP Multi Node AIO (MNAIO)"
 
 # set up command wrapper and host entry
 export MNAIO_DIRECTOR='ssh -ttt -oStrictHostKeyChecking=no 192.168.24.2'
@@ -48,7 +48,7 @@ EOC
 
 # start the osp rpc-maas install from director
 ${MNAIO_DIRECTOR} "source /opt/rpc-maas/tests/RE_ENV && /opt/rpc-maas/tests/test-ansible-functional.sh"
-echo "OSP13 MNAIO Maas tests completed..."
+echo "OSP MNAIO Maas tests completed..."
 
 function gate_job_exit_tasks {
   # This environment variable captures the exit code
