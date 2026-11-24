@@ -5,7 +5,6 @@
 bashate
 doc8
 flake8
-sphinxmark==0.2.0
 bandit
 Sphinx
 openstackdocstheme
