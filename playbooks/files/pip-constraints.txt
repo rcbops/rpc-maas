@@ -1,1 +1,3 @@
 ### Requirements for RAX-MaaS
+# Monitorstack uses click's resultcallback API, which click 8.1 removed.
+click==7.1.2
