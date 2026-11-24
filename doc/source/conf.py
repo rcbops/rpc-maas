@@ -42,7 +42,6 @@ import os
 extensions = [
     'sphinx.ext.autodoc',
     'openstackdocstheme',
-    'sphinxmark'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -321,18 +320,4 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
-
-
-watermark = os.popen("git branch --contains $(git rev-parse HEAD)\
-| awk -F/ '/stable/ {print $2}'").read().strip(' \n\t').capitalize()
-if watermark == "":
-    watermark = "Pre-release"
-
-# -- Options for sphinxmark -----------------------------------------------
-sphinxmark_enable = True
-sphinxmark_div = 'docs-body'
-sphinxmark_image = 'text'
-sphinxmark_text = watermark
-sphinxmark_text_color = (128, 128, 128)
-sphinxmark_text_size = 70
 
